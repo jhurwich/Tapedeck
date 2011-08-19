@@ -1,0 +1,16 @@
+{
+  "name": "Einplayer",
+  "version": "0.0.1",
+  "description": "The one player for the web.",
+  "browser_action": {
+    "default_icon": "images/pink-cassette-icon.png"
+  },
+  "content_scripts" : [
+    {
+      "matches": ["<all_urls>"],
+      "js" : ["einplayer_inject_all.js"],
+      "css" : ["einplayer_inject_all.css"],
+      "run_at" : "document_start"
+    }
+  ]
+}
