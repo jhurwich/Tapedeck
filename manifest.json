@@ -5,12 +5,13 @@
   "browser_action": {
     "default_icon": "images/pink-cassette-icon.png"
   },
+  "background_page" :"backend/einplayer-background.html",
   "content_scripts" : [
     {
-      "matches": ["<all_urls>"],
-      "js" : ["einplayer-inject-all.js"],
-      "css" : ["einplayer-inject-all.css"],
-      "run_at" : "document_start"
+      "matches" : ["<all_urls>"],
+      "js"      : ["frontend/einplayer-inject-all.js"],
+      "css"     : ["frontend/einplayer-inject-all.css"],
+      "run_at"  : "document_start"
     }
   ]
 }

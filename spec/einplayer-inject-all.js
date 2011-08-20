@@ -1,1 +1,0 @@
-../einplayer-inject-all.js

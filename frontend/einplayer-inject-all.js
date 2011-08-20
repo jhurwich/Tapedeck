@@ -6,7 +6,8 @@ var EinInjected = {
     var htmlDOM = document.getElementsByTagName("html")[0];
     
     EinInjected.einplayerFrame = document.createElement("iframe");
-    EinInjected.einplayerFrame.src = chrome.extension.getURL("einplayer.html");
+    EinInjected.einplayerFrame.src =
+      chrome.extension.getURL("frontend/einplayer.html");
     EinInjected.einplayerFrame.id = "einplayer-frame";
     EinInjected.einplayerFrame.setAttribute("hidden", true);
     

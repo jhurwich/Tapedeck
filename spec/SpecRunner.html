@@ -3,20 +3,23 @@
 <html>
 <head>
   <title>Jasmine Test Runner</title>
-  <link rel="stylesheet" type="text/css" href="lib/jasmine.css">
-  <script type="text/javascript" src="lib/jasmine.js"></script>
-  <script type="text/javascript" src="lib/jasmine-html.js"></script>
-  <script type="text/javascript" src="lib/jquery-1.6.2.js"></script>
-  <script type="text/javascript" src="lib/jasmine-jquery-1.3.1.js"></script>
+  <link rel="stylesheet" type="text/css" href="vendor/jasmine.css">
+  <script type="text/javascript" src="vendor/jasmine.js"></script>
+  <script type="text/javascript" src="vendor/jasmine-html.js"></script>
+  <script type="text/javascript" src="vendor/jquery-1.6.2.js"></script>
+  <script type="text/javascript" src="vendor/jasmine-jquery-1.3.1.js"></script>
 
   <!-- We won't get the injection because we are at chrome-extension://
        so force is here -->
-  <link rel="stylesheet" type="text/css" href="einplayer-inject-all.css">
-  <script type="text/javascript" src="einplayer-inject-all.js"></script>
+  <link rel="stylesheet" type="text/css" href="refs/einplayer-inject-all.css">
+  <script type="text/javascript" src="refs/einplayer-inject-all.js"></script>
 
   <!-- include spec files here... -->
   <script type="text/javascript" src="SpecHelper.js"></script>
+  <script type="text/javascript" src="models/track-spec.js"></script>
+  <script type="text/javascript" src="models/tracklist-spec.js"></script>
   <script type="text/javascript" src="injection-spec.js"></script>
+  <script type="text/javascript" src="player-spec.js"></script>
 
 </head>
 <body>
