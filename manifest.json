@@ -8,8 +8,8 @@
   "content_scripts" : [
     {
       "matches": ["<all_urls>"],
-      "js" : ["einplayer_inject_all.js"],
-      "css" : ["einplayer_inject_all.css"],
+      "js" : ["einplayer-inject-all.js"],
+      "css" : ["einplayer-inject-all.css"],
       "run_at" : "document_start"
     }
   ]
