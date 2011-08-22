@@ -1,13 +1,12 @@
 // App object for Einplayer
-var Einplayer = {
+var Einplayer = { };
+Einplayer.Backend = {
   Models: {},
   Views: {},
   Controllers: {},
   Collections: {},
 
   init: function() {
-
-    // Start the History
-    Backbone.history.start();
+    Einplayer.Backend.TemplateManager.init();
   }
 };

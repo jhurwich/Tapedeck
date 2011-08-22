@@ -1,4 +1,11 @@
 beforeEach(function() {
+
+  this.Einplayer = {};
+  this.Einplayer.Backend = chrome.extension
+                                 .getBackgroundPage()
+                                 .Einplayer
+                                 .Backend;
+  
   this.addMatchers({
     
     // A track model must reflect the JSON from which it was created in 

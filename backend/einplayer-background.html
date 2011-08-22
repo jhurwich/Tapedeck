@@ -1,15 +1,30 @@
 <html>
+  <head>
+    <!-- Vendor includes -->
+    <script type="text/javascript" src="vendor/jquery-1.6.2.js"></script>
+    <script type="text/javascript" src="vendor/underscore.js"></script>
+    <script type="text/javascript" src="vendor/backbone.js"></script>
+  
+    <!-- Initialize -->
+    <script type="text/javascript" src="einplayer-backend-init.js"></script>
+    <script type="text/javascript" src="einplayer-templatemanager.js"></script>
+  
+    <!-- Models -->
+    <script type="text/javascript" src="models/track.js"></script>
+    <script type="text/javascript" src="models/tracklist.js"></script>
 
-  <!-- Vendor includes -->
-  <script type="text/javascript" src="vendor/jquery-1.6.2.js"></script>
-  <script type="text/javascript" src="vendor/underscore.js"></script>
-  <script type="text/javascript" src="vendor/backbone.js"></script>
+    <!-- Default Views -->
+    <script type="text/javascript" src="views/tracklist-view.js"></script>
+    <script type="text/javascript" src="views/einplayer-view.js"></script>
 
-  <!-- Initialize -->
-  <script type="text/javascript" src="einplayer-init.js"></script>
 
-  <!-- Models -->
-  <script type="text/javascript" src="models/track.js"></script>
-  <script type="text/javascript" src="models/tracklist.js"></script>
+    <script type="text/javascript">
+      $(function() {
+          Einplayer.Backend.init()
+      });
+    </script>
+
+    
+  </head>
   
 </html>

@@ -1,3 +1,3 @@
-Einplayer.Models.Track = Backbone.Model.extend({
+Einplayer.Backend.Models.Track = Backbone.Model.extend({
 
 });

@@ -1,1 +1,0 @@
-/home/jhurwich/Documents/Projects/einplayer/frontend/einplayer-inject-all.js
