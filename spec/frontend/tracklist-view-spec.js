@@ -9,7 +9,7 @@ describe("TrackList View", function() {
       },
       {
         trackName   : "Animal Parade",
-        artistName  : "Buily By Animals",
+        artistName  : "Built By Animals",
         src         : "http://www.theburningear.com/media/2011/03/Built-By-Animals-Animal-Parade.mp3",
       },
       {
@@ -20,8 +20,25 @@ describe("TrackList View", function() {
     ];
   });
 
-  it ("should have some tests", function() {
-    expect(false).toBeTruthy();
+  it ("should have rows for each track when rendered", function() {
+    var trackList = new this.Einplayer
+                        .Backend
+                        .Collections
+                        .TrackList(this.trackJSONs);
+                        
+    var viewScript = this.Einplayer
+                         .Backend
+                         .TemplateManager
+                         .getViewScript("TrackList");
+
+    console.log(viewScript);
+    var view = new viewScript({ trackList: trackList });
+    
+    var listDOM = view.render();
+    console.log(listDOM);
+    var rows  = $(listDOM).find(".row");
+    
+    expect(rows.length).toEqual(this.trackJSONs.length);
     
   });
     

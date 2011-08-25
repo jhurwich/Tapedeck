@@ -17,7 +17,24 @@
     <script type="text/javascript" src="views/tracklist-view.js"></script>
     <script type="text/javascript" src="views/einplayer-view.js"></script>
 
+    <script id="Player-default-template" type="text/template">
+       <div class="player">
 
+      </div>
+    </script>
+
+    <script id="TrackList-default-template" type="text/template">
+      <ul>
+      <% for (var i=0; i < trackList.length; i++) {
+        var track = trackList[i];
+      %>
+          <li class="row"> <%= track.trackName %> </li>
+        
+      <% } %>
+      </ul>
+      
+    </script>
+  
     <script type="text/javascript">
       $(function() {
           Einplayer.Backend.init()

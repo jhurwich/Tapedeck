@@ -1,7 +1,7 @@
 Einplayer.Backend.Views.Player = Backbone.View.extend({
 
   requiredTemplates: [
-    "player",
+    "Player",
   ],
 
   initialize: function() {

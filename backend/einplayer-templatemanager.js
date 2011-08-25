@@ -8,7 +8,6 @@ Einplayer.Backend.TemplateManager = {
   ],
 
   init: function() {
-    
     this.packages["default"] = Einplayer.Backend.Views;
   },
 
@@ -21,8 +20,11 @@ Einplayer.Backend.TemplateManager = {
     }
   },
 
-  getViewScript: function(scriptName) {
-    return this.packages[this.currentPackage][scriptName];
+  getViewScript: function(scriptName, packageName) {
+    if (typeof packageName == "undefined") {
+      packageName = this.currentPackage;
+    }
+    return this.packages[packageName][scriptName];
   },
 
   getTemplate: function(templateName, packageName) {
@@ -30,11 +32,8 @@ Einplayer.Backend.TemplateManager = {
       packageName = this.currentPackage;
     }
 
-    var packageTemplates = $("div#" + packageName + "-templates");
-    var template =
-      packageTemplates.children("script#" + templateName + "-template")
-                      .first();
+    var templateSelector = "script#" + templateName + "-" + packageName + "-template"
 
-    return template;
+    return $(templateSelector).html();
   }
 }

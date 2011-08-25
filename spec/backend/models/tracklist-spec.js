@@ -26,7 +26,7 @@ describe("TrackList Model", function() {
                             .Backend
                             .Collections
                             .TrackList(this.trackJSONs);
-                            
+    console.log(trackList.toJSON());                          
     expect(trackList.length).toEqual(this.trackJSONs.length);
 
     trackList.add(this.trackJSONs[0]);
