@@ -35,3 +35,10 @@ beforeEach(function() {
     this.Einplayer.Frontend = einplayerFrame[0].contentWindow.Einplayer.Frontend;
   });
 });
+
+var waitsForFrontendInit = function() {
+  // Convenience method to wait for the frontend's initialization
+  waitsFor(function() {
+    return ($("#einplayer-frame").contents().find(".player").length > 0);
+  }, "Timedout waiting for #app to be swapped out", 1000);
+}

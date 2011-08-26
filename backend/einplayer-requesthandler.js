@@ -11,7 +11,11 @@ Einplayer.Backend.RequestHandler = {
         var rendered = Einplayer.Backend.TemplateManager.renderView
                                 (scriptName, request.options, packageName);
 
-        sendResponse({ view: $(rendered).html() });
+        var viewString = $('<div>').append($(rendered))
+                                   .remove()
+                                   .html();
+        console.log(viewString);
+        sendResponse({ view: viewString });
         break;
       default:
         throw new Error("handleRequest was sent an unknown action");

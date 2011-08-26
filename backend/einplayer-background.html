@@ -19,9 +19,8 @@
     <script type="text/javascript" src="views/einplayer-view.js"></script>
 
     <script id="Player-default-template" type="text/template">
-       <div class="player">
-
-      </div>
+      <div id="queue-list" class="tracklist"></div>
+      <div id="browse-list" class="tracklist"></div>
     </script>
 
     <script id="TrackList-default-template" type="text/template">
@@ -29,9 +28,9 @@
         var track = trackList[i];
       %>
         <div class="row">
-          <div class="trackName-col"> <%= track.trackName %> </div>
-          <div class="artistName-col"> <%= track.artistName %> </div>
-          <div class="cassette-col"> <%= track.cassette %> </div>
+          <div class="cell trackName-col"> <%= track.trackName %> </div>
+          <div class="cell artistName-col"> <%= track.artistName %> </div>
+          <div class="cell cassette-col"> <%= track.cassette %> </div>
         </div>
       <% } %>
     </script>

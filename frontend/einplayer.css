@@ -1,0 +1,38 @@
+.tracklist {
+  display: table;
+  width: 334px;
+  border: solid 2px rgb(66,66,66);
+  background-color: rgb(233,233,233);
+  margin-bottom: 4px;
+}
+
+.tracklist .row {
+  display: table-row;
+  width: 330px;
+}
+
+.tracklist .row:last-child {
+  border-bottom: none;
+}
+
+.tracklist .cell {
+  display: table-cell;
+  float: left;
+  font: 14px arial,sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: solid 1px rgb(50,153,187);
+  border-bottom: solid 1px rgb(50,153,187);
+}
+
+.tracklist .cell.trackName-col {
+  width: 150px;
+}
+.tracklist .cell.artistName-col {
+  width: 100px;
+}
+.tracklist .cell.cassette-col {
+  border-right: none;
+  width: 78px;
+}

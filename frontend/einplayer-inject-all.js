@@ -62,7 +62,7 @@ var EinInjected = {
     htmlDOM.appendChild(sideButtons);
   },
   
-  toolbarWidth: 300,
+  toolbarWidth: 350,
   openDrawer: function() {
     EinInjected.einplayerFrame.removeAttribute("hidden");
 
@@ -119,7 +119,7 @@ var EinInjected = {
         var style = window.getComputedStyle(div);
         if(style.position == "fixed") {
           var right = style.right;
-          var newSpot = right ? parseInt(right) : 300;
+          var newSpot = right ? parseInt(right) : EinInjected.toolbarWidth;
           var oldSpot = newSpot - EinInjected.toolbarWidth;
           div.style.right = oldSpot + "px";
           div.einMoved = null;    

@@ -31,8 +31,7 @@ Einplayer.Backend.TemplateManager = {
     if (!this.isValidPackage(packageName)) {
       packageName = this.currentPackage;
     }
-    if (!this.packages[packageName]) console.log("no pkg");
-    if (!this.packages[packageName][scriptName]) console.log("no script");
+    
     return this.packages[packageName][scriptName];
   },
 

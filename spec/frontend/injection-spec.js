@@ -17,10 +17,8 @@ describe("After content-scripts are injected", function() {
   });
 
   it("should render the Player view into the iframe", function() {
-    waitsFor(function() {
-      return ($("#einplayer-frame").contents().find(".player").length > 0);
-    }, "Timedout waiting for #app to be swapped out", 1000);
-    
+    // we need to give Einplayer.Frontend.init time to run
+    waitsForFrontendInit();
     runs(function() {
       expect($("#einplayer-frame").contents()).toContain(".player");
     });
