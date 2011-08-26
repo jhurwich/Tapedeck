@@ -11,7 +11,7 @@
   width: 330px;
 }
 
-.tracklist .row:last-child {
+.tracklist .row:last-child > .cell{
   border-bottom: none;
 }
 
