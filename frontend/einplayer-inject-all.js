@@ -12,7 +12,13 @@ var EinInjected = {
     EinInjected.einplayerFrame.setAttribute("hidden", true);
     
     htmlDOM.appendChild(EinInjected.einplayerFrame);
-  
+
+    EinInjected.injectSideButtons();
+  },
+
+  injectSideButtons: function() {
+    var htmlDOM = document.getElementsByTagName("html")[0];
+     
     var sideButtons = document.createElement('div');
     sideButtons.id = 'ein-injected-buttons';
     

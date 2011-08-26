@@ -5,6 +5,7 @@ describe("Track Model", function() {
     this.trackJSON = {
       trackName   : "Beards Again",
       artistName  : "MSTRKRFT",
+      cassette    : "The Burning Ear",
       src         : "http://www.theburningear.com/media/2011/03/MSTRKRFT-BEARDS-AGAIN.mp3",      
     };
   });

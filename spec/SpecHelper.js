@@ -1,13 +1,6 @@
 beforeEach(function() {
-
-  this.Einplayer = {};
-  this.Einplayer.Backend = chrome.extension
-                                 .getBackgroundPage()
-                                 .Einplayer
-                                 .Backend;
-  
+ 
   this.addMatchers({
-    
     // A track model must reflect the JSON from which it was created in 
     // order to be considered valid.
     toReflectJSON: function(expectedJSON) {
@@ -19,5 +12,26 @@ beforeEach(function() {
       }
       return true;
     }
-  })
+  });
+
+  this.Einplayer = {};
+  this.Einplayer.Backend = chrome.extension
+                                 .getBackgroundPage()
+                                 .Einplayer
+                                 .Backend;
+  var frameLoaded = false;
+  var einplayerFrame = $("#einplayer-frame");
+
+  einplayerFrame.load(function() {
+    frameLoaded = true
+  });
+  einplayerFrame[0].contentWindow.location.reload(true);
+  
+  waitsFor(function() {
+    return frameLoaded;
+  }, "Timedout attaching to frame", 1000);
+
+  runs(function() {
+    this.Einplayer.Frontend = einplayerFrame[0].contentWindow.Einplayer.Frontend;
+  });
 });

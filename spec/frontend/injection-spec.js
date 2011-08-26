@@ -1,4 +1,5 @@
 describe("After content-scripts are injected", function() {
+  
   beforeEach(function() {
   });
 
@@ -13,6 +14,16 @@ describe("After content-scripts are injected", function() {
 
   it("should have the einplayer iframe", function() {
     expect($("#einplayer-frame")).toExist();
+  });
+
+  it("should render the Player view into the iframe", function() {
+    waitsFor(function() {
+      return ($("#einplayer-frame").contents().find(".player").length > 0);
+    }, "Timedout waiting for #app to be swapped out", 1000);
+    
+    runs(function() {
+      expect($("#einplayer-frame").contents()).toContain(".player");
+    });
   });
 
   it("should open the drawer when draweropen is clicked", function() {

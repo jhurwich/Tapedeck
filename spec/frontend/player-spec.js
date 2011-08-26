@@ -1,9 +1,10 @@
-describe("Within the player frame", function() {
-  var einplayerFrame;
+describe("Player View", function() {
   
-  beforeEach(function() {
-    einplayerFrame = $("#einplayer-frame")[0];
-    einplayerFrame.contentWindow.location.reload(true);
+  it("should render two tracklists when rendered", function() {
+    
   });
 
+  it ("should render properly through the TemplateManager", function() {
+
+  });
 });

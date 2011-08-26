@@ -20,20 +20,38 @@ Einplayer.Backend.TemplateManager = {
     }
   },
 
+  renderView: function(scriptName, options, packageName) {
+    var viewScript = this.getViewScript(scriptName, packageName);
+    var view = new viewScript(options);
+    
+    return view.render();
+  },
+
   getViewScript: function(scriptName, packageName) {
-    if (typeof packageName == "undefined") {
+    if (!this.isValidPackage(packageName)) {
       packageName = this.currentPackage;
     }
+    if (!this.packages[packageName]) console.log("no pkg");
+    if (!this.packages[packageName][scriptName]) console.log("no script");
     return this.packages[packageName][scriptName];
   },
 
   getTemplate: function(templateName, packageName) {
-    if (typeof packageName == "undefined") {
+    if (!this.isValidPackage(packageName)) {
       packageName = this.currentPackage;
     }
 
     var templateSelector = "script#" + templateName + "-" + packageName + "-template"
 
     return $(templateSelector).html();
-  }
+  },
+
+  isValidPackage: function(packageName) {
+    if (typeof packageName == "undefined" ||
+        !packageName ||
+        packageName.length <= 0) {
+      return false;
+    }
+    return (packageName in this.packages) ;
+  },
 }

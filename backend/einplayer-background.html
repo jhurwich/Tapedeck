@@ -1,13 +1,14 @@
 <html>
   <head>
     <!-- Vendor includes -->
-    <script type="text/javascript" src="vendor/jquery-1.6.2.js"></script>
-    <script type="text/javascript" src="vendor/underscore.js"></script>
-    <script type="text/javascript" src="vendor/backbone.js"></script>
+    <script type="text/javascript" src="/vendor/jquery-1.6.2.js"></script>
+    <script type="text/javascript" src="/vendor/underscore.js"></script>
+    <script type="text/javascript" src="/vendor/backbone.js"></script>
   
     <!-- Initialize -->
     <script type="text/javascript" src="einplayer-backend-init.js"></script>
     <script type="text/javascript" src="einplayer-templatemanager.js"></script>
+    <script type="text/javascript" src="einplayer-requesthandler.js"></script>
   
     <!-- Models -->
     <script type="text/javascript" src="models/track.js"></script>
@@ -24,23 +25,24 @@
     </script>
 
     <script id="TrackList-default-template" type="text/template">
-      <ul>
       <% for (var i=0; i < trackList.length; i++) {
         var track = trackList[i];
       %>
-          <li class="row"> <%= track.trackName %> </li>
-        
+        <div class="row">
+          <div class="trackName-col"> <%= track.trackName %> </div>
+          <div class="artistName-col"> <%= track.artistName %> </div>
+          <div class="cassette-col"> <%= track.cassette %> </div>
+        </div>
       <% } %>
-      </ul>
-      
     </script>
   
     <script type="text/javascript">
       $(function() {
           Einplayer.Backend.init()
       });
+      chrome.extension.onRequest.addListener
+        (Einplayer.Backend.RequestHandler.handleRequest);
     </script>
-
     
   </head>
   

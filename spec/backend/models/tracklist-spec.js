@@ -6,16 +6,19 @@ describe("TrackList Model", function() {
       {
         trackName   : "Beards Again",
         artistName  : "MSTRKRFT",
+        cassette    : "The Burning Ear",
         src         : "http://www.theburningear.com/media/2011/03/MSTRKRFT-BEARDS-AGAIN.mp3",      
       },
       {
         trackName   : "Animal Parade",
         artistName  : "Buily By Animals",
+        cassette    : "The Burning Ear",
         src         : "http://www.theburningear.com/media/2011/03/Built-By-Animals-Animal-Parade.mp3",
       },
       {
         trackName   : "Rad Racer",
         artistName  : "Work Drugs",
+        cassette    : "The Burning Ear",
         src         : "http://www.theburningear.com/media/2011/03/Work-Drugs-Rad-Racer-Final.mp3",
       }
     ];
@@ -26,7 +29,7 @@ describe("TrackList Model", function() {
                             .Backend
                             .Collections
                             .TrackList(this.trackJSONs);
-    console.log(trackList.toJSON());                          
+                               
     expect(trackList.length).toEqual(this.trackJSONs.length);
 
     trackList.add(this.trackJSONs[0]);
