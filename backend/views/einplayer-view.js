@@ -49,18 +49,32 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
     queueView.id = queueListID;
     $(this.el).find("#" + queueListID).replaceWith(queueView);
 
-    var browseTrackList = new Einplayer.Backend.Collections.TrackList
-                                               (this.demoTrackJSONs);
+    var cassetteMgr = Einplayer.Backend.CassetteManager;
 
-    var browseView = Einplayer.Backend
-                             .TemplateManager
-                             .renderView("TrackList",
-                                         { trackList: browseTrackList });
-                                         
-    var browseListID = "browse-list";
-    browseView.id = browseListID;
-    $(this.el).find("#" + browseListID).replaceWith(browseView);
-    var browseList = $(this.el).find("#browse-list");
+    var loadCassettesAndBrowse = function(context) {
+      browseTrackJSONs = "";
+      if (cassetteMgr.currentCassette) {
+        browseTrackJSONs = cassetteMgr.currentCassette
+                                      .getBrowseList(context);
+      }
+      else {
+        // TODO show CassetteList in front
+      }
+      var browseTrackList = new Einplayer.Backend.Collections.TrackList
+                                                 (browseTrackJSONs);
+  
+      var browseView = Einplayer.Backend
+                                .TemplateManager
+                                .renderView("TrackList",
+                                            { trackList: browseTrackList });
+                                           
+      var browseListID = "browse-list";
+      browseView.id = browseListID;
+      $(this.el).find("#" + browseListID).replaceWith(browseView);
+    }
+    
+    Einplayer.Backend.Utils.getContext(loadCassettesAndBrowse);
+    
     return this.el;
   },
 });

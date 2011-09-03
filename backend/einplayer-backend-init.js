@@ -1,12 +1,16 @@
 // App object for Einplayer
-var Einplayer = { };
-Einplayer.Backend = {
-  Models: {},
-  Views: {},
-  Controllers: {},
-  Collections: {},
+if (typeof Einplayer == "undefined") {
+  var Einplayer = { };
+  Einplayer.Backend = { };
+}
 
-  init: function() {
-    Einplayer.Backend.TemplateManager.init();
-  }
+Einplayer.Backend.Models = { };
+Einplayer.Backend.Cassettes = { };
+Einplayer.Backend.Collections = { };
+Einplayer.Backend.Views = { };
+Einplayer.Backend.Controllers = { };
+Einplayer.Backend.init = function() {
+  Einplayer.Backend.CassetteManager.init();
+  Einplayer.Backend.TemplateManager.init();
+  Einplayer.Backend.MessageHandler.init();
 };

@@ -6,13 +6,19 @@
     <script type="text/javascript" src="/vendor/backbone.js"></script>
   
     <!-- Initialize -->
+    <script type="text/javascript" src="einplayer-utils.js"></script>
     <script type="text/javascript" src="einplayer-backend-init.js"></script>
+    <script type="text/javascript" src="einplayer-cassettemanager.js"></script>
     <script type="text/javascript" src="einplayer-templatemanager.js"></script>
-    <script type="text/javascript" src="einplayer-requesthandler.js"></script>
+    <script type="text/javascript" src="einplayer-messagehandler.js"></script>
   
     <!-- Models -->
+    <script type="text/javascript" src="models/cassette.js"></script>
     <script type="text/javascript" src="models/track.js"></script>
     <script type="text/javascript" src="models/tracklist.js"></script>
+
+    <!-- Cassettes -->
+    <script type="text/javascript" src="models/cassettes/scraper-cassette.js"></script>
 
     <!-- Default Views -->
     <script type="text/javascript" src="views/tracklist-view.js"></script>
@@ -40,7 +46,7 @@
           Einplayer.Backend.init()
       });
       chrome.extension.onRequest.addListener
-        (Einplayer.Backend.RequestHandler.handleRequest);
+        (Einplayer.Backend.MessageHandler.handleRequest);
     </script>
     
   </head>

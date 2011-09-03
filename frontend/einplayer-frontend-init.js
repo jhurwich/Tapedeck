@@ -1,17 +1,18 @@
 if (typeof Einplayer == "undefined") {
-  Einplayer = {};
+  var Einplayer = { };
+  Einplayer.Frontend = { };
 }
                           
-Einplayer.Frontend = {
-
-  init: function() {
+Einplayer.Frontend.init = function() {
+  
+  // Messenger init must handshake with backend asynch
+  Einplayer.Frontend.Messenger.init(function() {
     var callback = function(response) {
       $("#app").replaceWith(response.view);
     };
     Einplayer.Frontend
-             .Requester
-             .getView("Player", { }, null, callback);
-                               
-  },
-}
+             .Messenger
+             .getView("Player", { }, null, callback);                          
+  });
+};
 

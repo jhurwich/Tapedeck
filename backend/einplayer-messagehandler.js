@@ -1,6 +1,21 @@
-Einplayer.Backend.RequestHandler = {
+Einplayer.Backend.MessageHandler = {
 
-  handleRequest: function(request, sender, sendResponse) {
+  ports: {},
+  init: function() {
+    var self = this;
+    chrome.extension.onConnect.addListener(function(port) {
+      // port.name is a tabId
+      self.ports[port.name] = port;
+
+      port.onMessage.addListener(self.handleMessage.curry(port));
+    });
+  },
+
+  handleMessage: function(port, request) {
+    var response = { };
+    if ("callbackID" in request) {
+      response.callbackID = request.callbackID;
+    }
     switch(request.action)
     {
       case "getView":
@@ -14,11 +29,16 @@ Einplayer.Backend.RequestHandler = {
         var viewString = $('<div>').append($(rendered))
                                    .remove()
                                    .html();
-        console.log(viewString);
-        sendResponse({ view: viewString });
+        response.view = viewString;
+        port.postMessage(response);
         break;
       default:
         throw new Error("handleRequest was sent an unknown action");
     }
+  },
+  
+
+  handleRequest: function(request, sender, sendResponse) {
+
   },
 };

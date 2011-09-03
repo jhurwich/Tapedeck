@@ -13,5 +13,6 @@
       "css"     : ["frontend/einplayer-inject-all.css"],
       "run_at"  : "document_start"
     }
-  ]
+  ],
+  "permissions": ["tabs"]
 }
