@@ -23,7 +23,7 @@ beforeEach(function() {
   var einplayerFrame = $("#einplayer-frame");
 
   einplayerFrame.load(function() {
-    frameLoaded = true
+    frameLoaded = true;
   });
   einplayerFrame[0].contentWindow.location.reload(true);
   

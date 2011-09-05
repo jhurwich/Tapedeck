@@ -8,21 +8,16 @@ Einplayer.Backend.Utils = {
     var context = {};
     var isContextComplete = function(contextCheck) {
       if (!("document" in contextCheck)) {
-        console.log("FALSE");
         return false;
       }
       return true;
     };
 
-    chrome.windows.getLastFocused(function(focusWin) {
-      chrome.tabs.getSelected(focusWin.Id, function(selectedTab) {
-        for (var x in selectedTab) {
-          console.log(">" + x  +"<" + selectedTab[x] + "\n");
-        }
-        if (isContextComplete(context)) {
-          callback(context);
-        }
-      });
+    Einplayer.Backend.MessageHandler.getDocument(function(document) {
+      context.document = document;
+      if (isContextComplete(context)) {
+        callback(context);
+      }
     });
   }
 }

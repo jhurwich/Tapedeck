@@ -4,18 +4,34 @@ Einplayer.Backend.MessageHandler = {
   init: function() {
     var self = this;
     chrome.extension.onConnect.addListener(function(port) {
+     
       // port.name is a tabId
-      self.ports[port.name] = port;
+      self.ports[port.tab.id] = port;
 
-      port.onMessage.addListener(self.handleMessage.curry(port));
+      port.onMessage.addListener(self.handleRequest.curry(port));
+      port.onMessage.addListener(self.handleResponse);
     });
   },
-
-  handleMessage: function(port, request) {
-    var response = { };
-    if ("callbackID" in request) {
-      response.callbackID = request.callbackID;
+  
+  pendingCallbacks: {},
+  handleResponse: function(response) {
+    if (response.type != "response") {
+      return;
     }
+    
+    var callbacks = Einplayer.Backend.MessageHandler.pendingCallbacks;
+    if (response.callbackID in callbacks) {
+      callbacks[response.callbackID](response);
+    }
+  },
+
+  handleRequest: function(port, request) {
+    if (request.type != "request") {
+      return;
+    }
+    
+    var response = Einplayer.Backend.MessageHandler.newResponse(request);
+    
     switch(request.action)
     {
       case "getView":
@@ -37,8 +53,79 @@ Einplayer.Backend.MessageHandler = {
     }
   },
   
+  getSelectedTab: function(callback) {
+    chrome.windows.getLastFocused(function(focusWin) {
+      chrome.tabs.getSelected(focusWin.id, function(selectedTab) {
+        callback(selectedTab);
+      });
+    });
+  },
 
-  handleRequest: function(request, sender, sendResponse) {
+  getDocument: function(callback, tab) {
+    if (typeof(tab) == "undefined") {
+      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Einplayer.Backend.MessageHandler.getDocument(callback, selectedTab);
+      });
+      return;
+    }
+
+    var scrapeResponseHandler = function(response, sender, sendResponse) {
+      if (sender.tab.id != tab.id) {
+        console.log("response mismatch for page-scrape");
+        return;
+      }
+
+      callback(response.document);
+      chrome.extension.onRequest.removeListener(scrapeResponseHandler);
+    };
+    chrome.extension.onRequest.addListener(scrapeResponseHandler);
+
+    Einplayer.Backend.MessageHandler
+                     .executeScript(tab,
+                                    {allFrames: false,
+                                     file: "frontend/scripts/scraper.js"});
 
   },
+
+  newRequest: function(object, callback) {
+    var request = (object ? object : { });
+    request.type = "request";
+
+    if (typeof(callback) != "undefined") {
+      var cbID = new Date().getTime();
+      Einplayer.Backend.MessageHandler.pendingCallbacks[cbID] = callback;
+      request.callbackID = cbID;
+    }
+    return request;
+  },
+
+  newResponse: function(request, object) {
+    var response = (object ? object : { });
+    response.type = "response";
+    
+    if ("callbackID" in request) {
+      response.callbackID = request.callbackID;
+    }
+    return response;
+  },
+
+  executeScript: function(tab, options) {
+    if (!Einplayer.Backend.MessageHandler.isTest(tab.url)) {
+      chrome.tabs.executeScript(tab.id, options);
+    }
+    else {
+      var request = Einplayer.Backend.MessageHandler.newRequest({
+        action: "executeScriptInTest",
+        script: options.file,
+      });
+      var port = Einplayer.Backend.MessageHandler.ports[tab.id];
+      port.postMessage(request);
+    }
+  },
+
+  isTest: function(url) {
+    var match = url.match(/chrome-extension.*SpecRunner.html$/);
+    return (match != null);
+  },
+
 };

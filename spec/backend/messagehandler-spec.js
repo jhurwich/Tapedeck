@@ -1,7 +1,7 @@
 describe("Message Handler", function() {
 
   beforeEach(function() {
-
+    waitsForFrontendInit();
   });
   
   it("should return a rendered view when requested", function() {

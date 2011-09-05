@@ -14,5 +14,5 @@
       "run_at"  : "document_start"
     }
   ],
-  "permissions": ["tabs"]
+  "permissions": ["tabs", "http://*/*"]
 }

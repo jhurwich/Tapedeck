@@ -2,7 +2,6 @@ var EinInjected = {
 
   einplayerFrame: null,
   init: function() {
-    
     var htmlDOM = document.getElementsByTagName("html")[0];
     
     EinInjected.einplayerFrame = document.createElement("iframe");
@@ -137,6 +136,11 @@ var EinInjected = {
   },
   prev: function() {
     alert("prev");
+  },
+
+  isTest: function() {
+    var match = window.location.href.match(/chrome-extension.*SpecRunner.html$/);
+    return (match != null);
   },
 }
 

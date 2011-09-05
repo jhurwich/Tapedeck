@@ -39,23 +39,16 @@
   <script type="text/javascript" src="frontend/player-view-spec.js"></script>
   <script type="text/javascript" src="frontend/tracklist-view-spec.js"></script>
 
+  <!-- Manually add programatically injected scripts.
+       In test context they will not run automatically -->
+  <script type="text/javascript" src="/frontend/scripts/scraper.js"></script>
+
 </head>
 <body>
 
 <script type="text/javascript">
   jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
   jasmine.getEnv().execute();
-</script>
-
-<script type="text/javascript">
-  // I always want to see all the tests 
-  var showPassed = document.getElementById
-                           ("__jasmine_TrivialReporter_showPassed__");
-  // showPassed.click();
-  var showSkipped = document.getElementById
-                            ("__jasmine_TrivialReporter_showSkipped__");
-  showSkipped.click();
-  
 </script>
 
 </body>
