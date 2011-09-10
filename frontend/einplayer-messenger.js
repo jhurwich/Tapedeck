@@ -41,11 +41,16 @@ Einplayer.Frontend.Messenger = {
     switch(request.action)
     {
       case "executeScriptInTest":
-              
         var script = request.script;
-        var scriptName = script.replace("frontend/scripts/", "");
-        scriptName = scriptName.replace(".js", "");
-        scriptName = scriptName.charAt(0).toUpperCase() + scriptName.slice(1);
+        var scriptFile = script.replace("frontend/scripts/", "");
+        scriptFile = scriptFile.replace(".js", "");
+
+        var words = scriptFile.split("-");
+        var scriptName = "";
+        for (var i = 0; i < words.length; i++) {
+          scriptName += words[i].charAt(0).toUpperCase() +
+                        words[i].slice(1);
+        }
 
         window.parent.EinInjected[scriptName].start();
         break;

@@ -21,27 +21,36 @@
   <script type="text/javascript" src="SpecHelper.js"></script>
 
   <!-- Test addon management code -->
+  <!--   -->
   <script type="text/javascript" src="backend/einplayer-utils-spec.js"></script>
   <script type="text/javascript" src="backend/cassettemanager-spec.js"></script>
   <script type="text/javascript" src="backend/templatemanager-spec.js"></script>
   <script type="text/javascript" src="backend/messagehandler-spec.js"></script>
   <script type="text/javascript" src="frontend/injection-spec.js"></script>
-  
+
+
   <!-- Models -->
+  <!--   -->
   <script type="text/javascript" src="backend/models/cassette-spec.js"></script>
   <script type="text/javascript" src="backend/models/track-spec.js"></script>
   <script type="text/javascript" src="backend/models/tracklist-spec.js"></script>
 
+  
   <!-- Cassettes -->
+  <!--  -->
   <script type="text/javascript" src="backend/models/cassettes/scraper-cassette-spec.js"></script>
   
+  
   <!-- Views -->
+  <!-- -->
   <script type="text/javascript" src="frontend/player-view-spec.js"></script>
   <script type="text/javascript" src="frontend/tracklist-view-spec.js"></script>
 
+  
   <!-- Manually add programatically injected scripts.
        In test context they will not run automatically -->
-  <script type="text/javascript" src="/frontend/scripts/scraper.js"></script>
+  <script type="text/javascript" src="/frontend/scripts/document-fetcher.js"></script>
+  <script type="text/javascript" src="/frontend/scripts/track-parser.js"></script>
 
 </head>
 <body>

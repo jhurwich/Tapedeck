@@ -38,7 +38,7 @@ Einplayer.Backend.MessageHandler = {
         var scriptName = request.viewName;
         var packageName = (request.packageName ? request.packageName : null);
         
-        
+        request.options["tabID"] = port.tab.id;
         var rendered = Einplayer.Backend.TemplateManager.renderView
                                 (scriptName, request.options, packageName);
 
@@ -54,6 +54,7 @@ Einplayer.Backend.MessageHandler = {
   },
   
   getSelectedTab: function(callback) {
+    console.trace("selected tab");
     chrome.windows.getLastFocused(function(focusWin) {
       chrome.tabs.getSelected(focusWin.id, function(selectedTab) {
         callback(selectedTab);
@@ -76,15 +77,13 @@ Einplayer.Backend.MessageHandler = {
       }
 
       callback(response.document);
-      chrome.extension.onRequest.removeListener(scrapeResponseHandler);
     };
-    chrome.extension.onRequest.addListener(scrapeResponseHandler);
-
     Einplayer.Backend.MessageHandler
                      .executeScript(tab,
                                     {allFrames: false,
-                                     file: "frontend/scripts/scraper.js"});
-
+                                     file: "frontend/scripts/document-fetcher.js"},
+                                    scrapeResponseHandler);
+ 
   },
 
   newRequest: function(object, callback) {
@@ -109,7 +108,16 @@ Einplayer.Backend.MessageHandler = {
     return response;
   },
 
-  executeScript: function(tab, options) {
+  executeScript: function(tab, options, responseCallback) {
+    if (typeof(responseCallback) != "undefined") {
+      var wrappedCallback = function(response, sender, sendResponse) {
+        responseCallback(response, sender, sendResponse);
+        
+        chrome.extension.onRequest.removeListener(arguments.callee);
+      }
+      chrome.extension.onRequest.addListener(wrappedCallback);
+    }
+    
     if (!Einplayer.Backend.MessageHandler.isTest(tab.url)) {
       chrome.tabs.executeScript(tab.id, options);
     }

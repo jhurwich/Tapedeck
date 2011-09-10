@@ -1,4 +1,4 @@
-EinInjected.Scraper = {
+EinInjected.DocumentFetcher = {
 
   start: function() {
     var response = { };
@@ -9,5 +9,5 @@ EinInjected.Scraper = {
 };
 
 if (!EinInjected.isTest()) {
-  EinInjected.Scraper.start();
+  EinInjected.DocumentFetcher.start();
 }

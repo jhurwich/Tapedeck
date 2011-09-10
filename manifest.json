@@ -9,7 +9,8 @@
   "content_scripts" : [
     {
       "matches" : ["<all_urls>"],
-      "js"      : ["frontend/einplayer-inject-all.js"],
+      "js"      : ["frontend/einplayer-inject-all.js",
+                   "vendor/jquery-1.6.2.js"],
       "css"     : ["frontend/einplayer-inject-all.css"],
       "run_at"  : "document_start"
     }

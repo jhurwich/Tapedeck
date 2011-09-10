@@ -19,4 +19,30 @@ describe("Message Handler", function() {
     }, "Request for Player View never processed", 1000);
   });
 
+  it("should execute the correct script with MessageHandler.executeScript", function() {
+    var spy = spyOn(EinInjected.DocumentFetcher, "start").andCallThrough();
+    var testTab = this.findTestTab();
+
+    var testComplete = false;
+
+    var responseCallback = function(sender, response, sendResponse) {
+      testComplete = true;
+    };
+    
+    this.Einplayer.Backend.MessageHandler
+                          .executeScript(testTab,
+                                         {allFrames: false,
+                                          file: "frontend/scripts/document-fetcher.js"},
+                                         responseCallback);
+
+    waitsFor(function() {
+      return testComplete;
+    }, "Waiting for script to execute", 1000);
+
+    runs(function() {
+      expect(spy).toHaveBeenCalled();
+      expect(spy.callCount).toEqual(1);
+    });
+  });
+
 });

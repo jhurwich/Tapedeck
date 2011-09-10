@@ -8,14 +8,18 @@ Einplayer.Backend.Cassettes.ScraperCassette = Einplayer.Backend.Models.Cassette.
       do     : "reload" }
   ],
 
-  getBrowseList: function(context) {
-    // TODO implement
-    /*
-    var viewString = $('<div>').append($(context.document).find('head'))
-                               .append($(context.document).find('body'))
-                               .remove()
-                               .html();
-    console.log("browse list received : \n" + viewString);
-    */
+  getBrowseList: function(context, callback) {
+
+    var handleTracks = function(response, sender, sendResponse) {
+
+      var tracks = response.tracks;
+      callback(response.tracks);
+    };
+    
+    Einplayer.Backend.MessageHandler
+                     .executeScript(context.tab,
+                                    {allFrames: false,
+                                     file: "frontend/scripts/track-parser.js"},
+                                    handleTracks);
   } 
 });

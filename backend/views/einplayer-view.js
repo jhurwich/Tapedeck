@@ -8,6 +8,7 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
   template: null,
 
   initialize: function() {
+    this.tabID = this.options.tabID;
     this.template = _.template(Einplayer.Backend
                                         .TemplateManager
                                         .getTemplate("Player"));
@@ -39,7 +40,7 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
        
     var queueTrackList = new Einplayer.Backend.Collections.TrackList
                                               (this.demoTrackJSONs);
-
+                                              
     var queueView = Einplayer.Backend
                              .TemplateManager
                              .renderView("TrackList",
@@ -52,29 +53,33 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
     var cassetteMgr = Einplayer.Backend.CassetteManager;
 
     var loadCassettesAndBrowse = function(context) {
-      browseTrackJSONs = "";
       if (cassetteMgr.currentCassette) {
-        browseTrackJSONs = cassetteMgr.currentCassette
-                                      .getBrowseList(context);
+        cassetteMgr.currentCassette.getBrowseList(context, function(trackJSONs) {
+          var browseTrackList = new Einplayer.Backend.Collections.TrackList
+                                                     (trackJSONs);
+      
+          var browseView = Einplayer.Backend
+                                    .TemplateManager
+                                    .renderView("TrackList",
+                                                { trackList: browseTrackList });
+                                               
+          var browseListID = "browse-list";
+          browseView.id = browseListID;
+          $(this.el).find("#" + browseListID).replaceWith(browseView);
+        });
       }
       else {
         // TODO show CassetteList in front
       }
-      var browseTrackList = new Einplayer.Backend.Collections.TrackList
-                                                 (browseTrackJSONs);
-  
-      var browseView = Einplayer.Backend
-                                .TemplateManager
-                                .renderView("TrackList",
-                                            { trackList: browseTrackList });
-                                           
-      var browseListID = "browse-list";
-      browseView.id = browseListID;
-      $(this.el).find("#" + browseListID).replaceWith(browseView);
     }
     
-    Einplayer.Backend.Utils.getContext(loadCassettesAndBrowse);
-    
+    chrome.tabs.get(this.tabID, function(tab) {
+      Einplayer.Backend.Utils.getContext(loadCassettesAndBrowse, tab);
+    });
     return this.el;
+  },
+
+  populateBrowseList : function(trackJSONs) {
+
   },
 });

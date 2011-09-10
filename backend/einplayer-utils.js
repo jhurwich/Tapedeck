@@ -4,21 +4,29 @@ if (typeof Einplayer == "undefined") {
 }
 Einplayer.Backend.Utils = {
 
-  getContext: function(callback) {
-    var context = {};
+  CONTEXT_ATTRIBUTES: [
+    "document",
+    "tab"
+  ],
+
+  getContext: function(callback, tab) {
+    var context = { tab: tab };
     var isContextComplete = function(contextCheck) {
-      if (!("document" in contextCheck)) {
-        return false;
+      var attrs =  Einplayer.Backend.Utils.CONTEXT_ATTRIBUTES;
+      for (var i = 0; i < attrs.length; i++) {
+        if (!(attrs[i] in contextCheck)) {
+          return false;
+        }
       }
       return true;
     };
-
+    
     Einplayer.Backend.MessageHandler.getDocument(function(document) {
       context.document = document;
       if (isContextComplete(context)) {
         callback(context);
       }
-    });
+    }, tab);
   }
 }
 

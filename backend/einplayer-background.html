@@ -43,7 +43,7 @@
   
     <script type="text/javascript">
       $(function() {
-          Einplayer.Backend.init()
+          Einplayer.Backend.init();
       });
       chrome.extension.onRequest.addListener
         (Einplayer.Backend.MessageHandler.handleRequest);
