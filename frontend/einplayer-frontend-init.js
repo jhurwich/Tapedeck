@@ -4,7 +4,6 @@ if (typeof Einplayer == "undefined") {
 }
                           
 Einplayer.Frontend.init = function() {
-  
   Einplayer.Frontend.Messenger.init();
 
   var callback = function(response) {

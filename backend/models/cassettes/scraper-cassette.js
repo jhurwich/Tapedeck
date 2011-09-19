@@ -1,6 +1,6 @@
 Einplayer.Backend.Cassettes.ScraperCassette = Einplayer.Backend.Models.Cassette.extend({
 
-  name: "Scraper",
+  cassetteName: "Scraper",
 
   // Don't want the interval event
   events: [
@@ -9,10 +9,12 @@ Einplayer.Backend.Cassettes.ScraperCassette = Einplayer.Backend.Models.Cassette.
   ],
 
   getBrowseList: function(context, callback) {
-
+    var self = this;
     var handleTracks = function(response, sender, sendResponse) {
-
-      var tracks = response.tracks;
+      
+      for (var i in response.tracks) {
+        response.tracks[i].cassette = self.cassetteName;
+      }
       callback(response.tracks);
     };
     

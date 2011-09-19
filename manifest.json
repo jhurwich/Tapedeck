@@ -12,7 +12,7 @@
       "js"      : ["frontend/einplayer-inject-all.js",
                    "vendor/jquery-1.6.2.js"],
       "css"     : ["frontend/einplayer-inject-all.css"],
-      "run_at"  : "document_start"
+      "run_at"  : "document_end"
     }
   ],
   "permissions": ["tabs", "http://*/*"]

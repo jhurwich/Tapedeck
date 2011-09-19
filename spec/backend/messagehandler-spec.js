@@ -45,4 +45,24 @@ describe("Message Handler", function() {
     });
   });
 
+  it("should update the correct view with MessageHandler.pushView" , function() {
+    expect($("#einplayer-frame").contents()).toContain("#browse-list");
+    expect($("#einplayer-frame").contents()).not.toContain("#testdiv");
+    
+    var testDiv = "<div id='testdiv'></div>";
+    var testTab = this.findTestTab();
+    this.Einplayer.Backend.MessageHandler.pushView("browse-list",
+                                                   testDiv,
+                                                   testTab);
+
+   waitsFor(function() {
+      return $("#einplayer-frame").contents().find("#testdiv").length > 0;
+    }, "Timed out waiting for view update", 2000);
+
+    runs(function() {
+      expect($("#einplayer-frame").contents()).not.toContain("#browse-list");
+      expect($("#einplayer-frame").contents()).toContain("#testdiv");
+    });
+  });
+
 });

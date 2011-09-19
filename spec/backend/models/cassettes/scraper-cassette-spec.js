@@ -43,11 +43,6 @@ describe("The Scraper Cassette", function() {
     this.loadTracksIntoDOM = function(trackJSONs, formatFn, consoleStr) {
       for (var i = 0; i < trackJSONs.length; i++) {
         var trackJSON = trackJSONs[i];
-        // console.log(consoleStr + "))))) " + formatFn(trackJSON).html());
-        /* or         console.log(consoleStr +
-         *          $('div').append($(formatFn(trackJSON)))
-         *                  .remove()
-         *                   .html()); */
         testzone.append(formatFn(trackJSON));
       }
     };

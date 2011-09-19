@@ -47,9 +47,30 @@ EinInjected.TrackParser = {
 
     var tracks = [];
     for (var url in resultMap) {
-      tracks.push(resultMap[url]);
+      var track  = resultMap[url];
+      tracks.push(this.cleanTrack(track));
     }
     return tracks;
+  },
+
+  cleanTrack : function(track) {
+    // Sometimes artist names are concatted to trackName,
+    // if we have the trackName but no artist try to figure it out
+    if (track.trackName &&
+        track.trackName.length > 0 &&
+        (!track.artistName || track.artistName.length == 0)) {
+
+      // if the trackName has only one dash or hypen, split on it
+      var pieces = track.trackName.split("–");
+      if (pieces.length < 2) {
+        pieces = track.trackName.split("-");
+      }
+      if (pieces.length == 2) {
+        track.artistName = pieces[0];
+        track.trackName = pieces[1];
+      }
+    }
+    return track;
   },
 
   links : {

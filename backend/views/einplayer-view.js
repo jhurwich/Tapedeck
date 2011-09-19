@@ -55,6 +55,7 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
     var loadCassettesAndBrowse = function(context) {
       if (cassetteMgr.currentCassette) {
         cassetteMgr.currentCassette.getBrowseList(context, function(trackJSONs) {
+          console.log("dump::::" + JSON.stringify(trackJSONs));
           var browseTrackList = new Einplayer.Backend.Collections.TrackList
                                                      (trackJSONs);
       
@@ -62,10 +63,11 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
                                     .TemplateManager
                                     .renderView("TrackList",
                                                 { trackList: browseTrackList });
-                                               
+
           var browseListID = "browse-list";
           browseView.id = browseListID;
-          $(this.el).find("#" + browseListID).replaceWith(browseView);
+          Einplayer.Backend.MessageHandler.pushView(browseListID,
+                                                    browseView);
         });
       }
       else {

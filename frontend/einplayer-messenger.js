@@ -54,13 +54,17 @@ Einplayer.Frontend.Messenger = {
 
         window.parent.EinInjected[scriptName].start();
         break;
+        
+      case "updateView":
+        $("#" + request.targetID).replaceWith(request.view);
+        break;
+      
       default:
         throw new Error("handleRequest was sent an unknown action");
     }
   },
   
   getView: function(viewName, options, packageName, callback) {
-
     var request = Einplayer.Frontend.Messenger.newRequest({
       action     : "getView",
       viewName   : viewName,

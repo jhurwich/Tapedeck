@@ -9,6 +9,7 @@
   width: 350px;
   height: 100%;
   background-color: rgb(188,188,188);
+  z-index: 9999;
 }
 
 body[einplayer-opened] {

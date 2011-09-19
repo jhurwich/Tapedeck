@@ -744,6 +744,21 @@ jasmine.Env.prototype.execute = function() {
 jasmine.Env.prototype.describe = function(description, specDefinitions) {
   var suite = new jasmine.Suite(this, description, specDefinitions, this.currentSuite);
 
+
+  if (!__Jasmine__RUN_ALL_TESTS) {
+    var tests = __Jasmine__TESTS_TO_RUN;
+    var runThisSuite = false;
+    for (var i = 0; i < tests.length; i++) {
+      if (tests[i] == suite.getFullName()) {
+        runThisSuite = true;
+        break;
+      }
+    }
+    if (!runThisSuite) {
+      return;
+    }
+  }
+  
   var parentSuite = this.currentSuite;
   if (parentSuite) {
     parentSuite.add(suite);

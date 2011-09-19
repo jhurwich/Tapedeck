@@ -4,12 +4,16 @@ Einplayer.Backend.MessageHandler = {
   init: function() {
     var self = this;
     chrome.extension.onConnect.addListener(function(port) {
-     
+
       // port.name is a tabId
       self.ports[port.tab.id] = port;
 
       port.onMessage.addListener(self.handleRequest.curry(port));
       port.onMessage.addListener(self.handleResponse);
+
+      port.onDisconnect.addListener(function() {
+        self.ports[port.tab.id] = null;
+      });
     });
   },
   
@@ -54,7 +58,6 @@ Einplayer.Backend.MessageHandler = {
   },
   
   getSelectedTab: function(callback) {
-    console.trace("selected tab");
     chrome.windows.getLastFocused(function(focusWin) {
       chrome.tabs.getSelected(focusWin.id, function(selectedTab) {
         callback(selectedTab);
@@ -83,7 +86,28 @@ Einplayer.Backend.MessageHandler = {
                                     {allFrames: false,
                                      file: "frontend/scripts/document-fetcher.js"},
                                     scrapeResponseHandler);
- 
+  },
+
+  pushView: function(targetID, view, tab) {
+    if (typeof(tab) == "undefined") {
+      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Einplayer.Backend.MessageHandler.pushView(targetID,
+                                                  view,
+                                                  selectedTab);
+      });
+      return;
+    }
+    var viewString = $('<div>').append($(view))
+                               .remove()
+                               .html();
+    var request = Einplayer.Backend.MessageHandler.newRequest({
+      action: "updateView",
+      view: viewString,
+      targetID: targetID,
+    });
+
+    var ports = Einplayer.Backend.MessageHandler.ports;
+    ports[tab.id].postMessage(request);
   },
 
   newRequest: function(object, callback) {
