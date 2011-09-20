@@ -37,14 +37,12 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
 
   render: function() {
     this.el.innerHTML =  this.template({ });
-       
-    var queueTrackList = new Einplayer.Backend.Collections.TrackList
-                                              (this.demoTrackJSONs);
-                                              
+
+    var queueTracks = Einplayer.Backend.Sequencer.queue;
     var queueView = Einplayer.Backend
                              .TemplateManager
                              .renderView("TrackList",
-                                         { trackList: queueTrackList });
+                                         { trackList: queueTracks });
                                          
     var queueListID = "queue-list";
     queueView.id = queueListID;
@@ -58,7 +56,8 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
           console.log("dump::::" + JSON.stringify(trackJSONs));
           var browseTrackList = new Einplayer.Backend.Collections.TrackList
                                                      (trackJSONs);
-      
+
+          Einplayer.Backend.Sequencer.push(browseTrackList.at(0));
           var browseView = Einplayer.Backend
                                     .TemplateManager
                                     .renderView("TrackList",

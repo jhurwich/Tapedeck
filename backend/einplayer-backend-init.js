@@ -13,4 +13,5 @@ Einplayer.Backend.init = function() {
   Einplayer.Backend.CassetteManager.init();
   Einplayer.Backend.TemplateManager.init();
   Einplayer.Backend.MessageHandler.init();
+  Einplayer.Backend.Sequencer.init();
 };
