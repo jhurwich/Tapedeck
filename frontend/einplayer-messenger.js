@@ -1,4 +1,3 @@
-
 if (typeof Einplayer == "undefined") {
   var Einplayer = { };
   Einplayer.Frontend = { };
@@ -74,6 +73,28 @@ Einplayer.Frontend.Messenger = {
     if (packageName && packageName.length > 0) {
       request.packageName = packageName;
     }
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
+  queueTrack: function(trackID) {
+    Einplayer.Frontend.Messenger.queueTracks([trackID]);
+  },
+
+  queueTracks: function(trackIDs) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action   : "queueTracks",
+      trackIDs : trackIDs
+    });
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
+  playTrack: function(trackID) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action  : "playTrack",
+      trackID : trackID
+    });
 
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },

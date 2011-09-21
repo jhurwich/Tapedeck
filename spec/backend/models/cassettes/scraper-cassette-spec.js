@@ -7,38 +7,6 @@ describe("The Scraper Cassette", function() {
     $("body").append(testzone);
     
     // inject some audio files into the page
-    this.testTracks = [
-      {
-        type          : "tumblr",
-        trackName     : "Ultra Thizz",
-        artistName    : "Rustie",
-        url           : "http://www.tumblr.com/audio_file/10011528101/tumblr_lra3d00jJO1qfvyur",
-        location      : "http://postdubstep.tumblr.com/post/10011528101/rustie-ultra-thizz",
-        domain        : "postdubstep.tumblr.com",
-        description   : "A really cool jam.",
-        albumArtSrc   : "http://29.media.tumblr.com/tumblr_lonc8qnYGB1qc4gv0o1_1311189640_cover.jpg",
-      },
-      {
-        type          : "mp3",
-        trackName     : "Rad Racer",
-        artistName    : "Work Drugs",
-        url           : "http://www.theburningear.com/media/2011/03/Work-Drugs-Rad-Racer-Final.mp3",
-        location      : "http://www.theburningear.com/page/26/",
-        domain        : "www.theburningear.com",
-        description   : "Such a rad track.",
-        albumArtSrc   : "http://www.theburningear.com/media/2011/03/Work-Drugs-Rad-Racer-300x300.jpg",
-      },
-      {
-        type          : "mp3",
-        trackName     : "Pretend",
-        artistName    : "Ryden Ridge",
-        url           : "http://www.theburningear.com/media/2011/08/Ryan-Ridge-Pretend.mp3",
-        location      : "http://www.theburningear.com",
-        domain        : "www.theburningear.com",
-        description   : "New, and it rocks.",
-        albumArtSrc   : "http://www.theburningear.com/media/2011/08/Ryan-Ridge-300x300.jpg",
-      },
-    ];
     
     this.loadTracksIntoDOM = function(trackJSONs, formatFn, consoleStr) {
       for (var i = 0; i < trackJSONs.length; i++) {

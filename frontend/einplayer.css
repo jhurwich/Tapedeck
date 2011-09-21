@@ -11,6 +11,19 @@
   width: 330px;
 }
 
+.tracklist .row:hover {
+  background-color: #d0d0d0;
+  cursor: pointer;
+}
+
+.tracklist .row.selected {
+  background-color: #b6b6b6;
+}
+
+.tracklist .row.selected:hover {
+  background-color: #9d9d9d;
+}
+
 .tracklist .row:last-child > .cell{
   border-bottom: none;
 }

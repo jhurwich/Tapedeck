@@ -8,6 +8,7 @@
     <!-- Initialize -->
     <script type="text/javascript" src="einplayer-utils.js"></script>
     <script type="text/javascript" src="einplayer-backend-init.js"></script>
+    <script type="text/javascript" src="einplayer-bank.js"></script>
     <script type="text/javascript" src="einplayer-cassettemanager.js"></script>
     <script type="text/javascript" src="einplayer-templatemanager.js"></script>
     <script type="text/javascript" src="einplayer-messagehandler.js"></script>
@@ -34,10 +35,14 @@
     </script>
 
     <script id="TrackList-default-template" type="text/template">
+      
       <% for (var i=0; i < trackList.length; i++) {
         var track = trackList[i];
       %>
-        <div class="row">
+        <div class="row"
+             index='<%= i %>'
+             trackID='<%= track.id %>'
+             onclick="Einplayer.Frontend.Frame.rowClick(event)">
           <div class="cell trackName-col"> <%= track.trackName %> </div>
           <div class="cell artistName-col"> <%= track.artistName %> </div>
           <div class="cell cassette-col"> <%= track.cassette %> </div>

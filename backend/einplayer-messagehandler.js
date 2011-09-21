@@ -52,6 +52,33 @@ Einplayer.Backend.MessageHandler = {
         response.view = viewString;
         port.postMessage(response);
         break;
+
+      case "queueTracks":
+       
+        var trackIDs = request.trackIDs;
+        var tracks = [];
+        for (var i = 0; i < trackIDs.length; i++) {
+          var track = Einplayer.Backend.Bank.getTrack(trackIDs[i]);
+          tracks.push(track);
+        }
+
+        var index = request.index;
+        if (typeof(index) != "undefined" &&
+            request.index >= 0) {
+          Einplayer.Backend.Sequencer.insertSomeAt(tracks, index);
+        }
+        else {
+          var endPos = Einplayer.Backend.Sequencer.queue.length;
+          Einplayer.Backend.Sequencer.insertSomeAt(tracks, endPos);
+        }
+        break;
+
+      case "playTrack":
+        var trackID = request.trackID;
+        var track = Einplayer.Backend.Bank.getTrack(trackID);
+        Einplayer.Backend.Sequencer.play(track);
+        break;
+        
       default:
         throw new Error("handleRequest was sent an unknown action");
     }

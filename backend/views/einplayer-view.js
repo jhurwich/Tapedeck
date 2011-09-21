@@ -14,27 +14,6 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
                                         .getTemplate("Player"));
   },
 
-  demoTrackJSONs: [
-    {
-      trackName   : "Beards Again",
-      artistName  : "MSTRKRFT",
-      cassette    : "The Burning Ear",
-      src         : "http://www.theburningear.com/media/2011/03/MSTRKRFT-BEARDS-AGAIN.mp3",      
-    },
-    {
-      trackName   : "Animal Parade",
-      artistName  : "Buily By Animals",
-      cassette    : "The Burning Ear",
-      src         : "http://www.theburningear.com/media/2011/03/Built-By-Animals-Animal-Parade.mp3",
-    },
-    {
-      trackName   : "Rad Racer",
-      artistName  : "Work Drugs",
-      cassette    : "The Burning Ear",
-      src         : "http://www.theburningear.com/media/2011/03/Work-Drugs-Rad-Racer-Final.mp3",
-    }
-  ],
-
   render: function() {
     this.el.innerHTML =  this.template({ });
 
@@ -42,7 +21,8 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
     var queueView = Einplayer.Backend
                              .TemplateManager
                              .renderView("TrackList",
-                                         { trackList: queueTracks });
+                                         { trackList: queueTracks,
+                                           rowDblClick : "queueDblClick" });
                                          
     var queueListID = "queue-list";
     queueView.id = queueListID;
@@ -57,11 +37,13 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
           var browseTrackList = new Einplayer.Backend.Collections.TrackList
                                                      (trackJSONs);
 
-          Einplayer.Backend.Sequencer.push(browseTrackList.at(0));
+          Einplayer.Backend.Bank.saveTracks(browseTrackList);
+
           var browseView = Einplayer.Backend
                                     .TemplateManager
                                     .renderView("TrackList",
-                                                { trackList: browseTrackList });
+                                                { trackList   : browseTrackList,
+                                                  rowDblClick : "browseDblClick" });
 
           var browseListID = "browse-list";
           browseView.id = browseListID;
@@ -80,7 +62,4 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
     return this.el;
   },
 
-  populateBrowseList : function(trackJSONs) {
-
-  },
 });

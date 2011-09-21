@@ -14,6 +14,14 @@ Einplayer.Backend.Sequencer = {
     this.queue.bind("reset", this.updateQueueList);
   },
 
+  play: function(track) {
+    var currAudio = new Audio();
+    currAudio.src = track.get("url");
+    currAudio.load();
+    console.log("playing");
+    currAudio.play();
+  },
+
   getAt: function(pos) {
     return this.queue.at(pos);
   },
@@ -47,7 +55,8 @@ Einplayer.Backend.Sequencer = {
                              .TemplateManager
                              .renderView
                              ("TrackList",
-                              { trackList: Einplayer.Backend.Sequencer.queue });
+                              { trackList: Einplayer.Backend.Sequencer.queue,
+                                rowDblClick: "queueDblClick" });
 
     queueView.id = "queue-list";
     Einplayer.Backend.MessageHandler.pushView("queue-list",
