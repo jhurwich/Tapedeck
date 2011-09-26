@@ -117,6 +117,7 @@ Einplayer.Backend.MessageHandler = {
 
   pushView: function(targetID, view, tab) {
     if (typeof(tab) == "undefined") {
+      console.log("pushing to undefined view");
       Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
         Einplayer.Backend.MessageHandler.pushView(targetID,
                                                   view,
