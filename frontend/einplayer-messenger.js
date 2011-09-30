@@ -55,11 +55,16 @@ Einplayer.Frontend.Messenger = {
         break;
         
       case "updateView":
-        $("#" + request.targetID).replaceWith(request.view);
+        Einplayer.Frontend.Frame.replaceView(request.targetID,
+                                             request.view);
+        break;
+
+      case "updatePlayer":
+        Einplayer.Frontend.Frame.Player.update(request.state, request.track);
         break;
       
       default:
-        throw new Error("handleRequest was sent an unknown action");
+        throw new Error("Messenger's handleRequest was sent an unknown action");
     }
   },
   
@@ -73,6 +78,15 @@ Einplayer.Frontend.Messenger = {
     if (packageName && packageName.length > 0) {
       request.packageName = packageName;
     }
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
+  seekCurrentTrack: function(time) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action : "seek",
+      time   : time
+    });
 
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },

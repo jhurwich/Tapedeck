@@ -27,6 +27,51 @@ Einplayer.Backend.Utils = {
         callback(context);
       }
     }, tab);
+  },
+
+  // Adapted from Backbone.js's native method of attaching view events.
+  // Necessary b/c that code normally runs where the View is constructed, 
+  // which would be the backend so events wouldn't be attached.
+  proxyEvents: function(view) {
+    var events = view.proxyEvents;
+    if ($.isEmptyObject(events)) {
+      return;
+    }
+    
+    var cid = view.cid;
+    var el = view.el;
+    
+    var script = document.createElement('pre');
+    $(script).css("display", "none");
+    $(script).addClass("delegate-events");
+    scriptStr = "$('.einplayer-content').unbind('.delegateEvents" + cid + "');\n";
+    
+    for (var key in events) {
+      scriptStr += "var method = Einplayer.Frontend.Frame['" + events[key] + "'];\n"
+      scriptStr += "if (!method) console.log('Event " + events[key] + " does not exist');\n";
+
+      var match = key.match(/^(\S+)\s*(.*)$/);
+      var eventName = match[1], selector = match[2];
+      eventName += ".delegateEvents" + cid;
+
+      scriptStr += "if ('" + selector + "' === '') {\n";
+      scriptStr +=   "$('.einplayer-content').first()" +
+                                            ".bind('" +
+                                                   eventName +
+                                                   "', method);\n"
+      scriptStr += "} else {\n"
+      scriptStr +=    "$('.einplayer-content').first()" +
+                                             ".delegate('" +
+                                                        selector + "', '" +
+                                                        eventName + "', " +
+                                                        "method);\n";
+      scriptStr += "}\n ";
+    }
+    $(el).append($(script).html(scriptStr));
+  },
+
+  domToString: function(dom) {
+    return $('div').append($(dom)).remove().html();
   }
 }
 

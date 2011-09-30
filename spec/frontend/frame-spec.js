@@ -66,9 +66,7 @@ describe("Frontend Frame Logic", function() {
                                     .first()
                                     .children(".row");
 
-    var spy = spyOn(this.Einplayer.Backend.Sequencer, "play");
-    
-    
+    var spy = spyOn(this.Einplayer.Backend.Sequencer, "playTrack");
   });
 
 });

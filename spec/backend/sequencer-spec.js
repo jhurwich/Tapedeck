@@ -4,13 +4,13 @@ describe("Sequencer", function() {
     this.sqcr = this.Einplayer.Backend.Sequencer;
     
     waitsFor(function() {
-      return this.sqcr.currentState != null;
+      return this.sqcr.getCurrentState() != null;
     }, "Timed out waiting for Sequencer init", 1000);
   });
 
   it("should be instantialized and initialized", function() {
     expect(this.sqcr).toBeDefined();
-    expect(this.sqcr.currentState).toBeDefined();
+    expect(this.sqcr.getCurrentState()).toBeDefined();
     expect(this.sqcr.queue).toBeDefined();
   });
 

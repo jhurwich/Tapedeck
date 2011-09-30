@@ -38,7 +38,7 @@ var EinInjected = {
     play.id = 'ein-injected-play';
     play.className = 'ein-injected-button';
     play.src = chrome.extension.getURL("images/pink-play-button.png");
-    play.onclick = EinInjected.play;
+    play.onclick = EinInjected.playPause;
   
     var next = document.createElement('img');
     next.id = 'ein-injected-next';
@@ -128,14 +128,14 @@ var EinInjected = {
   },
   
   
-  play: function() {
-    alert("play");
+  playPause: function() {
+    chrome.extension.sendRequest({action: "play_pause"});
   },
   next: function() {
-    alert("next");
+    chrome.extension.sendRequest({action: "next"});
   },
   prev: function() {
-    alert("prev");
+    chrome.extension.sendRequest({action: "prev"});
   },
 
   isTest: function() {

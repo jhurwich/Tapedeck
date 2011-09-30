@@ -16,11 +16,11 @@ describe("After content-scripts are injected", function() {
     expect($("#einplayer-frame")).toExist();
   });
 
-  it("should render the Player view into the iframe", function() {
+  it("should render the Frame view into the iframe", function() {
     // we need to give Einplayer.Frontend.init time to run
     waitsForFrontendInit();
     runs(function() {
-      expect($("#einplayer-frame").contents()).toContain(".player");
+      expect($("#einplayer-frame").contents()).toContain(".einplayer-content");
     });
   });
 

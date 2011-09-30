@@ -7,12 +7,13 @@ Einplayer.Frontend.init = function() {
   Einplayer.Frontend.Messenger.init();
 
   var callback = function(response) {
-    $("#app").replaceWith(response.view);
+    Einplayer.Frontend.Frame.replaceView("app", response.view);
+    Einplayer.Frontend.Frame.init();
   };
 
   Einplayer.Frontend
            .Messenger
-           .getView("Player", { }, null, callback);                          
+           .getView("Frame", { }, null, callback);                          
 
 };
 

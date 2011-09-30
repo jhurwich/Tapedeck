@@ -263,7 +263,7 @@ describe("The Scraper Cassette", function() {
       var asAudio = function(trackJSON) {
         var post = $("<div class='post'> \
                         <h2></h2>\
-                        <audio id='player' preload controls tabindex='0'> \
+                        <audio id='trackplayer' preload controls tabindex='0'> \
                           <source> \
                           </source> \
                         </audio> \

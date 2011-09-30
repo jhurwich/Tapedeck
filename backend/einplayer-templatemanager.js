@@ -3,6 +3,7 @@ Einplayer.Backend.TemplateManager = {
   packages: {},
   currentPackage: "default",
   requiredScripts: [
+    "Frame",
     "Player",
     "TrackList",
   ],
@@ -21,6 +22,10 @@ Einplayer.Backend.TemplateManager = {
   },
 
   renderView: function(scriptName, options, packageName) {
+    if (typeof(options) == "undefined") {
+      options = { };
+    }
+    
     var viewScript = this.getViewScript(scriptName, packageName);
     var view = new viewScript(options);
     

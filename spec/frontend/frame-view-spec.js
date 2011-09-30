@@ -1,8 +1,12 @@
-describe("Player View", function() {
+describe("Frame View", function() {
 
   beforeEach(function() {
     // We need to wait for Einplayer.Frontend.Init to run
     waitsForFrontendInit();
+  });
+  
+  it("should render the Player when rendered", function() {
+    expect($("#einplayer-frame").contents()).toContain("#player");
   });
   
   it("should render the queue TrackList when rendered", function() {

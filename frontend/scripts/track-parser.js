@@ -1,7 +1,7 @@
 // Props to Dan Kantor @ ExFM for providing a great song-parser template
 // that this implementation was based off of.
 EinInjected.TrackParser = {
-  debug : true,
+  debug : false,
 
   start : function() {
     var tracks = EinInjected.TrackParser.findSongs();

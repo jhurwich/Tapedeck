@@ -1,35 +1,89 @@
-.tracklist {
-  display: table;
-  width: 334px;
-  border: solid 2px rgb(66,66,66);
-  background-color: rgb(233,233,233);
-  margin-bottom: 4px;
+body {
+  margin: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
+.einplayer-content {
+  overflow: hidden;
+  position: relative;
+  margin: 4px;
+}
+
+#player {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+#banner {
+  position: relative;
+  height: 30px;
+  border: solid 2px rgb(66,66,66);
+  margin-bottom: 10px;
+}
+#slider {
+  width: 305px;
+  margin: auto;
+}
+.slider-track {
+  height: 9px;
+  background-repeat: no-repeat;
+  background-color: transparent;
+}
+#slider.disabled {
+  opacity : 0.4;
+}
+#track-left {
+  width: 5px;
+  float: left;
+}
+#handle {
+  position: relative;
+  width: 9px;
+  height: 9px
+}
+#handle-image {
+  height: 12px;
+  margin-top: -4px;
+}
+
+.tracklist {
+  position: relative;
+  display: table;
+  empty-cells: show;
+  border: solid 2px rgb(66,66,66); 
+  background-color: rgb(233,233,233);
+}
 .tracklist .row {
   display: table-row;
-  width: 330px;
 }
-
 .tracklist .row:hover {
   background-color: #d0d0d0;
   cursor: pointer;
 }
-
 .tracklist .row.selected {
   background-color: #b6b6b6;
 }
-
 .tracklist .row.selected:hover {
   background-color: #9d9d9d;
 }
-
+.tracklist .row.listened {
+  background-color: #bfbfbf;
+}
+.tracklist .row.playing .cell{
+  font-weight: bold;
+}
+.tracklist .row:not(.playing) .cell{
+  font-weight: normal !important;
+}
 .tracklist .row:last-child > .cell{
   border-bottom: none;
 }
-
 .tracklist .cell {
   display: table-cell;
+  min-height: 16px;
   float: left;
   font: 14px arial,sans-serif;
   white-space: nowrap;
@@ -49,3 +103,4 @@
   border-right: none;
   width: 78px;
 }
+

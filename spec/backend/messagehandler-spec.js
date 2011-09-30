@@ -7,16 +7,16 @@ describe("Message Handler", function() {
   it("should return a rendered view when requested", function() {
     var requestProcessed = false;
     var callback = function(response) {
-      expect($(response.view)).toHaveClass("player");
+      expect($(response.view)).toHaveClass("einplayer-content");
       requestProcessed = true;
     };
     
     this.Einplayer.Frontend.Messenger.getView
-        ("Player", { }, null, callback);
+        ("Frame", { }, null, callback);
         
     waitsFor(function() {
       return requestProcessed;
-    }, "Request for Player View never processed", 1000);
+    }, "Request for Frame View never processed", 1000);
   });
 
   it("should execute the correct script with MessageHandler.executeScript", function() {

@@ -3,6 +3,8 @@ Einplayer.Backend.MessageHandler = {
   ports: {},
   init: function() {
     var self = this;
+
+    // ports are used for communication with each of our player frames
     chrome.extension.onConnect.addListener(function(port) {
 
       // port.name is a tabId
@@ -14,6 +16,32 @@ Einplayer.Backend.MessageHandler = {
       port.onDisconnect.addListener(function() {
         self.ports[port.tab.id] = null;
       });
+    });
+
+    // requests are used for communicating with items outside of the frame
+    // In particular, this includes the quick buttons
+    chrome.extension.onRequest.addListener(function(request,
+                                                    sender,
+                                                    sendResponse) {
+      switch (request.action) {
+        case "play_pause":
+          var state = Einplayer.Backend.Sequencer.getCurrentState();
+          if (state == "play") {
+            Einplayer.Backend.Sequencer.pause();
+          } else {
+            Einplayer.Backend.Sequencer.playNow();
+          }
+          break;
+        case "next":
+          Einplayer.Backend.Sequencer.next();
+          break;
+        case "prev":
+          Einplayer.Backend.Sequencer.prev();
+          break;
+        default:
+          console.error("Unexpected request action");
+          break;
+      }
     });
   },
   
@@ -49,6 +77,7 @@ Einplayer.Backend.MessageHandler = {
         var viewString = $('<div>').append($(rendered))
                                    .remove()
                                    .html();
+                                   
         response.view = viewString;
         port.postMessage(response);
         break;
@@ -76,14 +105,19 @@ Einplayer.Backend.MessageHandler = {
       case "playTrack":
         var trackID = request.trackID;
         var track = Einplayer.Backend.Bank.getTrack(trackID);
-        Einplayer.Backend.Sequencer.play(track);
+        Einplayer.Backend.Sequencer.playTrack(track);
+        break;
+
+      case "seek":
+        var time = request.time;
+        Einplayer.Backend.Sequencer.Player.seek(time);
         break;
         
       default:
-        throw new Error("handleRequest was sent an unknown action");
+        throw new Error("MessageHandler's handleRequest was sent an unknown action");
     }
   },
-  
+
   getSelectedTab: function(callback) {
     chrome.windows.getLastFocused(function(focusWin) {
       chrome.tabs.getSelected(focusWin.id, function(selectedTab) {
@@ -113,6 +147,28 @@ Einplayer.Backend.MessageHandler = {
                                     {allFrames: false,
                                      file: "frontend/scripts/document-fetcher.js"},
                                     scrapeResponseHandler);
+  },
+  
+  updatePlayer: function(tab) {
+    if (typeof(tab) == "undefined") {
+      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Einplayer.Backend.MessageHandler.updatePlayer(selectedTab);
+      });
+      return;
+    }
+    
+    var sqcr = Einplayer.Backend.Sequencer;
+    var currentState = sqcr.getCurrentState();
+    var request = Einplayer.Backend.MessageHandler.newRequest({
+      action: "updatePlayer",
+      state: currentState
+    });
+    if (currentState != sqcr.Player.STATES.STOP) {
+      request.track = sqcr.getCurrentTrack().toJSON();
+    }
+    
+    var ports = Einplayer.Backend.MessageHandler.ports;
+    ports[tab.id].postMessage(request);
   },
 
   pushView: function(targetID, view, tab) {

@@ -24,9 +24,11 @@
 
     <!-- Default Views -->
     <script type="text/javascript" src="views/tracklist-view.js"></script>
-    <script type="text/javascript" src="views/einplayer-view.js"></script>
+    <script type="text/javascript" src="views/frame-view.js"></script>
+    <script type="text/javascript" src="views/player-view.js"></script>
 
-    <script id="Player-default-template" type="text/template">
+    <script id="Frame-default-template" type="text/template">
+      <div id="player">Player Here</div>
       <strong>Queue</strong>
       <div id="queue-list" class="tracklist"></div>
 
@@ -34,15 +36,35 @@
       <div id="browse-list" class="tracklist"></div>
     </script>
 
+    <script id="Player-default-template" type="text/template">
+      <div id="banner">
+
+      </div>
+
+      <div id="slider">
+        <div id="track-left" class="slider-track"></div>
+        <div id="track-right" class="slider-track">
+          <div id="handle">
+            <img id="handle-image"></img>
+            <div id="handle-val"></div>
+          </div>
+        </div>
+      </div>
+    </script>
+
     <script id="TrackList-default-template" type="text/template">
       
       <% for (var i=0; i < trackList.length; i++) {
         var track = trackList[i];
       %>
-        <div class="row"
+        <div class="row
+                    <% if (track.listened) { print(" listened ") } %>
+                    <% if (track.playing) { print(" playing ") } %>"
              index='<%= i %>'
              trackID='<%= track.id %>'
-             onclick="Einplayer.Frontend.Frame.rowClick(event)">
+             onclick="Einplayer.Frontend.Frame.rowClick(event)"
+             <% if (track.listened) { print("listened=true") } %>
+             <% if (track.playing) { print("playing=true") } %> >
           <div class="cell trackName-col"> <%= track.trackName %> </div>
           <div class="cell artistName-col"> <%= track.artistName %> </div>
           <div class="cell cassette-col"> <%= track.cassette %> </div>
@@ -60,7 +82,7 @@
     
   </head>
   <body>
-    <audio id="player" preload="auto">
+    <audio id="audioplayer" preload="auto">
     </audio>
   </body>
   

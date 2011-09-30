@@ -1,16 +1,11 @@
 Einplayer.Backend.Sequencer = {
-  STATES: { PLAY:   "play",
-            PAUSE:  "pause",
-            STOP:   "stop",
-            LOAD:   "load" },
 
-  currentState: null,
   queue: null,
+  queuePosition: -1, // nothing playing
   init: function() {
     if (!this.Player.playerElement) {
       this.Player.init();
     }
-    this.currentState = this.STATES.STOP;
     this.queue =  new Einplayer.Backend.Collections.TrackList();
     this.queue.bind("add", this.updateQueueList);
     this.queue.bind("remove", this.updateQueueList);
@@ -18,17 +13,31 @@ Einplayer.Backend.Sequencer = {
   },
 
   Player: {
+    STATES: { PLAY:   "play",
+              PAUSE:  "pause",
+              STOP:   "stop",
+              LOAD:   "load" },
+    currentState: null,
+    
+    currentTrack: null,
     playerElement: null,
     init: function() {
-      this.playerElement = $("#player").first();
-      $(this.playerElement).bind("play", this.handlePlay);
-      $(this.playerElement).bind("pause", this.handlePause);
-      $(this.playerElement).bind("ended", this.handleEnded);
-      $(this.playerElement).bind("canplay", this.handleCanPlay);
-      $(this.playerElement).bind("canplaythrough", this.handleCanPlayThrough);
+      this.playerElement = $("#audioplayer").first();
+      this.currentState = this.STATES.STOP;
+      
+      $(this.playerElement).bind("play", this.handlePlay.curry(this));
+      $(this.playerElement).bind("playing", this.handlePlaying.curry(this));
+      $(this.playerElement).bind("pause", this.handlePause.curry(this));
+      $(this.playerElement).bind("ended", this.handleEnded.curry(this));
+      $(this.playerElement).bind("loadstart", this.handleLoadStart.curry(this));
+      $(this.playerElement).bind("durationchange", this.handleDurationChange.curry(this));
+      $(this.playerElement).bind("timeupdate", this.handleTimeUpdate.curry(this));
     },
 
-    play: function() {
+    play: function(track) {
+      this.currentTrack = track;
+      $(this.playerElement).attr("src", track.get("url"));
+      this.playerElement.get(0).load();
       this.playerElement.get(0).play();
     },
     
@@ -36,33 +45,71 @@ Einplayer.Backend.Sequencer = {
       this.playerElement.get(0).pause();
     },
 
-    setSrc: function(src) {
-      $(this.playerElement).attr("src", src);
-      this.playerElement.get(0).load();
+    resume: function() {
+      this.playerElement.get(0).play();
     },
 
-    handlePlay: function() {
-      console.log("play event");
+    seek: function(time) {
+      if (this.playerElement.get(0).duration < time) {
+        console.error("Attempted seek out of bounds");
+        return;
+      }
+      try {
+        this.playerElement.get(0).currentTime = time;
+      } catch (err) {
+        
+        if (err.name == "INVALID_STATE_ERR") {
+          console.error("No resource currently playing to seek");
+        } else {
+          console.error("Unknown error attempting to seek");
+        }
+      }
     },
 
-    handlePause: function() {
+    handlePlay: function(self) {
+      console.log("play");
+      self.currentState = self.STATES.PLAY;
+      Einplayer.Backend.MessageHandler.updatePlayer();
+    },
+    
+    handlePlaying: function(self) {
+      console.log("playing");
+      self.currentState = self.STATES.PLAY;
+      Einplayer.Backend.MessageHandler.updatePlayer();
+    },
+
+    handlePause: function(self) {
       console.log("pause event");
+      self.currentState = self.STATES.PAUSE;
+      Einplayer.Backend.MessageHandler.updatePlayer();
     },
 
-    handleEnded: function() {
+    handleEnded: function(self) {
       console.log("ended event");
-    },
-    
-    handleCanPlay: function() {
-      console.log("canplay event");
-    },
-    
-    handleCanPlayThrough: function() {
-      console.log("canplaythrough event");
+      self.currentState = self.STATES.STOP;
+      Einplayer.Backend.MessageHandler.updatePlayer();
     },
 
+    handleLoadStart: function(self) {
+      console.log("load start");
+      self.currentState = self.STATES.LOAD;
+      Einplayer.Backend.MessageHandler.updatePlayer();
+    },
+    
+    handleDurationChange: function(self) {
+      console.log("duration change event");
+      var duration = self.playerElement.get(0).duration;
+      self.currentTrack.set({ duration : duration },
+                            { silent   : true     });
+    },
 
-    // Codes from http://www.w3.org/TR/html5/video.html#htmlmediaelement
+    handleTimeUpdate: function(self) {
+      var currentTime = self.playerElement.get(0).currentTime;
+      self.currentTrack.set({ currentTime : currentTime},
+                            { silent      : true       });
+    },
+    
+    // Error Codes from http://www.w3.org/TR/html5/video.html#htmlmediaelement
     dumpErrors: function() {
       var err = this.playerElement.get(0).error;
       if (!err) {
@@ -111,14 +158,84 @@ Einplayer.Backend.Sequencer = {
     },
   }, // End Einplayer.Sequencer.Player
 
+  getCurrentState: function() {
+    return this.Player.currentState;
+  },
+  getCurrentTrack: function() {
+    return this.Player.currentTrack;
+  },
   
-  play: function(track) {
-    this.Player.setSrc(track.get("url"));
-    this.Player.play();
+  playTrack: function(track) {
+    var index = this.getIndex(track);
+    this.setQueuePosition(index);
+    this.Player.play(track);
+  },
+  
+  playNow: function() {
+    var state = this.getCurrentState();
+    if (state == "pause") {
+      this.Player.resume();
+    }
+    else if (state == "stop") {
+      var nextTrack = this.getNext();
+      this.playTrack(nextTrack);
+    }
   },
 
+  pause: function() {
+    this.Player.pause();
+  },
+
+  next: function() {
+    var nextTrack = this.getNext();
+    this.playTrack(nextTrack);
+  },
+
+  prev: function() {
+    var state = this.getCurrentState();
+    var currentTime = this.getCurrentTrack().get("currentTime");
+    console.log("currTime:"+ currentTime);
+    if (state == "play" && currentTime > 2) {
+      this.Player.seek(0);
+    }
+    else {
+      var prevTrack = this.getAt(this.queuePosition - 1);
+      this.playTrack(prevTrack);
+    }
+  },
+
+  getIndex: function(track) {
+    return this.queue.indexOf(track);
+  },
   getAt: function(pos) {
     return this.queue.at(pos);
+  },
+  getNext: function() {
+    return this.getAt(this.queuePosition +1);
+  },
+
+  setQueuePosition: function(pos) {
+    this.queuePosition = pos;
+    var count = pos + 1; // listenedCount = queuePosition, + 1 playing
+    this.queue.each(function(track) {
+      count--;
+      if (count < 0) {
+        track.unset("listened", {silent : true});
+        track.unset("playing", {silent : true});
+        return track;
+      }
+      else if (count > 0) {
+        track.unset("playing", {silent : true});
+        return track.set({listened: true },
+                         {silent  : true });
+      }
+      else {
+        track.unset("listened", {silent : true});
+        return track.set({playing: true },
+                         {silent  : true });
+      }
+    });
+    this.updateQueueList();
   },
   
   push: function(track) {
