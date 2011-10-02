@@ -62,6 +62,12 @@ Einplayer.Frontend.Messenger = {
       case "updatePlayer":
         Einplayer.Frontend.Frame.Player.update(request.state, request.track);
         break;
+
+      case "updateSlider":
+        console.log("received updateSlider");
+        Einplayer.Frontend.Frame.Player.updateSlider(request.currentTime,
+                                                     request.duration);
+        break;
       
       default:
         throw new Error("Messenger's handleRequest was sent an unknown action");

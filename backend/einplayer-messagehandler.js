@@ -171,6 +171,24 @@ Einplayer.Backend.MessageHandler = {
     ports[tab.id].postMessage(request);
   },
 
+  updateSlider: function(tab) {
+    if (typeof(tab) == "undefined") {
+      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Einplayer.Backend.MessageHandler.updateSlider(selectedTab);
+      });
+      return;
+    }
+    var track = Einplayer.Backend.Sequencer.getCurrentTrack();
+    var request = Einplayer.Backend.MessageHandler.newRequest({
+      action: "updateSlider",
+      currentTime: track.get("currentTime"),
+      duration: track.get("duration"),
+    });
+
+    var ports = Einplayer.Backend.MessageHandler.ports;
+    ports[tab.id].postMessage(request);
+  },
+
   pushView: function(targetID, view, tab) {
     if (typeof(tab) == "undefined") {
       console.log("pushing to undefined view");

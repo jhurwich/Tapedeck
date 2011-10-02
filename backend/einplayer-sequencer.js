@@ -97,7 +97,6 @@ Einplayer.Backend.Sequencer = {
     },
     
     handleDurationChange: function(self) {
-      console.log("duration change event");
       var duration = self.playerElement.get(0).duration;
       self.currentTrack.set({ duration : duration },
                             { silent   : true     });
@@ -107,6 +106,7 @@ Einplayer.Backend.Sequencer = {
       var currentTime = self.playerElement.get(0).currentTime;
       self.currentTrack.set({ currentTime : currentTime},
                             { silent      : true       });
+      Einplayer.Backend.MessageHandler.updateSlider();
     },
     
     // Error Codes from http://www.w3.org/TR/html5/video.html#htmlmediaelement
@@ -194,7 +194,6 @@ Einplayer.Backend.Sequencer = {
   prev: function() {
     var state = this.getCurrentState();
     var currentTime = this.getCurrentTrack().get("currentTime");
-    console.log("currTime:"+ currentTime);
     if (state == "play" && currentTime > 2) {
       this.Player.seek(0);
     }

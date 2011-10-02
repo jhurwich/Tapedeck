@@ -16,52 +16,59 @@ Einplayer.Frontend.Frame = {
     currentState: null,
 
     update: function(state, track) {
+      this.currentState = state;
       if (typeof(track) != "undefined" &&
           track != null &&
           !$.isEmptyObject(track)) {
         this.currentTrack = track;
+        this.updateBanner(track);
+        this.updateSlider(track.currentTime, track.duration);
       }
-      this.currentState = state;
-      this.updateBanner();
-      this.updateSlider();
+      else {
+        this.updateBanner();
+        this.updateSlider();
+      }
     },
     
-    updateBanner: function() {
+    updateBanner: function(track) {
       // jhawk complicated for load. make sure that's catching
-      if(typeof(this.currentTrack) == "undefined" ||
-         this.currentTrack == null ||
-         $.isEmptyObject(this.currentTrack) ||
+      if(typeof(track) == "undefined" ||
+         track == null ||
+         $.isEmptyObject(track) ||
          this.currentState == "stop" ) {
         $("#banner").html(this.currentState + " playback");
         return;
       }
 
       var bannerString = "";
-      if (typeof(this.currentTrack.artistName) != "undefined" &&
-          this.currentTrack.artistName.length > 0) {
-        bannerString += this.currentTrack.artistName;
+      if (typeof(track.artistName) != "undefined" &&
+          track.artistName.length > 0) {
+        bannerString += track.artistName;
       }
       
-      if (typeof(this.currentTrack.trackName) != "undefined" &&
-          this.currentTrack.trackName.length > 0) {
+      if (typeof(track.trackName) != "undefined" &&
+          track.trackName.length > 0) {
         if (bannerString.length > 0) {
           bannerString += " &ndash; ";
         }
-        bannerString += this.currentTrack.trackName
+        bannerString += track.trackName
       }
       
       $("#banner").html(this.currentState + ": " + bannerString); 
     },
 
-    updateSlider: function() {
+    updateSlider: function(currentTime, duration) {
+
+      if (Einplayer.Frontend.Frame.sliderDrag.dragging) {
+        return;
+      }
+      
       var offset = 0;
       if (this.currentState == "play" ||
           this.currentState == "pause" ) {
         // For playing or paused update the slider
-        if (typeof(this.currentTrack.currentTime) != "undefined" && 
-            typeof(this.currentTrack.duration) != "undefined") {
-          var currentTime = this.currentTrack.currentTime;
-          var duration = this.currentTrack.duration;
+        if (typeof(currentTime) != "undefined" && 
+            typeof(duration) != "undefined") {
           offset = Einplayer.Frontend.Frame.timeToOffset(currentTime,
                                                          duration);
         }
@@ -70,12 +77,12 @@ Einplayer.Frontend.Frame = {
         // For stop or loading reset and disable the slider
         $("#slider").addClass("disabled");
       }
-      
       this.setSlider(offset);
     },
 
     setSlider: function(offset) {
       $("#handle").css('left', offset)
+      $("#debug").html(offset);
     },
   
   },
@@ -96,15 +103,13 @@ Einplayer.Frontend.Frame = {
   },
   
   // kudos to http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
-  clickAndDrag: {
+  sliderDrag: {
+    dragging: false,
     startX: 0,
     offsetX: 0,
-    maxOffset: 0,
-    dragElement: null,
   },
   downOnHandle: function(e) {
-    console.log("down on handle");
-    var clickAndDrag = Einplayer.Frontend.Frame.clickAndDrag;
+    var sliderDrag = Einplayer.Frontend.Frame.sliderDrag;
     var target = e.target;
     while($(target).attr('id') != "handle") {
       target = $(target).parent();
@@ -117,84 +122,73 @@ Einplayer.Frontend.Frame = {
     if ($("#slider").hasClass("disabled")) {
       return;
     }
+
+    sliderDrag.dragging = true;
     
     // grab the mouse position
-    clickAndDrag.startX = e.clientX;
-
-    // determine the max sliding width
-    var sliderWidth = parseInt($("#slider").css("width"));
-    clickAndDrag.maxOffset = sliderWidth - 15; // 15px less looks nice
+    sliderDrag.startX = e.clientX;
     
     // grab the clicked element's position
     var left = parseInt($(target).css('left'));
-    clickAndDrag.offsetX = (left == null || isNaN(left)) ? 0 : left;
-
-    clickAndDrag.dragElement = target;
+    sliderDrag.offsetX = (left == null || isNaN(left)) ? 0 : left;
 
     // tell our code to start moving the element with the mouse
     document.onmousemove = Einplayer.Frontend.Frame.moveHandle;
     
     // cancel out any text selections
     document.body.focus();
-
-    // prevent text selection in IE
-    document.onselectstart = function () { return false; };
-    // prevent IE from trying to drag an image
-    target.ondragstart = function() { return false; };
     
     // prevent text selection (except IE)
     return false;
   },
   
   moveHandle: function(e) {
-    console.log("handling move");   
-    var clickAndDrag = Einplayer.Frontend.Frame.clickAndDrag;
+    var sliderDrag = Einplayer.Frontend.Frame.sliderDrag;
     
     // this is the actual "drag code"
-    var newOffset = (clickAndDrag.offsetX +
+    var newOffset = (sliderDrag.offsetX +
                      e.clientX -
-                     clickAndDrag.startX);
+                     sliderDrag.startX);
     if (newOffset < 0) {
       newOffset = 0;
     }
 
-    if (newOffset > clickAndDrag.maxOffset) {
-      newOffset = clickAndDrag.maxOffset;
+    var sliderWidth = parseInt($("#slider").css("width"));
+    var maxOffset = sliderWidth - 15; // 15px less looks nice
+    if (newOffset > maxOffset) {
+      newOffset = maxOffset;
     }
-        
-    clickAndDrag.dragElement.css('left', newOffset);
+
+    Einplayer.Frontend.Frame.Player.setSlider(newOffset);
   },
   
   mouseUp: function(e) {
-    var clickAndDrag = Einplayer.Frontend.Frame.clickAndDrag;
+    var sliderDrag = Einplayer.Frontend.Frame.sliderDrag;
     
-    if (clickAndDrag.dragElement != null){
+    if (sliderDrag.dragging){
       // we're done with these events until the next OnMouseDown
       document.onmousemove = null;
       document.onselectstart = null;
-      clickAndDrag.dragElement.ondragstart = null;
+      sliderDrag.dragging = false;
 
-      var offset = parseInt(clickAndDrag.dragElement.css('left'));
+      var offset = parseInt($("#handle").css('left'));
       var totalTime = Einplayer.Frontend.Frame.Player.currentTrack.duration;
       var time = Einplayer.Frontend.Frame.offsetToTime(offset, totalTime);
       
       Einplayer.Frontend.Messenger.seekCurrentTrack(time);
-
-      // this is how we know we're not dragging      
-      clickAndDrag.dragElement = null;
     }
   },
   timeToOffset: function(current, totalTime) {
-    if(this.clickAndDrag.maxOffset > 0) {
-      return Math.floor((current/totalTime) * this.clickAndDrag.maxOffset);
-    }
-    return -1;
+    var sliderWidth = parseInt($("#slider").css("width"));
+    var maxOffset = sliderWidth - 15; // 15px less looks nice
+    
+    return Math.floor((current/totalTime) * maxOffset);
   },
   offsetToTime: function(offset, totalTime) {
-    if(this.clickAndDrag.maxOffset > 0) {
-      return Math.floor((offset/this.clickAndDrag.maxOffset) * totalTime);
-    }
-    return -1;
+    var sliderWidth = parseInt($("#slider").css("width"));
+    var maxOffset = sliderWidth - 15; // 15px less looks nice
+
+    return Math.floor((offset/maxOffset) * totalTime);
   },
   
   
