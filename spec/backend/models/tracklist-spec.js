@@ -14,6 +14,4 @@ describe("TrackList Model", function() {
     trackList.remove(trackList.at(this.testTracks.length));
     expect(trackList.length).toEqual(this.testTracks.length);
   });
-
-
 });

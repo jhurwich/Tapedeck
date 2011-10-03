@@ -66,7 +66,16 @@ describe("Frontend Frame Logic", function() {
                                     .first()
                                     .children(".row");
 
-    var spy = spyOn(this.Einplayer.Backend.Sequencer, "playTrack");
+    var spy = spyOn(this.Einplayer.Backend.Sequencer, "playIndex");
+    waitsFor(function() {
+      return spy.callCount > 0;
+    }, "Timed out waiting for tracks to be queued", 1000);
+
+    this.Einplayer.Frontend.Frame.queueDblClick(rows[0]);
+    
+    runs(function() {
+      expect(spy.callCount).toEqual(1);
+    });
   });
 
 });

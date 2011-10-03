@@ -235,8 +235,8 @@ Einplayer.Frontend.Frame = {
   },
 
   queueDblClick: function(row) {
-    var trackID = $(row).attr("trackID");
-    Einplayer.Frontend.Messenger.playTrack(trackID);
+    var index = $(row).attr("index");
+    Einplayer.Frontend.Messenger.playIndex(index);
   },
 
 };

@@ -64,7 +64,6 @@ Einplayer.Frontend.Messenger = {
         break;
 
       case "updateSlider":
-        console.log("received updateSlider");
         Einplayer.Frontend.Frame.Player.updateSlider(request.currentTime,
                                                      request.duration);
         break;
@@ -110,10 +109,10 @@ Einplayer.Frontend.Messenger = {
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
-  playTrack: function(trackID) {
+  playIndex: function(index) {
     var request = Einplayer.Frontend.Messenger.newRequest({
-      action  : "playTrack",
-      trackID : trackID
+      action  : "playIndex",
+      index : index
     });
 
     Einplayer.Frontend.Messenger.port.postMessage(request);

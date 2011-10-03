@@ -40,9 +40,18 @@ Einplayer.Backend.Sequencer = {
       this.playerElement.get(0).load();
       this.playerElement.get(0).play();
     },
+
+    stop: function() {
+      this.playerElement.get(0).pause();
+      $(this.playerElement).removeAttr("src");
+      
+      this.currentState = this.STATES.STOP;
+      Einplayer.Backend.Sequencer.setQueuePosition(-1);
+    },
     
     pause: function() {
       this.playerElement.get(0).pause();
+      self.currentState = self.STATES.PAUSE;
     },
 
     resume: function() {
@@ -79,14 +88,11 @@ Einplayer.Backend.Sequencer = {
     },
 
     handlePause: function(self) {
-      console.log("pause event");
-      self.currentState = self.STATES.PAUSE;
       Einplayer.Backend.MessageHandler.updatePlayer();
     },
 
     handleEnded: function(self) {
-      console.log("ended event");
-      self.currentState = self.STATES.STOP;
+      Einplayer.Backend.Sequencer.next();
       Einplayer.Backend.MessageHandler.updatePlayer();
     },
 
@@ -165,8 +171,8 @@ Einplayer.Backend.Sequencer = {
     return this.Player.currentTrack;
   },
   
-  playTrack: function(track) {
-    var index = this.getIndex(track);
+  playIndex: function(index) {
+    var track = this.getAt(index);
     this.setQueuePosition(index);
     this.Player.play(track);
   },
@@ -177,8 +183,7 @@ Einplayer.Backend.Sequencer = {
       this.Player.resume();
     }
     else if (state == "stop") {
-      var nextTrack = this.getNext();
-      this.playTrack(nextTrack);
+      this.playIndex(this.queuePosition + 1);
     }
   },
 
@@ -187,8 +192,12 @@ Einplayer.Backend.Sequencer = {
   },
 
   next: function() {
-    var nextTrack = this.getNext();
-    this.playTrack(nextTrack);
+    if (this.queuePosition < this.queue.length - 1) {
+      this.playIndex(this.queuePosition + 1);
+    }
+    else {
+      this.Player.stop();
+    }
   },
 
   prev: function() {
@@ -198,24 +207,18 @@ Einplayer.Backend.Sequencer = {
       this.Player.seek(0);
     }
     else {
-      var prevTrack = this.getAt(this.queuePosition - 1);
-      this.playTrack(prevTrack);
+      this.playIndex(this.queuePosition - 1);
     }
   },
 
-  getIndex: function(track) {
-    return this.queue.indexOf(track);
-  },
   getAt: function(pos) {
     return this.queue.at(pos);
-  },
-  getNext: function() {
-    return this.getAt(this.queuePosition +1);
   },
 
   setQueuePosition: function(pos) {
     this.queuePosition = pos;
     var count = pos + 1; // listenedCount = queuePosition, + 1 playing
+    
     this.queue.each(function(track) {
       count--;
       if (count < 0) {
@@ -238,16 +241,21 @@ Einplayer.Backend.Sequencer = {
   },
   
   push: function(track) {
-    this.queue.add(track);
+    this.insertAt(track, this.queue.length);
   },
 
   insertAt: function(track, pos) {
-    this.queue.add(track, { at: pos });
+    this.insertSomeAt([track], pos);
   },
 
   insertSomeAt: function(tracks, pos) {
     for (var i = tracks.length - 1; i >= 0 ; i--) {
-      this.queue.add(tracks[i], { at:pos });
+      var track = tracks[i];
+      if (track instanceof Backbone.Model) {
+        track = track.clone(); // need to clone to allow duplicates in queue
+      }
+
+      this.queue.add(track, { at:pos });
     }
   },
   

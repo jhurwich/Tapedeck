@@ -2,8 +2,13 @@ Einplayer.Backend.Bank = {
 
   tracks: { },
 
+  init: function() {
+
+  },
   
   saveTrack: function(trackModel) {
+    
+    console.log("'" + trackModel.id + "' saving track: " + JSON.stringify(trackModel.toJSON()));
     Einplayer.Backend.Bank.tracks[trackModel.id] = trackModel;
   },
 
@@ -15,6 +20,7 @@ Einplayer.Backend.Bank = {
   },
 
   getTrack: function(trackID) {
+    console.log("getting for " + trackID);
     return Einplayer.Backend.Bank.tracks[trackID];
   },
 }

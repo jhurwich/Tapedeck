@@ -83,7 +83,6 @@ Einplayer.Backend.MessageHandler = {
         break;
 
       case "queueTracks":
-       
         var trackIDs = request.trackIDs;
         var tracks = [];
         for (var i = 0; i < trackIDs.length; i++) {
@@ -102,10 +101,9 @@ Einplayer.Backend.MessageHandler = {
         }
         break;
 
-      case "playTrack":
-        var trackID = request.trackID;
-        var track = Einplayer.Backend.Bank.getTrack(trackID);
-        Einplayer.Backend.Sequencer.playTrack(track);
+      case "playIndex":
+        var index = parseInt(request.index);
+        Einplayer.Backend.Sequencer.playIndex(index);
         break;
 
       case "seek":
@@ -179,12 +177,13 @@ Einplayer.Backend.MessageHandler = {
       return;
     }
     var track = Einplayer.Backend.Sequencer.getCurrentTrack();
+    
     var request = Einplayer.Backend.MessageHandler.newRequest({
       action: "updateSlider",
       currentTime: track.get("currentTime"),
       duration: track.get("duration"),
     });
-
+    
     var ports = Einplayer.Backend.MessageHandler.ports;
     ports[tab.id].postMessage(request);
   },
@@ -202,6 +201,7 @@ Einplayer.Backend.MessageHandler = {
     var viewString = $('<div>').append($(view))
                                .remove()
                                .html();
+
     var request = Einplayer.Backend.MessageHandler.newRequest({
       action: "updateView",
       view: viewString,
