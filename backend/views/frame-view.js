@@ -1,7 +1,7 @@
 Einplayer.Backend.Views.Frame = Backbone.View.extend({
 
   tagName: "div",
-  className: "einplayer-content",
+  id: "einplayer-content",
   requiredTemplates: [
     "Frame",
   ],
@@ -50,7 +50,7 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
                              .renderView("TrackList",
                                          { trackList: queueTracks,
                                            rowDblClick : "queueDblClick" });
-                                         
+    
     var queueListID = "queue-list";
     queueView.id = queueListID;
     $(this.el).find("#" + queueListID).replaceWith(queueView);
@@ -64,7 +64,6 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
     var loadBrowseList = function(context) {
       var currCassette = Einplayer.Backend.CassetteManager.currentCassette;
       currCassette.getBrowseList(context, function(trackJSONs) {
-        console.log("dump::::" + JSON.stringify(trackJSONs));
         var browseTrackList = new Einplayer.Backend.Collections.TrackList
                                                    (trackJSONs);
   

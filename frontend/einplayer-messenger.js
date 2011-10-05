@@ -54,13 +54,9 @@ Einplayer.Frontend.Messenger = {
         window.parent.EinInjected[scriptName].start();
         break;
         
-      case "updateView":
+      case "pushView":
         Einplayer.Frontend.Frame.replaceView(request.targetID,
                                              request.view);
-        break;
-
-      case "updatePlayer":
-        Einplayer.Frontend.Frame.Player.update(request.state, request.track);
         break;
 
       case "updateSlider":
@@ -69,8 +65,17 @@ Einplayer.Frontend.Messenger = {
         break;
       
       default:
-        throw new Error("Messenger's handleRequest was sent an unknown action");
+        throw new Error("Messenger's handleRequest was sent an unknown action '" + request.action + "'");
     }
+  },
+
+  requestUpdate: function(updateType) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action     : "requestUpdate",
+      updateType : updateType
+    });
+    
+    Einplayer.Frontend.Messenger.port.postMessage(request);
   },
   
   getView: function(viewName, options, packageName, callback) {
@@ -87,10 +92,11 @@ Einplayer.Frontend.Messenger = {
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
-  seekCurrentTrack: function(time) {
+  seekPercent: function(percent) {
+    console.log("seekpercent");
     var request = Einplayer.Frontend.Messenger.newRequest({
-      action : "seek",
-      time   : time
+      action  : "seek",
+      percent : percent
     });
 
     Einplayer.Frontend.Messenger.port.postMessage(request);
@@ -104,6 +110,14 @@ Einplayer.Frontend.Messenger = {
     var request = Einplayer.Frontend.Messenger.newRequest({
       action   : "queueTracks",
       trackIDs : trackIDs
+    });
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
+  clearQueue: function() {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action   : "clearQueue"
     });
 
     Einplayer.Frontend.Messenger.port.postMessage(request);

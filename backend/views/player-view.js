@@ -9,7 +9,8 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
 
   proxyEvents: {
     "mousedown #handle": "downOnHandle",
-    "mouseup": "mouseUp"
+    "mouseup": "mouseUp",
+    "onreplace": "forceSliderUpdate"
   },
   
   initialize: function() {
@@ -18,26 +19,22 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
                                         .getTemplate("Player"));
   },
   
-  render: function(state, track, progress) {    
-    switch(state) {
-      case Einplayer.Backend.Sequencer.STOP:
+  render: function() {
+    var player = Einplayer.Backend.Sequencer.Player;
+    var currentState = Einplayer.Backend.Sequencer.getCurrentState();
+    var currentTrack = Einplayer.Backend.Sequencer.getCurrentTrack();
 
-        break;
-      case Einplayer.Backend.Sequencer.LOAD:
-
-        break;
-      case Einplayer.Backend.Sequencer.PAUSE:
-
-        break;
-      case Einplayer.Backend.Sequencer.PLAY:
-
-        break;
-        
+    var options = { state: currentState };
+    if (typeof(currentTrack) != "undefined" &&
+        currentTrack != null &&
+        !($.isEmptyObject(currentTrack))) {
+      options.track = currentTrack.toJSON();
     }
-    this.el.innerHTML =  this.template({ });
+    this.el.innerHTML =  this.template(options);
+    
     this.assignSliderImgs();
 
-    Einplayer.Backend.Utils.proxyEvents(this);
+    Einplayer.Backend.Utils.proxyEvents(this, "playerEvents");
     
     return this.el;
   },

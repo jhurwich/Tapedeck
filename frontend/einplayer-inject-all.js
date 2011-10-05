@@ -13,6 +13,7 @@ var EinInjected = {
     htmlDOM.appendChild(EinInjected.einplayerFrame);
 
     EinInjected.injectSideButtons();
+    EinInjected.checkDrawerOpened();
   },
 
   injectSideButtons: function() {
@@ -63,6 +64,7 @@ var EinInjected = {
   
   toolbarWidth: 350,
   openDrawer: function() {
+    EinInjected.setDrawerOpened(true);
     EinInjected.einplayerFrame.removeAttribute("hidden");
 
     var drawerOpen = document.getElementById("ein-injected-draweropen");
@@ -75,6 +77,22 @@ var EinInjected = {
     bodyDOM.setAttribute("einplayer-opened", true);
   
     EinInjected.moveFixedElements();
+  },
+
+  closeDrawer: function() {
+    EinInjected.setDrawerOpened(false);
+    EinInjected.einplayerFrame.setAttribute("hidden", true);
+
+    var drawerClose = document.getElementById("ein-injected-drawerclose");
+    drawerClose.setAttribute("hidden", true);
+  
+    var drawerOpen = document.getElementById("ein-injected-draweropen");
+    drawerOpen.removeAttribute("hidden");
+    
+    bodyDOM = document.getElementsByTagName("body")[0];
+    bodyDOM.removeAttribute("einplayer-opened");
+    
+    EinInjected.resetFixedElements();
   },
   
   //kudos to StumbleUpon
@@ -95,21 +113,6 @@ var EinInjected = {
     }
   },
 
-  closeDrawer: function() {
-    EinInjected.einplayerFrame.setAttribute("hidden", true);
-
-    var drawerClose = document.getElementById("ein-injected-drawerclose");
-    drawerClose.setAttribute("hidden", true);
-  
-    var drawerOpen = document.getElementById("ein-injected-draweropen");
-    drawerOpen.removeAttribute("hidden");
-    
-    bodyDOM = document.getElementsByTagName("body")[0];
-    bodyDOM.removeAttribute("einplayer-opened");
-    
-    EinInjected.resetFixedElements();
-  },
-
   resetFixedElements: function() {
     var allDivs = document.getElementsByTagName("div");
     for(var i=0; i<allDivs.length; i++) {
@@ -126,7 +129,19 @@ var EinInjected = {
       }
     }
   },
-  
+
+  checkDrawerOpened: function() {
+    chrome.extension.sendRequest({action: "checkDrawer"}, function(response){
+      if (response.opened) {
+        EinInjected.openDrawer();
+      }
+    });
+  },
+
+  setDrawerOpened: function(open) {
+    chrome.extension.sendRequest({ action: "setDrawer",
+                                   opened: open });
+  },
   
   playPause: function() {
     chrome.extension.sendRequest({action: "play_pause"});

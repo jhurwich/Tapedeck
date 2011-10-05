@@ -10,6 +10,7 @@ Einplayer.Backend.Collections = { };
 Einplayer.Backend.Views = { };
 Einplayer.Backend.Controllers = { };
 Einplayer.Backend.init = function() {
+  Einplayer.Backend.Bank.init();
   Einplayer.Backend.CassetteManager.init();
   Einplayer.Backend.TemplateManager.init();
   Einplayer.Backend.MessageHandler.init();

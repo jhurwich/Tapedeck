@@ -8,75 +8,16 @@ if (typeof(Einplayer.Frontend.Frame) != "undefined") {
 
 Einplayer.Frontend.Frame = {
   init : function() {
-    this.Player.update("stop");
+    
   },
   
   Player : { 
-    currentTrack: null,
-    currentState: null,
-
-    update: function(state, track) {
-      this.currentState = state;
-      if (typeof(track) != "undefined" &&
-          track != null &&
-          !$.isEmptyObject(track)) {
-        this.currentTrack = track;
-        this.updateBanner(track);
-        this.updateSlider(track.currentTime, track.duration);
-      }
-      else {
-        this.updateBanner();
-        this.updateSlider();
-      }
-    },
-    
-    updateBanner: function(track) {
-      // jhawk complicated for load. make sure that's catching
-      if(typeof(track) == "undefined" ||
-         track == null ||
-         $.isEmptyObject(track) ||
-         this.currentState == "stop" ) {
-        $("#banner").html(this.currentState + " playback");
-        return;
-      }
-
-      var bannerString = "";
-      if (typeof(track.artistName) != "undefined" &&
-          track.artistName.length > 0) {
-        bannerString += track.artistName;
-      }
-      
-      if (typeof(track.trackName) != "undefined" &&
-          track.trackName.length > 0) {
-        if (bannerString.length > 0) {
-          bannerString += " &ndash; ";
-        }
-        bannerString += track.trackName
-      }
-      
-      $("#banner").html(this.currentState + ": " + bannerString); 
-    },
-
     updateSlider: function(currentTime, duration) {
-
       if (Einplayer.Frontend.Frame.sliderDrag.dragging) {
         return;
       }
-      
-      var offset = 0;
-      if (this.currentState == "play" ||
-          this.currentState == "pause" ) {
-        // For playing or paused update the slider
-        if (typeof(currentTime) != "undefined" && 
-            typeof(duration) != "undefined") {
-          offset = Einplayer.Frontend.Frame.timeToOffset(currentTime,
-                                                         duration);
-        }
-        $("#slider").removeClass("disabled");
-      } else {
-        // For stop or loading reset and disable the slider
-        $("#slider").addClass("disabled");
-      }
+      offset = Einplayer.Frontend.Frame.timeToOffset(currentTime,
+                                                     duration);
       this.setSlider(offset);
     },
 
@@ -84,7 +25,6 @@ Einplayer.Frontend.Frame = {
       $("#handle").css('left', offset)
       $("#debug").html(offset);
     },
-  
   },
   
   replaceView: function(id, viewStr) {
@@ -170,12 +110,11 @@ Einplayer.Frontend.Frame = {
       document.onmousemove = null;
       document.onselectstart = null;
       sliderDrag.dragging = false;
-
-      var offset = parseInt($("#handle").css('left'));
-      var totalTime = Einplayer.Frontend.Frame.Player.currentTrack.duration;
-      var time = Einplayer.Frontend.Frame.offsetToTime(offset, totalTime);
       
-      Einplayer.Frontend.Messenger.seekCurrentTrack(time);
+      var offset = parseInt($("#handle").css('left'));
+      var percent = Einplayer.Frontend.Frame.offsetPercent(offset);
+      
+      Einplayer.Frontend.Messenger.seekPercent(percent);
     }
   },
   timeToOffset: function(current, totalTime) {
@@ -184,11 +123,11 @@ Einplayer.Frontend.Frame = {
     
     return Math.floor((current/totalTime) * maxOffset);
   },
-  offsetToTime: function(offset, totalTime) {
+  offsetPercent: function(offset, totalTime) {
     var sliderWidth = parseInt($("#slider").css("width"));
     var maxOffset = sliderWidth - 15; // 15px less looks nice
 
-    return Math.floor((offset/maxOffset) * totalTime);
+    return (offset/maxOffset);
   },
   
   
@@ -230,13 +169,21 @@ Einplayer.Frontend.Frame = {
   },
 
   browseDblClick: function(row) {
-    var trackID = $(row).attr("trackID");
+    var trackID = $(row).attr("track-id");
     Einplayer.Frontend.Messenger.queueTrack(trackID);
   },
 
   queueDblClick: function(row) {
     var index = $(row).attr("index");
     Einplayer.Frontend.Messenger.playIndex(index);
+  },
+
+  clearQueue: function() {
+    Einplayer.Frontend.Messenger.clearQueue();
+  },
+
+  forceSliderUpdate: function() {
+    Einplayer.Frontend.Messenger.requestUpdate("Slider");
   },
 
 };

@@ -32,19 +32,18 @@ Einplayer.Backend.Utils = {
   // Adapted from Backbone.js's native method of attaching view events.
   // Necessary b/c that code normally runs where the View is constructed, 
   // which would be the backend so events wouldn't be attached.
-  proxyEvents: function(view) {
+  proxyEvents: function(view, viewName) {
     var events = view.proxyEvents;
     if ($.isEmptyObject(events)) {
       return;
     }
     
-    var cid = view.cid;
     var el = view.el;
     
     var script = document.createElement('pre');
     $(script).css("display", "none");
     $(script).addClass("delegate-events");
-    scriptStr = "$('.einplayer-content').unbind('.delegateEvents" + cid + "');\n";
+    scriptStr = "$('#einplayer-content').unbind('.delegateEvents" + viewName + "');\n";
     
     for (var key in events) {
       scriptStr += "var method = Einplayer.Frontend.Frame['" + events[key] + "'];\n"
@@ -52,20 +51,24 @@ Einplayer.Backend.Utils = {
 
       var match = key.match(/^(\S+)\s*(.*)$/);
       var eventName = match[1], selector = match[2];
-      eventName += ".delegateEvents" + cid;
-
-      scriptStr += "if ('" + selector + "' === '') {\n";
-      scriptStr +=   "$('.einplayer-content').first()" +
-                                            ".bind('" +
-                                                   eventName +
-                                                   "', method);\n"
-      scriptStr += "} else {\n"
-      scriptStr +=    "$('.einplayer-content').first()" +
-                                             ".delegate('" +
-                                                        selector + "', '" +
-                                                        eventName + "', " +
-                                                        "method);\n";
-      scriptStr += "}\n ";
+      if (eventName != "onreplace") {
+        eventName += ".delegateEvents" + viewName;
+  
+        scriptStr += "if ('" + selector + "' === '') {\n";
+        scriptStr +=   "$('#einplayer-content').bind('" +
+                                                     eventName +
+                                                     "', method);\n"
+        scriptStr += "} else {\n"
+        scriptStr +=    "$('#einplayer-content').delegate('" +
+                                                          selector + "', '" +
+                                                          eventName + "', " +
+                                                          "method);\n";
+        scriptStr += "}\n ";
+      }
+      else {
+        // onreplace actions should happen immediately
+        scriptStr += "method();\n"
+      }
     }
     $(el).append($(script).html(scriptStr));
   },

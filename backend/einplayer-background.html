@@ -31,6 +31,13 @@
       <div id="player">Player Here</div>
       <strong>Queue</strong>
       <div id="queue-list" class="tracklist"></div>
+      <button id="queue-clear"
+              type="button"
+              onclick="Einplayer.Frontend.Frame.clearQueue()">
+        Clear
+      </button>
+
+      <br />
 
       <strong>Browse</strong>
       <div id="browse-list" class="tracklist"></div>
@@ -38,10 +45,28 @@
 
     <script id="Player-default-template" type="text/template">
       <div id="banner">
+        <%
+        var bannerStr = "(" + state + ") ";
 
+        if (state != "stop" && typeof(track) != "undefined") {
+          if (typeof(track.artistName) != "undefined") {
+            bannerStr += track.artistName;
+          }
+          if (typeof(track.trackName) != "undefined") {
+            if (bannerStr.length > 0) {
+              bannerStr += " &ndash; ";
+            }
+            bannerStr += track.trackName;
+          }
+        } 
+        print(bannerStr);
+        %>
       </div>
 
-      <div id="slider">
+      <div id="slider"
+           class="<% if (state != "play" && state != "pause") {
+                    print(" disabled ");
+                  }%>" >
         <div id="track-left" class="slider-track"></div>
         <div id="track-right" class="slider-track">
           <div id="handle">
@@ -62,7 +87,7 @@
                     <% if (track.listened) { print(" listened ") } %>
                     <% if (track.playing) { print(" playing ") } %>"
              index='<%= i %>'
-             trackID='<%= track.id %>'
+             track-id='<%= track.einID %>'
              onclick="Einplayer.Frontend.Frame.rowClick(event)"
              <% if (track.listened) { print("listened=true") } %>
              <% if (track.playing) { print("playing=true") } %> >

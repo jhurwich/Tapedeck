@@ -1,6 +1,6 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Frontend Frame Logic"
+  "Bank"
 ];
 
 beforeEach(function() {
@@ -44,6 +44,7 @@ beforeEach(function() {
       
       for (var attrName in expectedJSON) {
         if (expectedJSON[attrName] != this.actual.get(attrName)) {
+          console.log("fail on :" + attrName + " expected: "+ expectedJSON[attrName] + " actual:"+ this.actual.get(attrName));
           return false;
         }
       }
@@ -86,7 +87,7 @@ beforeEach(function() {
 waitsForFrontendInit = function() {
   // Convenience method to wait for the frontend's initialization
   waitsFor(function() {
-    return ($("#einplayer-frame").contents().find(".einplayer-content").length > 0);
+    return ($("#einplayer-frame").contents().find("#player").length > 0);
   }, "Timedout waiting for #app to be swapped out", 1000);
 }
 

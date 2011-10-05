@@ -2,11 +2,12 @@ Einplayer.Backend.Sequencer = {
 
   queue: null,
   queuePosition: -1, // nothing playing
+  savedQueueName: "__queue",
   init: function() {
     if (!this.Player.playerElement) {
       this.Player.init();
     }
-    this.queue =  new Einplayer.Backend.Collections.TrackList();
+    this.queue = Einplayer.Backend.Bank.getTrackList(this.savedQueueName);
     this.queue.bind("add", this.updateQueueList);
     this.queue.bind("remove", this.updateQueueList);
     this.queue.bind("reset", this.updateQueueList);
@@ -51,7 +52,7 @@ Einplayer.Backend.Sequencer = {
     
     pause: function() {
       this.playerElement.get(0).pause();
-      self.currentState = self.STATES.PAUSE;
+      this.currentState = this.STATES.PAUSE;
     },
 
     resume: function() {
@@ -73,6 +74,11 @@ Einplayer.Backend.Sequencer = {
           console.error("Unknown error attempting to seek");
         }
       }
+    },
+
+    seekPercent: function(percent) {
+      var time = percent * this.playerElement.get(0).duration;
+      this.seek(time);
     },
 
     handlePlay: function(self) {
@@ -270,11 +276,14 @@ Einplayer.Backend.Sequencer = {
   },
   
   updateQueueList: function() {
+    var sqcr = Einplayer.Backend.Sequencer;
+    Einplayer.Backend.Bank.saveTrackList(sqcr.savedQueueName, sqcr.queue);
+    
     var queueView = Einplayer.Backend
                              .TemplateManager
                              .renderView
                              ("TrackList",
-                              { trackList: Einplayer.Backend.Sequencer.queue,
+                              { trackList: sqcr.queue,
                                 rowDblClick: "queueDblClick" });
 
     queueView.id = "queue-list";

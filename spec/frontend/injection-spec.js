@@ -20,7 +20,7 @@ describe("After content-scripts are injected", function() {
     // we need to give Einplayer.Frontend.init time to run
     waitsForFrontendInit();
     runs(function() {
-      expect($("#einplayer-frame").contents()).toContain(".einplayer-content");
+      expect($("#einplayer-frame").contents()).toContain("#player");
     });
   });
 

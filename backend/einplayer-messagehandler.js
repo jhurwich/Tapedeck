@@ -2,46 +2,81 @@ Einplayer.Backend.MessageHandler = {
 
   ports: {},
   init: function() {
-    var self = this;
 
     // ports are used for communication with each of our player frames
-    chrome.extension.onConnect.addListener(function(port) {
+    chrome.extension.onConnect.addListener(this.portListener);
 
-      // port.name is a tabId
-      self.ports[port.tab.id] = port;
+    // Requests are used for communicating with items outside of the 
+    // frame. In particular, this includes the quick buttons and
+    // injected scripts.
+    chrome.extension.onRequest.addListener(this.requestListener);
 
-      port.onMessage.addListener(self.handleRequest.curry(port));
-      port.onMessage.addListener(self.handleResponse);
+    chrome.tabs.onSelectionChanged.addListener(this.selectionListener);
+  },
 
-      port.onDisconnect.addListener(function() {
-        self.ports[port.tab.id] = null;
-      });
+  portListener: function(port) {
+    var self = Einplayer.Backend.MessageHandler;
+    self.ports[port.tab.id] = port;
+
+    port.onMessage.addListener(self.handleRequest.curry(port));
+    port.onMessage.addListener(self.handleResponse);
+
+    port.onDisconnect.addListener(function() {
+      self.ports[port.tab.id] = null;
     });
+  },
 
-    // requests are used for communicating with items outside of the frame
-    // In particular, this includes the quick buttons
-    chrome.extension.onRequest.addListener(function(request,
-                                                    sender,
-                                                    sendResponse) {
-      switch (request.action) {
-        case "play_pause":
-          var state = Einplayer.Backend.Sequencer.getCurrentState();
-          if (state == "play") {
-            Einplayer.Backend.Sequencer.pause();
-          } else {
-            Einplayer.Backend.Sequencer.playNow();
-          }
-          break;
-        case "next":
-          Einplayer.Backend.Sequencer.next();
-          break;
-        case "prev":
-          Einplayer.Backend.Sequencer.prev();
-          break;
-        default:
-          console.error("Unexpected request action");
-          break;
-      }
+  requestListener: function(request,
+                            sender,
+                            sendResponse) {
+    // Injected scripts also transmit with requests, but their
+    // requests don't have actions.
+    if (typeof(request.action) == "undefined") {
+      return;
+    }
+    
+    switch (request.action) {
+      case "play_pause":
+        var state = Einplayer.Backend.Sequencer.getCurrentState();
+        if (state == "play") {
+          Einplayer.Backend.Sequencer.pause();
+        } else {
+          Einplayer.Backend.Sequencer.playNow();
+        }
+        break;
+      case "next":
+        Einplayer.Backend.Sequencer.next();
+        break;
+      case "prev":
+        Einplayer.Backend.Sequencer.prev();
+        break;
+
+      case "checkDrawer":
+        var open = Einplayer.Backend.Bank.getDrawerOpened();
+        sendResponse({ opened: open });
+        break;
+      case "setDrawer":
+        Einplayer.Backend.Bank.setDrawerOpened(request.opened);
+        break;
+      
+      default:
+        console.error("Unexpected request action '" + request.action + "'");
+        break;
+    }
+  },
+
+  selectionListener: function(tabID, selectInfo) {
+    var self = Einplayer.Backend.MessageHandler;
+    chrome.tabs.get(tabID, function(tab) {
+      var rendered = Einplayer.Backend.TemplateManager
+                                      .renderView("Frame",
+                                                  { tabID: tabID });
+
+      var viewString = $('<div>').append($(rendered))
+                                 .remove()
+                                 .html();
+
+      self.pushView("einplayer-content", viewString, tab);
     });
   },
   
@@ -82,6 +117,13 @@ Einplayer.Backend.MessageHandler = {
         port.postMessage(response);
         break;
 
+      case "requestUpdate":
+        var updateType = request.updateType.charAt(0).toUpperCase() +
+                         request.updateType.slice(1);
+        var updateFnName = "update" + updateType;
+        Einplayer.Backend.MessageHandler[updateFnName](port.tab);
+        break;
+
       case "queueTracks":
         var trackIDs = request.trackIDs;
         var tracks = [];
@@ -101,14 +143,18 @@ Einplayer.Backend.MessageHandler = {
         }
         break;
 
+      case "clearQueue":
+        Einplayer.Backend.Sequencer.clear();
+        break;
+
       case "playIndex":
         var index = parseInt(request.index);
         Einplayer.Backend.Sequencer.playIndex(index);
         break;
 
       case "seek":
-        var time = request.time;
-        Einplayer.Backend.Sequencer.Player.seek(time);
+        var percent = request.percent;
+        Einplayer.Backend.Sequencer.Player.seekPercent(percent);
         break;
         
       default:
@@ -154,19 +200,10 @@ Einplayer.Backend.MessageHandler = {
       });
       return;
     }
-    
-    var sqcr = Einplayer.Backend.Sequencer;
-    var currentState = sqcr.getCurrentState();
-    var request = Einplayer.Backend.MessageHandler.newRequest({
-      action: "updatePlayer",
-      state: currentState
-    });
-    if (currentState != sqcr.Player.STATES.STOP) {
-      request.track = sqcr.getCurrentTrack().toJSON();
-    }
-    
-    var ports = Einplayer.Backend.MessageHandler.ports;
-    ports[tab.id].postMessage(request);
+
+    var playerView = Einplayer.Backend.TemplateManager
+                                      .renderView("Player", { })
+    this.pushView("player", playerView, tab);
   },
 
   updateSlider: function(tab) {
@@ -190,7 +227,7 @@ Einplayer.Backend.MessageHandler = {
 
   pushView: function(targetID, view, tab) {
     if (typeof(tab) == "undefined") {
-      console.log("pushing to undefined view");
+      console.log("pushing to undefined tab");
       Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
         Einplayer.Backend.MessageHandler.pushView(targetID,
                                                   view,
@@ -203,7 +240,7 @@ Einplayer.Backend.MessageHandler = {
                                .html();
 
     var request = Einplayer.Backend.MessageHandler.newRequest({
-      action: "updateView",
+      action: "pushView",
       view: viewString,
       targetID: targetID,
     });
