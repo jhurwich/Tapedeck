@@ -51,6 +51,7 @@ Einplayer.Backend.Utils = {
 
       var match = key.match(/^(\S+)\s*(.*)$/);
       var eventName = match[1], selector = match[2];
+      
       if (eventName != "onreplace") {
         eventName += ".delegateEvents" + viewName;
   

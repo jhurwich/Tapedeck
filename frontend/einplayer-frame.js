@@ -178,6 +178,93 @@ Einplayer.Frontend.Frame = {
     Einplayer.Frontend.Messenger.playIndex(index);
   },
 
+  rowDrag: {
+    tracks : [],
+  },
+  rowDragStart: function(e) {
+    var rowDrag = Einplayer.Frontend.Frame.rowDrag;
+    var target = e.target;
+    while (!($(target).hasClass("row"))) {
+      target = $(target).parent();
+    }
+
+    var dataTransfer = window.event.dataTransfer;
+    dataTransfer.effectAllowed = 'move';
+
+    if ($(target).hasClass("selected")) {
+      // target was selected, grab all selected tracks
+      var trackList = $(target).closest(".tracklist");
+      var selected = $(trackList).find(".selected");
+      $(selected).each(function(selIndex, row) {
+        var index = $(row).attr("index");
+        var trackID = $(row).attr("track-id");
+        rowDrag.tracks.push({ index   : index,
+                              trackID : trackID });
+      });
+    }
+    else {
+      // target was not selected, only grab a track for the one row
+      var index = $(target).attr("index");
+      var trackID = $(target).attr("track-id");
+      rowDrag.tracks.push({ index   : index,
+                            trackID : trackID });
+    }
+  },
+  rowDragEnter: function(e) {
+    var target = e.target;
+    while (!($(target).hasClass("row"))) {
+      target = $(target).parent();
+    }
+    $(target).addClass("drag-target");
+  },
+  rowDragLeave: function(e) {
+    var target = e.target;
+    while (!($(target).hasClass("row"))) {
+      target = $(target).parent();
+    }
+    $(target).removeClass("drag-target");
+  },
+  rowDragEnd: function(e) {
+    $(".drag-target").each(function(index, dragTarget) {
+      $(dragTarget).removeClass("drag-target");
+    });
+  },
+  rowDragOver: function(e) {
+    if (e.preventDefault) {
+      e.preventDefault(); // Necessary. Allows us to drop.
+    }
+  },
+  rowDrop: function(e) {
+    console.log("row drag drop");
+    var rowDrag = Einplayer.Frontend.Frame.rowDrag;
+    if (e.stopPropagation) {
+      e.stopPropagation(); // stops redirecting in some cases.
+    }
+    
+    var target = e.target;
+    while (!($(target).hasClass("row"))) {
+      target = $(target).parent();
+    }
+
+    var dropIndex = parseInt(target.attr("index"));
+
+    rowDrag.tracks.sort(function(a,b) {
+      return a.index - b.index;
+    });
+
+    var trackIDs = $.map(rowDrag.tracks, function(track, i) {
+      return track.trackID;
+    });
+
+    console.log("tracks: " + JSON.stringify(rowDrag.tracks));
+
+    Einplayer.Frontend.Messenger.queueTracks(trackIDs, dropIndex + 1);
+    
+    rowDrag.tracks = [];
+
+    return false;
+  },
+
   clearQueue: function() {
     Einplayer.Frontend.Messenger.clearQueue();
   },

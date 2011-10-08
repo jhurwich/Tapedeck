@@ -6,6 +6,8 @@ Einplayer.Backend.TemplateManager = {
     "Frame",
     "Player",
     "TrackList",
+    "Queue",
+    "BrowseList"
   ],
 
   init: function() {

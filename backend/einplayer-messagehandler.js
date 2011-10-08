@@ -131,10 +131,9 @@ Einplayer.Backend.MessageHandler = {
           var track = Einplayer.Backend.Bank.getTrack(trackIDs[i]);
           tracks.push(track);
         }
-
-        var index = request.index;
-        if (typeof(index) != "undefined" &&
-            request.index >= 0) {
+        
+        if (typeof(request.index) != "undefined") {
+          var index = parseInt(request.index);
           Einplayer.Backend.Sequencer.insertSomeAt(tracks, index);
         }
         else {

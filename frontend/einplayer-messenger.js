@@ -93,7 +93,6 @@ Einplayer.Frontend.Messenger = {
   },
 
   seekPercent: function(percent) {
-    console.log("seekpercent");
     var request = Einplayer.Frontend.Messenger.newRequest({
       action  : "seek",
       percent : percent
@@ -102,16 +101,19 @@ Einplayer.Frontend.Messenger = {
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
-  queueTrack: function(trackID) {
-    Einplayer.Frontend.Messenger.queueTracks([trackID]);
+  queueTrack: function(trackID, index) {
+    Einplayer.Frontend.Messenger.queueTracks([trackID], index);
   },
 
-  queueTracks: function(trackIDs) {
+  queueTracks: function(trackIDs, index) {
     var request = Einplayer.Frontend.Messenger.newRequest({
       action   : "queueTracks",
       trackIDs : trackIDs
     });
-
+    if (typeof(index) != "undefined") {
+      request.index = index;
+    };
+    
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 

@@ -58,6 +58,7 @@ body {
 }
 .tracklist .row {
   display: table-row;
+  -khtml-user-select: none;
 }
 .tracklist .row:hover {
   background-color: #d0d0d0;
@@ -78,9 +79,6 @@ body {
 .tracklist .row:not(.playing) .cell{
   font-weight: normal !important;
 }
-.tracklist .row:last-child > .cell{
-  border-bottom: none;
-}
 .tracklist .cell {
   display: table-cell;
   min-height: 16px;
@@ -92,7 +90,12 @@ body {
   border-right: solid 1px rgb(50,153,187);
   border-bottom: solid 1px rgb(50,153,187);
 }
-
+.tracklist .row:last-child .cell{
+  border-bottom: none;
+}
+.tracklist .row.drag-target .cell{
+  border-bottom: solid 2px #ff9900;
+}
 .tracklist .cell.trackName-col {
   width: 150px;
 }
@@ -102,5 +105,17 @@ body {
 .tracklist .cell.cassette-col {
   border-right: none;
   width: 78px;
+}
+
+.tracklist #hidden-droprow .cell {
+  max-height: 3px;
+  min-height: 3px;
+  background-color: rgb(233,233,233) !important;
+}
+.tracklist #hidden-droprow .cell {
+  border-bottom: transparent !important;
+}
+.tracklist #hidden-droprow.drag-target .cell {
+  background-color: #ff9900 !important;
 }
 

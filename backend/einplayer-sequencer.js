@@ -273,6 +273,7 @@ Einplayer.Backend.Sequencer = {
 
   clear: function() {
     this.queue.reset();
+    this.setQueuePosition(-1);
   },
   
   updateQueueList: function() {
@@ -282,11 +283,9 @@ Einplayer.Backend.Sequencer = {
     var queueView = Einplayer.Backend
                              .TemplateManager
                              .renderView
-                             ("TrackList",
-                              { trackList: sqcr.queue,
-                                rowDblClick: "queueDblClick" });
+                             ("Queue",
+                              { trackList : sqcr.queue });
 
-    queueView.id = "queue-list";
     Einplayer.Backend.MessageHandler.pushView("queue-list",
                                               queueView);
                                               

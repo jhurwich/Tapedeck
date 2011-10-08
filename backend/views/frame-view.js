@@ -47,13 +47,10 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
     var queueTracks = Einplayer.Backend.Sequencer.queue;
     var queueView = Einplayer.Backend
                              .TemplateManager
-                             .renderView("TrackList",
-                                         { trackList: queueTracks,
-                                           rowDblClick : "queueDblClick" });
+                             .renderView("Queue",
+                                         { trackList   : queueTracks });
     
-    var queueListID = "queue-list";
-    queueView.id = queueListID;
-    $(this.el).find("#" + queueListID).replaceWith(queueView);
+    $(this.el).find("#queue-list").replaceWith(queueView);
   },
 
   renderCassetteBrowser: function() {
@@ -71,13 +68,10 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
   
         var browseView = Einplayer.Backend
                                   .TemplateManager
-                                  .renderView("TrackList",
-                                              { trackList   : browseTrackList,
-                                                rowDblClick : "browseDblClick" });
-  
-        var browseListID = "browse-list";
-        browseView.id = browseListID;
-        Einplayer.Backend.MessageHandler.pushView(browseListID,
+                                  .renderView("BrowseList",
+                                              { trackList   : browseTrackList });
+
+        Einplayer.Backend.MessageHandler.pushView("browse-list",
                                                   browseView);
       });
     };

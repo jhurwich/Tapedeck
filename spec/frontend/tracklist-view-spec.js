@@ -16,8 +16,9 @@ describe("TrackList View", function() {
     var listDOM = view.render();
     
     var rows  = $(listDOM).find(".row");
-    
-    expect(rows.length).toEqual(this.testTracks.length);
+
+    // We expect one more because of the hidden dropzone 'row'
+    expect(rows.length).toEqual(this.testTracks.length + 1);
   });
   
   it ("should render properly through the TemplateManager", function() {
@@ -30,7 +31,8 @@ describe("TrackList View", function() {
                       ("TrackList", { trackList: trackList }, null);
     
     var rows  = $(listDOM).find(".row");
-    
-    expect(rows.length).toEqual(this.testTracks.length);
+
+    // We expect one more because of the hidden dropzone 'row'
+    expect(rows.length).toEqual(this.testTracks.length + 1);
   });
 });

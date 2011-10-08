@@ -24,6 +24,8 @@
 
     <!-- Default Views -->
     <script type="text/javascript" src="views/tracklist-view.js"></script>
+    <script type="text/javascript" src="views/queue-view.js"></script>
+    <script type="text/javascript" src="views/browselist-view.js"></script>
     <script type="text/javascript" src="views/frame-view.js"></script>
     <script type="text/javascript" src="views/player-view.js"></script>
 
@@ -79,7 +81,11 @@
     </script>
 
     <script id="TrackList-default-template" type="text/template">
-      
+      <div class="row" id="hidden-droprow" index="-1">
+        <div class="cell trackName-col"></div>
+        <div class="cell artistName-col"></div>
+        <div class="cell cassette-col"></div>
+      </div>
       <% for (var i=0; i < trackList.length; i++) {
         var track = trackList[i];
       %>
@@ -88,6 +94,7 @@
                     <% if (track.playing) { print(" playing ") } %>"
              index='<%= i %>'
              track-id='<%= track.einID %>'
+             draggable="true"
              onclick="Einplayer.Frontend.Frame.rowClick(event)"
              <% if (track.listened) { print("listened=true") } %>
              <% if (track.playing) { print("playing=true") } %> >

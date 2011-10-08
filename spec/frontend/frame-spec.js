@@ -5,32 +5,29 @@ describe("Frontend Frame Logic", function() {
                                            .Collections
                                            .TrackList
                                            (this.testTracks);
-
-    this.testTrackView = this.Einplayer.Backend
-                                       .TemplateManager
-                                       .renderView
-                                       ("TrackList",
-                                        { trackList   : this.testTrackList,
-                                          rowDblClick : "test123" });
     waitsForFrontendInit();
   });
 
   it("should queue a browse-track when it is double-clicked", function() {
 
-    this.testTrackView.id = "browse-list";
+    var testTrackView = this.Einplayer.Backend
+                                      .TemplateManager
+                                      .renderView
+                                      ("BrowseList",
+                                       { trackList   : this.testTrackList });
 
     $("#einplayer-frame").contents()
                          .find("#browse-list")
-                         .replaceWith(this.testTrackView);
+                         .replaceWith(testTrackView);
                          
     var rows = $("#einplayer-frame").contents()
                                     .find("#browse-list")
                                     .first()
                                     .children(".row");
 
-    // sanity check
+    // Sanity check. We expect one more because of the hidden dropzone 'row'
     var numTracks = this.testTracks.length;
-    expect(rows.length).toEqual(numTracks);
+    expect(rows.length).toEqual(numTracks + 1);
 
     var tracksQueued = 0;
     this.Einplayer.Backend.Sequencer.queue.bind("add", function() {
@@ -55,11 +52,15 @@ describe("Frontend Frame Logic", function() {
 
   it("should play a queued track when it is double-clicked", function() {
 
-    this.testTrackView.id = "queue-list";
+    var testTrackView = this.Einplayer.Backend
+                                      .TemplateManager
+                                      .renderView
+                                      ("Queue",
+                                       { trackList   : this.testTrackList });
 
     $("#einplayer-frame").contents()
                          .find("#queue-list")
-                         .replaceWith(this.testTrackView);
+                         .replaceWith(testTrackView);
                          
     var rows = $("#einplayer-frame").contents()
                                     .find("#queue-list")

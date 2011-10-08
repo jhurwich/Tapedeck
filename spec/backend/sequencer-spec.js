@@ -117,10 +117,7 @@ describe("Sequencer", function() {
     this.sqcr.insertSomeAt(this.testTracks, origLen);
     this.sqcr.clear();
 
-    // expect the spy to be called once for each added track and once
-    // more for the clear
     expect(spy).toHaveBeenCalled();
-    expect(spy.callCount).toEqual(this.testTracks.length + 1);
   });
 
 });
