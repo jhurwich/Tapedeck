@@ -101,19 +101,47 @@ Einplayer.Frontend.Messenger = {
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
-  queueTrack: function(trackID, index) {
-    Einplayer.Frontend.Messenger.queueTracks([trackID], index);
+  queueTrack: function(trackX, index) {
+    // trackX because could be Obj or ID
+    Einplayer.Frontend.Messenger.queueTracks([trackX], index);
   },
 
-  queueTracks: function(trackIDs, index) {
-    var request = Einplayer.Frontend.Messenger.newRequest({
-      action   : "queueTracks",
-      trackIDs : trackIDs
+  queueTracks: function(trackXs, index) {
+    // trackX because could be Obj or ID
+
+    var request = Einplayer.Frontend.Messenger.newTrackBasedRequest({
+      action : "queueTracks",
+      trackXs : trackXs
     });
+
     if (typeof(index) != "undefined") {
       request.index = index;
     };
     
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+  
+  moveTracks: function(trackObjs, index) {
+    // can only move trackObjs because need each track's current index
+    
+    var request = Einplayer.Frontend.Messenger.newTrackBasedRequest({
+      action : "moveTracks",
+      trackXs : trackObjs
+    });
+
+    if (typeof(index) != "undefined") {
+      request.index = index;
+    };
+    
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
+  removeQueuedAt: function(pos) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action : "removeQueuedAt",
+      pos    : pos
+    });
+
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
@@ -134,6 +162,15 @@ Einplayer.Frontend.Messenger = {
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
+  queueAndPlayNow: function(trackID) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action  : "queueAndPlayNow",
+      trackID : trackID
+    });
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
   newRequest: function(object, callback) {
     var request = (object ? object : { });
     request.type = "request";
@@ -143,6 +180,24 @@ Einplayer.Frontend.Messenger = {
       Einplayer.Frontend.Messenger.pendingCallbacks[cbID] = callback;
       request.callbackID = cbID;
     }
+    return request;
+  },
+
+  newTrackBasedRequest: function(object, callback) {
+    var trackXs = object.trackXs;
+    object.trackXs = null;
+    var request = Einplayer.Frontend.Messenger.newRequest(object,
+                                                          callback);
+
+    if (typeof(trackXs[0]) == "string") {
+      // we got the tracks as trackIDs
+      request.trackIDs = trackXs;
+    }
+    else {
+      // we got the tracks as crude objects
+      request.trackObjs = trackXs;
+    }
+
     return request;
   },
 

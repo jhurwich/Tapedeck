@@ -18,7 +18,6 @@ describe("The Scraper Cassette", function() {
     this.verifyGetBrowseList = function(expectedAttrs, expectedTypes) {
       var self = this;
       self.testComplete = false;
-      var testTab = self.findTestTab();
 
       var expectedTrackJSONs = [];
       for (var i = 0; i < self.testTracks.length; i++) {
@@ -28,20 +27,21 @@ describe("The Scraper Cassette", function() {
         }
       }
       
-      self.Einplayer.Backend.Utils.getContext(function(context) {
-        self.scraper.getBrowseList(context, function(tracks) {
-          expect(tracks.length).toEqual(expectedTrackJSONs.length);
-          for (var i = 0; i < tracks.length; i++) {
-            var expectedJSON = expectedTrackJSONs[i];
-            var track = tracks[i];
-            for (var j = 0; j < expectedAttrs.length; j++) {
-              var attr = expectedAttrs[j];
-              expect(track[attr]).toEqual(expectedJSON[attr]);
-            }
+      var testTab = self.findTestTab();
+      var context = self.Einplayer.Backend.Utils.getContext(testTab);
+
+      self.scraper.getBrowseList(context, function(tracks) {
+        expect(tracks.length).toEqual(expectedTrackJSONs.length);
+        for (var i = 0; i < tracks.length; i++) {
+          var expectedJSON = expectedTrackJSONs[i];
+          var track = tracks[i];
+          for (var j = 0; j < expectedAttrs.length; j++) {
+            var attr = expectedAttrs[j];
+            expect(track[attr]).toEqual(expectedJSON[attr]);
           }
-          self.testComplete = true;
-        });
-      }, testTab);
+        }
+        self.testComplete = true;
+      });
 
       // This should be instantaneous but somehow the waitsFor won't
       // let the above get scheduled.

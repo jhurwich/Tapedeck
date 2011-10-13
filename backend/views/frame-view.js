@@ -58,8 +58,10 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
   },
   
   renderBrowseList: function() {
-    var loadBrowseList = function(context) {
+    chrome.tabs.get(this.tabID, function(tab) {
       var currCassette = Einplayer.Backend.CassetteManager.currentCassette;
+      var context = Einplayer.Backend.Utils.getContext(tab);
+      
       currCassette.getBrowseList(context, function(trackJSONs) {
         var browseTrackList = new Einplayer.Backend.Collections.TrackList
                                                    (trackJSONs);
@@ -74,10 +76,6 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
         Einplayer.Backend.MessageHandler.pushView("browse-list",
                                                   browseView);
       });
-    };
-    
-    chrome.tabs.get(this.tabID, function(tab) {
-      Einplayer.Backend.Utils.getContext(loadBrowseList, tab);
-    });;
+    });
   },
 });

@@ -20,7 +20,7 @@ describe("Message Handler", function() {
   });
 
   it("should execute the correct script with MessageHandler.executeScript", function() {
-    var spy = spyOn(EinInjected.DocumentFetcher, "start").andCallThrough();
+    var spy = spyOn(EinInjected.TrackParser, "start").andCallThrough();
     var testTab = this.findTestTab();
 
     var testComplete = false;
@@ -32,7 +32,7 @@ describe("Message Handler", function() {
     this.Einplayer.Backend.MessageHandler
                           .executeScript(testTab,
                                          {allFrames: false,
-                                          file: "frontend/scripts/document-fetcher.js"},
+                                          file: "frontend/scripts/track-parser.js"},
                                          responseCallback);
 
     waitsFor(function() {

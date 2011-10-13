@@ -15,10 +15,9 @@ describe("TrackList View", function() {
     
     var listDOM = view.render();
     
-    var rows  = $(listDOM).find(".row");
+    var rows  = $(listDOM).find(".row").not("#hidden-droprow");
 
-    // We expect one more because of the hidden dropzone 'row'
-    expect(rows.length).toEqual(this.testTracks.length + 1);
+    expect(rows.length).toEqual(this.testTracks.length);
   });
   
   it ("should render properly through the TemplateManager", function() {
@@ -30,9 +29,8 @@ describe("TrackList View", function() {
     var listDOM = this.Einplayer.Backend.TemplateManager.renderView
                       ("TrackList", { trackList: trackList }, null);
     
-    var rows  = $(listDOM).find(".row");
+    var rows  = $(listDOM).find(".row").not("#hidden-droprow");
 
-    // We expect one more because of the hidden dropzone 'row'
-    expect(rows.length).toEqual(this.testTracks.length + 1);
+    expect(rows.length).toEqual(this.testTracks.length);
   });
 });

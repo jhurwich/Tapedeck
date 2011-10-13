@@ -13,6 +13,18 @@ var EinInjected = {
     htmlDOM.appendChild(EinInjected.einplayerFrame);
 
     EinInjected.injectSideButtons();
+
+    chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+      if (request.action == "setDrawer") {
+        if (request.opened) {
+          EinInjected.openDrawer();
+        }
+        else {
+          EinInjected.closeDrawer();
+        }
+      }
+    });
+    
     EinInjected.checkDrawerOpened();
   },
 
@@ -26,13 +38,13 @@ var EinInjected = {
     drawerOpen.id = 'ein-injected-draweropen';
     drawerOpen.className = 'ein-injected-button';
     drawerOpen.src = chrome.extension.getURL("images/pink-draweropen-button.png");
-    drawerOpen.onclick = EinInjected.openDrawer;
+    drawerOpen.onclick = EinInjected.setDrawerOpened;
 
     var drawerClose = document.createElement('img');
     drawerClose.id = 'ein-injected-drawerclose';
     drawerClose.className = 'ein-injected-button';
     drawerClose.src = chrome.extension.getURL("images/pink-drawerclose-button.png");
-    drawerClose.onclick = EinInjected.closeDrawer;
+    drawerClose.onclick = EinInjected.setDrawerClosed;
     drawerClose.setAttribute("hidden", true);
   
     var play = document.createElement('img');
@@ -64,7 +76,11 @@ var EinInjected = {
   
   toolbarWidth: 350,
   openDrawer: function() {
-    EinInjected.setDrawerOpened(true);
+    if (!EinInjected.einplayerFrame.getAttribute("hidden")) {
+      // already opened, abort
+      return;
+    }
+    
     EinInjected.einplayerFrame.removeAttribute("hidden");
 
     var drawerOpen = document.getElementById("ein-injected-draweropen");
@@ -80,7 +96,11 @@ var EinInjected = {
   },
 
   closeDrawer: function() {
-    EinInjected.setDrawerOpened(false);
+    if (EinInjected.einplayerFrame.getAttribute("hidden")) {
+      // already closed, abort
+      return
+    }
+    
     EinInjected.einplayerFrame.setAttribute("hidden", true);
 
     var drawerClose = document.getElementById("ein-injected-drawerclose");
@@ -93,6 +113,29 @@ var EinInjected = {
     bodyDOM.removeAttribute("einplayer-opened");
     
     EinInjected.resetFixedElements();
+  },
+  
+  checkDrawerOpened: function() {
+    chrome.extension.sendRequest({action: "checkDrawer"}, function(response){
+      if (response.opened) {
+        EinInjected.openDrawer();
+      }
+      else {
+        EinInjected.closeDrawer();
+      }
+    });
+  },
+
+  setDrawerOpened: function() {
+    EinInjected.openDrawer();
+    chrome.extension.sendRequest({ action: "setDrawer",
+                                   opened: true });
+  },
+
+  setDrawerClosed: function() {
+    EinInjected.closeDrawer();
+    chrome.extension.sendRequest({ action: "setDrawer",
+                                   opened: false });
   },
   
   //kudos to StumbleUpon
@@ -128,19 +171,6 @@ var EinInjected = {
         }
       }
     }
-  },
-
-  checkDrawerOpened: function() {
-    chrome.extension.sendRequest({action: "checkDrawer"}, function(response){
-      if (response.opened) {
-        EinInjected.openDrawer();
-      }
-    });
-  },
-
-  setDrawerOpened: function(open) {
-    chrome.extension.sendRequest({ action: "setDrawer",
-                                   opened: open });
   },
   
   playPause: function() {

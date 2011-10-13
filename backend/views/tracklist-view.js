@@ -21,10 +21,28 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
   render: function() {
     this.el.innerHTML =  this.template({ trackList: this.trackList.toJSON() });
     $(this.el).attr("rowDblClick", this.rowDblClick);
+
+    this.assignRowButtonImgs();
     
     Einplayer.Backend.Utils.proxyEvents(this, this.eventsName);
     
     return this.el;
+  },
+  
+  assignRowButtonImgs: function() {     
+    var playnowImgURL = "url('" +
+                        chrome.extension.getURL("images/rowbutton-playnow.png") +
+                        "')";
+    $(this.el).find(".button.playnow").each(function(index, element) {
+      $(element).css("background-image", playnowImgURL);
+    });
+    
+    var removeImgURL = "url('" +
+                        chrome.extension.getURL("images/rowbutton-remove.png") +
+                        "')";
+    $(this.el).find(".button.remove").each(function(index, element) {
+      $(element).css("background-image", removeImgURL);
+    });
   },
 });
 

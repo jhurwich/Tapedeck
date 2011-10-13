@@ -35,6 +35,7 @@ Einplayer.Backend.MessageHandler = {
       return;
     }
     
+    var self = Einplayer.Backend.MessageHandler;
     switch (request.action) {
       case "play_pause":
         var state = Einplayer.Backend.Sequencer.getCurrentState();
@@ -57,6 +58,13 @@ Einplayer.Backend.MessageHandler = {
         break;
       case "setDrawer":
         Einplayer.Backend.Bank.setDrawerOpened(request.opened);
+
+        // echo to all tabs
+        for (var tabID in self.ports) {
+          var request = self.newRequest({ action : "setDrawer",
+                                          opened : request.opened });
+          chrome.tabs.sendRequest(parseInt(tabID), request);
+        }
         break;
       
       default:
@@ -96,7 +104,8 @@ Einplayer.Backend.MessageHandler = {
     if (request.type != "request") {
       return;
     }
-    
+
+    var sqcr = Einplayer.Backend.Sequencer;
     var response = Einplayer.Backend.MessageHandler.newResponse(request);
     
     switch(request.action)
@@ -125,35 +134,78 @@ Einplayer.Backend.MessageHandler = {
         break;
 
       case "queueTracks":
-        var trackIDs = request.trackIDs;
         var tracks = [];
-        for (var i = 0; i < trackIDs.length; i++) {
-          var track = Einplayer.Backend.Bank.getTrack(trackIDs[i]);
-          tracks.push(track);
-        }
-        
-        if (typeof(request.index) != "undefined") {
-          var index = parseInt(request.index);
-          Einplayer.Backend.Sequencer.insertSomeAt(tracks, index);
+        if (typeof(request.trackObjs) != "undefined") {
+          // tracks were sent as crude track objs
+          $.map(request.trackObjs, function(trackObj, i) {
+            var track = Einplayer.Backend.Bank.getTrack(trackObj.trackID);
+            tracks.push(track);
+          });
         }
         else {
-          var endPos = Einplayer.Backend.Sequencer.queue.length;
-          Einplayer.Backend.Sequencer.insertSomeAt(tracks, endPos);
+          // tracks were sent as trackIDs
+          $.map(request.trackIDs, function(trackID, i) {
+            var track = Einplayer.Backend.Bank.getTrack(trackID);
+            tracks.push(track);
+          });
+        }
+
+        if (typeof(request.index) != "undefined") {
+          var index = parseInt(request.index);
+          sqcr.insertSomeAt(tracks, index);
+        }
+        else {
+          var endPos = sqcr.queue.length;
+          sqcr.insertSomeAt(tracks, endPos);
+        }
+        break;
+        
+      case "moveTracks":
+        var trackIndexPairs = [];
+        if (typeof(request.trackObjs) == "undefined") {
+          console.error("Cannot moveTracks using only trackIDs, must have each tracks index");
+          return;
+        }
+        
+        $.map(request.trackObjs, function(trackObj, i) {
+          var track = Einplayer.Backend.Bank.getTrack(trackObj.trackID);
+          trackIndexPairs.push({ track: track, index: trackObj.index });
+        });
+
+        if (typeof(request.index) != "undefined") {
+          var destination = parseInt(request.index);
+          sqcr.moveSomeTo(trackIndexPairs, destination);
+        }
+        else {
+          var endPos = sqcr.queue.length;
+          sqcr.moveSomeTo(trackIndexPairs, endPos);
         }
         break;
 
+      case "removeQueuedAt":
+        sqcr.removeAt(request.pos);
+        break;
+
       case "clearQueue":
-        Einplayer.Backend.Sequencer.clear();
+        sqcr.clear();
         break;
 
       case "playIndex":
         var index = parseInt(request.index);
-        Einplayer.Backend.Sequencer.playIndex(index);
+        sqcr.playIndex(index);
+        break;
+
+      case "queueAndPlayNow":
+        var track = Einplayer.Backend.Bank.getTrack(request.trackID);
+        var nextPos = sqcr.queuePosition + 1;
+        sqcr.insertAt(track, nextPos);
+        sqcr.next();
+        
         break;
 
       case "seek":
         var percent = request.percent;
-        Einplayer.Backend.Sequencer.Player.seekPercent(percent);
+        sqcr.Player.seekPercent(percent);
         break;
         
       default:
@@ -169,29 +221,6 @@ Einplayer.Backend.MessageHandler = {
     });
   },
 
-  getDocument: function(callback, tab) {
-    if (typeof(tab) == "undefined") {
-      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Einplayer.Backend.MessageHandler.getDocument(callback, selectedTab);
-      });
-      return;
-    }
-
-    var scrapeResponseHandler = function(response, sender, sendResponse) {
-      if (sender.tab.id != tab.id) {
-        console.log("response mismatch for page-scrape");
-        return;
-      }
-
-      callback(response.document);
-    };
-    Einplayer.Backend.MessageHandler
-                     .executeScript(tab,
-                                    {allFrames: false,
-                                     file: "frontend/scripts/document-fetcher.js"},
-                                    scrapeResponseHandler);
-  },
-  
   updatePlayer: function(tab) {
     if (typeof(tab) == "undefined") {
       Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {

@@ -8,6 +8,7 @@ Einplayer.Backend.Sequencer = {
       this.Player.init();
     }
     this.queue = Einplayer.Backend.Bank.getTrackList(this.savedQueueName);
+    Einplayer.Backend.Bank.saveTracks(this.queue);
     this.queue.bind("add", this.updateQueueList);
     this.queue.bind("remove", this.updateQueueList);
     this.queue.bind("reset", this.updateQueueList);
@@ -26,7 +27,6 @@ Einplayer.Backend.Sequencer = {
       this.playerElement = $("#audioplayer").first();
       this.currentState = this.STATES.STOP;
       
-      $(this.playerElement).bind("play", this.handlePlay.curry(this));
       $(this.playerElement).bind("playing", this.handlePlaying.curry(this));
       $(this.playerElement).bind("pause", this.handlePause.curry(this));
       $(this.playerElement).bind("ended", this.handleEnded.curry(this));
@@ -80,15 +80,8 @@ Einplayer.Backend.Sequencer = {
       var time = percent * this.playerElement.get(0).duration;
       this.seek(time);
     },
-
-    handlePlay: function(self) {
-      console.log("play");
-      self.currentState = self.STATES.PLAY;
-      Einplayer.Backend.MessageHandler.updatePlayer();
-    },
     
     handlePlaying: function(self) {
-      console.log("playing");
       self.currentState = self.STATES.PLAY;
       Einplayer.Backend.MessageHandler.updatePlayer();
     },
@@ -103,7 +96,6 @@ Einplayer.Backend.Sequencer = {
     },
 
     handleLoadStart: function(self) {
-      console.log("load start");
       self.currentState = self.STATES.LOAD;
       Einplayer.Backend.MessageHandler.updatePlayer();
     },
@@ -264,11 +256,48 @@ Einplayer.Backend.Sequencer = {
       this.queue.add(track, { at:pos });
     }
   },
+
+  moveTo: function(trackIndexPair, pos) {
+    this.moveSomeTo([trackIndexPair], pos);
+  },
+
+  moveSomeTo: function(trackIndexPairs, pos) {
+    var sqcr = Einplayer.Backend.Sequencer;
+    
+    var tracksToRemove = [];
+    _.map(trackIndexPairs, function(pair) {
+      tracksToRemove.push(sqcr.getAt(pair.index));
+    });
+    
+    var tracks = _.pluck(trackIndexPairs, "track");
+    this.insertSomeAt(tracks, pos);
+
+    this.removeSome(tracksToRemove);
+  },
+
+  remove: function(trackModel) {
+    this.removeSome([trackModel]);
+  },
   
-  remove: function(pos) {
+  removeAt: function(pos) {
     var toRemove = this.getAt(pos);
-    this.queue.remove(toRemove);
+    if (toRemove.get("playing")) {
+      this.next();
+    }
+    this.remove(toRemove);
     return toRemove;
+  },
+
+  removeSome: function(trackModels) {
+    var posChange = 0;
+    for (var i = 0; i < trackModels.length; i++) {
+       var index = this.queue.indexOf(trackModels[i]);
+       if (index < this.queuePosition) {
+         posChange++;
+       }
+    }
+    this.queue.remove(trackModels);
+    this.setQueuePosition(this.queuePosition - posChange);
   },
 
   clear: function() {

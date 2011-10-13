@@ -5,11 +5,10 @@ if (typeof Einplayer == "undefined") {
 Einplayer.Backend.Utils = {
 
   CONTEXT_ATTRIBUTES: [
-    "document",
     "tab"
   ],
 
-  getContext: function(callback, tab) {
+  getContext: function(tab) {
     var context = { tab: tab };
     var isContextComplete = function(contextCheck) {
       var attrs =  Einplayer.Backend.Utils.CONTEXT_ATTRIBUTES;
@@ -21,12 +20,13 @@ Einplayer.Backend.Utils = {
       return true;
     };
     
-    Einplayer.Backend.MessageHandler.getDocument(function(document) {
-      context.document = document;
-      if (isContextComplete(context)) {
-        callback(context);
-      }
-    }, tab);
+    if (isContextComplete(context)) {
+      return context;
+    }
+    else {
+      console.error("Error: attempted to return incomplete context");
+      return null;
+    }
   },
 
   // Adapted from Backbone.js's native method of attaching view events.

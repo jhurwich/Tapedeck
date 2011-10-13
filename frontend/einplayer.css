@@ -57,6 +57,7 @@ body {
   background-color: rgb(233,233,233);
 }
 .tracklist .row {
+  position: relative;
   display: table-row;
   -khtml-user-select: none;
 }
@@ -71,7 +72,7 @@ body {
   background-color: #9d9d9d;
 }
 .tracklist .row.listened {
-  background-color: #bfbfbf;
+  opacity : 0.65;
 }
 .tracklist .row.playing .cell{
   font-weight: bold;
@@ -105,6 +106,26 @@ body {
 .tracklist .cell.cassette-col {
   border-right: none;
   width: 78px;
+}
+.tracklist .row-buttons {
+  display: none;
+  position: absolute;
+  right: 0px;
+  margin: 1px;
+}
+.tracklist .row-buttons > .button {
+  height: 12px;
+  width: 12px;
+  float: left;
+  border: 1px solid black;
+  background-position: center;
+  margin-left: 1px;
+}
+.tracklist .row:hover .row-buttons{
+  display: inline-block;
+}
+#browse-list .row .row-buttons > .button.remove {
+  display: none;
 }
 
 .tracklist #hidden-droprow .cell {

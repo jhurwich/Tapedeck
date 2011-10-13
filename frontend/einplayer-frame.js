@@ -174,22 +174,27 @@ Einplayer.Frontend.Frame = {
   },
 
   queueDblClick: function(row) {
+    Einplayer.Frontend.Frame.playQueueRow(row);
+  },
+
+  playQueueRow: function(row) {
     var index = $(row).attr("index");
     Einplayer.Frontend.Messenger.playIndex(index);
   },
 
   rowDrag: {
     tracks : [],
+    from: "",
   },
   rowDragStart: function(e) {
     var rowDrag = Einplayer.Frontend.Frame.rowDrag;
-    var target = e.target;
-    while (!($(target).hasClass("row"))) {
-      target = $(target).parent();
-    }
+    
+    var target = $(e.target).closest(".row");
 
     var dataTransfer = window.event.dataTransfer;
     dataTransfer.effectAllowed = 'move';
+
+    rowDrag.from = $(target).closest(".tracklist").first().attr("id");
 
     if ($(target).hasClass("selected")) {
       // target was selected, grab all selected tracks
@@ -211,17 +216,11 @@ Einplayer.Frontend.Frame = {
     }
   },
   rowDragEnter: function(e) {
-    var target = e.target;
-    while (!($(target).hasClass("row"))) {
-      target = $(target).parent();
-    }
+    var target = $(e.target).closest(".row");
     $(target).addClass("drag-target");
   },
   rowDragLeave: function(e) {
-    var target = e.target;
-    while (!($(target).hasClass("row"))) {
-      target = $(target).parent();
-    }
+    var target = $(e.target).closest(".row");
     $(target).removeClass("drag-target");
   },
   rowDragEnd: function(e) {
@@ -235,16 +234,12 @@ Einplayer.Frontend.Frame = {
     }
   },
   rowDrop: function(e) {
-    console.log("row drag drop");
     var rowDrag = Einplayer.Frontend.Frame.rowDrag;
     if (e.stopPropagation) {
       e.stopPropagation(); // stops redirecting in some cases.
     }
     
-    var target = e.target;
-    while (!($(target).hasClass("row"))) {
-      target = $(target).parent();
-    }
+    var target = $(e.target).closest(".row");
 
     var dropIndex = parseInt(target.attr("index"));
 
@@ -252,17 +247,45 @@ Einplayer.Frontend.Frame = {
       return a.index - b.index;
     });
 
-    var trackIDs = $.map(rowDrag.tracks, function(track, i) {
-      return track.trackID;
-    });
-
-    console.log("tracks: " + JSON.stringify(rowDrag.tracks));
-
-    Einplayer.Frontend.Messenger.queueTracks(trackIDs, dropIndex + 1);
+    
+    if (rowDrag.from.match(/queue/) != null) {
+      // If dropping from queue to queue, moveTracks
+      Einplayer.Frontend.Messenger.moveTracks(rowDrag.tracks, dropIndex + 1);
+    }
+    else {
+      // If dropping from browse to queue, queueTracks
+      Einplayer.Frontend.Messenger.queueTracks(rowDrag.tracks, dropIndex + 1);
+    }
     
     rowDrag.tracks = [];
 
     return false;
+  },
+
+  rowButtonRemove: function(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+    var row = $(e.target).closest(".row");
+
+    Einplayer.Frontend.Messenger.removeQueuedAt($(row).attr("index"));
+  },
+
+  rowButtonPlaynow: function(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+   
+    var row = $(e.target).closest(".row");
+
+    if ($(row).closest(".tracklist").attr("id") == "queue-list") {
+      // to play immediately from the queue we can just play the row
+      Einplayer.Frontend.Frame.playQueueRow(row);
+    }
+    else {
+      // to play immediately from the browselist we must queueAndPlay
+      Einplayer.Frontend.Messenger.queueAndPlayNow($(row).attr("track-id"));
+    }
   },
 
   clearQueue: function() {
@@ -270,7 +293,9 @@ Einplayer.Frontend.Frame = {
   },
 
   forceSliderUpdate: function() {
-    Einplayer.Frontend.Messenger.requestUpdate("Slider");
+    if (!($("#slider").hasClass("disabled"))) {
+      Einplayer.Frontend.Messenger.requestUpdate("Slider");
+    }
   },
 
 };

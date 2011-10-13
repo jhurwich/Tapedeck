@@ -100,7 +100,14 @@
              <% if (track.playing) { print("playing=true") } %> >
           <div class="cell trackName-col"> <%= track.trackName %> </div>
           <div class="cell artistName-col"> <%= track.artistName %> </div>
-          <div class="cell cassette-col"> <%= track.cassette %> </div>
+          <div class="cell cassette-col"> <%= track.cassette %>
+            <div class="row-buttons">
+              <div class="button playnow"
+                   onclick="Einplayer.Frontend.Frame.rowButtonPlaynow(event)"></div>
+              <div class="button remove"
+                   onclick="Einplayer.Frontend.Frame.rowButtonRemove(event)"></div>
+            </div>
+          </div>
         </div>
       <% } %>
     </script>

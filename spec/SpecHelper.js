@@ -1,6 +1,6 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Sequencer"
+  "Message Handler"
 ];
 
 beforeEach(function() {
@@ -40,11 +40,14 @@ beforeEach(function() {
   this.addMatchers({
     // A track model must reflect the JSON from which it was created in 
     // order to be considered valid.
-    toReflectJSON: function(expectedJSON) {
-      
+    toReflectJSON: function(expectedJSON, exceptions) {
+      if (typeof(exceptions) == "undefined") {
+        exceptions = [];
+      }
       for (var attrName in expectedJSON) {
-        if (expectedJSON[attrName] != this.actual.get(attrName)) {
-          console.log("fail on :" + attrName + " expected: "+ expectedJSON[attrName] + " actual:"+ this.actual.get(attrName));
+        if (!($.inArray(attrName, exceptions)) && 
+            expectedJSON[attrName] != this.actual.get(attrName)) {
+          console.log("fail on '" + attrName + "' expected:"+ expectedJSON[attrName] + " actual:"+ this.actual.get(attrName));
           return false;
         }
       }
@@ -82,7 +85,12 @@ beforeEach(function() {
       }
     }
   };
-});
+}); // end beforeEach
+
+afterEach(function() {
+  this.Einplayer.Backend.Sequencer.clear();
+}); // end afterEach
+
 
 waitsForFrontendInit = function() {
   // Convenience method to wait for the frontend's initialization

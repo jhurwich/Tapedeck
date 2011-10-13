@@ -9,16 +9,9 @@ describe("Utils", function() {
     var currentURL = window.location.href;
     
     var testTab = this.findTestTab();
-    this.Einplayer.Backend.Utils.getContext(function(context) {
-      expect(context.document).toBeDefined();
-      expect(context.document).toMatch(/div class="jasmine_reporter"/);
-      testComplete = true;
-    }, testTab);
+    var context = this.Einplayer.Backend.Utils.getContext(testTab);
 
-    waitsFor(function() {
-      return testComplete;
-    }, "Timedout waiting for context", 1000);
-    
+    expect(context.tab.id).toEqual(testTab.id);
   });
 
 });

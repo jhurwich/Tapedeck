@@ -57,7 +57,4 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
                    chrome.extension.getURL("images/slider-handle.png"));
 
   },
-
-
-
 });
