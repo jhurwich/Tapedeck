@@ -127,6 +127,9 @@ body {
 #browse-list .row .row-buttons > .button.remove {
   display: none;
 }
+#queue-list .row .row-buttons > .button.queue {
+  display: none;
+}
 
 .tracklist #hidden-droprow .cell {
   max-height: 3px;

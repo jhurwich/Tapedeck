@@ -43,6 +43,13 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
     $(this.el).find(".button.remove").each(function(index, element) {
       $(element).css("background-image", removeImgURL);
     });
+    
+    var queueImgURL = "url('" +
+                        chrome.extension.getURL("images/rowbutton-queue.png") +
+                        "')";
+    $(this.el).find(".button.queue").each(function(index, element) {
+      $(element).css("background-image", queueImgURL);
+    });
   },
 });
 

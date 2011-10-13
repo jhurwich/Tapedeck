@@ -169,12 +169,16 @@ Einplayer.Frontend.Frame = {
   },
 
   browseDblClick: function(row) {
-    var trackID = $(row).attr("track-id");
-    Einplayer.Frontend.Messenger.queueTrack(trackID);
+    Einplayer.Frontend.Frame.queueBrowseRow(row);
   },
 
   queueDblClick: function(row) {
     Einplayer.Frontend.Frame.playQueueRow(row);
+  },
+
+  queueBrowseRow: function(row) {
+    var trackID = $(row).attr("track-id");
+    Einplayer.Frontend.Messenger.queueTrack(trackID);
   },
 
   playQueueRow: function(row) {
@@ -286,6 +290,15 @@ Einplayer.Frontend.Frame = {
       // to play immediately from the browselist we must queueAndPlay
       Einplayer.Frontend.Messenger.queueAndPlayNow($(row).attr("track-id"));
     }
+  },
+  
+  rowButtonQueue: function(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+    var row = $(e.target).closest(".row");
+
+    Einplayer.Frontend.Frame.queueBrowseRow(row);
   },
 
   clearQueue: function() {

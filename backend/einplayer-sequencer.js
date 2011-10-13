@@ -255,6 +255,10 @@ Einplayer.Backend.Sequencer = {
 
       this.queue.add(track, { at:pos });
     }
+
+    if (pos < this.queuePosition) {
+      this.setQueuePosition(this.queuePosition + tracks.length);
+    }
   },
 
   moveTo: function(trackIndexPair, pos) {
@@ -265,12 +269,23 @@ Einplayer.Backend.Sequencer = {
     var sqcr = Einplayer.Backend.Sequencer;
     
     var tracksToRemove = [];
+    var playingIndex = -1;
     _.map(trackIndexPairs, function(pair) {
-      tracksToRemove.push(sqcr.getAt(pair.index));
+      var index = parseInt(pair.index);
+      if (index == sqcr.queuePosition) {
+        // we are attempting to move the playing track, record its index
+        playingIndex = tracksToRemove.length;
+      }
+      
+      tracksToRemove.push(sqcr.getAt(index));
     });
     
     var tracks = _.pluck(trackIndexPairs, "track");
     this.insertSomeAt(tracks, pos);
+
+    if (playingIndex >= 0) {
+      this.setQueuePosition(pos + playingIndex);
+    }
 
     this.removeSome(tracksToRemove);
   },
