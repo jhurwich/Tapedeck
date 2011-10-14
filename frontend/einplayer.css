@@ -143,20 +143,53 @@ body {
   background-color: #ff9900 !important;
 }
 
-#playlist-list .row {
-  min-height: 16px;
-  border: 1px solid blue;
+#playlist-list {
+  position: relative;
 }
-#playlist-list .row .cell{
+#playlist-list #playlist-list-header {
+  width: 90px;
+  border: 2px solid rgb(50,153,187);
+  background-color: #f2f2f2;
+  margin: 3px;
   float: left;
+  text-align: center;
+  font-size: 14px;
+}
+#playlist-list #playlist-list-content {
+  display: none;
+  position: absolute;
+  top: 22px;
+  left: 3px;
+  border: solid 2px rgb(50,153,187); 
+  background-color: #f2f2f2;
+  z-index: 100;
+}
+#playlist-list-content .row:hover {
+  background-color: #d0d0d0;
+  cursor: pointer;
+}
+#playlist-list .row {
+  display: table-row;
+  -khtml-user-select: none;
+  min-height: 16px;
 }
 #playlist-list .row .row-buttons > .button {
   height: 14px;
   width: 14px;
   margin: 1px;
   background-position: center;
-  float: right;
+}
+#playlist-list .cell {
+  display: table-cell;
+  min-height: 16px;
+  float: left;
+  font: 14px arial,sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: solid 1px rgb(50,153,187);
 }
 
-
-
+#playlist-list .cell.playlistName-col {
+  width: 200px;
+}

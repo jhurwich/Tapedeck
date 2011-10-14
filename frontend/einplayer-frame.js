@@ -194,6 +194,16 @@ Einplayer.Frontend.Frame = {
     var index = $(target).attr("index");
     Einplayer.Frontend.Messenger.playPlaylist(index);
   },
+
+  showPlaylistList: function() {
+    var content = $("#playlist-list-content");
+    $(content).css("display", "table");
+  },
+
+  hidePlaylistList: function() {
+    var content = $("#playlist-list-content");
+    $(content).css("display", "none");
+  },
   
   rowButtonRemovePlaylist: function(e) {
     if (e.stopPropagation) {

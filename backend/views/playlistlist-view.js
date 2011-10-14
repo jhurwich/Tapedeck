@@ -7,7 +7,10 @@ Einplayer.Backend.Views.PlaylistList = Backbone.View.extend({
   ],
   template: null,
   
-  proxyEvents: { },
+  proxyEvents: {
+    "mouseover #playlist-list-header": "showPlaylistList",
+    "mouseleave #playlist-list": "hidePlaylistList",
+  },
   eventsName: "playlistListEvents",
   
   initialize: function() {
@@ -24,7 +27,6 @@ Einplayer.Backend.Views.PlaylistList = Backbone.View.extend({
     this.assignRowButtonImgs();
     
     Einplayer.Backend.Utils.proxyEvents(this, this.eventsName);
-    
     return this.el;
   },
    
