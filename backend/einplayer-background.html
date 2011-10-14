@@ -38,28 +38,26 @@
       <div id="player">Player Here</div>
       <strong>Queue</strong>
       <div id="queue-list" class="tracklist"></div>
-       <select id="playlist-list"></select>
-      
-      <button id="queue-save"
-              type="button"
-              onclick="Einplayer.Frontend.Frame.saveQueue()">
-        Save
-      </button>
-      <button id="queue-clear"
-              type="button"
-              onclick="Einplayer.Frontend.Frame.clearQueue()">
-        Clear
-      </button>
 
-      <br />
+      <div id="queue-buttons">
+        <div id="playlist-list"></div>
+        
+        <button id="queue-save"
+                type="button"
+                onclick="Einplayer.Frontend.Frame.saveQueue()">
+          Save
+        </button>
+        <button id="queue-clear"
+                type="button"
+                onclick="Einplayer.Frontend.Frame.clearQueue()">
+          Clear
+        </button>
+      </div>
 
       <strong>Browse</strong>
       <div id="browse-list" class="tracklist"></div>
 
       <br />
-
-      <strong>Cassettes</strong>
-      <div id="cassette-list" class="cassettelist"></div>
     </script>
 
     <script id="Player-default-template" type="text/template">

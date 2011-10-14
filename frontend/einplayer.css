@@ -143,6 +143,11 @@ body {
   background-color: #ff9900 !important;
 }
 
+
+#queue-buttons {
+  margin-bottom: 4px;
+}
+
 #playlist-list {
   position: relative;
 }
@@ -189,7 +194,6 @@ body {
   text-overflow: ellipsis;
   border-bottom: solid 1px rgb(50,153,187);
 }
-
 #playlist-list .cell.playlistName-col {
   width: 200px;
 }
