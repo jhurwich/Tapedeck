@@ -37,7 +37,7 @@ describe("Message Handler", function() {
 
     waitsFor(function() {
       return testComplete;
-    }, "Waiting for script to execute", 1000);
+    }, "Waiting for script to execute", 500);
 
     runs(function() {
       expect(spy).toHaveBeenCalled();

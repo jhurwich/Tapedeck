@@ -7,7 +7,8 @@ Einplayer.Backend.TemplateManager = {
     "Player",
     "TrackList",
     "Queue",
-    "BrowseList"
+    "BrowseList",
+    "PlaylistList"
   ],
 
   init: function() {
@@ -27,7 +28,6 @@ Einplayer.Backend.TemplateManager = {
     if (typeof(options) == "undefined") {
       options = { };
     }
-    
     var viewScript = this.getViewScript(scriptName, packageName);
     var view = new viewScript(options);
     

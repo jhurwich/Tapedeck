@@ -16,16 +16,21 @@
   
     <!-- Models -->
     <script type="text/javascript" src="models/cassette.js"></script>
+    <script type="text/javascript" src="models/cassettelist.js"></script>
     <script type="text/javascript" src="models/track.js"></script>
     <script type="text/javascript" src="models/tracklist.js"></script>
+    <script type="text/javascript" src="models/playlist.js"></script>
+    <script type="text/javascript" src="models/playlistlist.js"></script>
 
     <!-- Cassettes -->
     <script type="text/javascript" src="models/cassettes/scraper-cassette.js"></script>
 
     <!-- Default Views -->
+    <script type="text/javascript" src="views/cassettelist-view.js"></script>
     <script type="text/javascript" src="views/tracklist-view.js"></script>
     <script type="text/javascript" src="views/queue-view.js"></script>
     <script type="text/javascript" src="views/browselist-view.js"></script>
+    <script type="text/javascript" src="views/playlistlist-view.js"></script>
     <script type="text/javascript" src="views/frame-view.js"></script>
     <script type="text/javascript" src="views/player-view.js"></script>
 
@@ -33,6 +38,13 @@
       <div id="player">Player Here</div>
       <strong>Queue</strong>
       <div id="queue-list" class="tracklist"></div>
+       <select id="playlist-list"></select>
+      
+      <button id="queue-save"
+              type="button"
+              onclick="Einplayer.Frontend.Frame.saveQueue()">
+        Save
+      </button>
       <button id="queue-clear"
               type="button"
               onclick="Einplayer.Frontend.Frame.clearQueue()">
@@ -43,6 +55,11 @@
 
       <strong>Browse</strong>
       <div id="browse-list" class="tracklist"></div>
+
+      <br />
+
+      <strong>Cassettes</strong>
+      <div id="cassette-list" class="cassettelist"></div>
     </script>
 
     <script id="Player-default-template" type="text/template">
@@ -95,9 +112,7 @@
              index='<%= i %>'
              track-id='<%= track.einID %>'
              draggable="true"
-             onclick="Einplayer.Frontend.Frame.rowClick(event)"
-             <% if (track.listened) { print("listened=true") } %>
-             <% if (track.playing) { print("playing=true") } %> >
+             onclick="Einplayer.Frontend.Frame.rowClick(event)" >
           <div class="cell trackName-col"> <%= track.trackName %> </div>
           <div class="cell artistName-col"> <%= track.artistName %> </div>
           <div class="cell cassette-col"> <%= track.cassette %>
@@ -109,6 +124,42 @@
               <div class="button queue"
                    onclick="Einplayer.Frontend.Frame.rowButtonQueue(event)"></div>
             </div>
+          </div>
+        </div>
+      <% } %>
+    </script>
+
+    <script id="PlaylistList-default-template" type="text/template">
+      <div id="playlist-list-header">Load a playlist</div>
+      <div id="playlist-list-content">
+        <% for (var i=0; i < playlistList.length; i++) {
+          var playlist = playlistList.at(i);
+        %>
+          <div class="row"
+             index='<%= i %>'
+             onclick="Einplayer.Frontend.Frame.playPlaylist(event)" >
+            <div class="cell playlistName-col"> <%= playlist.id %> </div>
+            <div class="row-buttons">
+                <div class="button removePlaylist"
+                     onclick="Einplayer.Frontend.Frame.rowButtonRemovePlaylist(event)"></div>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </script>
+
+    <script id="CassetteList-default-template" type="text/template">
+      <% for (var i=0; i < cassetteList.length; i++) {
+        var cassette = cassetteList[i];
+      %>
+        <div class="row"
+             index='<%= i %>'
+             cassette-id='<%= cassette.einID %>'
+             onclick="alert('cassetteClick')" >
+          <div class="cell cassetteName-col"> <%= cassette.name %> </div>
+          <div class="row-buttons">
+              <div class="button remove"
+                   onclick="Einplayer.Frontend.Frame.rowButtonRemove(event)"></div>
           </div>
         </div>
       <% } %>

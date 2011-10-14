@@ -186,6 +186,24 @@ Einplayer.Frontend.Frame = {
     Einplayer.Frontend.Messenger.playIndex(index);
   },
 
+  playPlaylist: function(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+    var target = $(e.target).closest(".row");
+    var index = $(target).attr("index");
+    Einplayer.Frontend.Messenger.playPlaylist(index);
+  },
+  
+  rowButtonRemovePlaylist: function(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+    var target = $(e.target).closest(".row");
+    var index = $(target).attr("index");
+    Einplayer.Frontend.Messenger.removePlaylist(index);
+  },
+
   rowDrag: {
     tracks : [],
     from: "",
@@ -301,6 +319,15 @@ Einplayer.Frontend.Frame = {
     Einplayer.Frontend.Frame.queueBrowseRow(row);
   },
 
+  saveQueue: function() {
+    var playlistName = prompt("Please enter a playlist name");
+    if (playlistName == null) {
+      return;
+    }
+
+    Einplayer.Frontend.Messenger.saveQueue(playlistName);
+  },
+  
   clearQueue: function() {
     Einplayer.Frontend.Messenger.clearQueue();
   },

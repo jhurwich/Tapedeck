@@ -565,7 +565,8 @@
 
     // Prepare a model to be added to this collection
     _prepareModel: function(model, options) {
-      if (!(model instanceof Backbone.Model)) {
+      if (!(model instanceof Backbone.Model) &&
+          !(model instanceof this.model)) {
         var attrs = model;
         model = new this.model(attrs, {collection: this});
         if (model.validate && !model._performValidation(attrs, options)) model = false;

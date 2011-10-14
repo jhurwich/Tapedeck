@@ -17,4 +17,11 @@ Einplayer.Backend.Collections.TrackList = Backbone.Collection.extend({
       }
     });
   },
+
+  makePlaylist: function(playlistID) {
+    var playlist = new Einplayer.Backend.Collections.Playlist(this.models);
+    playlist.removeTempProperties();
+    playlist.id = playlistID;
+    return playlist;
+  },
 });

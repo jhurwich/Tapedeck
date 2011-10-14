@@ -319,6 +319,11 @@ Einplayer.Backend.Sequencer = {
     this.queue.reset();
     this.setQueuePosition(-1);
   },
+
+  playPlaylist: function(playlist) {
+    this.clear();
+    this.insertSomeAt(playlist.models, 0);
+  },
   
   updateQueueList: function() {
     var sqcr = Einplayer.Backend.Sequencer;
@@ -332,7 +337,6 @@ Einplayer.Backend.Sequencer = {
 
     Einplayer.Backend.MessageHandler.pushView("queue-list",
                                               queueView);
-                                              
   },
   
 };

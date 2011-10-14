@@ -19,6 +19,7 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
 
     this.renderPlayer();
     this.renderQueue();
+    this.renderPlaylistList();
     this.renderCassetteBrowser();
     this.renderBrowseList();
 
@@ -53,6 +54,16 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
     $(this.el).find("#queue-list").replaceWith(queueView);
   },
 
+  renderPlaylistList: function() {
+    var playlistList = Einplayer.Backend.Bank.getPlaylists();
+    var playlistListView = Einplayer.Backend
+                                    .TemplateManager
+                                    .renderView("PlaylistList",
+                                                { playlistList   : playlistList });
+                                                 
+    $(this.el).find("#playlist-list").replaceWith(playlistListView);
+  },
+  
   renderCassetteBrowser: function() {
 
   },

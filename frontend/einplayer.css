@@ -143,3 +143,20 @@ body {
   background-color: #ff9900 !important;
 }
 
+#playlist-list .row {
+  min-height: 16px;
+  border: 1px solid blue;
+}
+#playlist-list .row .cell{
+  float: left;
+}
+#playlist-list .row .row-buttons > .button {
+  height: 14px;
+  width: 14px;
+  margin: 1px;
+  background-position: center;
+  float: right;
+}
+
+
+

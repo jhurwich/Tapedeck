@@ -145,6 +145,33 @@ Einplayer.Frontend.Messenger = {
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
+  playPlaylist: function(index) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action : "playPlaylist",
+      index  : index,
+    });
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
+  removePlaylist: function(index) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action : "removePlaylist",
+      index  : index,
+    });
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
+  saveQueue: function(playlistName) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action       : "saveQueue",
+      playlistName : playlistName,
+    });
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+  
   clearQueue: function() {
     var request = Einplayer.Frontend.Messenger.newRequest({
       action   : "clearQueue"

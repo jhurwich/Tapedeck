@@ -186,6 +186,26 @@ Einplayer.Backend.MessageHandler = {
         sqcr.removeAt(request.pos);
         break;
 
+      case "playPlaylist":
+        var playlist = Einplayer.Backend.Bank.getPlaylists().at(request.index);
+        sqcr.playPlaylist(playlist);
+        break;
+
+      case "removePlaylist":
+        var playlist = Einplayer.Backend.Bank.getPlaylists().at(request.index);
+        Einplayer.Backend.Bank.removePlaylist(playlist);
+        break;
+
+      case "saveQueue":
+        if (sqcr.queue.length == 0) {
+          return;
+        }
+        
+        var playlist = sqcr.queue.makePlaylist(request.playlistName);
+        
+        Einplayer.Backend.Bank.savePlaylist(playlist);
+        break;
+
       case "clearQueue":
         sqcr.clear();
         break;
@@ -200,7 +220,6 @@ Einplayer.Backend.MessageHandler = {
         var nextPos = sqcr.queuePosition + 1;
         sqcr.insertAt(track, nextPos);
         sqcr.next();
-        
         break;
 
       case "seek":
