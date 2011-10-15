@@ -117,6 +117,15 @@ Einplayer.Frontend.Frame = {
 
     // tell our code to start moving the element with the mouse
     document.onmousemove = Einplayer.Frontend.Frame.moveHandle;
+
+    $("#einplayer-content").mouseleave(function() {
+      // reset the slider if the mouse leaves during drag
+      if (sliderDrag.dragging) {
+        document.onmousemove = null;
+        document.onselectstart = null;
+        sliderDrag.dragging = false;
+      }
+    });
     
     // cancel out any text selections
     document.body.focus();
