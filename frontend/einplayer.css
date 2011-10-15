@@ -6,10 +6,10 @@ body {
   height: 100%;
 }
 
-.einplayer-content {
+#einplayer-content {
   overflow: hidden;
   position: relative;
-  margin: 4px;
+  padding: 4px;
 }
 
 #player {
@@ -70,14 +70,14 @@ body {
 }
 
 #browse-list {
-  height: 300px;
+  height: 280px;
 }
 #queue-list {
-  max-height: 300px;
+  max-height: 280px;
 }
 #queue-region {
-  max-height: 350px;
-  height: 350px;
+  max-height: 330px;
+  height: 330px;
 }
 .region-header {
   font: bold 18px arial, sans-serif;
@@ -144,7 +144,7 @@ body {
 }
 .tracklist .cell.cassette-col {
   border-right: none;
-  width: 76px;
+  width: 68px;
 }
 .tracklist .row-buttons {
   display: none;
