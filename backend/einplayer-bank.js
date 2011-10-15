@@ -34,6 +34,11 @@ Einplayer.Backend.Bank = {
   playlistList: null,
   savePlaylist: function(playlist) {
     var playlistList = this.getPlaylists();
+    var found = playlistList.get(playlist.id); 
+    if (found != null) {
+      console.log("name collision!");
+      this.removePlaylist(found);
+    }
     playlistList.add(playlist);
   },
 

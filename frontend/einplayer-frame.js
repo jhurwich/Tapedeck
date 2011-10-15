@@ -11,19 +11,65 @@ Einplayer.Frontend.Frame = {
     
   },
   
-  Player : { 
+  Player : {
+    Slider : {
+      currentTime: -1,
+      duration: -1,
+      calculateOffset: function() {
+        var sliderWidth = parseInt($("#slider").css("width"));
+        var maxOffset = sliderWidth - 15; // 15px less looks nice
+        
+        return Math.floor((this.currentTime/this.duration) * maxOffset);
+      },
+    },
+
+    prettifyTime: function (inSeconds) {
+      var minutes = (Math.floor(inSeconds / 60)).toString();
+      var seconds = Math.floor((inSeconds % 60)).toString();
+      if (seconds.length == 1) {
+        seconds = "0" + seconds;
+      }
+      return "" + minutes + ":" + seconds
+    },
+    
     updateSlider: function(currentTime, duration) {
+      var slider = Einplayer.Frontend.Frame.Player.Slider;
+      slider.currentTime = currentTime;
+      slider.duration = duration;
+      var prettyDuration = Einplayer.Frontend.Frame.Player.prettifyTime
+                                                          (duration);
+      if ($("#duration").html() != prettyDuration) {
+        console.log("setting duration to " + prettyDuration);
+        $("#duration").html(prettyDuration);
+      }
+      else {
+        console.log("else!");
+      }
+      
       if (Einplayer.Frontend.Frame.sliderDrag.dragging) {
         return;
       }
-      offset = Einplayer.Frontend.Frame.timeToOffset(currentTime,
-                                                     duration);
-      this.setSlider(offset);
+      offset = slider.calculateOffset();
+      this.setHandle(offset);
     },
 
-    setSlider: function(offset) {
+    setHandle: function(offset, displayTime) {
+      if (typeof(displayTime) == "undefined") {
+        displayTime = false;
+      }
+      var slider = Einplayer.Frontend.Frame.Player.Slider;
+
+      var positionPercent = Einplayer.Frontend.Frame.offsetPercent(offset);
+      var timeAtPosition = positionPercent * slider.duration;
+
       $("#handle").css('left', offset)
-      $("#debug").html(offset);
+      if (displayTime) {
+        $("#handle-val").html(Einplayer.Frontend.Frame.Player.prettifyTime
+                                                             (timeAtPosition));
+      }
+      else {
+        $("#handle-val").html("");
+      }
     },
   },
   
@@ -99,7 +145,7 @@ Einplayer.Frontend.Frame = {
       newOffset = maxOffset;
     }
 
-    Einplayer.Frontend.Frame.Player.setSlider(newOffset);
+    Einplayer.Frontend.Frame.Player.setHandle(newOffset, true);
   },
   
   mouseUp: function(e) {
@@ -117,13 +163,7 @@ Einplayer.Frontend.Frame = {
       Einplayer.Frontend.Messenger.seekPercent(percent);
     }
   },
-  timeToOffset: function(current, totalTime) {
-    var sliderWidth = parseInt($("#slider").css("width"));
-    var maxOffset = sliderWidth - 15; // 15px less looks nice
-    
-    return Math.floor((current/totalTime) * maxOffset);
-  },
-  offsetPercent: function(offset, totalTime) {
+  offsetPercent: function(offset) {
     var sliderWidth = parseInt($("#slider").css("width"));
     var maxOffset = sliderWidth - 15; // 15px less looks nice
 
@@ -226,7 +266,7 @@ Einplayer.Frontend.Frame = {
     var dataTransfer = window.event.dataTransfer;
     dataTransfer.effectAllowed = 'move';
 
-    rowDrag.from = $(target).closest(".tracklist").first().attr("id");
+    rowDrag.from = $(target).closest(".tracklist-container").first().attr("id");
 
     if ($(target).hasClass("selected")) {
       // target was selected, grab all selected tracks
@@ -310,7 +350,7 @@ Einplayer.Frontend.Frame = {
    
     var row = $(e.target).closest(".row");
 
-    if ($(row).closest(".tracklist").attr("id") == "queue-list") {
+    if ($(row).closest(".tracklist-container").attr("id") == "queue-list") {
       // to play immediately from the queue we can just play the row
       Einplayer.Frontend.Frame.playQueueRow(row);
     }

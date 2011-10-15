@@ -87,6 +87,13 @@ Einplayer.Backend.MessageHandler = {
       self.pushView("einplayer-content", viewString, tab);
     });
   },
+
+  postMessage: function(tabID, message) {
+    var ports = Einplayer.Backend.MessageHandler.ports;
+    if (typeof(ports[tabID]) != "undefined") {
+      ports[tabID].postMessage(message);
+    }
+  },
   
   pendingCallbacks: {},
   handleResponse: function(response) {
@@ -123,7 +130,8 @@ Einplayer.Backend.MessageHandler = {
                                    .html();
                                    
         response.view = viewString;
-        port.postMessage(response);
+        Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
+                                                     response);
         break;
 
       case "requestUpdate":
@@ -268,8 +276,7 @@ Einplayer.Backend.MessageHandler = {
       duration: track.get("duration"),
     });
     
-    var ports = Einplayer.Backend.MessageHandler.ports;
-    ports[tab.id].postMessage(request);
+    Einplayer.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
   pushView: function(targetID, view, tab) {
@@ -292,8 +299,7 @@ Einplayer.Backend.MessageHandler = {
       targetID: targetID,
     });
 
-    var ports = Einplayer.Backend.MessageHandler.ports;
-    ports[tab.id].postMessage(request);
+    Einplayer.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
   newRequest: function(object, callback) {
@@ -336,8 +342,8 @@ Einplayer.Backend.MessageHandler = {
         action: "executeScriptInTest",
         script: options.file,
       });
-      var port = Einplayer.Backend.MessageHandler.ports[tab.id];
-      port.postMessage(request);
+
+      Einplayer.Backend.MessageHandler.postMessage(tab.id, request);
     }
   },
 

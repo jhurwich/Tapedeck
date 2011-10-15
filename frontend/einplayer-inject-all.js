@@ -37,32 +37,32 @@ var EinInjected = {
     var drawerOpen = document.createElement('img');
     drawerOpen.id = 'ein-injected-draweropen';
     drawerOpen.className = 'ein-injected-button';
-    drawerOpen.src = chrome.extension.getURL("images/pink-draweropen-button.png");
+    drawerOpen.src = chrome.extension.getURL("images/draweropen-button.png");
     drawerOpen.onclick = EinInjected.setDrawerOpened;
 
     var drawerClose = document.createElement('img');
     drawerClose.id = 'ein-injected-drawerclose';
     drawerClose.className = 'ein-injected-button';
-    drawerClose.src = chrome.extension.getURL("images/pink-drawerclose-button.png");
+    drawerClose.src = chrome.extension.getURL("images/drawerclose-button.png");
     drawerClose.onclick = EinInjected.setDrawerClosed;
     drawerClose.setAttribute("hidden", true);
   
     var play = document.createElement('img');
     play.id = 'ein-injected-play';
     play.className = 'ein-injected-button';
-    play.src = chrome.extension.getURL("images/pink-play-button.png");
+    play.src = chrome.extension.getURL("images/play-pause-button.png");
     play.onclick = EinInjected.playPause;
   
     var next = document.createElement('img');
     next.id = 'ein-injected-next';
     next.className = 'ein-injected-button';
-    next.src = chrome.extension.getURL("images/pink-next-button.png");
+    next.src = chrome.extension.getURL("images/next-button.png");
     next.onclick = EinInjected.next;
   
     var prev = document.createElement('img');
     prev.id = 'ein-injected-prev';
     prev.className = 'ein-injected-button';
-    prev.src = chrome.extension.getURL("images/pink-prev-button.png");
+    prev.src = chrome.extension.getURL("images/prev-button.png");
     prev.onclick = EinInjected.prev;
   
     sideButtons.appendChild(drawerOpen);
@@ -74,7 +74,7 @@ var EinInjected = {
     htmlDOM.appendChild(sideButtons);
   },
   
-  toolbarWidth: 350,
+  toolbarWidth: 352,
   openDrawer: function() {
     if (!EinInjected.einplayerFrame.getAttribute("hidden")) {
       // already opened, abort

@@ -1,10 +1,7 @@
 {
   "name": "Einplayer",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The one player for the web.",
-  "browser_action": {
-    "default_icon": "images/pink-cassette-icon.png"
-  },
   "background_page" :"backend/einplayer-background.html",
   "content_scripts" : [
     {

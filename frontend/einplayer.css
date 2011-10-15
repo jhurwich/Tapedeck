@@ -16,12 +16,15 @@ body {
   position: relative;
   margin-bottom: 15px;
 }
-
 #banner {
   position: relative;
-  height: 30px;
+  height: 40px;
   border: solid 2px rgb(66,66,66);
   margin-bottom: 10px;
+  padding: 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #slider {
   width: 305px;
@@ -39,27 +42,61 @@ body {
   width: 5px;
   float: left;
 }
+#track-right {
+  margin-left: 5px;
+}
 #handle {
   position: relative;
   width: 9px;
-  height: 9px
+  height: 9px;
+  margin-left: -4px;
 }
 #handle-image {
   height: 12px;
-  margin-top: -4px;
+  margin-top: -3px;
+}
+#handle-val {
+  top: -10px;
+  position: absolute;
+  font: 10px arial, sans-serif;
+}
+#player #duration {
+  position: absolute;
+  right: 20px;
+  height: 12px;
+  width: 12px;
+  font: 10px arial, sans-serif;
 }
 
-.tracklist {
+#browse-list {
+  height: 300px;
+}
+#queue-list {
+  max-height: 300px;
+}
+#queue-region {
+  max-height: 350px;
+  height: 350px;
+}
+.region-header {
+  font: bold 18px arial, sans-serif;
+  height: 22px;
+}
+
+.tracklist-container {
   position: relative;
+  overflow-y: auto;
+}
+.tracklist {
   display: table;
   empty-cells: show;
   border: solid 2px rgb(66,66,66); 
-  background-color: rgb(233,233,233);
 }
 .tracklist .row {
   position: relative;
   display: table-row;
   -khtml-user-select: none;
+  background-color: rgb(233,233,233);
 }
 .tracklist .row:hover {
   background-color: #d0d0d0;
@@ -81,6 +118,7 @@ body {
   font-weight: normal !important;
 }
 .tracklist .cell {
+  position: relative;
   display: table-cell;
   min-height: 16px;
   float: left;
@@ -110,7 +148,7 @@ body {
 .tracklist .row-buttons {
   display: none;
   position: absolute;
-  right: 0px;
+  right: 2px;
   margin: 1px;
 }
 .tracklist .row-buttons > .button {
@@ -143,9 +181,9 @@ body {
   background-color: #ff9900 !important;
 }
 
-
 #queue-buttons {
   margin-bottom: 4px;
+  height: 26px;
 }
 
 #playlist-list {
@@ -153,7 +191,7 @@ body {
 }
 #playlist-list #playlist-list-header {
   width: 90px;
-  border: 2px solid rgb(50,153,187);
+  border: 2px solid rgb(66,66,66);
   background-color: #f2f2f2;
   margin: 3px;
   float: left;
@@ -165,7 +203,7 @@ body {
   position: absolute;
   top: 22px;
   left: 3px;
-  border: solid 2px rgb(50,153,187); 
+  border: solid 2px rgb(66,66,66); 
   background-color: #f2f2f2;
   z-index: 100;
 }
@@ -193,6 +231,9 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   border-bottom: solid 1px rgb(50,153,187);
+}
+#playlist-list .row:last-child .cell{
+  border-bottom: none;
 }
 #playlist-list .cell.playlistName-col {
   width: 200px;

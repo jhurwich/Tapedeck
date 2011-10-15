@@ -36,34 +36,36 @@
 
     <script id="Frame-default-template" type="text/template">
       <div id="player">Player Here</div>
-      <strong>Queue</strong>
-      <div id="queue-list" class="tracklist"></div>
-
-      <div id="queue-buttons">
-        <div id="playlist-list"></div>
-        
-        <button id="queue-save"
-                type="button"
-                onclick="Einplayer.Frontend.Frame.saveQueue()">
-          Save
-        </button>
-        <button id="queue-clear"
-                type="button"
-                onclick="Einplayer.Frontend.Frame.clearQueue()">
-          Clear
-        </button>
+      <div id="queue-region" class="region">
+        <div class="region-header">Queue</div>
+        <div id="queue-list" class="tracklist"></div>
+  
+        <div id="queue-buttons">
+          <div id="playlist-list"></div>
+          
+          <button id="queue-save"
+                  type="button"
+                  onclick="Einplayer.Frontend.Frame.saveQueue()">
+            Save
+          </button>
+          <button id="queue-clear"
+                  type="button"
+                  onclick="Einplayer.Frontend.Frame.clearQueue()">
+            Clear
+          </button>
+        </div>
       </div>
 
-      <strong>Browse</strong>
-      <div id="browse-list" class="tracklist"></div>
-
-      <br />
+      <div id="browse-region" class="region">
+        <div class="region-header">Browse</div>
+        <div id="browse-list" class="tracklist"></div>
+      </div>
     </script>
 
     <script id="Player-default-template" type="text/template">
       <div id="banner">
         <%
-        var bannerStr = "(" + state + ") ";
+        var bannerStr = "";
 
         if (state != "stop" && typeof(track) != "undefined") {
           if (typeof(track.artistName) != "undefined") {
@@ -75,7 +77,14 @@
             }
             bannerStr += track.trackName;
           }
-        } 
+        }
+
+        if (state == "load") {
+          bannerStr += "<br />(Loading)";
+        }
+        else if (state == "pause") {
+          bannerStr += "<br />(Paused)";
+        }
         print(bannerStr);
         %>
       </div>
@@ -87,44 +96,46 @@
         <div id="track-left" class="slider-track"></div>
         <div id="track-right" class="slider-track">
           <div id="handle">
-            <img id="handle-image"></img>
             <div id="handle-val"></div>
+            <img id="handle-image"></img>
           </div>
         </div>
       </div>
-      <pre id="debug">debug</pre>
+      <div id="duration"></div>
     </script>
 
     <script id="TrackList-default-template" type="text/template">
-      <div class="row" id="hidden-droprow" index="-1">
-        <div class="cell trackName-col"></div>
-        <div class="cell artistName-col"></div>
-        <div class="cell cassette-col"></div>
-      </div>
-      <% for (var i=0; i < trackList.length; i++) {
-        var track = trackList[i];
-      %>
-        <div class="row
-                    <% if (track.listened) { print(" listened ") } %>
-                    <% if (track.playing) { print(" playing ") } %>"
-             index='<%= i %>'
-             track-id='<%= track.einID %>'
-             draggable="true"
-             onclick="Einplayer.Frontend.Frame.rowClick(event)" >
-          <div class="cell trackName-col"> <%= track.trackName %> </div>
-          <div class="cell artistName-col"> <%= track.artistName %> </div>
-          <div class="cell cassette-col"> <%= track.cassette %>
-            <div class="row-buttons">
-              <div class="button playnow"
-                   onclick="Einplayer.Frontend.Frame.rowButtonPlaynow(event)"></div>
-              <div class="button remove"
-                   onclick="Einplayer.Frontend.Frame.rowButtonRemove(event)"></div>
-              <div class="button queue"
-                   onclick="Einplayer.Frontend.Frame.rowButtonQueue(event)"></div>
+      <div class="tracklist">
+        <div class="row" id="hidden-droprow" index="-1">
+          <div class="cell trackName-col"></div>
+          <div class="cell artistName-col"></div>
+          <div class="cell cassette-col"></div>
+        </div>
+        <% for (var i=0; i < trackList.length; i++) {
+          var track = trackList[i];
+        %>
+          <div class="row
+                      <% if (track.listened) { print(" listened ") } %>
+                      <% if (track.playing) { print(" playing ") } %>"
+               index='<%= i %>'
+               track-id='<%= track.einID %>'
+               draggable="true"
+               onclick="Einplayer.Frontend.Frame.rowClick(event)" >
+            <div class="cell trackName-col"> <%= track.trackName %> </div>
+            <div class="cell artistName-col"> <%= track.artistName %> </div>
+            <div class="cell cassette-col"> <%= track.cassette %>
+              <div class="row-buttons">
+                <div class="button playnow"
+                     onclick="Einplayer.Frontend.Frame.rowButtonPlaynow(event)"></div>
+                <div class="button remove"
+                     onclick="Einplayer.Frontend.Frame.rowButtonRemove(event)"></div>
+                <div class="button queue"
+                     onclick="Einplayer.Frontend.Frame.rowButtonQueue(event)"></div>
+              </div>
             </div>
           </div>
-        </div>
-      <% } %>
+        <% } %>
+      </div>
     </script>
 
     <script id="PlaylistList-default-template" type="text/template">

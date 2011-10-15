@@ -1,7 +1,7 @@
 Einplayer.Backend.Views.TrackList = Backbone.View.extend({
 
   tagName: "div",
-  className: "tracklist",
+  className: "tracklist-container",
   requiredTemplates: [
     "TrackList"
   ],

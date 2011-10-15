@@ -25,7 +25,7 @@ describe("Frontend Frame Logic", function() {
     var rows = $("#einplayer-frame").contents()
                                     .find("#browse-list")
                                     .first()
-                                    .children(".row")
+                                    .find(".row")
                                     .not("#hidden-droprow");
 
     var numTracks = this.testTracks.length;
