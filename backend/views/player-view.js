@@ -8,6 +8,8 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
   template: null,
 
   proxyEvents: {
+    "mouseover #handle": "mouseoverHandle",
+    "mouseleave #handle": "mouseleaveHandle",
     "mousedown #handle": "downOnHandle",
     "mouseup": "mouseUp",
     "onreplace": "forceSliderUpdate"

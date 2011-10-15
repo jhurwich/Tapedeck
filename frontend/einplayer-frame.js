@@ -39,11 +39,7 @@ Einplayer.Frontend.Frame = {
       var prettyDuration = Einplayer.Frontend.Frame.Player.prettifyTime
                                                           (duration);
       if ($("#duration").html() != prettyDuration) {
-        console.log("setting duration to " + prettyDuration);
         $("#duration").html(prettyDuration);
-      }
-      else {
-        console.log("else!");
       }
       
       if (Einplayer.Frontend.Frame.sliderDrag.dragging) {
@@ -63,12 +59,13 @@ Einplayer.Frontend.Frame = {
       var timeAtPosition = positionPercent * slider.duration;
 
       $("#handle").css('left', offset)
+      $("#handle-val").html(Einplayer.Frontend.Frame.Player.prettifyTime
+                                                           (timeAtPosition));
       if (displayTime) {
-        $("#handle-val").html(Einplayer.Frontend.Frame.Player.prettifyTime
-                                                             (timeAtPosition));
+        $("#handle-val").css("display", "block");
       }
-      else {
-        $("#handle-val").html("");
+      else if (!($("#handle-val").hasClass("hover"))) {
+        $("#handle-val").css("display", "none");
       }
     },
   },
@@ -168,6 +165,23 @@ Einplayer.Frontend.Frame = {
     var maxOffset = sliderWidth - 15; // 15px less looks nice
 
     return (offset/maxOffset);
+  },
+
+  mouseoverHandle: function(e) {
+    if ($("#slider").hasClass("disabled")) {
+      return;
+    }
+
+    $("#handle-val").css("display", "block");
+    $("#handle-val").addClass("hover");
+  },
+  mouseleaveHandle: function(e) {
+    if ($("#slider").hasClass("disabled")) {
+      return;
+    }
+
+    $("#handle-val").removeClass("hover");
+    $("#handle-val").css("display", "none");
   },
   
   
