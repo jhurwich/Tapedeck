@@ -12,5 +12,6 @@
       "run_at"  : "document_end"
     }
   ],
-  "permissions": ["tabs", "http://*/*"]
+  "permissions": ["tabs", "http://*/*"],
+  "update_url": "http://einplayer.jordanhurwich.com/einplayer/autoupdate.xml"
 }
