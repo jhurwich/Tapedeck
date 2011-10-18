@@ -13,5 +13,5 @@
     }
   ],
   "permissions": ["tabs", "http://*/*"],
-  "update_url": "http://einplayer.jordanhurwich.com/einplayer/autoupdate.xml"
+  "update_url": "http://einplayer.jordanhurwich.com/update"
 }
