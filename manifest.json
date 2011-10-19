@@ -12,6 +12,11 @@
       "run_at"  : "document_end"
     }
   ],
+  "icons":
+    {
+      "48": "images/cassette-pink-48.png",
+      "128": "images/cassette-pink-128.png"
+    },
   "permissions": ["tabs", "http://*/*"],
   "update_url": "http://einplayer.jordanhurwich.com/update"
 }
