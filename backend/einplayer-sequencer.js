@@ -194,7 +194,13 @@ Einplayer.Backend.Sequencer = {
       this.playIndex(this.queuePosition + 1);
     }
     else {
-      this.Player.stop();
+      if (Einplayer.Backend.Bank.getRepeat() &&
+          this.queue.length > 0) {
+        this.playIndex(0);
+      }
+      else {
+        this.Player.stop();
+      }
     }
   },
 
@@ -238,22 +244,29 @@ Einplayer.Backend.Sequencer = {
     this.updateQueueList();
   },
   
-  push: function(track) {
-    this.insertAt(track, this.queue.length);
+  push: function(track, silent) {
+    this.insertAt(track, this.queue.length, silent);
   },
 
-  insertAt: function(track, pos) {
-    this.insertSomeAt([track], pos);
+  insertAt: function(track, pos, silent) {
+    this.insertSomeAt([track], pos, silent);
   },
 
-  insertSomeAt: function(tracks, pos) {
+  insertSomeAt: function(tracks, pos, silent) {
+    if (typeof(silent) == "undefined") {
+      silent = false;
+    }
+    
     for (var i = tracks.length - 1; i >= 0 ; i--) {
       var track = tracks[i];
       if (track instanceof Backbone.Model) {
         track = track.clone(); // need to clone to allow duplicates in queue
       }
 
-      this.queue.add(track, { at:pos });
+      var options = { at : pos,
+                      silent: silent };
+
+      this.queue.add(track, options);
     }
 
     if (pos < this.queuePosition) {
@@ -281,7 +294,7 @@ Einplayer.Backend.Sequencer = {
     });
     
     var tracks = _.pluck(trackIndexPairs, "track");
-    this.insertSomeAt(tracks, pos);
+    this.insertSomeAt(tracks, pos, true);
 
     if (playingIndex >= 0) {
       this.setQueuePosition(pos + playingIndex);
@@ -313,6 +326,33 @@ Einplayer.Backend.Sequencer = {
     }
     this.queue.remove(trackModels);
     this.setQueuePosition(this.queuePosition - posChange);
+  },
+
+  shuffle: function() {
+    var originalOrderPairs = [];
+    for (var i = 0; i < this.queue.length; i++) {
+      var track = this.getAt(i);
+      originalOrderPairs.push({ track: track, index: i });
+    }
+
+    var newOrderPairs = [];
+    // if a track is playing, it will be first in the new order
+    if (this.queuePosition > -1) {
+      newOrderPairs.push(originalOrderPairs[this.queuePosition]);
+      originalOrderPairs.splice(this.queuePosition, 1);
+    }
+    
+    while(originalOrderPairs.length > 0) {
+      // randomly pick an index
+      var rand = Math.floor(Math.random() * originalOrderPairs.length);
+      var pair = originalOrderPairs[rand];
+
+      newOrderPairs.push(pair);
+
+      // remove that index so we can't get it again (no dups)
+      originalOrderPairs.splice(rand, 1);
+    }
+    this.moveSomeTo(newOrderPairs, 0);
   },
 
   clear: function() {

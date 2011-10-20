@@ -392,6 +392,15 @@ Einplayer.Frontend.Frame = {
     Einplayer.Frontend.Frame.queueBrowseRow(row);
   },
 
+  toggleRepeat: function() {
+    Einplayer.Frontend.Messenger.toggleRepeat();
+    Einplayer.Frontend.Frame.checkRepeat();
+  },
+
+  shuffleQueue: function() {
+    Einplayer.Frontend.Messenger.shuffleQueue();
+  },
+
   saveQueue: function() {
     var playlistName = prompt("Please enter a playlist name");
     if (playlistName == null) {
@@ -405,10 +414,28 @@ Einplayer.Frontend.Frame = {
     Einplayer.Frontend.Messenger.clearQueue();
   },
 
+  onFrameRender: function() {
+    var frame = Einplayer.Frontend.Frame;
+    
+    frame.forceSliderUpdate();
+    frame.checkRepeat();
+  },
+
   forceSliderUpdate: function() {
     if (!($("#slider").hasClass("disabled"))) {
       Einplayer.Frontend.Messenger.requestUpdate("Slider");
     }
+  },
+
+  checkRepeat: function() {
+    Einplayer.Frontend.Messenger.getRepeat(function(response) {
+      if (response.repeat) {
+        $("#repeat").addClass("active");
+      }
+      else {
+        $("#repeat").removeClass("active");
+      }
+    });
   },
 
 };
