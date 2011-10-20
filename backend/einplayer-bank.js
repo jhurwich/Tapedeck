@@ -7,11 +7,15 @@ Einplayer.Backend.Bank = {
   bankPrefix: "_einplayerbank_",
   trackListPrefix: /* bankPrefix + */ "trackList-",
   playlistPrefix: /* trackListPrefix + */ "playlist-",
+  repeatKey: /* bankPrefix + */ + "repeat",
   init: function() {
     this.localStorage = window.localStorage;
     this.trackListPrefix = this.bankPrefix + this.trackListPrefix;
     this.playlistPrefix = this.trackListPrefix + this.playlistPrefix;
-    
+    this.repeatKey = this.bankPrefix + this.repeatKey;
+    if (this.localStorage.getItem(this.repeatKey) == null) {
+      this.localStorage.setItem(this.repeatKey, "true");
+    }
   },
 
   clear: function() {
@@ -162,5 +166,16 @@ Einplayer.Backend.Bank = {
   
   getDrawerOpened: function() {
     return Einplayer.Backend.Bank.drawerOpen;
+  },
+
+  toggleRepeat: function() {
+    var oldVal = (this.localStorage.getItem(this.repeatKey) == "true");
+
+    this.localStorage.setItem(this.repeatKey,
+                              (oldVal ? "false" : "true"));
+  },
+
+  getRepeat: function() {
+    return this.localStorage.getItem(this.repeatKey) == "true";
   },
 }

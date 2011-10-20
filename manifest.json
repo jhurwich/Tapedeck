@@ -19,4 +19,7 @@
     },
   "permissions": ["tabs", "http://*/*"],
   "update_url": "http://einplayer.jordanhurwich.com/update"
+  "permissions": ["tabs", "http://*/*"],
+  "update_url": "http://einplayer.jordanhurwich.com/einplayer/autoupdate.xml"
+>>>>>>> 00bb807... Add update_url for auto-update and extension key
 }

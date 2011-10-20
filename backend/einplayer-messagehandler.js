@@ -204,6 +204,16 @@ Einplayer.Backend.MessageHandler = {
         Einplayer.Backend.Bank.removePlaylist(playlist);
         break;
 
+      case "toggleRepeat":
+        Einplayer.Backend.Bank.toggleRepeat();
+        break;
+
+      case "getRepeat":
+        response.repeat = Einplayer.Backend.Bank.getRepeat();
+        Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
+                                                     response);
+        break;
+        
       case "saveQueue":
         if (sqcr.queue.length == 0) {
           return;
@@ -212,6 +222,10 @@ Einplayer.Backend.MessageHandler = {
         var playlist = sqcr.queue.makePlaylist(request.playlistName);
         
         Einplayer.Backend.Bank.savePlaylist(playlist);
+        break;
+
+      case "shuffleQueue":
+        sqcr.shuffle();
         break;
 
       case "clearQueue":

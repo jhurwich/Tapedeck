@@ -12,7 +12,7 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
     "mouseleave #handle": "mouseleaveHandle",
     "mousedown #handle": "downOnHandle",
     "mouseup": "mouseUp",
-    "onreplace": "forceSliderUpdate"
+    "onreplace": "onFrameRender"
   },
   
   initialize: function() {
