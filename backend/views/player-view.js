@@ -41,22 +41,22 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
     return this.el;
   },
 
-  assignSliderImgs: function() {     
-    var trackLeft = $(this.el).find("#track-left").first();
-    var leftImgURL = "url('" +
-                     chrome.extension.getURL("images/slider-track-left.png") +
-                     "')";
-    $(trackLeft).css("background-image", leftImgURL);
-
-    var trackRight = $(this.el).find("#track-right").first();
-    var rightImgURL = "url('" +
-                      chrome.extension.getURL("images/slider-track-right.png") +
-                      "')";
-    $(trackRight).css("background-image", rightImgURL);
-
-    var handle = $(this.el).find("#handle-image").first();
-    $(handle).attr("src",
-                   chrome.extension.getURL("images/slider-handle.png"));
-
+  assignSliderImgs: function() {
+    this.assignImg("track-left", "slider-track-left.png");
+    this.assignImg("track-right", "slider-track-right.png");
+    this.assignImg("handle-image", "slider-handle.png");
   },
+
+  assignImg: function(elemID, image) {
+    var elem = $(this.el).find("#" + elemID).first();
+    var url = chrome.extension.getURL("images/" + image);
+    console.log(elemID + " to " + image + " tag:"+ $(elem).get(0).tagName);
+    if ($(elem).get(0).tagName == "DIV") {
+      url = "url('" + url + "')";
+      $(elem).css("background-image", url);
+    }
+    else if ($(elem).get(0).tagName == "IMG") {
+      $(elem).attr("src", url);
+    }
+  }
 });

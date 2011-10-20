@@ -48,21 +48,17 @@
                   onclick="Einplayer.Frontend.Frame.saveQueue()">
             Save
           </button>
-          <button id="repeat"
-                  type="button"
-                  onclick="Einplayer.Frontend.Frame.toggleRepeat()">
-            Repeat
-          </button>
-          <button id="queue-shuffle"
-                  type="button"
-                  onclick="Einplayer.Frontend.Frame.shuffleQueue()">
-            Shuffle
-          </button>
-          <button id="queue-clear"
-                  type="button"
-                  onclick="Einplayer.Frontend.Frame.clearQueue()">
-            Clear
-          </button>
+          <div id="playback-button-box">
+            <img id="repeat"
+                 class="playback-button"
+                 onclick="Einplayer.Frontend.Frame.toggleRepeat()"></img>
+            <img id="queue-shuffle"
+                 class="playback-button"
+                 onclick="Einplayer.Frontend.Frame.shuffleQueue()"></img>
+            <img id="queue-clear"
+                 class="playback-button"
+                 onclick="Einplayer.Frontend.Frame.clearQueue()"></img>
+          </div>
         </div>
       </div>
 

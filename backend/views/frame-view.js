@@ -22,6 +22,8 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
     this.renderPlaylistList();
     this.renderCassetteBrowser();
     this.renderBrowseList();
+    
+    this.assignPlaybackButtonImgs();
 
     var cassetteMgr = Einplayer.Backend.CassetteManager;
 
@@ -89,4 +91,23 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
       });
     });
   },
+  
+  assignPlaybackButtonImgs: function() {
+    this.assignImg("repeat", "repeat.png");
+    this.assignImg("queue-shuffle", "shuffle.png");
+    this.assignImg("queue-clear", "trash.png");
+  },
+
+  assignImg: function(elemID, image) {
+    var elem = $(this.el).find("#" + elemID).first();
+    var url = chrome.extension.getURL("images/" + image);
+    console.log(elemID + " to " + image + " tag:"+ $(elem).get(0).tagName);
+    if ($(elem).get(0).tagName == "DIV") {
+      url = "url('" + url + "')";
+      $(elem).css("background-image", url);
+    }
+    else if ($(elem).get(0).tagName == "IMG") {
+      $(elem).attr("src", url);
+    }
+  }
 });

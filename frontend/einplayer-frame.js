@@ -430,10 +430,10 @@ Einplayer.Frontend.Frame = {
   checkRepeat: function() {
     Einplayer.Frontend.Messenger.getRepeat(function(response) {
       if (response.repeat) {
-        $("#repeat").addClass("active");
+        $("#repeat").attr("src", chrome.extension.getURL("images/repeat-active.png"));
       }
       else {
-        $("#repeat").removeClass("active");
+        $("#repeat").attr("src", chrome.extension.getURL("images/repeat.png"))
       }
     });
   },

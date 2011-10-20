@@ -169,6 +169,15 @@ body {
 #queue-list .row .row-buttons > .button.queue {
   display: none;
 }
+#playback-button-box {
+  float: right;
+  padding-top: 2px;
+  padding-right: 18px;
+}
+.playback-button {
+  cursor: pointer;
+  width: 20px;
+}
 
 .tracklist #hidden-droprow .cell {
   max-height: 3px;
@@ -240,6 +249,4 @@ body {
   width: 200px;
 }
 
-#repeat.active {
-  border: 3px solid red;
-}
+
