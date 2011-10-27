@@ -1,5 +1,6 @@
 Einplayer.Backend.Views.Queue = Einplayer.Backend.Views.TrackList.extend({
 
+  viewName: "Queue",
   id: "queue-list",
   proxyEvents: {
     "dragstart #queue-list .row" : "rowDragStart",

@@ -9,9 +9,6 @@ Einplayer.Backend.Sequencer = {
     }
     this.queue = Einplayer.Backend.Bank.getTrackList(this.savedQueueName);
     Einplayer.Backend.Bank.saveTracks(this.queue);
-    this.queue.bind("add", this.updateQueueList);
-    this.queue.bind("remove", this.updateQueueList);
-    this.queue.bind("reset", this.updateQueueList);
   },
 
   Player: {
@@ -241,7 +238,7 @@ Einplayer.Backend.Sequencer = {
                          {silent  : true });
       }
     });
-    this.updateQueueList();
+    this.queue.trigger("change tracks");
   },
   
   push: function(track, silent) {
@@ -268,8 +265,9 @@ Einplayer.Backend.Sequencer = {
 
       this.queue.add(track, options);
     }
+    this.saveQueue();
 
-    if (pos < this.queuePosition) {
+    if (pos <= this.queuePosition) {
       this.setQueuePosition(this.queuePosition + tracks.length);
     }
   },
@@ -301,6 +299,7 @@ Einplayer.Backend.Sequencer = {
     }
 
     this.removeSome(tracksToRemove);
+    this.saveQueue();
   },
 
   remove: function(trackModel) {
@@ -313,6 +312,7 @@ Einplayer.Backend.Sequencer = {
       this.next();
     }
     this.remove(toRemove);
+    this.saveQueue();
     return toRemove;
   },
 
@@ -325,6 +325,8 @@ Einplayer.Backend.Sequencer = {
        }
     }
     this.queue.remove(trackModels);
+    this.saveQueue();
+    
     this.setQueuePosition(this.queuePosition - posChange);
   },
 
@@ -357,6 +359,8 @@ Einplayer.Backend.Sequencer = {
 
   clear: function() {
     this.queue.reset();
+    this.saveQueue();
+    
     this.setQueuePosition(-1);
   },
 
@@ -364,19 +368,9 @@ Einplayer.Backend.Sequencer = {
     this.clear();
     this.insertSomeAt(playlist.models, 0);
   },
-  
-  updateQueueList: function() {
+
+  saveQueue: function() {
     var sqcr = Einplayer.Backend.Sequencer;
     Einplayer.Backend.Bank.saveTrackList(sqcr.savedQueueName, sqcr.queue);
-    
-    var queueView = Einplayer.Backend
-                             .TemplateManager
-                             .renderView
-                             ("Queue",
-                              { trackList : sqcr.queue });
-
-    Einplayer.Backend.MessageHandler.pushView("queue-list",
-                                              queueView);
-  },
-  
+  }
 };

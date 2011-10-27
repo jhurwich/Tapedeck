@@ -6,13 +6,27 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
     "TrackList"
   ],
   template: null,
-  
+
+  viewName: "XXundefinedViewNameXX",
   proxyEvents: { },
   eventsName: "XXtrackListEventsNoNameXX",
   rowDblClick: "noFnNameDefined",
   
   initialize: function() {
     this.trackList = this.options.trackList;
+
+    // There can only be one view of a tracklist reciving updates.
+    // Clear out the events for any other views
+    this.trackList.unbind('add');
+    this.trackList.unbind('remove');
+    this.trackList.unbind('reset');
+    this.trackList.unbind('change tracks');
+
+    this.trackList.bind('add', this.updateView.curry(this));
+    this.trackList.bind('remove', this.updateView.curry(this));
+    this.trackList.bind('reset', this.updateView.curry(this));
+    this.trackList.bind('change tracks', this.updateView.curry(this));
+                       
     this.template = _.template(Einplayer.Backend
                                         .TemplateManager
                                         .getTemplate("TrackList"));
@@ -47,6 +61,12 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
         $(elem).attr("src", url);
       }
     });
-  }
+  },
+  
+  updateView: function(self) {
+    var viewID = self.id;
+    Einplayer.Backend.MessageHandler.pushView(viewID,
+                                              self.render());
+  },
 });
 

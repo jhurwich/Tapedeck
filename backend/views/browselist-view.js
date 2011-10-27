@@ -1,5 +1,6 @@
 Einplayer.Backend.Views.BrowseList = Einplayer.Backend.Views.TrackList.extend({
 
+  viewName: "BrowseList",
   id: "browse-list",
   proxyEvents: {
     "dragstart #browse-list .row" : "rowDragStart",

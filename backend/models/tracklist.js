@@ -23,5 +23,5 @@ Einplayer.Backend.Collections.TrackList = Backbone.Collection.extend({
     playlist.removeTempProperties();
     playlist.id = playlistID;
     return playlist;
-  },
+  }
 });
