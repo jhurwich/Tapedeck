@@ -141,6 +141,10 @@ Einplayer.Backend.MessageHandler = {
         Einplayer.Backend.MessageHandler[updateFnName](port.tab);
         break;
 
+      case "prepareDownload":
+        Einplayer.Backend.Bank.download(request.trackID);
+        break;
+
       case "queueTracks":
         var tracks = [];
         if (typeof(request.trackObjs) != "undefined") {

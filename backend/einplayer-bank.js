@@ -7,16 +7,42 @@ Einplayer.Backend.Bank = {
   bankPrefix: "_einplayerbank_",
   trackListPrefix: /* bankPrefix + */ "trackList-",
   playlistPrefix: /* trackListPrefix + */ "playlist-",
-  repeatKey: /* bankPrefix + */ + "repeat",
+  downloadedPrefix: /* bankPrefix + */ "download-",
+  repeatKey: /* bankPrefix + */ "repeat",
   init: function() {
     this.localStorage = window.localStorage;
     this.trackListPrefix = this.bankPrefix + this.trackListPrefix;
     this.playlistPrefix = this.trackListPrefix + this.playlistPrefix;
+    this.downloadedPrefix = this.bankPrefix + this.downloadedPrefix;
     this.repeatKey = this.bankPrefix + this.repeatKey;
     if (this.localStorage.getItem(this.repeatKey) == null) {
       this.localStorage.setItem(this.repeatKey, "true");
     }
   },
+
+  download: function(trackID, successCallback) {      
+    var bank = Einplayer.Backend.Bank;
+    var track = Einplayer.Backend.Bank.getTrack(trackID);
+    var url = track.get("url");
+
+    // Get the file data from the url
+    var xhr = new XMLHttpRequest();
+
+    // Hack to pass bytes through unprocessed.
+    xhr.overrideMimeType('text/plain; charset=x-user-defined');
+    xhr.open("GET", url, true);
+    
+    xhr.onreadystatechange = function() {
+      if(xhr.readyState == 4 && xhr.status == 200)  {
+        var binStr = this.responseText;
+        var key = bank.downloadedPrefix + trackID;
+        bank.localStorage.setItem(key, binStr);
+        successCallback(binStr);
+      }
+    } // end xhr.onreadystatechange
+    
+    xhr.send();
+  }, // end fs.download()
 
   clear: function() {
     this.playlistList.reset();

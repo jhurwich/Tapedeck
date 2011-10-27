@@ -101,6 +101,15 @@ Einplayer.Frontend.Messenger = {
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
+  prepareDownload: function(trackID) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action  : "prepareDownload",
+      trackID : trackID
+    });
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
   queueTrack: function(trackX, index) {
     // trackX because could be Obj or ID
     Einplayer.Frontend.Messenger.queueTracks([trackX], index);

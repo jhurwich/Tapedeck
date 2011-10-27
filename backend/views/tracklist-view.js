@@ -30,26 +30,23 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
   },
   
   assignRowButtonImgs: function() {     
-    var playnowImgURL = "url('" +
-                        chrome.extension.getURL("images/rowbutton-playnow.png") +
-                        "')";
-    $(this.el).find(".button.playnow").each(function(index, element) {
-      $(element).css("background-image", playnowImgURL);
-    });
-    
-    var removeImgURL = "url('" +
-                        chrome.extension.getURL("images/rowbutton-remove.png") +
-                        "')";
-    $(this.el).find(".button.remove").each(function(index, element) {
-      $(element).css("background-image", removeImgURL);
-    });
-    
-    var queueImgURL = "url('" +
-                        chrome.extension.getURL("images/rowbutton-queue.png") +
-                        "')";
-    $(this.el).find(".button.queue").each(function(index, element) {
-      $(element).css("background-image", queueImgURL);
-    });
+    this.assignImgs(".button.playnow", "rowbutton-playnow.png");
+    this.assignImgs(".button.remove", "rowbutton-remove.png");
+    this.assignImgs(".button.queue", "rowbutton-queue.png");
+    this.assignImgs(".button.download", "rowbutton-download.png");
   },
+  
+  assignImgs: function(selector, image) {
+    $(this.el).find(selector).each(function(index, elem) {
+      var url = chrome.extension.getURL("images/" + image);
+      if ($(elem).get(0).tagName == "DIV") {
+        url = "url('" + url + "')";
+        $(elem).css("background-image", url);
+      }
+      else if ($(elem).get(0).tagName == "IMG") {
+        $(elem).attr("src", url);
+      }
+    });
+  }
 });
 

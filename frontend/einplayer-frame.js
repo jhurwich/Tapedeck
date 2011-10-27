@@ -392,6 +392,28 @@ Einplayer.Frontend.Frame = {
     Einplayer.Frontend.Frame.queueBrowseRow(row);
   },
 
+  rowButtonDownload: function(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+    var row = $(e.target).closest(".row");
+    var trackType = $(row).attr("track-type");
+
+    switch (trackType) {
+      case "mp3":
+        Einplayer.Frontend.Frame.prepareDownlaod($(row).attr("track-id"));
+        break;
+
+      default:
+        console.error("We cannot download this file");
+        break;
+    }
+  },
+
+  prepareDownlaod: function(trackID) {
+    Einplayer.Frontend.Messenger.prepareDownload(trackID);
+  },
+
   toggleRepeat: function() {
     Einplayer.Frontend.Messenger.toggleRepeat();
     Einplayer.Frontend.Frame.checkRepeat();

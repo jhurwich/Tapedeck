@@ -101,7 +101,6 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
   assignImg: function(elemID, image) {
     var elem = $(this.el).find("#" + elemID).first();
     var url = chrome.extension.getURL("images/" + image);
-    console.log(elemID + " to " + image + " tag:"+ $(elem).get(0).tagName);
     if ($(elem).get(0).tagName == "DIV") {
       url = "url('" + url + "')";
       $(elem).css("background-image", url);

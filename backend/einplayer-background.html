@@ -125,6 +125,11 @@
                       <% if (track.playing) { print(" playing ") } %>"
                index='<%= i %>'
                track-id='<%= track.einID %>'
+               track-type='<% if(typeof(track.type) == "undefined") {
+                                print("unknown")
+                              } else {
+                                print(track.type)
+                              } %>'
                draggable="true"
                onclick="Einplayer.Frontend.Frame.rowClick(event)" >
             <div class="cell trackName-col"> <%= track.trackName %> </div>
@@ -133,6 +138,8 @@
               <div class="row-buttons">
                 <div class="button playnow"
                      onclick="Einplayer.Frontend.Frame.rowButtonPlaynow(event)"></div>
+                <div class="button download"
+                     onclick="Einplayer.Frontend.Frame.rowButtonDownload(event)"></div>                     
                 <div class="button remove"
                      onclick="Einplayer.Frontend.Frame.rowButtonRemove(event)"></div>
                 <div class="button queue"
