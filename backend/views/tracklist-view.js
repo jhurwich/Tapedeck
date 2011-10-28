@@ -15,21 +15,25 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
   initialize: function() {
     this.trackList = this.options.trackList;
 
-    // There can only be one view of a tracklist reciving updates.
-    // Clear out the events for any other views
-    this.trackList.unbind('add');
-    this.trackList.unbind('remove');
-    this.trackList.unbind('reset');
-    this.trackList.unbind('change tracks');
-
-    this.trackList.bind('add', this.updateView.curry(this));
-    this.trackList.bind('remove', this.updateView.curry(this));
-    this.trackList.bind('reset', this.updateView.curry(this));
-    this.trackList.bind('change tracks', this.updateView.curry(this));
+    this.bindEvents(this.trackList);
                        
     this.template = _.template(Einplayer.Backend
                                         .TemplateManager
                                         .getTemplate("TrackList"));
+  },
+
+  bindEvents: function(trackList) {
+    // There can only be one view of a tracklist reciving updates.
+    // Clear out the events for any other views
+    trackList.unbind('add');
+    trackList.unbind('remove');
+    trackList.unbind('reset');
+    trackList.unbind('change tracks');
+
+    trackList.bind('add', this.updateView.curry(this));
+    trackList.bind('remove', this.updateView.curry(this));
+    trackList.bind('reset', this.updateView.curry(this));
+    trackList.bind('change tracks', this.updateView.curry(this));
   },
 
   render: function() {
