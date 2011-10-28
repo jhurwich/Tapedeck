@@ -141,8 +141,14 @@ Einplayer.Backend.MessageHandler = {
         Einplayer.Backend.MessageHandler[updateFnName](port.tab);
         break;
 
-      case "prepareDownload":
-        Einplayer.Backend.Bank.download(request.trackID);
+      case "download":
+        var callback = function(url) {
+          response.url = url;
+          Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
+                                                       response);
+        }
+        Einplayer.Backend.Bank.FileSystem.download(request.trackID,
+                                                   callback);
         break;
 
       case "queueTracks":

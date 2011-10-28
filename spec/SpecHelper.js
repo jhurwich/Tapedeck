@@ -6,16 +6,6 @@ __Jasmine__TESTS_TO_RUN = [
 beforeEach(function() {
   this.testTracks = [
     {
-      type          : "tumblr",
-      trackName     : "Ultra Thizz",
-      artistName    : "Rustie",
-      url           : "http://www.tumblr.com/audio_file/10011528101/tumblr_lra3d00jJO1qfvyur",
-      location      : "http://postdubstep.tumblr.com/post/10011528101/rustie-ultra-thizz",
-      domain        : "postdubstep.tumblr.com",
-      description   : "A really cool jam.",
-      albumArtSrc   : "http://29.media.tumblr.com/tumblr_lonc8qnYGB1qc4gv0o1_1311189640_cover.jpg",
-    },
-    {
       type          : "mp3",
       trackName     : "Rad Racer",
       artistName    : "Work Drugs",
@@ -34,6 +24,16 @@ beforeEach(function() {
       domain        : "www.theburningear.com",
       description   : "New, and it rocks.",
       albumArtSrc   : "http://www.theburningear.com/media/2011/08/Ryan-Ridge-300x300.jpg",
+    },
+    {
+      type          : "tumblr",
+      trackName     : "Ultra Thizz",
+      artistName    : "Rustie",
+      url           : "http://www.tumblr.com/audio_file/10011528101/tumblr_lra3d00jJO1qfvyur",
+      location      : "http://postdubstep.tumblr.com/post/10011528101/rustie-ultra-thizz",
+      domain        : "postdubstep.tumblr.com",
+      description   : "A really cool jam.",
+      albumArtSrc   : "http://29.media.tumblr.com/tumblr_lonc8qnYGB1qc4gv0o1_1311189640_cover.jpg",
     },
   ]; // End testTracks
   

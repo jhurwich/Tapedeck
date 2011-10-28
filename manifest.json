@@ -17,6 +17,6 @@
       "48": "images/cassette-pink-48.png",
       "128": "images/cassette-pink-128.png"
     },
-  "permissions": ["tabs", "http://*/*"],
+  "permissions": ["tabs", "http://*/*", "unlimitedStorage"],
   "update_url": "http://einplayer.jordanhurwich.com/update"
 }

@@ -401,7 +401,7 @@ Einplayer.Frontend.Frame = {
 
     switch (trackType) {
       case "mp3":
-        Einplayer.Frontend.Frame.prepareDownlaod($(row).attr("track-id"));
+        Einplayer.Frontend.Frame.download($(row).attr("track-id"));
         break;
 
       default:
@@ -410,8 +410,14 @@ Einplayer.Frontend.Frame = {
     }
   },
 
-  prepareDownlaod: function(trackID) {
-    Einplayer.Frontend.Messenger.prepareDownload(trackID);
+  download: function(trackID) {
+    // Download will send us a filesystem:// url when it's done and
+    // we can trigger the download when by setting location.href
+    var callback = function(response) {
+      window.location.href = response.url;
+    }
+
+    Einplayer.Frontend.Messenger.download(trackID, callback);
   },
 
   toggleRepeat: function() {

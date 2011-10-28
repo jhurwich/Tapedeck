@@ -7,42 +7,174 @@ Einplayer.Backend.Bank = {
   bankPrefix: "_einplayerbank_",
   trackListPrefix: /* bankPrefix + */ "trackList-",
   playlistPrefix: /* trackListPrefix + */ "playlist-",
-  downloadedPrefix: /* bankPrefix + */ "download-",
-  repeatKey: /* bankPrefix + */ "repeat",
+  repeatKey: /* bankPrefix + */ + "repeat",
   init: function() {
     this.localStorage = window.localStorage;
     this.trackListPrefix = this.bankPrefix + this.trackListPrefix;
     this.playlistPrefix = this.trackListPrefix + this.playlistPrefix;
-    this.downloadedPrefix = this.bankPrefix + this.downloadedPrefix;
     this.repeatKey = this.bankPrefix + this.repeatKey;
     if (this.localStorage.getItem(this.repeatKey) == null) {
       this.localStorage.setItem(this.repeatKey, "true");
     }
+    this.FileSystem.init();
   },
 
-  download: function(trackID, successCallback) {      
-    var bank = Einplayer.Backend.Bank;
-    var track = Einplayer.Backend.Bank.getTrack(trackID);
-    var url = track.get("url");
+  FileSystem : {
+    root : null,
+    fileSystemSize: 20, // in MB
+    init: function() {
+      window.requestFileSystem  = window.requestFileSystem ||
+                                  window.webkitRequestFileSystem;
 
-    // Get the file data from the url
-    var xhr = new XMLHttpRequest();
+      var successCallback = function(e) {
+        Einplayer.Backend.Bank.FileSystem.root = e.root;
+      };
+        
+      window.requestFileSystem(window.TEMPORARY,
+                               this.fileSystemSize*1024*1024, // specified in MB
+                               successCallback,
+                               this.errorHandler)
+    },
 
-    // Hack to pass bytes through unprocessed.
-    xhr.overrideMimeType('text/plain; charset=x-user-defined');
-    xhr.open("GET", url, true);
-    
-    xhr.onreadystatechange = function() {
-      if(xhr.readyState == 4 && xhr.status == 200)  {
-        var binStr = this.responseText;
-        var key = bank.downloadedPrefix + trackID;
-        bank.localStorage.setItem(key, binStr);
-        successCallback(binStr);
+    download: function(trackID, callback) {
+      var fs = Einplayer.Backend.Bank.FileSystem;
+      var track = Einplayer.Backend.Bank.getTrack(trackID);
+      var url = track.get("url");
+
+      // Get the file data from the url
+      var xhr = new XMLHttpRequest();
+      xhr.overrideMimeType("audio/mpeg");
+      xhr.open("GET", url, true);
+      
+      xhr.responseType = "arraybuffer";
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState == 4 && xhr.status == 200)  {
+          fs.saveResponse(track, xhr.response, callback);    
+          delete xhr;
+        }
+      } // end xhr.onreadystatechange
+      
+      xhr.send();
+    }, // end fs.download()
+
+    saveResponse: function(track, res, callback) {
+      var fs = Einplayer.Backend.Bank.FileSystem;
+      // Fill a Blob with the response
+      var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
+      if (!res) {
+        return;
       }
-    } // end xhr.onreadystatechange
+      var byteArray = new Uint8Array(res);
+      bb.append(byteArray.buffer);
+  
+      // Create a new file for the track
+      var fileName = fs.nameFile(track);
+      fs.root.getFile(fileName, {create: true}, function(fileEntry) {
+
+        // Create a FileWriter object for our FileEntry 
+        fileEntry.createWriter(function(fileWriter) {
+  
+          // once the file is written, send it's location to the caller
+          fileWriter.onwriteend = function(e) {
+            callback(fileEntry.toURL());
+          };
+          fileWriter.onerror = function(e) {
+            console.error('Saving file to disk failed: ' + e.toString());
+          };
     
-    xhr.send();
-  }, // end fs.download()
+          // Write the blob to the file
+          fileWriter.write(bb.getBlob("audio/mpeg"));
+          delete bb; 
+        }, fs.errorHandler); // end fileEntry.createWrite(...)
+      }, fs.errorHandler); // end fs.root.getFile(...);
+    },
+
+    nameFile: function(track) {
+      var trim = function(string) {
+        return string.replace(/^\s+|\s+$/g, '');
+      }
+      
+      // Attempt to name the file as "<artistName> - <trackName>"
+      var fileName = "";
+      if (track.has("trackName")) {
+        if (track.has("artistName")) {
+          fileName += trim(track.get("artistName")) + " - ";
+        }
+        fileName += trim(track.get("trackName"));
+      }
+      
+      // If we couldn't do that, gotta use the url
+      if (fileName.length == 0) {
+        var urlName = url.replace("http://", "");
+        urlName = urlName.replace("www.", "");
+
+        // We pull off the file extension, if there is one.
+        // We consider it a file extension if there are 4 or less
+        // characters after the final dot.
+        var extensionDot = urlName.indexOf(".", urlName.length - 5);
+        if (extensionDot > 0,
+            extensionDot = urlName.lastIndexOf(".")) {
+          urlName = urlName.substring(0, extensionDot);
+        }
+        fileName = urlName;
+      }
+      
+      fileName = trim(fileName);
+      
+      // I would add the file extension here, but if you do chrome will
+      // try to play the mp3 rather than download.  So no extension for you!
+      
+      return fileName;
+    },
+
+    // Generic error dump for any filesystem errors
+    errorHandler: function(e) {
+      var msg = '';
+    
+      switch (e.code) {
+        case FileError.NOT_FOUND_ERR:
+          msg = 'NOT_FOUND_ERR';
+          break;
+        case FileError.SECURITY_ERR:
+          msg = 'SECURITY_ERR';
+          break;
+        case FileError.ABORT_ERR:
+          msg = 'ABORT_ERR';
+          break;
+        case FileError.NOT_READABLE_ERR:
+          msg = 'NOT_READABLE_ERR';
+          break;
+        case FileError.ENCODING_ERR:
+          msg = 'ENCODING_ERR';
+          break;
+        case FileError.NO_MODIFICATION_ALLOWED_ERR:
+          msg = 'NO_MODIFICATION_ALLOWED_ERR';
+          break;
+        case FileError.INVALID_STATE_ERR:
+          msg = 'INVALID_STATE_ERR';
+          break;
+        case FileError.SYNTAX_ERR:
+          msg = 'SYNTAX_ERR';
+          break;
+        case FileError.INVALID_MODIFICATION_ERR:
+          msg = 'INVALID_MODIFICATION_ERR';
+          break;
+        case FileError.QUOTA_EXCEEDED_ERR:
+          msg = 'QUOTA_EXCEEDED_ERR';
+          break;
+        case FileError.TYPE_MISMATCH_ERR:
+          msg = 'TYPE_MISMATCH_ERR';
+          break;
+        case FileError.PATH_EXISTS_ERR:
+          msg = 'PATH_EXISTS_ERR';
+          break;
+        default:
+          msg = 'Unknown Error';
+          break;
+      };
+      console.error('File System Error: ' + msg);
+    },
+  },
 
   clear: function() {
     this.playlistList.reset();
@@ -66,7 +198,6 @@ Einplayer.Backend.Bank = {
     var playlistList = this.getPlaylists();
     var found = playlistList.get(playlist.id); 
     if (found != null) {
-      console.log("name collision!");
       this.removePlaylist(found);
     }
     playlistList.add(playlist);

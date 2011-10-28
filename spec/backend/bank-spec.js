@@ -61,5 +61,41 @@ describe("Bank", function() {
 
     expect(foundPlaylist).toBeTruthy();
   });
+
+  it("should save and retrieve downloaded tracks", function() {
+    
+    // Save the tracks so the bank can find them
+    var trackList = new this.Einplayer
+                    .Backend
+                    .Collections
+                    .TrackList(this.testTracks);
+
+    this.bank.saveTracks(trackList);
+
+    var testComplete = false;
+    var testTrack = trackList.at(0);
+    var spy = spyOn(this.bank.FileSystem, "saveResponse").andCallThrough();
+    
+    var callback = function(url) {
+      testComplete = true;
+      var fileName = testTrack.get("artistName") +
+                     " - " +
+                     testTrack.get("trackName");
+
+      var fileURI = new RegExp("^filesystem:chrome-extension://(.*)" +
+                               fileName);
+      expect(url).toMatch(fileURI);
+    };
+    
+    this.bank.FileSystem.download(testTrack.get("einID"),
+                                  callback);
+    waitsFor(function() {
+      return testComplete;
+    }, "Timed out waiting for track download", 5000);
+
+    runs(function() {
+      expect(spy.callCount).toEqual(1);
+    });
+  });
   
 });

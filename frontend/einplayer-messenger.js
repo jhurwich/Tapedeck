@@ -101,11 +101,11 @@ Einplayer.Frontend.Messenger = {
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
-  prepareDownload: function(trackID) {
+  download: function(trackID, callback) {
     var request = Einplayer.Frontend.Messenger.newRequest({
-      action  : "prepareDownload",
+      action  : "download",
       trackID : trackID
-    });
+    }, callback);
 
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
