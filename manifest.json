@@ -1,6 +1,6 @@
 {
   "name": "Einplayer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The one player for the web.",
   "background_page" :"backend/einplayer-background.html",
   "content_scripts" : [

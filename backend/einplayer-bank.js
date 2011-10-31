@@ -387,6 +387,7 @@ Einplayer.Backend.Bank = {
   },
 
   getVolume: function() {
-    return this.localStorage.getItem(this.volumeKey);
+    var volume = this.localStorage.getItem(this.volumeKey);
+    return ((volume != null) ? volume : 1);
   },
 }
