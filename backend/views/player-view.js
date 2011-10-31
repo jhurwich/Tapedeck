@@ -8,10 +8,13 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
   template: null,
 
   proxyEvents: {
-    "mouseover #handle": "mouseoverHandle",
-    "mouseleave #handle": "mouseleaveHandle",
-    "mousedown #handle": "downOnHandle",
-    "mouseup": "mouseUp",
+    "mouseover #seek-slider #handle": "Player.SeekSlider.mouseoverHandle",
+    "mouseleave #seek-slider #handle": "Player.SeekSlider.mouseleaveHandle",
+    "mousedown #seek-slider #handle": "Player.SeekSlider.downOnHandle",
+    
+    "mousedown #volume-slider #handle": "Player.VolumeSlider.downOnHandle",
+
+    "mouseup": "Player.mouseUp",
     "onreplace": "onFrameRender"
   },
   
@@ -42,13 +45,18 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
   },
 
   assignSliderImgs: function() {
-    this.assignImg("track-left", "slider-track-left.png");
-    this.assignImg("track-right", "slider-track-right.png");
-    this.assignImg("handle-image", "slider-handle.png");
+    this.assignImg("#seek-slider #track-left", "seekslider-track-left.png");
+    this.assignImg("#seek-slider #track-right", "seekslider-track-right.png");
+    this.assignImg("#seek-slider #handle-image", "seekslider-handle.png");
+    
+    this.assignImg("#volume-slider #track-top", "volumeslider-track-top.png");
+    this.assignImg("#volume-slider #track-bottom", "volumeslider-track-bottom.png");
+    this.assignImg("#volume-slider #handle-image", "volumeslider-handle.png");
   },
 
-  assignImg: function(elemID, image) {
-    var elem = $(this.el).find("#" + elemID).first();
+  assignImg: function(selector, image) {
+    var elem = $(this.el).find(selector).first();
+    
     var url = chrome.extension.getURL("images/" + image);
     if ($(elem).get(0).tagName == "DIV") {
       url = "url('" + url + "')";

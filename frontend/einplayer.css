@@ -16,26 +16,63 @@ body {
   position: relative;
   margin-bottom: 15px;
 }
+#banner-region {
+  position: relative;
+  display: block;
+  padding-right: 25px;
+}
 #banner {
   position: relative;
   height: 40px;
+  width: 100%;
   border: solid 2px rgb(66,66,66);
   margin-bottom: 10px;
   padding: 0 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-#slider {
-  width: 305px;
-  margin: auto;
+  float: left;
 }
 .slider-track {
-  height: 9px;
   background-repeat: no-repeat;
   background-color: transparent;
 }
-#slider.disabled {
+#volume-slider {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  width: 9px;
+  height: 40px;
+}
+#volume-slider #track-top {
+  position: relative;
+  height: 3px;
+}
+#volume-slider #track-bottom {
+  position: relative;
+  height: 37px;
+  margin-left: 2px;
+}
+#volume-slider #handle {
+  display: block;
+}
+#volume-slider #handle-image {
+  width: 9px;
+  height: 9px;
+  margin-left: 2px;
+}
+#volume-slider.disabled #handle {
+  display: none;
+}
+#seek-slider {
+  clear: both;
+  width: 305px;
+  margin: auto;
+}
+#seek-slider .slider-track {
+  height: 9px;
+}
+.slider.disabled {
   opacity : 0.4;
 }
 #track-left {
@@ -152,7 +189,8 @@ body {
   right: 2px;
   margin: 1px;
 }
-.tracklist .row-buttons > .button {
+.tracklist .row-buttons > .button,
+.tracklist .row-buttons > #download-spinner {
   height: 12px;
   width: 12px;
   float: left;
@@ -168,6 +206,16 @@ body {
 }
 #queue-list .row .row-buttons > .button.queue {
   display: none;
+}
+.tracklist .row[download="downloading"] .row-buttons > .button.download {
+  display: none;
+}
+.tracklist .row .row-buttons > #download-spinner {
+  display: none;
+}
+.tracklist .row[download="downloading"] .row-buttons > #download-spinner {
+  display: inline-block;
+  border: 1px solid transparent;
 }
 #playback-button-box {
   float: right;

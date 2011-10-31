@@ -12,63 +12,286 @@ Einplayer.Frontend.Frame = {
   },
   
   Player : {
-    Slider : {
+    VolumeSlider : {
+      currentVolume: -1,
+      currentOffset: -1,
+      dragging: false,
+      startY: 0,
+      offsetY: 0,
+      
+      setHandle: function(offset) {  
+        $("#volume-slider #handle").css('top', offset);
+      },
+      
+      updateSlider: function(volumePercent) {
+        var slider = Einplayer.Frontend.Frame.Player.VolumeSlider;
+
+        var offset = slider.percentOffset(volumePercent);
+        slider.setHandle(offset);
+      },
+      
+      downOnHandle: function(e) {
+        var slider = Einplayer.Frontend.Frame.Player.VolumeSlider;
+        
+        var target = e.target;
+        while($(target).attr('id') != "handle") {
+          target = $(target).parent();
+          if (target == null || !target) {
+            console.error("Couldn't locate handle");
+            return;
+          }
+        }
+    
+        if ($("#volume-slider").hasClass("disabled")) {
+          return;
+        }
+    
+        slider.dragging = true;
+        
+        // grab the mouse position
+        slider.startY = e.clientY;
+        
+        // grab the clicked element's position
+        var top = parseInt($(target).css('top'));
+        slider.offsetY = (top == null || isNaN(top)) ? 0 : top;
+    
+        // tell our code to start moving the element with the mouse
+        document.onmousemove = slider.moveHandle;
+    
+        $("#einplayer-content").mouseleave(function() {
+          // reset the slider if the mouse leaves during drag
+          if (slider.dragging) {
+            document.onmousemove = null;
+            document.onselectstart = null;
+            slider.dragging = false;
+            slider.setHandle(slider.currentOffset);
+          }
+        });
+        
+        // cancel out any text selections
+        document.body.focus();
+        
+        // prevent text selection (except IE)
+        return false;
+      },
+      
+      moveHandle: function(e) {
+        var slider = Einplayer.Frontend.Frame.Player.VolumeSlider;
+        
+        // this is the actual "drag code"
+        var newOffset = (slider.offsetY +
+                         e.clientY -
+                         slider.startY);
+        if (newOffset < 0) {
+          newOffset = 0;
+        }
+    
+        var sliderHeight = parseInt($("#volume-slider").css("height"));
+        var maxOffset = sliderHeight - 5; // 5px less looks nice
+        if (newOffset > maxOffset) {
+          newOffset = maxOffset;
+        }
+    
+        slider.setHandle(newOffset, true);
+      },
+
+      offsetPercent: function(offset) {
+        var sliderHeight = parseInt($("#volume-slider").css("height"));
+        var maxOffset = sliderHeight - 5; // 5px less looks nice
+    
+        return (offset/maxOffset);
+      },
+      percentOffset: function(percent) {
+        var sliderHeight = parseInt($("#volume-slider").css("height"));
+        var maxOffset = sliderHeight - 5; // 5px less looks nice
+        return maxOffset * (1 - percent);
+      },
+    },
+
+    SeekSlider : {
+      dragging: false,
+      startX: 0,
+      offsetX: 0,
       currentTime: -1,
       duration: -1,
+
+      downOnHandle: function(e) {
+        var slider = Einplayer.Frontend.Frame.Player.SeekSlider;
+        var target = e.target;
+        while($(target).attr('id') != "handle") {
+          target = $(target).parent();
+          if (target == null || !target) {
+            console.error("Couldn't locate handle");
+            return;
+          }
+        }
+    
+        if ($("#seek-slider").hasClass("disabled")) {
+          return;
+        }
+    
+        slider.dragging = true;
+        
+        // grab the mouse position
+        slider.startX = e.clientX;
+        
+        // grab the clicked element's position
+        var left = parseInt($(target).css('left'));
+        slider.offsetX = (left == null || isNaN(left)) ? 0 : left;
+    
+        // tell our code to start moving the element with the mouse
+        document.onmousemove = slider.moveHandle;
+    
+        $("#einplayer-content").mouseleave(function() {
+          // reset the slider if the mouse leaves during drag
+          if (slider.dragging) {
+            document.onmousemove = null;
+            document.onselectstart = null;
+            slider.dragging = false;
+          }
+        });
+        
+        // cancel out any text selections
+        document.body.focus();
+        
+        // prevent text selection (except IE)
+        return false;
+      },
+      
+      moveHandle: function(e) {
+        var slider = Einplayer.Frontend.Frame.Player.SeekSlider;
+        
+        // this is the actual "drag code"
+        var newOffset = (slider.offsetX +
+                         e.clientX -
+                         slider.startX);
+        if (newOffset < 0) {
+          newOffset = 0;
+        }
+    
+        var sliderWidth = parseInt($("#seek-slider").css("width"));
+        var maxOffset = sliderWidth - 15; // 15px less looks nice
+        if (newOffset > maxOffset) {
+          newOffset = maxOffset;
+        }
+    
+        slider.setHandle(newOffset, true);
+      },
+      
+      updateSlider: function(currentTime, duration) {
+        var slider = Einplayer.Frontend.Frame.Player.SeekSlider;
+        slider.currentTime = currentTime;
+        slider.duration = duration;
+        
+        var prettyDuration = slider.prettifyTime(duration);
+        if ($("#duration").html() != prettyDuration) {
+          $("#duration").html(prettyDuration);
+        }
+        
+        if (slider.dragging) {
+          return;
+        }
+        offset = slider.calculateOffset();
+        this.setHandle(offset);
+      },
+  
+      setHandle: function(offset, displayTime) {
+        if (typeof(displayTime) == "undefined") {
+          displayTime = false;
+        }
+        var slider = Einplayer.Frontend.Frame.Player.SeekSlider;
+  
+        var positionPercent = slider.offsetPercent(offset);
+        var timeAtPosition = positionPercent * slider.duration;
+
+        var handle = $("#seek-slider #handle");
+        var handleVal = $("#seek-slider #handle-val");
+        $(handle).css('left', offset)
+        $(handleVal).html(slider.prettifyTime(timeAtPosition));
+        
+        if (displayTime) {
+          $(handleVal).css("display", "block");
+        }
+        else if (!($(handleVal).hasClass("hover"))) {
+          $(handleVal).css("display", "none");
+        }
+      },
+    
+      offsetPercent: function(offset) {
+        var sliderWidth = parseInt($("#seek-slider").css("width"));
+        var maxOffset = sliderWidth - 15; // 15px less looks nice
+    
+        return (offset/maxOffset);
+      },
       calculateOffset: function() {
-        var sliderWidth = parseInt($("#slider").css("width"));
+        var sliderWidth = parseInt($("#seek-slider").css("width"));
         var maxOffset = sliderWidth - 15; // 15px less looks nice
         
         return Math.floor((this.currentTime/this.duration) * maxOffset);
       },
-    },
-
-    prettifyTime: function (inSeconds) {
-      var minutes = (Math.floor(inSeconds / 60)).toString();
-      var seconds = Math.floor((inSeconds % 60)).toString();
-      if (seconds.length == 1) {
-        seconds = "0" + seconds;
-      }
-      return "" + minutes + ":" + seconds
-    },
+      prettifyTime: function (inSeconds) {
+        var minutes = (Math.floor(inSeconds / 60)).toString();
+        var seconds = Math.floor((inSeconds % 60)).toString();
+        if (seconds.length == 1) {
+          seconds = "0" + seconds;
+        }
+        return "" + minutes + ":" + seconds
+      },
     
-    updateSlider: function(currentTime, duration) {
-      var slider = Einplayer.Frontend.Frame.Player.Slider;
-      slider.currentTime = currentTime;
-      slider.duration = duration;
-      var prettyDuration = Einplayer.Frontend.Frame.Player.prettifyTime
-                                                          (duration);
-      if ($("#duration").html() != prettyDuration) {
-        $("#duration").html(prettyDuration);
+      mouseoverHandle: function(e) {
+        if ($("#seek-slider").hasClass("disabled")) {
+          return;
+        }
+    
+        var handleVal = $("#seek-slider #handle-val");
+        $(handleVal).css("display", "block");
+        $(handleVal).addClass("hover");
+      },
+      mouseleaveHandle: function(e) {
+        if ($("#seek-slider").hasClass("disabled")) {
+          return;
+        }
+    
+        var handleVal = $("#seek-slider #handle-val");
+        $(handleVal).removeClass("hover");
+        $(handleVal).css("display", "none");
+      },
+    }, // End Einplayer.Frontend.Frame.Player.SeekSlider
+  
+    mouseUp: function(e) {
+      var seekslider = Einplayer.Frontend.Frame.Player.SeekSlider;
+      
+      if (seekslider.dragging){
+        // we're done with these events until the next OnMouseDown
+        document.onmousemove = null;
+        document.onselectstart = null;
+        seekslider.dragging = false;
+        
+        var offset = parseInt($("#seek-slider #handle").css('left'));
+        var percent = seekslider.offsetPercent(offset);
+        
+        Einplayer.Frontend.Messenger.seekPercent(percent);
       }
       
-      if (Einplayer.Frontend.Frame.sliderDrag.dragging) {
-        return;
-      }
-      offset = slider.calculateOffset();
-      this.setHandle(offset);
-    },
+      var volumeslider = Einplayer.Frontend.Frame.Player.VolumeSlider;
+      
+      if (volumeslider.dragging){
+        // we're done with these events until the next OnMouseDown
+        document.onmousemove = null;
+        document.onselectstart = null;
+        volumeslider.dragging = false;
+        
+        // We calculate percent from the top of the slider,
+        // that's the opposite of the desired volume percentage.
+        var offset = parseInt($("#volume-slider #handle").css('top'));
+        volumeslider.currentOffset = offset;
+        volumeslider.currentVolume = (1 - volumeslider.offsetPercent(offset));
 
-    setHandle: function(offset, displayTime) {
-      if (typeof(displayTime) == "undefined") {
-        displayTime = false;
-      }
-      var slider = Einplayer.Frontend.Frame.Player.Slider;
 
-      var positionPercent = Einplayer.Frontend.Frame.offsetPercent(offset);
-      var timeAtPosition = positionPercent * slider.duration;
-
-      $("#handle").css('left', offset)
-      $("#handle-val").html(Einplayer.Frontend.Frame.Player.prettifyTime
-                                                           (timeAtPosition));
-      if (displayTime) {
-        $("#handle-val").css("display", "block");
-      }
-      else if (!($("#handle-val").hasClass("hover"))) {
-        $("#handle-val").css("display", "none");
+        Einplayer.Frontend.Messenger.setVolume(volumeslider.currentVolume);
       }
     },
-  },
+  }, // End Einplayer.Frontend.Frame.Player
   
   replaceView: function(id, viewStr) {
     var view = $(viewStr);
@@ -84,115 +307,6 @@ Einplayer.Frontend.Frame = {
       attachEvents();
     }
   },
-  
-  // kudos to http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
-  sliderDrag: {
-    dragging: false,
-    startX: 0,
-    offsetX: 0,
-  },
-  downOnHandle: function(e) {
-    var sliderDrag = Einplayer.Frontend.Frame.sliderDrag;
-    var target = e.target;
-    while($(target).attr('id') != "handle") {
-      target = $(target).parent();
-      if (target == null || !target) {
-        console.error("Couldn't locate handle");
-        return;
-      }
-    }
-
-    if ($("#slider").hasClass("disabled")) {
-      return;
-    }
-
-    sliderDrag.dragging = true;
-    
-    // grab the mouse position
-    sliderDrag.startX = e.clientX;
-    
-    // grab the clicked element's position
-    var left = parseInt($(target).css('left'));
-    sliderDrag.offsetX = (left == null || isNaN(left)) ? 0 : left;
-
-    // tell our code to start moving the element with the mouse
-    document.onmousemove = Einplayer.Frontend.Frame.moveHandle;
-
-    $("#einplayer-content").mouseleave(function() {
-      // reset the slider if the mouse leaves during drag
-      if (sliderDrag.dragging) {
-        document.onmousemove = null;
-        document.onselectstart = null;
-        sliderDrag.dragging = false;
-      }
-    });
-    
-    // cancel out any text selections
-    document.body.focus();
-    
-    // prevent text selection (except IE)
-    return false;
-  },
-  
-  moveHandle: function(e) {
-    var sliderDrag = Einplayer.Frontend.Frame.sliderDrag;
-    
-    // this is the actual "drag code"
-    var newOffset = (sliderDrag.offsetX +
-                     e.clientX -
-                     sliderDrag.startX);
-    if (newOffset < 0) {
-      newOffset = 0;
-    }
-
-    var sliderWidth = parseInt($("#slider").css("width"));
-    var maxOffset = sliderWidth - 15; // 15px less looks nice
-    if (newOffset > maxOffset) {
-      newOffset = maxOffset;
-    }
-
-    Einplayer.Frontend.Frame.Player.setHandle(newOffset, true);
-  },
-  
-  mouseUp: function(e) {
-    var sliderDrag = Einplayer.Frontend.Frame.sliderDrag;
-    
-    if (sliderDrag.dragging){
-      // we're done with these events until the next OnMouseDown
-      document.onmousemove = null;
-      document.onselectstart = null;
-      sliderDrag.dragging = false;
-      
-      var offset = parseInt($("#handle").css('left'));
-      var percent = Einplayer.Frontend.Frame.offsetPercent(offset);
-      
-      Einplayer.Frontend.Messenger.seekPercent(percent);
-    }
-  },
-  offsetPercent: function(offset) {
-    var sliderWidth = parseInt($("#slider").css("width"));
-    var maxOffset = sliderWidth - 15; // 15px less looks nice
-
-    return (offset/maxOffset);
-  },
-
-  mouseoverHandle: function(e) {
-    if ($("#slider").hasClass("disabled")) {
-      return;
-    }
-
-    $("#handle-val").css("display", "block");
-    $("#handle-val").addClass("hover");
-  },
-  mouseleaveHandle: function(e) {
-    if ($("#slider").hasClass("disabled")) {
-      return;
-    }
-
-    $("#handle-val").removeClass("hover");
-    $("#handle-val").css("display", "none");
-  },
-  
   
   clickTimer: null,
   clickID   : null,
@@ -412,9 +526,18 @@ Einplayer.Frontend.Frame = {
 
   download: function(trackID) {
     // Download will send us a filesystem:// url when it's done and
-    // we can trigger the download when by setting location.href
+    // we can trigger the download when by setting location.href.
+    // We do it to a sub-iframe, however, so if something goes wrong
+    // we're not sending someone into an abyss.
     var callback = function(response) {
-      window.location.href = response.url;
+      
+      var iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = response.url;
+      
+      $("body").first().append(iframe);
+       
+      Einplayer.Frontend.Messenger.finishDownload(trackID);
     }
 
     Einplayer.Frontend.Messenger.download(trackID, callback);
@@ -445,13 +568,20 @@ Einplayer.Frontend.Frame = {
   onFrameRender: function() {
     var frame = Einplayer.Frontend.Frame;
     
-    frame.forceSliderUpdate();
+    frame.forceSeekSliderUpdate();
+    frame.forceVolumeSliderUpdate();
     frame.checkRepeat();
   },
 
-  forceSliderUpdate: function() {
-    if (!($("#slider").hasClass("disabled"))) {
-      Einplayer.Frontend.Messenger.requestUpdate("Slider");
+  forceSeekSliderUpdate: function() {
+    if (!($("#seek-slider").hasClass("disabled"))) {
+      Einplayer.Frontend.Messenger.requestUpdate("SeekSlider");
+    }
+  },
+
+  forceVolumeSliderUpdate: function() {
+    if (!($("#volume-slider").hasClass("disabled"))) {
+      Einplayer.Frontend.Messenger.requestUpdate("VolumeSlider");
     }
   },
 

@@ -113,6 +113,7 @@ Einplayer.Backend.MessageHandler = {
     }
 
     var sqcr = Einplayer.Backend.Sequencer;
+    var bank = Einplayer.Backend.Bank;
     var response = Einplayer.Backend.MessageHandler.newResponse(request);
     
     switch(request.action)
@@ -147,8 +148,11 @@ Einplayer.Backend.MessageHandler = {
           Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
                                                        response);
         }
-        Einplayer.Backend.Bank.FileSystem.download(request.trackID,
-                                                   callback);
+        bank.FileSystem.download(request.trackID, callback);
+        break;
+
+      case "finishDownload":
+        bank.FileSystem.removeTrack(request.trackID);
         break;
 
       case "queueTracks":
@@ -156,14 +160,14 @@ Einplayer.Backend.MessageHandler = {
         if (typeof(request.trackObjs) != "undefined") {
           // tracks were sent as crude track objs
           $.map(request.trackObjs, function(trackObj, i) {
-            var track = Einplayer.Backend.Bank.getTrack(trackObj.trackID);
+            var track = bank.getTrack(trackObj.trackID);
             tracks.push(track);
           });
         }
         else {
           // tracks were sent as trackIDs
           $.map(request.trackIDs, function(trackID, i) {
-            var track = Einplayer.Backend.Bank.getTrack(trackID);
+            var track = bank.getTrack(trackID);
             tracks.push(track);
           });
         }
@@ -186,7 +190,7 @@ Einplayer.Backend.MessageHandler = {
         }
         
         $.map(request.trackObjs, function(trackObj, i) {
-          var track = Einplayer.Backend.Bank.getTrack(trackObj.trackID);
+          var track = bank.getTrack(trackObj.trackID);
           trackIndexPairs.push({ track: track, index: trackObj.index });
         });
 
@@ -205,21 +209,21 @@ Einplayer.Backend.MessageHandler = {
         break;
 
       case "playPlaylist":
-        var playlist = Einplayer.Backend.Bank.getPlaylists().at(request.index);
+        var playlist = bank.getPlaylists().at(request.index);
         sqcr.playPlaylist(playlist);
         break;
 
       case "removePlaylist":
-        var playlist = Einplayer.Backend.Bank.getPlaylists().at(request.index);
-        Einplayer.Backend.Bank.removePlaylist(playlist);
+        var playlist = bank.getPlaylists().at(request.index);
+        bank.removePlaylist(playlist);
         break;
 
       case "toggleRepeat":
-        Einplayer.Backend.Bank.toggleRepeat();
+        bank.toggleRepeat();
         break;
 
       case "getRepeat":
-        response.repeat = Einplayer.Backend.Bank.getRepeat();
+        response.repeat = bank.getRepeat();
         Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
                                                      response);
         break;
@@ -231,7 +235,7 @@ Einplayer.Backend.MessageHandler = {
         
         var playlist = sqcr.queue.makePlaylist(request.playlistName);
         
-        Einplayer.Backend.Bank.savePlaylist(playlist);
+        bank.savePlaylist(playlist);
         break;
 
       case "shuffleQueue":
@@ -248,7 +252,7 @@ Einplayer.Backend.MessageHandler = {
         break;
 
       case "queueAndPlayNow":
-        var track = Einplayer.Backend.Bank.getTrack(request.trackID);
+        var track = bank.getTrack(request.trackID);
         var nextPos = sqcr.queuePosition + 1;
         sqcr.insertAt(track, nextPos);
         sqcr.next();
@@ -257,6 +261,17 @@ Einplayer.Backend.MessageHandler = {
       case "seek":
         var percent = request.percent;
         sqcr.Player.seekPercent(percent);
+        break;
+
+      case "setVolume":
+        sqcr.Player.setVolume(request.percent);
+        bank.saveVolume(request.percent);
+        break;
+        
+      case "getVolume":
+        response.volume = bank.getVolume();
+        Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
+                                                     response);
         break;
         
       default:
@@ -285,19 +300,36 @@ Einplayer.Backend.MessageHandler = {
     this.pushView("player", playerView, tab);
   },
 
-  updateSlider: function(tab) {
+  updateSeekSlider: function(tab) {
     if (typeof(tab) == "undefined") {
       Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Einplayer.Backend.MessageHandler.updateSlider(selectedTab);
+        Einplayer.Backend.MessageHandler.updateSeekSlider(selectedTab);
       });
       return;
     }
     var track = Einplayer.Backend.Sequencer.getCurrentTrack();
     
     var request = Einplayer.Backend.MessageHandler.newRequest({
-      action: "updateSlider",
+      action: "updateSeekSlider",
       currentTime: track.get("currentTime"),
       duration: track.get("duration"),
+    });
+    
+    Einplayer.Backend.MessageHandler.postMessage(tab.id, request);
+  },
+
+  updateVolumeSlider: function(tab) {
+    if (typeof(tab) == "undefined") {
+      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Einplayer.Backend.MessageHandler.updateVolumeSlider(selectedTab);
+      });
+      return;
+    }
+    var volume = Einplayer.Backend.Bank.getVolume();
+    
+    var request = Einplayer.Backend.MessageHandler.newRequest({
+      action: "updateVolumeSlider",
+      volume: volume,
     });
     
     Einplayer.Backend.MessageHandler.postMessage(tab.id, request);

@@ -52,6 +52,7 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
     this.assignImgs(".button.remove", "rowbutton-remove.png");
     this.assignImgs(".button.queue", "rowbutton-queue.png");
     this.assignImgs(".button.download", "rowbutton-download.png");
+    this.assignImgs(".spinner.download", "download-spinner.gif");
   },
   
   assignImgs: function(selector, image) {

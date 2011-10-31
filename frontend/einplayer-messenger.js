@@ -59,9 +59,14 @@ Einplayer.Frontend.Messenger = {
                                              request.view);
         break;
 
-      case "updateSlider":
-        Einplayer.Frontend.Frame.Player.updateSlider(request.currentTime,
-                                                     request.duration);
+      case "updateSeekSlider":
+        Einplayer.Frontend.Frame.Player.SeekSlider.updateSlider
+                                                  (request.currentTime,
+                                                   request.duration);
+        break;
+      case "updateVolumeSlider":
+        Einplayer.Frontend.Frame.Player.VolumeSlider.updateSlider
+                                                    (request.volume);
         break;
       
       default:
@@ -101,11 +106,28 @@ Einplayer.Frontend.Messenger = {
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },
 
+  setVolume: function(percent) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action  : "setVolume",
+      percent : percent
+    });
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+
   download: function(trackID, callback) {
     var request = Einplayer.Frontend.Messenger.newRequest({
       action  : "download",
       trackID : trackID
     }, callback);
+
+    Einplayer.Frontend.Messenger.port.postMessage(request);
+  },
+  finishDownload: function(trackID) {
+    var request = Einplayer.Frontend.Messenger.newRequest({
+      action  : "finishDownload",
+      trackID : trackID
+    });
 
     Einplayer.Frontend.Messenger.port.postMessage(request);
   },

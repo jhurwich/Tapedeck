@@ -69,34 +69,49 @@
     </script>
 
     <script id="Player-default-template" type="text/template">
-      <div id="banner">
-        <%
-        var bannerStr = "";
-
-        if (state != "stop" && typeof(track) != "undefined") {
-          if (typeof(track.artistName) != "undefined") {
-            bannerStr += track.artistName;
-          }
-          if (typeof(track.trackName) != "undefined") {
-            if (bannerStr.length > 0) {
-              bannerStr += " &ndash; ";
+      <div id="banner-region">
+        <div id="banner">
+          <%
+          var bannerStr = "";
+  
+          if (state != "stop" && typeof(track) != "undefined") {
+            if (typeof(track.artistName) != "undefined") {
+              bannerStr += track.artistName;
             }
-            bannerStr += track.trackName;
+            if (typeof(track.trackName) != "undefined") {
+              if (bannerStr.length > 0) {
+                bannerStr += " &ndash; ";
+              }
+              bannerStr += track.trackName;
+            }
           }
-        }
-
-        if (state == "load") {
-          bannerStr += "<br />(Loading)";
-        }
-        else if (state == "pause") {
-          bannerStr += "<br />(Paused)";
-        }
-        print(bannerStr);
-        %>
+  
+          if (state == "load") {
+            bannerStr += "<br />(Loading)";
+          }
+          else if (state == "pause") {
+            bannerStr += "<br />(Paused)";
+          }
+          print(bannerStr);
+          %>
+        </div>
+        <div id="volume-slider"
+             class="slider
+                    <% if (state != "play" && state != "pause") {
+                      print(" disabled ");
+                    }%>" >
+          <div id="track-top" class="slider-track"></div>
+          <div id="track-bottom" class="slider-track">
+            <div id="handle">
+              <img id="handle-image"></img>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div id="slider"
-           class="<% if (state != "play" && state != "pause") {
+      <div id="seek-slider"
+           class="slider
+                  <% if (state != "play" && state != "pause") {
                     print(" disabled ");
                   }%>" >
         <div id="track-left" class="slider-track"></div>
@@ -130,6 +145,9 @@
                               } else {
                                 print(track.type)
                               } %>'
+               <% if (typeof(track.download) != "undefined") {
+                  print("download='" + track.download + "'");
+               } %> 
                draggable="true"
                onclick="Einplayer.Frontend.Frame.rowClick(event)" >
             <div class="cell trackName-col"> <%= track.trackName %> </div>
@@ -138,12 +156,14 @@
               <div class="row-buttons">
                 <div class="button playnow"
                      onclick="Einplayer.Frontend.Frame.rowButtonPlaynow(event)"></div>
-                <div class="button download"
-                     onclick="Einplayer.Frontend.Frame.rowButtonDownload(event)"></div>                     
                 <div class="button remove"
                      onclick="Einplayer.Frontend.Frame.rowButtonRemove(event)"></div>
                 <div class="button queue"
                      onclick="Einplayer.Frontend.Frame.rowButtonQueue(event)"></div>
+                <div class="button download"
+                     onclick="Einplayer.Frontend.Frame.rowButtonDownload(event)"></div>
+                <div class="spinner download"
+                     id="download-spinner"></div>
               </div>
             </div>
           </div>

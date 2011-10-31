@@ -74,7 +74,7 @@ var EinInjected = {
     htmlDOM.appendChild(sideButtons);
   },
   
-  toolbarWidth: 352,
+  toolbarWidth: 351,
   openDrawer: function() {
     if (!EinInjected.einplayerFrame.getAttribute("hidden")) {
       // already opened, abort

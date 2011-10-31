@@ -8,6 +8,7 @@ Einplayer.Backend.Bank = {
   trackListPrefix: /* bankPrefix + */ "trackList-",
   playlistPrefix: /* trackListPrefix + */ "playlist-",
   repeatKey: /* bankPrefix + */ + "repeat",
+  volumeKey: /* bankPrefix + */ + "volume",
   init: function() {
     this.localStorage = window.localStorage;
     this.trackListPrefix = this.bankPrefix + this.trackListPrefix;
@@ -21,7 +22,7 @@ Einplayer.Backend.Bank = {
 
   FileSystem : {
     root : null,
-    fileSystemSize: 20, // in MB
+    fileSystemSize: 100, // in MB
     init: function() {
       window.requestFileSystem  = window.requestFileSystem ||
                                   window.webkitRequestFileSystem;
@@ -40,6 +41,16 @@ Einplayer.Backend.Bank = {
       var fs = Einplayer.Backend.Bank.FileSystem;
       var track = Einplayer.Backend.Bank.getTrack(trackID);
       var url = track.get("url");
+
+      // Mark the track as downloading to get the proper indicators.
+      // We have a handle on one that lives (or lived) in the browse
+      // list, but we need to see if there's one in the queue that needs
+      // to be indicated as well.
+      track.set({ download: "downloading" });
+      var queued = Einplayer.Backend.Sequencer.getQueuedTrack(trackID);
+      if (queued != null) {
+        queued.set({ download: "downloading" });
+      }
 
       // Get the file data from the url
       var xhr = new XMLHttpRequest();
@@ -77,6 +88,12 @@ Einplayer.Backend.Bank = {
           // once the file is written, send it's location to the caller
           fileWriter.onwriteend = function(e) {
             callback(fileEntry.toURL());
+            track.unset("download");
+            var queued = Einplayer.Backend.Sequencer.getQueuedTrack
+                                                    (track.get("einID"));
+            if (queued != null) {
+              queued.unset("downloading");
+            }
           };
           fileWriter.onerror = function(e) {
             console.error('Saving file to disk failed: ' + e.toString());
@@ -87,6 +104,34 @@ Einplayer.Backend.Bank = {
           delete bb; 
         }, fs.errorHandler); // end fileEntry.createWrite(...)
       }, fs.errorHandler); // end fs.root.getFile(...);
+    },
+
+    removeTrack: function(trackID) {
+      var fs = Einplayer.Backend.Bank.FileSystem;
+      var track = Einplayer.Backend.Bank.getTrack(trackID);
+
+      var fileName = fs.nameFile(track);
+      fs.root.getFile(fileName, {create: false}, function(fileEntry) {
+
+        fileEntry.remove(function() {
+          // File removed
+        }, fs.errorHandler);
+        
+      }, fs.errorHandler);
+    },
+
+    clear: function() {
+      var fs = Einplayer.Backend.Bank.FileSystem;
+      var dirReader = fs.root.createReader();
+      dirReader.readEntries(function(entries) {
+        for (var i = 0, entry; entry = entries[i]; ++i) {
+          if (entry.isDirectory) {
+            entry.removeRecursively(function() {}, fs.errorHandler);
+          } else {
+            entry.remove(function() {}, fs.errorHandler);
+          }
+        }
+      }, fs.errorHandler);
     },
 
     nameFile: function(track) {
@@ -179,6 +224,7 @@ Einplayer.Backend.Bank = {
   clear: function() {
     this.playlistList.reset();
     this.localStorage.clear();
+    this.FileSystem.clear();
   },
 
   findKeys: function(pattern) {
@@ -334,5 +380,13 @@ Einplayer.Backend.Bank = {
 
   getRepeat: function() {
     return this.localStorage.getItem(this.repeatKey) == "true";
+  },
+
+  saveVolume: function(volume) {
+    this.localStorage.setItem(this.volumeKey, volume);
+  },
+
+  getVolume: function() {
+    return this.localStorage.getItem(this.volumeKey);
   },
 }

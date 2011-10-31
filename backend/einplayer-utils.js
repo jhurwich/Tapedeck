@@ -46,8 +46,14 @@ Einplayer.Backend.Utils = {
     scriptStr = "$('#einplayer-content').unbind('.delegateEvents" + viewName + "');\n";
     
     for (var key in events) {
-      scriptStr += "var method = Einplayer.Frontend.Frame['" + events[key] + "'];\n"
-      scriptStr += "if (!method) console.log('Event " + events[key] + " does not exist');\n";
+      var methodStr = "Einplayer.Frontend.Frame";
+      var methodPieces = events[key].split(".");
+      for(var i = 0; i < methodPieces.length; i++) {
+        methodStr += "['" + methodPieces[i] + "']";
+      }
+      
+      scriptStr += "var method = " + methodStr + ";\n"
+      scriptStr += "if (!method) console.log('Event " + JSON.stringify(methodPieces) + " does not exist');\n";
 
       var match = key.match(/^(\S+)\s*(.*)$/);
       var eventName = match[1], selector = match[2];

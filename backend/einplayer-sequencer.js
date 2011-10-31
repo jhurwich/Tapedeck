@@ -7,8 +7,12 @@ Einplayer.Backend.Sequencer = {
     if (!this.Player.playerElement) {
       this.Player.init();
     }
-    this.queue = Einplayer.Backend.Bank.getTrackList(this.savedQueueName);
-    Einplayer.Backend.Bank.saveTracks(this.queue);
+    var bank = Einplayer.Backend.Bank
+    this.queue = bank.getTrackList(this.savedQueueName);
+    bank.saveTracks(this.queue);
+
+    var volume = bank.getVolume();
+    this.Player.setVolume(volume);
   },
 
   Player: {
@@ -54,6 +58,14 @@ Einplayer.Backend.Sequencer = {
 
     resume: function() {
       this.playerElement.get(0).play();
+    },
+
+    setVolume: function(percent) {
+      this.playerElement.get(0).volume = percent;
+    },
+    
+    getVolume: function() {
+      return this.playerElement.get(0).volume;
     },
 
     seek: function(time) {
@@ -107,7 +119,7 @@ Einplayer.Backend.Sequencer = {
       var currentTime = self.playerElement.get(0).currentTime;
       self.currentTrack.set({ currentTime : currentTime},
                             { silent      : true       });
-      Einplayer.Backend.MessageHandler.updateSlider();
+      Einplayer.Backend.MessageHandler.updateSeekSlider();
     },
     
     // Error Codes from http://www.w3.org/TR/html5/video.html#htmlmediaelement
@@ -214,6 +226,18 @@ Einplayer.Backend.Sequencer = {
 
   getAt: function(pos) {
     return this.queue.at(pos);
+  },
+
+  getQueuedTrack: function(trackID) {
+    var trackArr = this.queue.select(function(track) {
+      return track.get("einID") == trackID;
+    });
+    var track = null;
+    if (trackArr.length > 0) {
+      track = trackArr[0];
+    }
+
+    return track;
   },
 
   setQueuePosition: function(pos) {
