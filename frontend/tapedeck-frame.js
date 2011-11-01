@@ -1,12 +1,12 @@
-if (typeof Einplayer == "undefined") {
-  var Einplayer = { };
-  Einplayer.Frontend = { };
+if (typeof Tapedeck == "undefined") {
+  var Tapedeck = { };
+  Tapedeck.Frontend = { };
 }
-if (typeof(Einplayer.Frontend.Frame) != "undefined") {
+if (typeof(Tapedeck.Frontend.Frame) != "undefined") {
   return;
 }
 
-Einplayer.Frontend.Frame = {
+Tapedeck.Frontend.Frame = {
   init : function() {
     
   },
@@ -24,14 +24,14 @@ Einplayer.Frontend.Frame = {
       },
       
       updateSlider: function(volumePercent) {
-        var slider = Einplayer.Frontend.Frame.Player.VolumeSlider;
+        var slider = Tapedeck.Frontend.Frame.Player.VolumeSlider;
 
         var offset = slider.percentOffset(volumePercent);
         slider.setHandle(offset);
       },
       
       downOnHandle: function(e) {
-        var slider = Einplayer.Frontend.Frame.Player.VolumeSlider;
+        var slider = Tapedeck.Frontend.Frame.Player.VolumeSlider;
         
         var target = e.target;
         while($(target).attr('id') != "handle") {
@@ -58,7 +58,7 @@ Einplayer.Frontend.Frame = {
         // tell our code to start moving the element with the mouse
         document.onmousemove = slider.moveHandle;
     
-        $("#einplayer-content").mouseleave(function() {
+        $("#tapedeck-content").mouseleave(function() {
           // reset the slider if the mouse leaves during drag
           if (slider.dragging) {
             document.onmousemove = null;
@@ -76,7 +76,7 @@ Einplayer.Frontend.Frame = {
       },
       
       moveHandle: function(e) {
-        var slider = Einplayer.Frontend.Frame.Player.VolumeSlider;
+        var slider = Tapedeck.Frontend.Frame.Player.VolumeSlider;
         
         // this is the actual "drag code"
         var newOffset = (slider.offsetY +
@@ -116,7 +116,7 @@ Einplayer.Frontend.Frame = {
       duration: -1,
 
       downOnHandle: function(e) {
-        var slider = Einplayer.Frontend.Frame.Player.SeekSlider;
+        var slider = Tapedeck.Frontend.Frame.Player.SeekSlider;
         var target = e.target;
         while($(target).attr('id') != "handle") {
           target = $(target).parent();
@@ -142,7 +142,7 @@ Einplayer.Frontend.Frame = {
         // tell our code to start moving the element with the mouse
         document.onmousemove = slider.moveHandle;
     
-        $("#einplayer-content").mouseleave(function() {
+        $("#tapedeck-content").mouseleave(function() {
           // reset the slider if the mouse leaves during drag
           if (slider.dragging) {
             document.onmousemove = null;
@@ -159,7 +159,7 @@ Einplayer.Frontend.Frame = {
       },
       
       moveHandle: function(e) {
-        var slider = Einplayer.Frontend.Frame.Player.SeekSlider;
+        var slider = Tapedeck.Frontend.Frame.Player.SeekSlider;
         
         // this is the actual "drag code"
         var newOffset = (slider.offsetX +
@@ -179,7 +179,7 @@ Einplayer.Frontend.Frame = {
       },
       
       updateSlider: function(currentTime, duration) {
-        var slider = Einplayer.Frontend.Frame.Player.SeekSlider;
+        var slider = Tapedeck.Frontend.Frame.Player.SeekSlider;
         slider.currentTime = currentTime;
         slider.duration = duration;
         
@@ -199,7 +199,7 @@ Einplayer.Frontend.Frame = {
         if (typeof(displayTime) == "undefined") {
           displayTime = false;
         }
-        var slider = Einplayer.Frontend.Frame.Player.SeekSlider;
+        var slider = Tapedeck.Frontend.Frame.Player.SeekSlider;
   
         var positionPercent = slider.offsetPercent(offset);
         var timeAtPosition = positionPercent * slider.duration;
@@ -256,10 +256,10 @@ Einplayer.Frontend.Frame = {
         $(handleVal).removeClass("hover");
         $(handleVal).css("display", "none");
       },
-    }, // End Einplayer.Frontend.Frame.Player.SeekSlider
+    }, // End Tapedeck.Frontend.Frame.Player.SeekSlider
   
     mouseUp: function(e) {
-      var seekslider = Einplayer.Frontend.Frame.Player.SeekSlider;
+      var seekslider = Tapedeck.Frontend.Frame.Player.SeekSlider;
       
       if (seekslider.dragging){
         // we're done with these events until the next OnMouseDown
@@ -270,10 +270,10 @@ Einplayer.Frontend.Frame = {
         var offset = parseInt($("#seek-slider #handle").css('left'));
         var percent = seekslider.offsetPercent(offset);
         
-        Einplayer.Frontend.Messenger.seekPercent(percent);
+        Tapedeck.Frontend.Messenger.seekPercent(percent);
       }
       
-      var volumeslider = Einplayer.Frontend.Frame.Player.VolumeSlider;
+      var volumeslider = Tapedeck.Frontend.Frame.Player.VolumeSlider;
       
       if (volumeslider.dragging){
         // we're done with these events until the next OnMouseDown
@@ -288,10 +288,10 @@ Einplayer.Frontend.Frame = {
         volumeslider.currentVolume = (1 - volumeslider.offsetPercent(offset));
 
 
-        Einplayer.Frontend.Messenger.setVolume(volumeslider.currentVolume);
+        Tapedeck.Frontend.Messenger.setVolume(volumeslider.currentVolume);
       }
     },
-  }, // End Einplayer.Frontend.Frame.Player
+  }, // End Tapedeck.Frontend.Frame.Player
   
   replaceView: function(id, viewStr) {
     var view = $(viewStr);
@@ -314,27 +314,27 @@ Einplayer.Frontend.Frame = {
     var row = $(e.target).closest(".row");
     
     // make sure this isn't actually a double click
-    if (Einplayer.Frontend.Frame.clickTimer != null) {
+    if (Tapedeck.Frontend.Frame.clickTimer != null) {
           
-      clearTimeout(Einplayer.Frontend.Frame.clickTimer);
-      Einplayer.Frontend.Frame.clickTimer = null;
+      clearTimeout(Tapedeck.Frontend.Frame.clickTimer);
+      Tapedeck.Frontend.Frame.clickTimer = null;
                   
       // make sure it's a double click on the same element
-      if ($(row).attr("index") == Einplayer.Frontend.Frame.clickID) {
-        Einplayer.Frontend.Frame.clicked = null;
+      if ($(row).attr("index") == Tapedeck.Frontend.Frame.clickID) {
+        Tapedeck.Frontend.Frame.clicked = null;
 
         // Find out and call the correct double click function
         var dblClickFnName = $(row).closest("[rowdblclick]")
                                    .attr("rowdblclick");
-        Einplayer.Frontend.Frame[dblClickFnName](row);
+        Tapedeck.Frontend.Frame[dblClickFnName](row);
         return;
       }
     }
 
-    Einplayer.Frontend.Frame.clickID = $(row).attr("index");
-    Einplayer.Frontend.Frame.clickTimer = setTimeout(function() {
+    Tapedeck.Frontend.Frame.clickID = $(row).attr("index");
+    Tapedeck.Frontend.Frame.clickTimer = setTimeout(function() {
       
-      Einplayer.Frontend.Frame.clickTimer = null;
+      Tapedeck.Frontend.Frame.clickTimer = null;
       
       if (!$(row).hasClass("selected")) {
         $(row).addClass("selected");
@@ -346,21 +346,21 @@ Einplayer.Frontend.Frame = {
   },
 
   browseDblClick: function(row) {
-    Einplayer.Frontend.Frame.queueBrowseRow(row);
+    Tapedeck.Frontend.Frame.queueBrowseRow(row);
   },
 
   queueDblClick: function(row) {
-    Einplayer.Frontend.Frame.playQueueRow(row);
+    Tapedeck.Frontend.Frame.playQueueRow(row);
   },
 
   queueBrowseRow: function(row) {
     var trackID = $(row).attr("track-id");
-    Einplayer.Frontend.Messenger.queueTrack(trackID);
+    Tapedeck.Frontend.Messenger.queueTrack(trackID);
   },
 
   playQueueRow: function(row) {
     var index = $(row).attr("index");
-    Einplayer.Frontend.Messenger.playIndex(index);
+    Tapedeck.Frontend.Messenger.playIndex(index);
   },
 
   playPlaylist: function(e) {
@@ -369,7 +369,7 @@ Einplayer.Frontend.Frame = {
     }
     var target = $(e.target).closest(".row");
     var index = $(target).attr("index");
-    Einplayer.Frontend.Messenger.playPlaylist(index);
+    Tapedeck.Frontend.Messenger.playPlaylist(index);
   },
 
   showPlaylistList: function() {
@@ -388,7 +388,7 @@ Einplayer.Frontend.Frame = {
     }
     var target = $(e.target).closest(".row");
     var index = $(target).attr("index");
-    Einplayer.Frontend.Messenger.removePlaylist(index);
+    Tapedeck.Frontend.Messenger.removePlaylist(index);
   },
 
   rowDrag: {
@@ -396,7 +396,7 @@ Einplayer.Frontend.Frame = {
     from: "",
   },
   rowDragStart: function(e) {
-    var rowDrag = Einplayer.Frontend.Frame.rowDrag;
+    var rowDrag = Tapedeck.Frontend.Frame.rowDrag;
     
     var target = $(e.target).closest(".row");
 
@@ -443,7 +443,7 @@ Einplayer.Frontend.Frame = {
     }
   },
   rowDrop: function(e) {
-    var rowDrag = Einplayer.Frontend.Frame.rowDrag;
+    var rowDrag = Tapedeck.Frontend.Frame.rowDrag;
     if (e.stopPropagation) {
       e.stopPropagation(); // stops redirecting in some cases.
     }
@@ -459,11 +459,11 @@ Einplayer.Frontend.Frame = {
     
     if (rowDrag.from.match(/queue/) != null) {
       // If dropping from queue to queue, moveTracks
-      Einplayer.Frontend.Messenger.moveTracks(rowDrag.tracks, dropIndex + 1);
+      Tapedeck.Frontend.Messenger.moveTracks(rowDrag.tracks, dropIndex + 1);
     }
     else {
       // If dropping from browse to queue, queueTracks
-      Einplayer.Frontend.Messenger.queueTracks(rowDrag.tracks, dropIndex + 1);
+      Tapedeck.Frontend.Messenger.queueTracks(rowDrag.tracks, dropIndex + 1);
     }
     
     rowDrag.tracks = [];
@@ -477,7 +477,7 @@ Einplayer.Frontend.Frame = {
     }
     var row = $(e.target).closest(".row");
 
-    Einplayer.Frontend.Messenger.removeQueuedAt($(row).attr("index"));
+    Tapedeck.Frontend.Messenger.removeQueuedAt($(row).attr("index"));
   },
 
   rowButtonPlaynow: function(e) {
@@ -489,11 +489,11 @@ Einplayer.Frontend.Frame = {
 
     if ($(row).closest(".tracklist-container").attr("id") == "queue-list") {
       // to play immediately from the queue we can just play the row
-      Einplayer.Frontend.Frame.playQueueRow(row);
+      Tapedeck.Frontend.Frame.playQueueRow(row);
     }
     else {
       // to play immediately from the browselist we must queueAndPlay
-      Einplayer.Frontend.Messenger.queueAndPlayNow($(row).attr("track-id"));
+      Tapedeck.Frontend.Messenger.queueAndPlayNow($(row).attr("track-id"));
     }
   },
   
@@ -503,7 +503,7 @@ Einplayer.Frontend.Frame = {
     }
     var row = $(e.target).closest(".row");
 
-    Einplayer.Frontend.Frame.queueBrowseRow(row);
+    Tapedeck.Frontend.Frame.queueBrowseRow(row);
   },
 
   rowButtonDownload: function(e) {
@@ -515,7 +515,7 @@ Einplayer.Frontend.Frame = {
 
     switch (trackType) {
       case "mp3":
-        Einplayer.Frontend.Frame.download($(row).attr("track-id"));
+        Tapedeck.Frontend.Frame.download($(row).attr("track-id"));
         break;
 
       default:
@@ -537,19 +537,19 @@ Einplayer.Frontend.Frame = {
       
       $("body").first().append(iframe);
        
-      Einplayer.Frontend.Messenger.finishDownload(trackID);
+      Tapedeck.Frontend.Messenger.finishDownload(trackID);
     }
 
-    Einplayer.Frontend.Messenger.download(trackID, callback);
+    Tapedeck.Frontend.Messenger.download(trackID, callback);
   },
 
   toggleRepeat: function() {
-    Einplayer.Frontend.Messenger.toggleRepeat();
-    Einplayer.Frontend.Frame.checkRepeat();
+    Tapedeck.Frontend.Messenger.toggleRepeat();
+    Tapedeck.Frontend.Frame.checkRepeat();
   },
 
   shuffleQueue: function() {
-    Einplayer.Frontend.Messenger.shuffleQueue();
+    Tapedeck.Frontend.Messenger.shuffleQueue();
   },
 
   saveQueue: function() {
@@ -558,15 +558,15 @@ Einplayer.Frontend.Frame = {
       return;
     }
 
-    Einplayer.Frontend.Messenger.saveQueue(playlistName);
+    Tapedeck.Frontend.Messenger.saveQueue(playlistName);
   },
   
   clearQueue: function() {
-    Einplayer.Frontend.Messenger.clearQueue();
+    Tapedeck.Frontend.Messenger.clearQueue();
   },
 
   onFrameRender: function() {
-    var frame = Einplayer.Frontend.Frame;
+    var frame = Tapedeck.Frontend.Frame;
     
     frame.forceSeekSliderUpdate();
     frame.forceVolumeSliderUpdate();
@@ -575,18 +575,18 @@ Einplayer.Frontend.Frame = {
 
   forceSeekSliderUpdate: function() {
     if (!($("#seek-slider").hasClass("disabled"))) {
-      Einplayer.Frontend.Messenger.requestUpdate("SeekSlider");
+      Tapedeck.Frontend.Messenger.requestUpdate("SeekSlider");
     }
   },
 
   forceVolumeSliderUpdate: function() {
     if (!($("#volume-slider").hasClass("disabled"))) {
-      Einplayer.Frontend.Messenger.requestUpdate("VolumeSlider");
+      Tapedeck.Frontend.Messenger.requestUpdate("VolumeSlider");
     }
   },
 
   checkRepeat: function() {
-    Einplayer.Frontend.Messenger.getRepeat(function(response) {
+    Tapedeck.Frontend.Messenger.getRepeat(function(response) {
       if (response.repeat) {
         $("#repeat").attr("src", chrome.extension.getURL("images/repeat-active.png"));
       }

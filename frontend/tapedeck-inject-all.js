@@ -1,69 +1,69 @@
-var EinInjected = { 
+var TapedeckInjected = { 
 
-  einplayerFrame: null,
+  tapedeckFrame: null,
   init: function() {
     var htmlDOM = document.getElementsByTagName("html")[0];
     
-    EinInjected.einplayerFrame = document.createElement("iframe");
-    EinInjected.einplayerFrame.src =
-      chrome.extension.getURL("frontend/einplayer-frame.html");
-    EinInjected.einplayerFrame.id = "einplayer-frame";
-    EinInjected.einplayerFrame.setAttribute("hidden", true);
+    TapedeckInjected.tapedeckFrame = document.createElement("iframe");
+    TapedeckInjected.tapedeckFrame.src =
+      chrome.extension.getURL("frontend/tapedeck-frame.html");
+    TapedeckInjected.tapedeckFrame.id = "tapedeck-frame";
+    TapedeckInjected.tapedeckFrame.setAttribute("hidden", true);
     
-    htmlDOM.appendChild(EinInjected.einplayerFrame);
+    htmlDOM.appendChild(TapedeckInjected.tapedeckFrame);
 
-    EinInjected.injectSideButtons();
+    TapedeckInjected.injectSideButtons();
 
     chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
       if (request.action == "setDrawer") {
         if (request.opened) {
-          EinInjected.openDrawer();
+          TapedeckInjected.openDrawer();
         }
         else {
-          EinInjected.closeDrawer();
+          TapedeckInjected.closeDrawer();
         }
       }
     });
     
-    EinInjected.checkDrawerOpened();
+    TapedeckInjected.checkDrawerOpened();
   },
 
   injectSideButtons: function() {
     var htmlDOM = document.getElementsByTagName("html")[0];
      
     var sideButtons = document.createElement('div');
-    sideButtons.id = 'ein-injected-buttons';
+    sideButtons.id = 'tapedeck-injected-buttons';
     
     var drawerOpen = document.createElement('img');
-    drawerOpen.id = 'ein-injected-draweropen';
-    drawerOpen.className = 'ein-injected-button';
+    drawerOpen.id = 'tapedeck-injected-draweropen';
+    drawerOpen.className = 'tapedeck-injected-button';
     drawerOpen.src = chrome.extension.getURL("images/draweropen-button.png");
-    drawerOpen.onclick = EinInjected.setDrawerOpened;
+    drawerOpen.onclick = TapedeckInjected.setDrawerOpened;
 
     var drawerClose = document.createElement('img');
-    drawerClose.id = 'ein-injected-drawerclose';
-    drawerClose.className = 'ein-injected-button';
+    drawerClose.id = 'tapedeck-injected-drawerclose';
+    drawerClose.className = 'tapedeck-injected-button';
     drawerClose.src = chrome.extension.getURL("images/drawerclose-button.png");
-    drawerClose.onclick = EinInjected.setDrawerClosed;
+    drawerClose.onclick = TapedeckInjected.setDrawerClosed;
     drawerClose.setAttribute("hidden", true);
   
     var play = document.createElement('img');
-    play.id = 'ein-injected-play';
-    play.className = 'ein-injected-button';
+    play.id = 'tapedeck-injected-play';
+    play.className = 'tapedeck-injected-button';
     play.src = chrome.extension.getURL("images/play-pause-button.png");
-    play.onclick = EinInjected.playPause;
+    play.onclick = TapedeckInjected.playPause;
   
     var next = document.createElement('img');
-    next.id = 'ein-injected-next';
-    next.className = 'ein-injected-button';
+    next.id = 'tapedeck-injected-next';
+    next.className = 'tapedeck-injected-button';
     next.src = chrome.extension.getURL("images/next-button.png");
-    next.onclick = EinInjected.next;
+    next.onclick = TapedeckInjected.next;
   
     var prev = document.createElement('img');
-    prev.id = 'ein-injected-prev';
-    prev.className = 'ein-injected-button';
+    prev.id = 'tapedeck-injected-prev';
+    prev.className = 'tapedeck-injected-button';
     prev.src = chrome.extension.getURL("images/prev-button.png");
-    prev.onclick = EinInjected.prev;
+    prev.onclick = TapedeckInjected.prev;
   
     sideButtons.appendChild(drawerOpen);
     sideButtons.appendChild(drawerClose);
@@ -76,64 +76,64 @@ var EinInjected = {
   
   toolbarWidth: 351,
   openDrawer: function() {
-    if (!EinInjected.einplayerFrame.getAttribute("hidden")) {
+    if (!TapedeckInjected.tapedeckFrame.getAttribute("hidden")) {
       // already opened, abort
       return;
     }
     
-    EinInjected.einplayerFrame.removeAttribute("hidden");
+    TapedeckInjected.tapedeckFrame.removeAttribute("hidden");
 
-    var drawerOpen = document.getElementById("ein-injected-draweropen");
+    var drawerOpen = document.getElementById("tapedeck-injected-draweropen");
     drawerOpen.setAttribute("hidden", true);
   
-    var drawerClose = document.getElementById("ein-injected-drawerclose");
+    var drawerClose = document.getElementById("tapedeck-injected-drawerclose");
     drawerClose.removeAttribute("hidden");
   
     bodyDOM = document.getElementsByTagName("body")[0];
-    bodyDOM.setAttribute("einplayer-opened", true);
+    bodyDOM.setAttribute("tapedeck-opened", true);
   
-    EinInjected.moveFixedElements();
+    TapedeckInjected.moveFixedElements();
   },
 
   closeDrawer: function() {
-    if (EinInjected.einplayerFrame.getAttribute("hidden")) {
+    if (TapedeckInjected.tapedeckFrame.getAttribute("hidden")) {
       // already closed, abort
       return
     }
     
-    EinInjected.einplayerFrame.setAttribute("hidden", true);
+    TapedeckInjected.tapedeckFrame.setAttribute("hidden", true);
 
-    var drawerClose = document.getElementById("ein-injected-drawerclose");
+    var drawerClose = document.getElementById("tapedeck-injected-drawerclose");
     drawerClose.setAttribute("hidden", true);
   
-    var drawerOpen = document.getElementById("ein-injected-draweropen");
+    var drawerOpen = document.getElementById("tapedeck-injected-draweropen");
     drawerOpen.removeAttribute("hidden");
     
     bodyDOM = document.getElementsByTagName("body")[0];
-    bodyDOM.removeAttribute("einplayer-opened");
+    bodyDOM.removeAttribute("tapedeck-opened");
     
-    EinInjected.resetFixedElements();
+    TapedeckInjected.resetFixedElements();
   },
   
   checkDrawerOpened: function() {
     chrome.extension.sendRequest({action: "checkDrawer"}, function(response){
       if (response.opened) {
-        EinInjected.openDrawer();
+        TapedeckInjected.openDrawer();
       }
       else {
-        EinInjected.closeDrawer();
+        TapedeckInjected.closeDrawer();
       }
     });
   },
 
   setDrawerOpened: function() {
-    EinInjected.openDrawer();
+    TapedeckInjected.openDrawer();
     chrome.extension.sendRequest({ action: "setDrawer",
                                    opened: true });
   },
 
   setDrawerClosed: function() {
-    EinInjected.closeDrawer();
+    TapedeckInjected.closeDrawer();
     chrome.extension.sendRequest({ action: "setDrawer",
                                    opened: false });
   },
@@ -143,14 +143,14 @@ var EinInjected = {
     var allDivs = document.getElementsByTagName("div");
     for(var i=0; i<allDivs.length; i++) {
       var div = allDivs[i];
-      if(!div.einMoved) {
+      if(!div.tdMoved) {
         var style = window.getComputedStyle(div);
         if(style.position == "fixed") {
           var right = style.right;
           var oldSpot = right ? parseInt(right) : 0;
-          var newSpot = oldSpot + EinInjected.toolbarWidth;
+          var newSpot = oldSpot + TapedeckInjected.toolbarWidth;
           div.style.right = newSpot + "px";
-          div.einMoved = true;    
+          div.tdMoved = true;    
         }
       }
     }
@@ -160,14 +160,14 @@ var EinInjected = {
     var allDivs = document.getElementsByTagName("div");
     for(var i=0; i<allDivs.length; i++) {
       var div = allDivs[i];
-      if(div.einMoved) {
+      if(div.tdMoved) {
         var style = window.getComputedStyle(div);
         if(style.position == "fixed") {
           var right = style.right;
-          var newSpot = right ? parseInt(right) : EinInjected.toolbarWidth;
-          var oldSpot = newSpot - EinInjected.toolbarWidth;
+          var newSpot = right ? parseInt(right) : TapedeckInjected.toolbarWidth;
+          var oldSpot = newSpot - TapedeckInjected.toolbarWidth;
           div.style.right = oldSpot + "px";
-          div.einMoved = null;    
+          div.tdMoved = null;    
         }
       }
     }
@@ -189,4 +189,4 @@ var EinInjected = {
   },
 }
 
-window.onload = EinInjected.init;
+window.onload = TapedeckInjected.init;

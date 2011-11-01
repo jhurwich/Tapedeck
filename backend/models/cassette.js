@@ -1,4 +1,4 @@
-Einplayer.Backend.Models.Cassette = Backbone.Model.extend({
+Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
   name: "Unnamed Cassette",
 
   // Default events

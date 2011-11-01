@@ -1,4 +1,4 @@
-Einplayer.Backend.Views.BrowseList = Einplayer.Backend.Views.TrackList.extend({
+Tapedeck.Backend.Views.BrowseList = Tapedeck.Backend.Views.TrackList.extend({
 
   viewName: "BrowseList",
   id: "browse-list",

@@ -1,17 +1,17 @@
 describe("PlaylistList View", function() {
 
   it ("should have rows for each playlist when rendered", function() {
-    var playlist = new this.Einplayer
+    var playlist = new this.Tapedeck
                            .Backend
                            .Collections
                            .Playlist(this.testTracks);
     
-    var viewScript = this.Einplayer
+    var viewScript = this.Tapedeck
                          .Backend
                          .TemplateManager
                          .getViewScript("PlaylistList");
 
-    var playlistList = new this.Einplayer
+    var playlistList = new this.Tapedeck
                                .Backend
                                .Collections
                                .PlaylistList([playlist]);
@@ -22,7 +22,7 @@ describe("PlaylistList View", function() {
     var rows  = $(listDOM).find(".row");
     expect(rows.length).toEqual(1);
 
-    playlistList = new this.Einplayer
+    playlistList = new this.Tapedeck
                            .Backend
                            .Collections
                            .PlaylistList([playlist, playlist]);

@@ -1,4 +1,4 @@
-Einplayer.Backend.Cassettes.ScraperCassette = Einplayer.Backend.Models.Cassette.extend({
+Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.extend({
 
   cassetteName: "Scraper",
 
@@ -18,10 +18,10 @@ Einplayer.Backend.Cassettes.ScraperCassette = Einplayer.Backend.Models.Cassette.
       callback(response.tracks);
     };
     
-    Einplayer.Backend.MessageHandler
-                     .executeScript(context.tab,
-                                    {allFrames: false,
-                                     file: "frontend/scripts/track-parser.js"},
-                                    handleTracks);
+    Tapedeck.Backend.MessageHandler
+                    .executeScript(context.tab,
+                                   { allFrames: false,
+                                     file: "frontend/scripts/track-parser.js" },
+                                   handleTracks);
   } 
 });

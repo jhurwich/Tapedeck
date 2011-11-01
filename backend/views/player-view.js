@@ -1,4 +1,4 @@
-Einplayer.Backend.Views.Player = Backbone.View.extend({
+Tapedeck.Backend.Views.Player = Backbone.View.extend({
 
   tagName: "div",
   id: "player",
@@ -19,15 +19,15 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
   },
   
   initialize: function() {
-    this.template = _.template(Einplayer.Backend
-                                        .TemplateManager
-                                        .getTemplate("Player"));
+    this.template = _.template(Tapedeck.Backend
+                                       .TemplateManager
+                                       .getTemplate("Player"));
   },
   
   render: function() {
-    var player = Einplayer.Backend.Sequencer.Player;
-    var currentState = Einplayer.Backend.Sequencer.getCurrentState();
-    var currentTrack = Einplayer.Backend.Sequencer.getCurrentTrack();
+    var player = Tapedeck.Backend.Sequencer.Player;
+    var currentState = Tapedeck.Backend.Sequencer.getCurrentState();
+    var currentTrack = Tapedeck.Backend.Sequencer.getCurrentTrack();
 
     var options = { state: currentState };
     if (typeof(currentTrack) != "undefined" &&
@@ -39,7 +39,7 @@ Einplayer.Backend.Views.Player = Backbone.View.extend({
     
     this.assignSliderImgs();
 
-    Einplayer.Backend.Utils.proxyEvents(this, "playerEvents");
+    Tapedeck.Backend.Utils.proxyEvents(this, "playerEvents");
     
     return this.el;
   },

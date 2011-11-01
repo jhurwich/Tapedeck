@@ -1,10 +1,10 @@
 // Props to Dan Kantor @ ExFM for providing a great song-parser template
 // that this implementation was based off of.
-EinInjected.TrackParser = {
+TapedeckInjected.TrackParser = {
   debug : false,
 
   start : function() {
-    var tracks = EinInjected.TrackParser.findSongs();
+    var tracks = TapedeckInjected.TrackParser.findSongs();
 
     var response = {
       type: "response",
@@ -20,20 +20,20 @@ EinInjected.TrackParser = {
     
     var resultObjects = [];
     if ($("#tumblr_controls").length > 0 ||
-        EinInjected.TrackParser.forceTumblr) {
-      resultObjects.push(EinInjected.TrackParser.tumblr.scrape());
+        TapedeckInjected.TrackParser.forceTumblr) {
+      resultObjects.push(TapedeckInjected.TrackParser.tumblr.scrape());
     }
     
     if (location.href.indexOf('tumblr.com/dashboard') != -1 ||
-        EinInjected.TrackParser.forceTumblrDashboard) {
-      resultObjects.push(EinInjected.TrackParser.tumblrDashboard.scrape());
+        TapedeckInjected.TrackParser.forceTumblrDashboard) {
+      resultObjects.push(TapedeckInjected.TrackParser.tumblrDashboard.scrape());
     }
     
-    resultObjects.push(EinInjected.TrackParser.links.scrape());
+    resultObjects.push(TapedeckInjected.TrackParser.links.scrape());
     
-    resultObjects.push(EinInjected.TrackParser.audioElements.scrape());
+    resultObjects.push(TapedeckInjected.TrackParser.audioElements.scrape());
     
-    return EinInjected.TrackParser.mergeResults(resultObjects);
+    return TapedeckInjected.TrackParser.mergeResults(resultObjects);
   },
 
   mergeResults : function(resultObjects) {
@@ -106,7 +106,7 @@ EinInjected.TrackParser = {
             if (filename != '') {
               track.trackName = filename;
             } else {
-              if (EinInjected.TrackParser.debug) {
+              if (TapedeckInjected.TrackParser.debug) {
                 console.log("No trackName found for '" + a.href + "'. Using 'Unknown Title'");
               }
             }
@@ -129,15 +129,15 @@ EinInjected.TrackParser = {
   
             var longestEntry = "";
             $(wpParentEntry).children("p").each(function(index, p) {
-              var entry = EinInjected.TrackParser.cleanHTML($(p).html());
+              var entry = TapedeckInjected.TrackParser.cleanHTML($(p).html());
               if (entry.length > longestEntry.length) {
                 longestEntry = entry;
               }
             });
             
-            track.description = EinInjected.TrackParser.trimString(longestEntry, 200);
+            track.description = TapedeckInjected.TrackParser.trimString(longestEntry, 200);
           }
-          if (EinInjected.TrackParser.debug) {
+          if (TapedeckInjected.TrackParser.debug) {
             console.log("new track object:", track);
           }
           
@@ -146,15 +146,15 @@ EinInjected.TrackParser = {
       }
       return mp3Links;
     },
-  }, // end EinInjected.TrackParser.links
+  }, // end TapedeckInjected.TrackParser.links
   
   tumblrDashboard : {
     /* jhawk Save for later
     loadMore : function(){
-        var mp3Links = EinInjected.TrackParser.tumblrDasboard.scrape();
+        var mp3Links = TapedeckInjected.TrackParser.tumblrDasboard.scrape();
         if (mp3Links.length > 0){
-            var o = {"msg" : "pageSongsMore", "sessionKey" : EinInjected.TrackParser.SessionKey, "data" : mp3Links};
-            EinInjected.TrackParser.Comm.send(o);
+            var o = {"msg" : "pageSongsMore", "sessionKey" : TapedeckInjected.TrackParser.SessionKey, "data" : mp3Links};
+            TapedeckInjected.TrackParser.Comm.send(o);
         }
     },
     */
@@ -175,7 +175,7 @@ EinInjected.TrackParser = {
           
           if ($.inArray(track.url, urls) != -1) {
             // already seen this track
-            if (EinInjected.TrackParser.debug) {
+            if (TapedeckInjected.TrackParser.debug) {
               console.log("already scraped " + track.url);
             }
             continue;
@@ -184,7 +184,7 @@ EinInjected.TrackParser = {
           urls.push(track.url);
 
           var postBody = $(li).find('.post_body').first();
-          var post = EinInjected.TrackParser.cleanHTML(postBody.html());
+          var post = TapedeckInjected.TrackParser.cleanHTML(postBody.html());
 
           var albumArts = jQuery(li).find('.album_art');
           if (albumArts.length > 0) {
@@ -194,9 +194,9 @@ EinInjected.TrackParser = {
             track.trackName = $.trim(titlePieces[1]);
           }
           else {
-            track.trackName = EinInjected.TrackParser.trimString(post, 200);
+            track.trackName = TapedeckInjected.TrackParser.trimString(post, 200);
           }
-          track.description = EinInjected.TrackParser.trimString(post, 200);
+          track.description = TapedeckInjected.TrackParser.trimString(post, 200);
 
           var perma = $(li).find('a.permalink').first();
           if (perma) {
@@ -210,19 +210,19 @@ EinInjected.TrackParser = {
           mp3Links[track.url] = track;
         }
         catch(e) {
-          if (EinInjected.TrackParser.debug) {
+          if (TapedeckInjected.TrackParser.debug) {
             console.log("Error in tumblrDashboard scraping");
           }
         }
       }
       return mp3Links;
     }
-  }, // End EinInjected.TrackParser.tumblrDashboard
+  }, // End TapedeckInjected.TrackParser.tumblrDashboard
   
   tumblr: {
       /* Save for loadMore
       response : function(json){
-          clearTimeout(EinInjected.TrackParser.tumblrAPI.timeout);
+          clearTimeout(TapedeckInjected.TrackParser.tumblrAPI.timeout);
           try {
               var str = json.substr(22);
               str = str.substr(0, str.length - 2);
@@ -254,11 +254,11 @@ EinInjected.TrackParser = {
                   mp3Links.push(trackVO);
               }
               if (mp3Links.length > 0){
-                  var o = {"msg" : "pageSongsMore", "sessionKey" : EinInjected.TrackParser.SessionKey, "data" : mp3Links};
-                  EinInjected.TrackParser.Comm.send(o);
+                  var o = {"msg" : "pageSongsMore", "sessionKey" : TapedeckInjected.TrackParser.SessionKey, "data" : mp3Links};
+                  TapedeckInjected.TrackParser.Comm.send(o);
               }
           } catch(e){}
-          EinInjected.TrackParser.tumblrAPI.scrape();
+          TapedeckInjected.TrackParser.tumblrAPI.scrape();
       },
       */
     scrape : function() {
@@ -284,20 +284,20 @@ EinInjected.TrackParser = {
           mp3Links[track.url] = track;
         }
         catch(e) {
-          if (EinInjected.TrackParser.debug) {
+          if (TapedeckInjected.TrackParser.debug) {
             console.log("Error in tumblr scraping");
           }
         }
       }
       /* jhawk save for loadmore
       if (mp3Links.length > 0){
-        var obj = {"msg" : "pageSongsMore", "sessionKey" : EinInjected.TrackParser.SessionKey, "data" : mp3Links};
-        EinInjected.TrackParser.Comm.send(obj);
+        var obj = {"msg" : "pageSongsMore", "sessionKey" : TapedeckInjected.TrackParser.SessionKey, "data" : mp3Links};
+        TapedeckInjected.TrackParser.Comm.send(obj);
       }
       */
       return mp3Links;
     }
-  }, // End EinInjected.TrackParser.tumblr
+  }, // End TapedeckInjected.TrackParser.tumblr
   
   audioElements : {
     scrape : function() {
@@ -333,7 +333,7 @@ EinInjected.TrackParser = {
           
           mp3Links[track.url] = track;
         } else {
-          if (EinInjected.TrackParser.debug) {
+          if (TapedeckInjected.TrackParser.debug) {
             console.log('<audio> must have src or <source>');
           }
         }
@@ -341,7 +341,7 @@ EinInjected.TrackParser = {
       }
       return mp3Links;
     }
-  }, // end EinInjected.TrackParser.audioElements
+  }, // end TapedeckInjected.TrackParser.audioElements
 
   trimString : function(str, length) {
     if (str.length > length) {
@@ -372,6 +372,6 @@ EinInjected.TrackParser = {
   },
 };
 
-if (!EinInjected.isTest()) {
-  EinInjected.TrackParser.start();
+if (!TapedeckInjected.isTest()) {
+  TapedeckInjected.TrackParser.start();
 }

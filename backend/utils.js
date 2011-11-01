@@ -1,8 +1,8 @@
-if (typeof Einplayer == "undefined") {
-  var Einplayer = { };
-  Einplayer.Backend = { };
+if (typeof Tapedeck == "undefined") {
+  var Tapedeck = { };
+  Tapedeck.Backend = { };
 }
-Einplayer.Backend.Utils = {
+Tapedeck.Backend.Utils = {
 
   CONTEXT_ATTRIBUTES: [
     "tab"
@@ -11,7 +11,7 @@ Einplayer.Backend.Utils = {
   getContext: function(tab) {
     var context = { tab: tab };
     var isContextComplete = function(contextCheck) {
-      var attrs =  Einplayer.Backend.Utils.CONTEXT_ATTRIBUTES;
+      var attrs =  Tapedeck.Backend.Utils.CONTEXT_ATTRIBUTES;
       for (var i = 0; i < attrs.length; i++) {
         if (!(attrs[i] in contextCheck)) {
           return false;
@@ -43,10 +43,10 @@ Einplayer.Backend.Utils = {
     var script = document.createElement('pre');
     $(script).css("display", "none");
     $(script).addClass("delegate-events");
-    scriptStr = "$('#einplayer-content').unbind('.delegateEvents" + viewName + "');\n";
+    scriptStr = "$('#tapedeck-content').unbind('.delegateEvents" + viewName + "');\n";
     
     for (var key in events) {
-      var methodStr = "Einplayer.Frontend.Frame";
+      var methodStr = "Tapedeck.Frontend.Frame";
       var methodPieces = events[key].split(".");
       for(var i = 0; i < methodPieces.length; i++) {
         methodStr += "['" + methodPieces[i] + "']";
@@ -62,14 +62,14 @@ Einplayer.Backend.Utils = {
         eventName += ".delegateEvents" + viewName;
   
         scriptStr += "if ('" + selector + "' === '') {\n";
-        scriptStr +=   "$('#einplayer-content').bind('" +
-                                                     eventName +
-                                                     "', method);\n"
+        scriptStr +=   "$('#tapedeck-content').bind('" +
+                                                    eventName +
+                                                    "', method);\n"
         scriptStr += "} else {\n"
-        scriptStr +=    "$('#einplayer-content').delegate('" +
-                                                          selector + "', '" +
-                                                          eventName + "', " +
-                                                          "method);\n";
+        scriptStr +=    "$('#tapedeck-content').delegate('" +
+                                                         selector + "', '" +
+                                                         eventName + "', " +
+                                                         "method);\n";
         scriptStr += "}\n ";
       }
       else {

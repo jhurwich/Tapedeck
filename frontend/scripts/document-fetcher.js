@@ -1,4 +1,4 @@
-EinInjected.DocumentFetcher = {
+TapedeckInjected.DocumentFetcher = {
 
   start: function() {
     var response = { };
@@ -8,6 +8,6 @@ EinInjected.DocumentFetcher = {
 
 };
 
-if (!EinInjected.isTest()) {
-  EinInjected.DocumentFetcher.start();
+if (!TapedeckInjected.isTest()) {
+  TapedeckInjected.DocumentFetcher.start();
 }

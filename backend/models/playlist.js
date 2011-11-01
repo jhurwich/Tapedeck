@@ -1,5 +1,5 @@
-Einplayer.Backend.Collections.Playlist =
-  Einplayer.Backend.Collections.TrackList.extend({
+Tapedeck.Backend.Collections.Playlist =
+  Tapedeck.Backend.Collections.TrackList.extend({
 
 
   initialize: function(options) {

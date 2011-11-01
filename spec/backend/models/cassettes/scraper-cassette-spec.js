@@ -1,7 +1,7 @@
 describe("The Scraper Cassette", function() {
 
   beforeEach(function() {
-    this.scraper = new this.Einplayer.Backend.Cassettes.ScraperCassette();
+    this.scraper = new this.Tapedeck.Backend.Cassettes.ScraperCassette();
 
     var testzone = $("<div id='testzone'></div>");
     $("body").append(testzone);
@@ -28,7 +28,7 @@ describe("The Scraper Cassette", function() {
       }
       
       var testTab = self.findTestTab();
-      var context = self.Einplayer.Backend.Utils.getContext(testTab);
+      var context = self.Tapedeck.Backend.Utils.getContext(testTab);
 
       self.scraper.getBrowseList(context, function(tracks) {
         expect(tracks.length).toEqual(expectedTrackJSONs.length);
@@ -91,7 +91,7 @@ describe("The Scraper Cassette", function() {
       this.loadTracksIntoDOM(this.testTracks, asTumblr, "tumblr");
 
       // Override checking the page's url to know if on dashboard
-      EinInjected.TrackParser.forceTumblr = true;
+      TapedeckInjected.TrackParser.forceTumblr = true;
 
       //  tumblr is pretty freeform
       //    trackName and artistName are pretty unreliable, and
@@ -173,7 +173,7 @@ describe("The Scraper Cassette", function() {
       this.loadTracksIntoDOM(this.testTracks, asTumblrDashboard, "tumblrDash");
 
       // Override checking the page's url to know if on dashboard
-      EinInjected.TrackParser.forceTumblrDashboard = true;
+      TapedeckInjected.TrackParser.forceTumblrDashboard = true;
   
       var tumblrDashboardExpectedAttrs = ["url",
                                           "trackName",

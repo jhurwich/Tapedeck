@@ -1,4 +1,4 @@
-Einplayer.Backend.Collections.CassetteList = Backbone.Collection.extend({
-  model: Einplayer.Backend.Models.Cassette,
+Tapedeck.Backend.Collections.CassetteList = Backbone.Collection.extend({
+  model: Tapedeck.Backend.Models.Cassette,
   
 });

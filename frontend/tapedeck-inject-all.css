@@ -2,7 +2,7 @@
   display: none;
 } 
 
-#einplayer-frame {
+#tapedeck-frame {
   position: fixed;
   top: 0;
   right: 0;
@@ -12,11 +12,11 @@
   z-index: 9999;
 }
 
-body[einplayer-opened] {
+body[tapedeck-opened] {
   margin-right: 300px;
 }
 
-div#ein-injected-buttons {
+div#tapedeck-injected-buttons {
   z-index: 9999;
   position: fixed;
   top: 35px;
@@ -25,7 +25,7 @@ div#ein-injected-buttons {
   height: 120px;
 }
 
-.ein-injected-button {
+.tapedeck-injected-button {
   position: static;
   margin-bottom: 10px;
   width: 20px;
@@ -33,6 +33,6 @@ div#ein-injected-buttons {
   clear: both;
 }
 
-.ein-injected-button:hover {
+.tapedeck-injected-button:hover {
   cursor: pointer;
 }

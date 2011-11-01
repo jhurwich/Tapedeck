@@ -1,19 +1,19 @@
 describe("CassetteList View", function() {
 
   beforeEach(function() {
-    this.cassetteMgr = this.Einplayer
+    this.cassetteMgr = this.Tapedeck
                            .Backend
                            .CassetteManager;
     this.cassettes = this.cassetteMgr.cassettes;
   });
 
   it ("should have rows for each cassette when rendered", function() {
-    var cassetteList = new this.Einplayer
+    var cassetteList = new this.Tapedeck
                                .Backend
                                .Collections
                                .CassetteList(this.cassettes);
                                
-    var viewScript = this.Einplayer
+    var viewScript = this.Tapedeck
                          .Backend
                          .TemplateManager
                          .getViewScript("CassetteList");
@@ -27,12 +27,12 @@ describe("CassetteList View", function() {
   });
   
   it ("should render properly through the TemplateManager", function() {
-    var cassetteList = new this.Einplayer
+    var cassetteList = new this.Tapedeck
                                .Backend
                                .Collections
                                .CassetteList(this.cassettes);
     
-    var listDOM = this.Einplayer.Backend.TemplateManager.renderView
+    var listDOM = this.Tapedeck.Backend.TemplateManager.renderView
                       ("CassetteList", { cassetteList: cassetteList }, null);
     
     var rows  = $(listDOM).find(".row");

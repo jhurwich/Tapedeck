@@ -1,12 +1,12 @@
-Einplayer.Backend.CassetteManager = {
+Tapedeck.Backend.CassetteManager = {
 
   cassettes: [],
   currentCassette: null,
   
   init: function() {
     this.cassettes = [];
-    for (var CassetteModel in Einplayer.Backend.Cassettes) {
-      var cassette = new Einplayer.Backend.Cassettes[CassetteModel]();
+    for (var CassetteModel in Tapedeck.Backend.Cassettes) {
+      var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
       this.cassettes.push(cassette);
       this.setCassette(cassette.cid);
     }

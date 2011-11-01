@@ -55,29 +55,29 @@ beforeEach(function() {
     },
   });
 
-  this.Einplayer = {};
-  this.Einplayer.Backend = chrome.extension
+  this.Tapedeck = {};
+  this.Tapedeck.Backend = chrome.extension
                                  .getBackgroundPage()
-                                 .Einplayer
+                                 .Tapedeck
                                  .Backend;
   var frameLoaded = false;
-  var einplayerFrame = $("#einplayer-frame");
+  var tapedeckFrame = $("#tapedeck-frame");
 
-  einplayerFrame.load(function() {
+  tapedeckFrame.load(function() {
     frameLoaded = true;
   });
-  einplayerFrame[0].contentWindow.location.reload(true);
+  tapedeckFrame[0].contentWindow.location.reload(true);
   
   waitsFor(function() {
     return frameLoaded;
   }, "Timedout attaching to frame", 1000);
 
   runs(function() {
-    this.Einplayer.Frontend = einplayerFrame[0].contentWindow.Einplayer.Frontend;
+    this.Tapedeck.Frontend = tapedeckFrame[0].contentWindow.Tapedeck.Frontend;
   });
 
   this.findTestTab = function() {
-    var ports = this.Einplayer.Backend.MessageHandler.ports;
+    var ports = this.Tapedeck.Backend.MessageHandler.ports;
     for (var id in ports) {
       var tab = ports[id].tab;
       if (tab.url.match(/chrome-extension.*SpecRunner.html$/)) {
@@ -88,14 +88,14 @@ beforeEach(function() {
 }); // end beforeEach
 
 afterEach(function() {
-  this.Einplayer.Backend.Sequencer.clear();
+  this.Tapedeck.Backend.Sequencer.clear();
 }); // end afterEach
 
 
 waitsForFrontendInit = function() {
   // Convenience method to wait for the frontend's initialization
   waitsFor(function() {
-    return ($("#einplayer-frame").contents().find("#player").length > 0);
+    return ($("#tapedeck-frame").contents().find("#player").length > 0);
   }, "Timedout waiting for #app to be swapped out", 1000);
 }
 

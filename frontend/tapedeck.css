@@ -7,7 +7,7 @@ body {
   height: 100%;
 }
 
-#einplayer-content {
+#tapedeck-content {
   position: relative;
   padding: 4px;
 }
@@ -189,8 +189,14 @@ body {
   right: 2px;
   margin: 1px;
 }
+.tracklist .row-indicators {
+  display: inline-block;
+  position: absolute;
+  right: 2px;
+  margin: 1px;
+}
 .tracklist .row-buttons > .button,
-.tracklist .row-buttons > #download-spinner {
+.tracklist .row-indicators > #download-spinner {
   height: 12px;
   width: 12px;
   float: left;
@@ -208,12 +214,12 @@ body {
   display: none;
 }
 .tracklist .row[download="downloading"] .row-buttons > .button.download {
+  visibility: hidden;
+}
+.tracklist .row .row-indicators > #download-spinner {
   display: none;
 }
-.tracklist .row .row-buttons > #download-spinner {
-  display: none;
-}
-.tracklist .row[download="downloading"] .row-buttons > #download-spinner {
+.tracklist .row[download="downloading"] .row-indicators > #download-spinner {
   display: inline-block;
   border: 1px solid transparent;
 }

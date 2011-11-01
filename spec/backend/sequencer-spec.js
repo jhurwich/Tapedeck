@@ -1,7 +1,7 @@
 describe("Sequencer", function() {
 
   beforeEach(function() {
-    this.sqcr = this.Einplayer.Backend.Sequencer;
+    this.sqcr = this.Tapedeck.Backend.Sequencer;
     
     waitsFor(function() {
       return this.sqcr.getCurrentState() != null;
@@ -23,7 +23,7 @@ describe("Sequencer", function() {
   });
 
   it("should call pushView when a track is added", function() {
-    var spy = spyOn(this.Einplayer.Backend.MessageHandler, "pushView")
+    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "pushView")
                    .andCallThrough();
 
     this.sqcr.push(this.testTracks[0]);
@@ -88,7 +88,7 @@ describe("Sequencer", function() {
   });
   
   it("should call pushView when a track is removed", function() {
-    var spy = spyOn(this.Einplayer.Backend.MessageHandler, "pushView")
+    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "pushView")
                    .andCallThrough();
 
     this.sqcr.push(this.testTracks[0]);
@@ -111,7 +111,7 @@ describe("Sequencer", function() {
   
   it("should call pushView when tracks are cleared", function() {
     var origLen = this.sqcr.queue.length;
-    var spy = spyOn(this.Einplayer.Backend.MessageHandler, "pushView")
+    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "pushView")
                    .andCallThrough();
 
     this.sqcr.insertSomeAt(this.testTracks, origLen);

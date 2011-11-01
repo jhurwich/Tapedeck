@@ -1,7 +1,7 @@
 describe("Template Manager", function() {
 
   beforeEach(function() {
-    this.templateMgr = this.Einplayer
+    this.templateMgr = this.Tapedeck
                            .Backend
                            .TemplateManager;
 

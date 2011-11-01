@@ -1,4 +1,4 @@
-Einplayer.Backend.Views.Queue = Einplayer.Backend.Views.TrackList.extend({
+Tapedeck.Backend.Views.Queue = Tapedeck.Backend.Views.TrackList.extend({
 
   viewName: "Queue",
   id: "queue-list",

@@ -1,10 +1,10 @@
-Einplayer.Backend.Bank = {
+Tapedeck.Backend.Bank = {
 
   tracks: { },
   drawerOpen: false,
   localStorage: null,
 
-  bankPrefix: "_einplayerbank_",
+  bankPrefix: "_tapedeckbank_",
   trackListPrefix: /* bankPrefix + */ "trackList-",
   playlistPrefix: /* trackListPrefix + */ "playlist-",
   repeatKey: /* bankPrefix + */ + "repeat",
@@ -28,7 +28,7 @@ Einplayer.Backend.Bank = {
                                   window.webkitRequestFileSystem;
 
       var successCallback = function(e) {
-        Einplayer.Backend.Bank.FileSystem.root = e.root;
+        Tapedeck.Backend.Bank.FileSystem.root = e.root;
       };
         
       window.requestFileSystem(window.TEMPORARY,
@@ -38,8 +38,8 @@ Einplayer.Backend.Bank = {
     },
 
     download: function(trackID, callback) {
-      var fs = Einplayer.Backend.Bank.FileSystem;
-      var track = Einplayer.Backend.Bank.getTrack(trackID);
+      var fs = Tapedeck.Backend.Bank.FileSystem;
+      var track = Tapedeck.Backend.Bank.getTrack(trackID);
       var url = track.get("url");
 
       // Mark the track as downloading to get the proper indicators.
@@ -47,7 +47,7 @@ Einplayer.Backend.Bank = {
       // list, but we need to see if there's one in the queue that needs
       // to be indicated as well.
       track.set({ download: "downloading" });
-      var queued = Einplayer.Backend.Sequencer.getQueuedTrack(trackID);
+      var queued = Tapedeck.Backend.Sequencer.getQueuedTrack(trackID);
       if (queued != null) {
         queued.set({ download: "downloading" });
       }
@@ -69,7 +69,7 @@ Einplayer.Backend.Bank = {
     }, // end fs.download()
 
     saveResponse: function(track, res, callback) {
-      var fs = Einplayer.Backend.Bank.FileSystem;
+      var fs = Tapedeck.Backend.Bank.FileSystem;
       // Fill a Blob with the response
       var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
       if (!res) {
@@ -89,10 +89,10 @@ Einplayer.Backend.Bank = {
           fileWriter.onwriteend = function(e) {
             callback(fileEntry.toURL());
             track.unset("download");
-            var queued = Einplayer.Backend.Sequencer.getQueuedTrack
-                                                    (track.get("einID"));
+            var queued = Tapedeck.Backend.Sequencer.getQueuedTrack
+                                                   (track.get("tdID"));
             if (queued != null) {
-              queued.unset("downloading");
+              queued.unset("download");
             }
           };
           fileWriter.onerror = function(e) {
@@ -107,8 +107,8 @@ Einplayer.Backend.Bank = {
     },
 
     removeTrack: function(trackID) {
-      var fs = Einplayer.Backend.Bank.FileSystem;
-      var track = Einplayer.Backend.Bank.getTrack(trackID);
+      var fs = Tapedeck.Backend.Bank.FileSystem;
+      var track = Tapedeck.Backend.Bank.getTrack(trackID);
 
       var fileName = fs.nameFile(track);
       fs.root.getFile(fileName, {create: false}, function(fileEntry) {
@@ -121,7 +121,7 @@ Einplayer.Backend.Bank = {
     },
 
     clear: function() {
-      var fs = Einplayer.Backend.Bank.FileSystem;
+      var fs = Tapedeck.Backend.Bank.FileSystem;
       var dirReader = fs.root.createReader();
       dirReader.readEntries(function(entries) {
         for (var i = 0, entry; entry = entries[i]; ++i) {
@@ -256,12 +256,12 @@ Einplayer.Backend.Bank = {
 
   getPlaylists: function() {
     if (this.playlistList == null) {
-      this.playlistList = new Einplayer.Backend.Collections.PlaylistList();
+      this.playlistList = new Tapedeck.Backend.Collections.PlaylistList();
 
       var playlistKeys = this.findKeys("^" + this.playlistPrefix + ".*");
       for (var i = 0; i < playlistKeys.length; i++) {
         var key = playlistKeys[i];
-        var playlist = Einplayer.Backend.Bank.recoverList(key);
+        var playlist = Tapedeck.Backend.Bank.recoverList(key);
         this.playlistList.add(playlist);
       }
       
@@ -272,40 +272,40 @@ Einplayer.Backend.Bank = {
   },
 
   addToPlaylistList: function(playlist) {
-    var key = Einplayer.Backend.Bank.playlistPrefix + playlist.id;
+    var key = Tapedeck.Backend.Bank.playlistPrefix + playlist.id;
     var listStr = playlist.serialize();
 
     try {
-      Einplayer.Backend.Bank.localStorage.setItem(key, listStr);
+      Tapedeck.Backend.Bank.localStorage.setItem(key, listStr);
     }
     catch (error) {
       console.error("Could not save playlist '" + playlist.id + "'");
     }
-    Einplayer.Backend.Bank.updatePlaylistListView();
+    Tapedeck.Backend.Bank.updatePlaylistListView();
   },
 
   removeFromPlaylistList: function(playlist) {
-    var key = Einplayer.Backend.Bank.playlistPrefix + playlist.id;
+    var key = Tapedeck.Backend.Bank.playlistPrefix + playlist.id;
 
     try { 
-      Einplayer.Backend.Bank.localStorage.removeItem(key);
+      Tapedeck.Backend.Bank.localStorage.removeItem(key);
     }
     catch (error) {
       console.error("Could not remove playlist '" + playlist.id + "'");
     }
-    Einplayer.Backend.Bank.updatePlaylistListView();
+    Tapedeck.Backend.Bank.updatePlaylistListView();
   },
 
   updatePlaylistListView: function() {
-    var playlistList = Einplayer.Backend.Bank.getPlaylists();
-    var listView = Einplayer.Backend
-                            .TemplateManager
-                            .renderView
-                            ("PlaylistList",
-                             { playlistList : playlistList });
+    var playlistList = Tapedeck.Backend.Bank.getPlaylists();
+    var listView = Tapedeck.Backend
+                           .TemplateManager
+                           .renderView
+                           ("PlaylistList",
+                            { playlistList : playlistList });
 
-    Einplayer.Backend.MessageHandler.pushView("playlist-list",
-                                              listView);
+    Tapedeck.Backend.MessageHandler.pushView("playlist-list",
+                                             listView);
   },
   
   saveTrackList: function(name, trackList) {
@@ -337,11 +337,11 @@ Einplayer.Backend.Bank = {
     
     var list;
     if (key.match(new RegExp("^" + this.playlistPrefix))) {
-      list = new Einplayer.Backend.Collections.Playlist(tracksJSON);
+      list = new Tapedeck.Backend.Collections.Playlist(tracksJSON);
       list.id = key.replace(this.playlistPrefix, "");
     }
     else {
-      list = new Einplayer.Backend.Collections.TrackList(tracksJSON);
+      list = new Tapedeck.Backend.Collections.TrackList(tracksJSON);
     }
     
     list.removeTempProperties();
@@ -349,7 +349,7 @@ Einplayer.Backend.Bank = {
   },
   
   saveTrack: function(trackModel) {
-    Einplayer.Backend.Bank.tracks[trackModel.get("einID")] = trackModel;
+    Tapedeck.Backend.Bank.tracks[trackModel.get("tdID")] = trackModel;
   },
 
   saveTracks: function(trackCollection) {
@@ -360,15 +360,15 @@ Einplayer.Backend.Bank = {
   },
 
   getTrack: function(trackID) {
-    return Einplayer.Backend.Bank.tracks[trackID];
+    return Tapedeck.Backend.Bank.tracks[trackID];
   },
 
   setDrawerOpened: function(open) {
-    Einplayer.Backend.Bank.drawerOpen = open;
+    Tapedeck.Backend.Bank.drawerOpen = open;
   },
   
   getDrawerOpened: function() {
-    return Einplayer.Backend.Bank.drawerOpen;
+    return Tapedeck.Backend.Bank.drawerOpen;
   },
 
   toggleRepeat: function() {

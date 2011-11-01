@@ -1,4 +1,4 @@
-Einplayer.Backend.Views.TrackList = Backbone.View.extend({
+Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
 
   tagName: "div",
   className: "tracklist-container",
@@ -17,9 +17,9 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
 
     this.bindEvents(this.trackList);
                        
-    this.template = _.template(Einplayer.Backend
-                                        .TemplateManager
-                                        .getTemplate("TrackList"));
+    this.template = _.template(Tapedeck.Backend
+                                       .TemplateManager
+                                       .getTemplate("TrackList"));
   },
 
   bindEvents: function(trackList) {
@@ -42,7 +42,7 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
 
     this.assignRowButtonImgs();
     
-    Einplayer.Backend.Utils.proxyEvents(this, this.eventsName);
+    Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
     
     return this.el;
   },
@@ -70,8 +70,8 @@ Einplayer.Backend.Views.TrackList = Backbone.View.extend({
   
   updateView: function(self) {
     var viewID = self.id;
-    Einplayer.Backend.MessageHandler.pushView(viewID,
-                                              self.render());
+    Tapedeck.Backend.MessageHandler.pushView(viewID,
+                                             self.render());
   },
 });
 

@@ -6,13 +6,13 @@
     <script type="text/javascript" src="/vendor/backbone.js"></script>
   
     <!-- Initialize -->
-    <script type="text/javascript" src="einplayer-utils.js"></script>
-    <script type="text/javascript" src="einplayer-backend-init.js"></script>
-    <script type="text/javascript" src="einplayer-bank.js"></script>
-    <script type="text/javascript" src="einplayer-cassettemanager.js"></script>
-    <script type="text/javascript" src="einplayer-templatemanager.js"></script>
-    <script type="text/javascript" src="einplayer-messagehandler.js"></script>
-    <script type="text/javascript" src="einplayer-sequencer.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="backend-init.js"></script>
+    <script type="text/javascript" src="bank.js"></script>
+    <script type="text/javascript" src="cassettemanager.js"></script>
+    <script type="text/javascript" src="templatemanager.js"></script>
+    <script type="text/javascript" src="messagehandler.js"></script>
+    <script type="text/javascript" src="sequencer.js"></script>
   
     <!-- Models -->
     <script type="text/javascript" src="models/cassette.js"></script>
@@ -45,19 +45,19 @@
           
           <button id="queue-save"
                   type="button"
-                  onclick="Einplayer.Frontend.Frame.saveQueue()">
+                  onclick="Tapedeck.Frontend.Frame.saveQueue()">
             Save
           </button>
           <div id="playback-button-box">
             <img id="repeat"
                  class="playback-button"
-                 onclick="Einplayer.Frontend.Frame.toggleRepeat()"></img>
+                 onclick="Tapedeck.Frontend.Frame.toggleRepeat()"></img>
             <img id="queue-shuffle"
                  class="playback-button"
-                 onclick="Einplayer.Frontend.Frame.shuffleQueue()"></img>
+                 onclick="Tapedeck.Frontend.Frame.shuffleQueue()"></img>
             <img id="queue-clear"
                  class="playback-button"
-                 onclick="Einplayer.Frontend.Frame.clearQueue()"></img>
+                 onclick="Tapedeck.Frontend.Frame.clearQueue()"></img>
           </div>
         </div>
       </div>
@@ -139,7 +139,7 @@
                       <% if (track.listened) { print(" listened ") } %>
                       <% if (track.playing) { print(" playing ") } %>"
                index='<%= i %>'
-               track-id='<%= track.einID %>'
+               track-id='<%= track.tdID %>'
                track-type='<% if(typeof(track.type) == "undefined") {
                                 print("unknown")
                               } else {
@@ -149,19 +149,21 @@
                   print("download='" + track.download + "'");
                } %> 
                draggable="true"
-               onclick="Einplayer.Frontend.Frame.rowClick(event)" >
+               onclick="Tapedeck.Frontend.Frame.rowClick(event)" >
             <div class="cell trackName-col"> <%= track.trackName %> </div>
             <div class="cell artistName-col"> <%= track.artistName %> </div>
             <div class="cell cassette-col"> <%= track.cassette %>
               <div class="row-buttons">
                 <div class="button playnow"
-                     onclick="Einplayer.Frontend.Frame.rowButtonPlaynow(event)"></div>
+                     onclick="Tapedeck.Frontend.Frame.rowButtonPlaynow(event)"></div>
                 <div class="button remove"
-                     onclick="Einplayer.Frontend.Frame.rowButtonRemove(event)"></div>
+                     onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
                 <div class="button queue"
-                     onclick="Einplayer.Frontend.Frame.rowButtonQueue(event)"></div>
+                     onclick="Tapedeck.Frontend.Frame.rowButtonQueue(event)"></div>
                 <div class="button download"
-                     onclick="Einplayer.Frontend.Frame.rowButtonDownload(event)"></div>
+                     onclick="Tapedeck.Frontend.Frame.rowButtonDownload(event)"></div>
+              </div>
+              <div class="row-indicators">
                 <div class="spinner download"
                      id="download-spinner"></div>
               </div>
@@ -179,11 +181,11 @@
         %>
           <div class="row"
              index='<%= i %>'
-             onclick="Einplayer.Frontend.Frame.playPlaylist(event)" >
+             onclick="Tapedeck.Frontend.Frame.playPlaylist(event)" >
             <div class="cell playlistName-col"> <%= playlist.id %> </div>
             <div class="cell row-buttons">
               <div class="button removePlaylist"
-                   onclick="Einplayer.Frontend.Frame.rowButtonRemovePlaylist(event)"></div>
+                   onclick="Tapedeck.Frontend.Frame.rowButtonRemovePlaylist(event)"></div>
             </div>
           </div>
         <% } %>
@@ -196,12 +198,12 @@
       %>
         <div class="row"
              index='<%= i %>'
-             cassette-id='<%= cassette.einID %>'
+             cassette-id='<%= cassette.tdID %>'
              onclick="alert('cassetteClick')" >
           <div class="cell cassetteName-col"> <%= cassette.name %> </div>
           <div class="row-buttons">
               <div class="button remove"
-                   onclick="Einplayer.Frontend.Frame.rowButtonRemove(event)"></div>
+                   onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
           </div>
         </div>
       <% } %>
@@ -209,10 +211,10 @@
   
     <script type="text/javascript">
       $(function() {
-          Einplayer.Backend.init();
+          Tapedeck.Backend.init();
       });
       chrome.extension.onRequest.addListener
-        (Einplayer.Backend.MessageHandler.handleRequest);
+        (Tapedeck.Backend.MessageHandler.handleRequest);
     </script>
     
   </head>

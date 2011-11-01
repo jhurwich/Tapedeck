@@ -1,4 +1,4 @@
-Einplayer.Backend.TemplateManager = {
+Tapedeck.Backend.TemplateManager = {
 
   packages: {},
   currentPackage: "default",
@@ -12,7 +12,7 @@ Einplayer.Backend.TemplateManager = {
   ],
 
   init: function() {
-    this.packages["default"] = Einplayer.Backend.Views;
+    this.packages["default"] = Tapedeck.Backend.Views;
   },
 
   setPackage: function(packageName) {

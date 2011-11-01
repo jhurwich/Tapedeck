@@ -1,4 +1,4 @@
-Einplayer.Backend.Collections.PlaylistList = Backbone.Collection.extend({
-  model: Einplayer.Backend.Collections.Playlist,
+Tapedeck.Backend.Collections.PlaylistList = Backbone.Collection.extend({
+  model: Tapedeck.Backend.Collections.Playlist,
 
 });

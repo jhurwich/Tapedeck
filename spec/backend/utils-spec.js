@@ -9,7 +9,7 @@ describe("Utils", function() {
     var currentURL = window.location.href;
     
     var testTab = this.findTestTab();
-    var context = this.Einplayer.Backend.Utils.getContext(testTab);
+    var context = this.Tapedeck.Backend.Utils.getContext(testTab);
 
     expect(context.tab.id).toEqual(testTab.id);
   });

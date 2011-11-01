@@ -1,14 +1,14 @@
 {
-  "name": "Einplayer",
+  "name": "Tapedeck",
   "version": "0.1.2",
   "description": "The one player for the web.",
-  "background_page" :"backend/einplayer-background.html",
+  "background_page" :"backend/background.html",
   "content_scripts" : [
     {
       "matches" : ["<all_urls>"],
-      "js"      : ["frontend/einplayer-inject-all.js",
+      "js"      : ["frontend/tapedeck-inject-all.js",
                    "vendor/jquery-1.6.2.js"],
-      "css"     : ["frontend/einplayer-inject-all.css"],
+      "css"     : ["frontend/tapedeck-inject-all.css"],
       "run_at"  : "document_end"
     }
   ],
@@ -18,5 +18,5 @@
       "128": "images/cassette-pink-128.png"
     },
   "permissions": ["tabs", "http://*/*", "unlimitedStorage"],
-  "update_url": "http://einplayer.jordanhurwich.com/update"
+  "update_url": "http://tape-deck.com/update"
 }

@@ -1,7 +1,7 @@
 describe("TrackList Model", function() {
   
   it('should create a valid TrackList from valid Track JSONs', function() {
-    var trackList = new this.Einplayer
+    var trackList = new this.Tapedeck
                             .Backend
                             .Collections
                             .TrackList(this.testTracks);

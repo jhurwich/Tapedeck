@@ -1,4 +1,4 @@
-Einplayer.Backend.Views.PlaylistList = Backbone.View.extend({
+Tapedeck.Backend.Views.PlaylistList = Backbone.View.extend({
 
   tagName: "div",
   id: "playlist-list",
@@ -15,9 +15,9 @@ Einplayer.Backend.Views.PlaylistList = Backbone.View.extend({
   
   initialize: function() {
     this.playlistList = this.options.playlistList;
-    this.template = _.template(Einplayer.Backend
-                                        .TemplateManager
-                                        .getTemplate("PlaylistList"));
+    this.template = _.template(Tapedeck.Backend
+                                       .TemplateManager
+                                       .getTemplate("PlaylistList"));
   },
 
   render: function() {
@@ -26,7 +26,7 @@ Einplayer.Backend.Views.PlaylistList = Backbone.View.extend({
 
     this.assignRowButtonImgs();
     
-    Einplayer.Backend.Utils.proxyEvents(this, this.eventsName);
+    Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
     return this.el;
   },
    

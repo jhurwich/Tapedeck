@@ -1,7 +1,7 @@
 describe("Bank", function() {
   
   beforeEach(function() {
-    this.bank = this.Einplayer
+    this.bank = this.Tapedeck
                     .Backend
                     .Bank;
   });
@@ -11,18 +11,18 @@ describe("Bank", function() {
   });
 
   it("should save and retrieve tracks", function() {
-    var track = new this.Einplayer.Backend.Models.Track(this.testTracks[0]);
+    var track = new this.Tapedeck.Backend.Models.Track(this.testTracks[0]);
     this.bank.saveTrack(track);
 
-    var bankedTrack = this.bank.getTrack(track.get("einID"));
+    var bankedTrack = this.bank.getTrack(track.get("tdID"));
     expect(bankedTrack).toReflectJSON(track.toJSON());
   });
 
   it("should save and retrieve tracklists", function() {
-    var trackList = new this.Einplayer
-                        .Backend
-                        .Collections
-                        .TrackList(this.testTracks);
+    var trackList = new this.Tapedeck
+                            .Backend
+                            .Collections
+                            .TrackList(this.testTracks);
 
     var listName = "testtracks123";
     this.bank.saveTrackList(listName, trackList);
@@ -38,7 +38,7 @@ describe("Bank", function() {
   
   it("should save and retrieve playlists", function() {
     var origPlaylistNum = this.bank.getPlaylists().length;
-    var playlist = new this.Einplayer
+    var playlist = new this.Tapedeck
                            .Backend
                            .Collections
                            .Playlist(this.testTracks);
@@ -65,10 +65,10 @@ describe("Bank", function() {
   it("should save and retrieve downloaded tracks", function() {
     
     // Save the tracks so the bank can find them
-    var trackList = new this.Einplayer
-                    .Backend
-                    .Collections
-                    .TrackList(this.testTracks);
+    var trackList = new this.Tapedeck
+                            .Backend
+                            .Collections
+                            .TrackList(this.testTracks);
 
     this.bank.saveTracks(trackList);
 
@@ -87,7 +87,7 @@ describe("Bank", function() {
       expect(url).toMatch(fileURI);
     };
     
-    this.bank.FileSystem.download(testTrack.get("einID"),
+    this.bank.FileSystem.download(testTrack.get("tdID"),
                                   callback);
     waitsFor(function() {
       return testComplete;

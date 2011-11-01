@@ -1,4 +1,4 @@
-Einplayer.Backend.MessageHandler = {
+Tapedeck.Backend.MessageHandler = {
 
   ports: {},
   init: function() {
@@ -15,7 +15,7 @@ Einplayer.Backend.MessageHandler = {
   },
 
   portListener: function(port) {
-    var self = Einplayer.Backend.MessageHandler;
+    var self = Tapedeck.Backend.MessageHandler;
     self.ports[port.tab.id] = port;
 
     port.onMessage.addListener(self.handleRequest.curry(port));
@@ -35,29 +35,29 @@ Einplayer.Backend.MessageHandler = {
       return;
     }
     
-    var self = Einplayer.Backend.MessageHandler;
+    var self = Tapedeck.Backend.MessageHandler;
     switch (request.action) {
       case "play_pause":
-        var state = Einplayer.Backend.Sequencer.getCurrentState();
+        var state = Tapedeck.Backend.Sequencer.getCurrentState();
         if (state == "play") {
-          Einplayer.Backend.Sequencer.pause();
+          Tapedeck.Backend.Sequencer.pause();
         } else {
-          Einplayer.Backend.Sequencer.playNow();
+          Tapedeck.Backend.Sequencer.playNow();
         }
         break;
       case "next":
-        Einplayer.Backend.Sequencer.next();
+        Tapedeck.Backend.Sequencer.next();
         break;
       case "prev":
-        Einplayer.Backend.Sequencer.prev();
+        Tapedeck.Backend.Sequencer.prev();
         break;
 
       case "checkDrawer":
-        var open = Einplayer.Backend.Bank.getDrawerOpened();
+        var open = Tapedeck.Backend.Bank.getDrawerOpened();
         sendResponse({ opened: open });
         break;
       case "setDrawer":
-        Einplayer.Backend.Bank.setDrawerOpened(request.opened);
+        Tapedeck.Backend.Bank.setDrawerOpened(request.opened);
 
         // echo to all tabs
         for (var tabID in self.ports) {
@@ -74,22 +74,22 @@ Einplayer.Backend.MessageHandler = {
   },
 
   selectionListener: function(tabID, selectInfo) {
-    var self = Einplayer.Backend.MessageHandler;
+    var self = Tapedeck.Backend.MessageHandler;
     chrome.tabs.get(tabID, function(tab) {
-      var rendered = Einplayer.Backend.TemplateManager
-                                      .renderView("Frame",
-                                                  { tabID: tabID });
+      var rendered = Tapedeck.Backend.TemplateManager
+                                     .renderView("Frame",
+                                                 { tabID: tabID });
 
       var viewString = $('<div>').append($(rendered))
                                  .remove()
                                  .html();
 
-      self.pushView("einplayer-content", viewString, tab);
+      self.pushView("tapedeck-content", viewString, tab);
     });
   },
 
   postMessage: function(tabID, message) {
-    var ports = Einplayer.Backend.MessageHandler.ports;
+    var ports = Tapedeck.Backend.MessageHandler.ports;
     if (typeof(ports[tabID]) != "undefined") {
       ports[tabID].postMessage(message);
     }
@@ -101,7 +101,7 @@ Einplayer.Backend.MessageHandler = {
       return;
     }
     
-    var callbacks = Einplayer.Backend.MessageHandler.pendingCallbacks;
+    var callbacks = Tapedeck.Backend.MessageHandler.pendingCallbacks;
     if (response.callbackID in callbacks) {
       callbacks[response.callbackID](response);
     }
@@ -112,9 +112,9 @@ Einplayer.Backend.MessageHandler = {
       return;
     }
 
-    var sqcr = Einplayer.Backend.Sequencer;
-    var bank = Einplayer.Backend.Bank;
-    var response = Einplayer.Backend.MessageHandler.newResponse(request);
+    var sqcr = Tapedeck.Backend.Sequencer;
+    var bank = Tapedeck.Backend.Bank;
+    var response = Tapedeck.Backend.MessageHandler.newResponse(request);
     
     switch(request.action)
     {
@@ -123,7 +123,7 @@ Einplayer.Backend.MessageHandler = {
         var packageName = (request.packageName ? request.packageName : null);
         
         request.options["tabID"] = port.tab.id;
-        var rendered = Einplayer.Backend.TemplateManager.renderView
+        var rendered = Tapedeck.Backend.TemplateManager.renderView
                                 (scriptName, request.options, packageName);
 
         var viewString = $('<div>').append($(rendered))
@@ -131,21 +131,21 @@ Einplayer.Backend.MessageHandler = {
                                    .html();
                                    
         response.view = viewString;
-        Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
-                                                     response);
+        Tapedeck.Backend.MessageHandler.postMessage(port.tab.id,
+                                                    response);
         break;
 
       case "requestUpdate":
         var updateType = request.updateType.charAt(0).toUpperCase() +
                          request.updateType.slice(1);
         var updateFnName = "update" + updateType;
-        Einplayer.Backend.MessageHandler[updateFnName](port.tab);
+        Tapedeck.Backend.MessageHandler[updateFnName](port.tab);
         break;
 
       case "download":
         var callback = function(url) {
           response.url = url;
-          Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
+          Tapedeck.Backend.MessageHandler.postMessage(port.tab.id,
                                                        response);
         }
         bank.FileSystem.download(request.trackID, callback);
@@ -224,8 +224,8 @@ Einplayer.Backend.MessageHandler = {
 
       case "getRepeat":
         response.repeat = bank.getRepeat();
-        Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
-                                                     response);
+        Tapedeck.Backend.MessageHandler.postMessage(port.tab.id,
+                                                    response);
         break;
         
       case "saveQueue":
@@ -270,8 +270,8 @@ Einplayer.Backend.MessageHandler = {
         
       case "getVolume":
         response.volume = bank.getVolume();
-        Einplayer.Backend.MessageHandler.postMessage(port.tab.id,
-                                                     response);
+        Tapedeck.Backend.MessageHandler.postMessage(port.tab.id,
+                                                    response);
         break;
         
       default:
@@ -289,57 +289,57 @@ Einplayer.Backend.MessageHandler = {
 
   updatePlayer: function(tab) {
     if (typeof(tab) == "undefined") {
-      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Einplayer.Backend.MessageHandler.updatePlayer(selectedTab);
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.updatePlayer(selectedTab);
       });
       return;
     }
 
-    var playerView = Einplayer.Backend.TemplateManager
-                                      .renderView("Player", { })
+    var playerView = Tapedeck.Backend.TemplateManager
+                                     .renderView("Player", { });
     this.pushView("player", playerView, tab);
   },
 
   updateSeekSlider: function(tab) {
     if (typeof(tab) == "undefined") {
-      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Einplayer.Backend.MessageHandler.updateSeekSlider(selectedTab);
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.updateSeekSlider(selectedTab);
       });
       return;
     }
-    var track = Einplayer.Backend.Sequencer.getCurrentTrack();
+    var track = Tapedeck.Backend.Sequencer.getCurrentTrack();
     
-    var request = Einplayer.Backend.MessageHandler.newRequest({
+    var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "updateSeekSlider",
       currentTime: track.get("currentTime"),
       duration: track.get("duration"),
     });
     
-    Einplayer.Backend.MessageHandler.postMessage(tab.id, request);
+    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
   updateVolumeSlider: function(tab) {
     if (typeof(tab) == "undefined") {
-      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Einplayer.Backend.MessageHandler.updateVolumeSlider(selectedTab);
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.updateVolumeSlider(selectedTab);
       });
       return;
     }
-    var volume = Einplayer.Backend.Bank.getVolume();
+    var volume = Tapedeck.Backend.Bank.getVolume();
     
-    var request = Einplayer.Backend.MessageHandler.newRequest({
+    var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "updateVolumeSlider",
       volume: volume,
     });
     
-    Einplayer.Backend.MessageHandler.postMessage(tab.id, request);
+    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
   pushView: function(targetID, view, tab) {
     if (typeof(tab) == "undefined") {
       console.log("pushing to undefined tab");
-      Einplayer.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Einplayer.Backend.MessageHandler.pushView(targetID,
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.pushView(targetID,
                                                   view,
                                                   selectedTab);
       });
@@ -349,13 +349,13 @@ Einplayer.Backend.MessageHandler = {
                                .remove()
                                .html();
 
-    var request = Einplayer.Backend.MessageHandler.newRequest({
+    var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "pushView",
       view: viewString,
       targetID: targetID,
     });
 
-    Einplayer.Backend.MessageHandler.postMessage(tab.id, request);
+    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
   newRequest: function(object, callback) {
@@ -364,7 +364,7 @@ Einplayer.Backend.MessageHandler = {
 
     if (typeof(callback) != "undefined") {
       var cbID = new Date().getTime();
-      Einplayer.Backend.MessageHandler.pendingCallbacks[cbID] = callback;
+      Tapedeck.Backend.MessageHandler.pendingCallbacks[cbID] = callback;
       request.callbackID = cbID;
     }
     return request;
@@ -390,16 +390,16 @@ Einplayer.Backend.MessageHandler = {
       chrome.extension.onRequest.addListener(wrappedCallback);
     }
     
-    if (!Einplayer.Backend.MessageHandler.isTest(tab.url)) {
+    if (!Tapedeck.Backend.MessageHandler.isTest(tab.url)) {
       chrome.tabs.executeScript(tab.id, options);
     }
     else {
-      var request = Einplayer.Backend.MessageHandler.newRequest({
+      var request = Tapedeck.Backend.MessageHandler.newRequest({
         action: "executeScriptInTest",
         script: options.file,
       });
 
-      Einplayer.Backend.MessageHandler.postMessage(tab.id, request);
+      Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
     }
   },
 

@@ -1,4 +1,4 @@
-Einplayer.Backend.Views.CassetteList = Backbone.View.extend({
+Tapedeck.Backend.Views.CassetteList = Backbone.View.extend({
 
   tagName: "div",
   id: "cassette-list",
@@ -13,15 +13,15 @@ Einplayer.Backend.Views.CassetteList = Backbone.View.extend({
   
   initialize: function() {
     this.cassetteList = this.options.cassetteList;
-    this.template = _.template(Einplayer.Backend
-                                        .TemplateManager
-                                        .getTemplate("CassetteList"));
+    this.template = _.template(Tapedeck.Backend
+                                       .TemplateManager
+                                       .getTemplate("CassetteList"));
   },
 
   render: function() {
     this.el.innerHTML =  this.template({ cassetteList: this.cassetteList.toJSON() });
 
-    Einplayer.Backend.Utils.proxyEvents(this, this.eventsName);
+    Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
 
     return this.el;
   },

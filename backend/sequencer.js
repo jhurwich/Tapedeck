@@ -1,4 +1,4 @@
-Einplayer.Backend.Sequencer = {
+Tapedeck.Backend.Sequencer = {
 
   queue: null,
   queuePosition: -1, // nothing playing
@@ -7,7 +7,7 @@ Einplayer.Backend.Sequencer = {
     if (!this.Player.playerElement) {
       this.Player.init();
     }
-    var bank = Einplayer.Backend.Bank
+    var bank = Tapedeck.Backend.Bank
     this.queue = bank.getTrackList(this.savedQueueName);
     bank.saveTracks(this.queue);
 
@@ -48,7 +48,7 @@ Einplayer.Backend.Sequencer = {
       $(this.playerElement).removeAttr("src");
       
       this.currentState = this.STATES.STOP;
-      Einplayer.Backend.Sequencer.setQueuePosition(-1);
+      Tapedeck.Backend.Sequencer.setQueuePosition(-1);
     },
     
     pause: function() {
@@ -92,21 +92,21 @@ Einplayer.Backend.Sequencer = {
     
     handlePlaying: function(self) {
       self.currentState = self.STATES.PLAY;
-      Einplayer.Backend.MessageHandler.updatePlayer();
+      Tapedeck.Backend.MessageHandler.updatePlayer();
     },
 
     handlePause: function(self) {
-      Einplayer.Backend.MessageHandler.updatePlayer();
+      Tapedeck.Backend.MessageHandler.updatePlayer();
     },
 
     handleEnded: function(self) {
-      Einplayer.Backend.Sequencer.next();
-      Einplayer.Backend.MessageHandler.updatePlayer();
+      Tapedeck.Backend.Sequencer.next();
+      Tapedeck.Backend.MessageHandler.updatePlayer();
     },
 
     handleLoadStart: function(self) {
       self.currentState = self.STATES.LOAD;
-      Einplayer.Backend.MessageHandler.updatePlayer();
+      Tapedeck.Backend.MessageHandler.updatePlayer();
     },
     
     handleDurationChange: function(self) {
@@ -119,7 +119,7 @@ Einplayer.Backend.Sequencer = {
       var currentTime = self.playerElement.get(0).currentTime;
       self.currentTrack.set({ currentTime : currentTime},
                             { silent      : true       });
-      Einplayer.Backend.MessageHandler.updateSeekSlider();
+      Tapedeck.Backend.MessageHandler.updateSeekSlider();
     },
     
     // Error Codes from http://www.w3.org/TR/html5/video.html#htmlmediaelement
@@ -169,7 +169,7 @@ Einplayer.Backend.Sequencer = {
       console.log("Player reported last error as '" + lastError +
                   "' and the network state as '" + networkState + "'");
     },
-  }, // End Einplayer.Sequencer.Player
+  }, // End Tapedeck.Sequencer.Player
 
   getCurrentState: function() {
     return this.Player.currentState;
@@ -203,7 +203,7 @@ Einplayer.Backend.Sequencer = {
       this.playIndex(this.queuePosition + 1);
     }
     else {
-      if (Einplayer.Backend.Bank.getRepeat() &&
+      if (Tapedeck.Backend.Bank.getRepeat() &&
           this.queue.length > 0) {
         this.playIndex(0);
       }
@@ -230,7 +230,7 @@ Einplayer.Backend.Sequencer = {
 
   getQueuedTrack: function(trackID) {
     var trackArr = this.queue.select(function(track) {
-      return track.get("einID") == trackID;
+      return track.get("tdID") == trackID;
     });
     var track = null;
     if (trackArr.length > 0) {
@@ -301,7 +301,7 @@ Einplayer.Backend.Sequencer = {
   },
 
   moveSomeTo: function(trackIndexPairs, pos) {
-    var sqcr = Einplayer.Backend.Sequencer;
+    var sqcr = Tapedeck.Backend.Sequencer;
     
     var tracksToRemove = [];
     var playingIndex = -1;
@@ -394,7 +394,7 @@ Einplayer.Backend.Sequencer = {
   },
 
   saveQueue: function() {
-    var sqcr = Einplayer.Backend.Sequencer;
-    Einplayer.Backend.Bank.saveTrackList(sqcr.savedQueueName, sqcr.queue);
+    var sqcr = Tapedeck.Backend.Sequencer;
+    Tapedeck.Backend.Bank.saveTrackList(sqcr.savedQueueName, sqcr.queue);
   }
 };

@@ -1,7 +1,7 @@
-Einplayer.Backend.Views.Frame = Backbone.View.extend({
+Tapedeck.Backend.Views.Frame = Backbone.View.extend({
 
   tagName: "div",
-  id: "einplayer-content",
+  id: "tapedeck-content",
   requiredTemplates: [
     "Frame",
   ],
@@ -9,9 +9,9 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
 
   initialize: function() {
     this.tabID = this.options.tabID;
-    this.template = _.template(Einplayer.Backend
-                                        .TemplateManager
-                                        .getTemplate("Frame"));
+    this.template = _.template(Tapedeck.Backend
+                                       .TemplateManager
+                                       .getTemplate("Frame"));
   },
 
   render: function() {
@@ -25,7 +25,7 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
     
     this.assignPlaybackButtonImgs();
 
-    var cassetteMgr = Einplayer.Backend.CassetteManager;
+    var cassetteMgr = Tapedeck.Backend.CassetteManager;
 
     if (cassetteMgr.currentCassette) {
 
@@ -37,9 +37,9 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
   },
 
   renderPlayer: function() {
-    var playerView = Einplayer.Backend
-                              .TemplateManager
-                              .renderView("Player", { });
+    var playerView = Tapedeck.Backend
+                             .TemplateManager
+                             .renderView("Player", { });
     var playerID = "player";
     playerView.id = playerID;
     
@@ -47,21 +47,21 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
   },
 
   renderQueue: function() {
-    var queueTracks = Einplayer.Backend.Sequencer.queue;
-    var queueView = Einplayer.Backend
-                             .TemplateManager
-                             .renderView("Queue",
-                                         { trackList   : queueTracks });
+    var queueTracks = Tapedeck.Backend.Sequencer.queue;
+    var queueView = Tapedeck.Backend
+                            .TemplateManager
+                            .renderView("Queue",
+                                        { trackList   : queueTracks });
     
     $(this.el).find("#queue-list").replaceWith(queueView);
   },
 
   renderPlaylistList: function() {
-    var playlistList = Einplayer.Backend.Bank.getPlaylists();
-    var playlistListView = Einplayer.Backend
-                                    .TemplateManager
-                                    .renderView("PlaylistList",
-                                                { playlistList   : playlistList });
+    var playlistList = Tapedeck.Backend.Bank.getPlaylists();
+    var playlistListView = Tapedeck.Backend
+                                   .TemplateManager
+                                   .renderView("PlaylistList",
+                                               { playlistList   : playlistList });
                                                  
     $(this.el).find("#playlist-list").replaceWith(playlistListView);
   },
@@ -72,22 +72,22 @@ Einplayer.Backend.Views.Frame = Backbone.View.extend({
   
   renderBrowseList: function() {
     chrome.tabs.get(this.tabID, function(tab) {
-      var currCassette = Einplayer.Backend.CassetteManager.currentCassette;
-      var context = Einplayer.Backend.Utils.getContext(tab);
+      var currCassette = Tapedeck.Backend.CassetteManager.currentCassette;
+      var context = Tapedeck.Backend.Utils.getContext(tab);
       
       currCassette.getBrowseList(context, function(trackJSONs) {
-        var browseTrackList = new Einplayer.Backend.Collections.TrackList
-                                                   (trackJSONs);
+        var browseTrackList = new Tapedeck.Backend.Collections.TrackList
+                                                  (trackJSONs);
   
-        Einplayer.Backend.Bank.saveTracks(browseTrackList);
+        Tapedeck.Backend.Bank.saveTracks(browseTrackList);
   
-        var browseView = Einplayer.Backend
-                                  .TemplateManager
-                                  .renderView("BrowseList",
-                                              { trackList   : browseTrackList });
+        var browseView = Tapedeck.Backend
+                                 .TemplateManager
+                                 .renderView("BrowseList",
+                                             { trackList   : browseTrackList });
 
-        Einplayer.Backend.MessageHandler.pushView("browse-list",
-                                                  browseView);
+        Tapedeck.Backend.MessageHandler.pushView("browse-list",
+                                                 browseView);
       });
     });
   },

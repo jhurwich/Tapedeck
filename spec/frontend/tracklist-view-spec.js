@@ -1,12 +1,12 @@
 describe("TrackList View", function() {
 
   it ("should have rows for each track when rendered", function() {
-    var trackList = new this.Einplayer
-                        .Backend
-                        .Collections
-                        .TrackList(this.testTracks);
+    var trackList = new this.Tapedeck
+                            .Backend
+                            .Collections
+                            .TrackList(this.testTracks);
                         
-    var viewScript = this.Einplayer
+    var viewScript = this.Tapedeck
                          .Backend
                          .TemplateManager
                          .getViewScript("TrackList");
@@ -21,12 +21,12 @@ describe("TrackList View", function() {
   });
   
   it ("should render properly through the TemplateManager", function() {
-    var trackList = new this.Einplayer
-                        .Backend
-                        .Collections
-                        .TrackList(this.testTracks);
+    var trackList = new this.Tapedeck
+                            .Backend
+                            .Collections
+                            .TrackList(this.testTracks);
     
-    var listDOM = this.Einplayer.Backend.TemplateManager.renderView
+    var listDOM = this.Tapedeck.Backend.TemplateManager.renderView
                       ("TrackList", { trackList: trackList }, null);
     
     var rows  = $(listDOM).find(".row").not("#hidden-droprow");

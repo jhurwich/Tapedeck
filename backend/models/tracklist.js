@@ -1,5 +1,5 @@
-Einplayer.Backend.Collections.TrackList = Backbone.Collection.extend({
-  model: Einplayer.Backend.Models.Track,
+Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
+  model: Tapedeck.Backend.Models.Track,
 
   serialize: function() {
     return JSON.stringify(this.toJSON());
@@ -10,7 +10,7 @@ Einplayer.Backend.Collections.TrackList = Backbone.Collection.extend({
     "playing"
   ],
   removeTempProperties: function() {
-    var tempProps = Einplayer.Backend.Collections.TrackList.prototype.TEMP_PROPS;
+    var tempProps = Tapedeck.Backend.Collections.TrackList.prototype.TEMP_PROPS;
     this.each(function(track) {
       for (var i = 0; i < tempProps.length; i++) {
         track.unset(tempProps[i], { silent: true });
@@ -19,7 +19,7 @@ Einplayer.Backend.Collections.TrackList = Backbone.Collection.extend({
   },
 
   makePlaylist: function(playlistID) {
-    var playlist = new Einplayer.Backend.Collections.Playlist(this.models);
+    var playlist = new Tapedeck.Backend.Collections.Playlist(this.models);
     playlist.removeTempProperties();
     playlist.id = playlistID;
     return playlist;

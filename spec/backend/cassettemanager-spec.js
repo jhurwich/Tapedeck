@@ -1,7 +1,7 @@
 describe("Cassette Manager", function() {
 
   beforeEach(function() {
-    this.cassetteMgr = this.Einplayer
+    this.cassetteMgr = this.Tapedeck
                            .Backend
                            .CassetteManager;
   });
@@ -9,7 +9,7 @@ describe("Cassette Manager", function() {
   it("should return all installed cassettes", function() {
     var cassettes = this.cassetteMgr.cassettes;
     var cassetteCount = 0;
-    for (var cassetteName in this.Einplayer.Backend.Cassettes) {
+    for (var cassetteName in this.Tapedeck.Backend.Cassettes) {
       cassetteCount++;
     }
     expect(cassettes.length).toEqual(cassetteCount);
@@ -17,9 +17,9 @@ describe("Cassette Manager", function() {
 
   it("should instantiate all cassette models on init", function() {
     var spies = [];
-    for (var cassetteName in this.Einplayer.Backend.Cassettes) {
+    for (var cassetteName in this.Tapedeck.Backend.Cassettes) {
 
-      var cassettePrototype = this.Einplayer
+      var cassettePrototype = this.Tapedeck
                                   .Backend
                                   .Cassettes[cassetteName]
                                   .prototype;
@@ -27,7 +27,7 @@ describe("Cassette Manager", function() {
                              .andCallThrough();
     }
 
-    this.Einplayer.Backend.CassetteManager.init();
+    this.Tapedeck.Backend.CassetteManager.init();
 
     for (var i = 0; i < spies.length; i++) {
       expect(spies[i]).toHaveBeenCalled();
