@@ -1,0 +1,87 @@
+require 'aws/s3'
+
+if ARGV.length != 2
+  puts "Not enough parameters specified"
+  exit(1)
+end
+
+nochanges = false
+tapedeckRoot = "/home/jhurwich/Documents/Projects/tapedeck/"
+
+newVersion = ARGV[0]
+puts "Newversion = " + newVersion
+
+changeMessage = ARGV[1]
+
+# Get the S3 Objects
+AWS::S3::Base.establish_connection!(
+  :access_key_id     => '',
+  :secret_access_key => ''
+)
+old_tapedeck_obj = AWS::S3::S3Object.find("tapedeck.crx", "tape-deck")
+update_obj = AWS::S3::S3Object.value("update.xml", "tape-deck")
+old_change_log = AWS::S3::S3Object.value("changes.log", "tape-deck")
+
+# Parse the old update.xml for the old version number
+updateXML = update_obj.to_s
+regex = /<updatecheck.*version='([A-Za-z0-9\.]*)'/
+match = regex.match(updateXML)
+oldVersion = match[1]
+
+# we can't reliably modify if there is more than one match
+if (updateXML.scan(oldVersion).size > 1)
+  puts "Too many matches for '" + oldVersion + "' in update.xml.  Aborting"
+  exit(1)
+end
+
+puts "Oldversion = " + oldVersion
+
+# move aside old version
+old_tapedeck_obj.rename("tapedeck-" + oldVersion + ".crx") unless nochanges
+
+# Update manifest.json to the new version
+manifest = File.open(tapedeckRoot + "manifest.json", "r").read
+
+# again, we can't reliably modify if there is more than one match
+if (manifest.scan(oldVersion).size > 1)
+  puts "Too many matches for '" + oldVersion + "' in manifest.json.  Aborting"
+  exit(1)
+end
+
+if (!nochanges)
+  manifest.sub!(oldVersion, newVersion)
+  manifestOut = File.open(tapedeckRoot + "manifest.json", "w")
+  manifestOut.write(manifest)
+  manifestOut.close
+
+  # pack new version
+  output = %x[chromium-browser --pack-extension=/home/jhurwich/Documents/Projects/tapedeck --pack-extension-key=/home/jhurwich/Documents/Projects/tapedeck.pem]
+  puts output.gsub!("\n", " ")
+
+  # upload new version
+  new_tapedeck = AWS::S3::S3Object.store('tapedeck.crx',
+                                         open("/home/jhurwich/Documents/Projects/tapedeck.crx"),
+                                         'tape-deck',
+                                         :content_type => "application/x-chrome-extension")
+
+  # write out the new update.xml file with the new version
+  updateXML.sub!(oldVersion, newVersion)
+  AWS::S3::S3Object.store('update.xml',
+                          updateXML,
+                          'tape-deck')
+end
+
+# finally update the changes log with the change message  
+changes = old_change_log.to_s
+
+changes << "\n" + Time.now().strftime("%m/%d/%Y-%H.%M.%S") + ":"
+changes << "\n\toldversion: " + oldVersion
+changes << "\n\tnewversion: " + newVersion
+changes << "\n\tmessage: " + changeMessage
+AWS::S3::S3Object.store('changes.log',
+                        changes,
+                        'tape-deck')
+
+# remove the packed extension locally
+%x[rm /home/jhurwich/Documents/Projects/tapedeck.crx]
+

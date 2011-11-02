@@ -1,2 +1,3 @@
 *.pem
 bin/*
+scripts/push_to_prod.rb
