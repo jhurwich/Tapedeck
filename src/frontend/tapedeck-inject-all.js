@@ -151,40 +151,32 @@ var TapedeckInjected = {
     chrome.extension.sendRequest({ action: "setDrawer",
                                    opened: false });
   },
-  
-  //kudos to StumbleUpon
+
   moveFixedElements: function() {
-    var allDivs = document.getElementsByTagName("div");
-    for(var i=0; i<allDivs.length; i++) {
-      var div = allDivs[i];
-      if(!div.tdMoved) {
-        var style = window.getComputedStyle(div);
-        if(style.position == "fixed") {
-          var right = style.right;
-          var oldSpot = right ? parseInt(right) : 0;
-          var newSpot = oldSpot + TapedeckInjected.toolbarWidth;
-          div.style.right = newSpot + "px";
-          div.tdMoved = true;    
-        }
+    $("*").each(function(index, elem) {
+      if($(elem).css("position") == "fixed" &&
+         $(elem).attr("tdMoved") != "true" &&
+         $(elem).attr("id") != "tapedeck-frame") {
+           
+        var right = $(elem).css("right");
+        var oldSpot = right ? parseInt(right) : 0;
+        var newSpot = oldSpot + TapedeckInjected.toolbarWidth;
+        $(elem).css("right", newSpot);
+        $(elem).attr("tdMoved", true);
       }
-    }
+    });
   },
 
   resetFixedElements: function() {
-    var allDivs = document.getElementsByTagName("div");
-    for(var i=0; i<allDivs.length; i++) {
-      var div = allDivs[i];
-      if(div.tdMoved) {
-        var style = window.getComputedStyle(div);
-        if(style.position == "fixed") {
-          var right = style.right;
-          var newSpot = right ? parseInt(right) : TapedeckInjected.toolbarWidth;
-          var oldSpot = newSpot - TapedeckInjected.toolbarWidth;
-          div.style.right = oldSpot + "px";
-          div.tdMoved = null;    
-        }
+    $("*").each(function(index, elem) {
+      if($(elem).attr("tdMoved") == "true") {
+        var right = $(elem).css("right");
+        var newSpot = right ? parseInt(right) : TapedeckInjected.toolbarWidth;
+        var oldSpot = newSpot - TapedeckInjected.toolbarWidth;
+        $(elem).css("right", oldSpot);
+        $(elem).removeAttr("tdMoved");
       }
-    }
+    });
   },
   
   playPause: function() {
