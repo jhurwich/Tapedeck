@@ -13,6 +13,7 @@ var TapedeckInjected = {
     htmlDOM.appendChild(TapedeckInjected.tapedeckFrame);
 
     TapedeckInjected.injectSideButtons();
+    TapedeckInjected.bringToFront();
 
     chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
       if (request.action == "setDrawer") {
@@ -72,6 +73,19 @@ var TapedeckInjected = {
     sideButtons.appendChild(prev);
   
     htmlDOM.appendChild(sideButtons);
+  },
+
+  bringToFront: function() {
+    var maxZ = -1;
+    $("*").each(function(index, elem) {
+      var z = $(elem).css("z-index");
+      z = parseInt(z);
+      if (z != "NaN" && z > maxZ) {
+        maxZ = z;
+      }
+    });
+    $("#tapedeck-frame").css("z-index", maxZ + 1);
+    $("#tapedeck-injected-buttons").css("z-index", maxZ + 1);
   },
   
   toolbarWidth: 351,
