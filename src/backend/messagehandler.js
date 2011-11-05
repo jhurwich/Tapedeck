@@ -129,7 +129,7 @@ Tapedeck.Backend.MessageHandler = {
         break;
       case "saveBlockList":
         Tapedeck.Backend.Bank.saveBlockListStr(request.blockList);
-        sendResponse({ });
+        sendResponse({ blockList: blockListStr });
         break;
       
       default:
