@@ -14,6 +14,9 @@
       "48": "images/cassette-48.png",
       "128": "images/cassette-128.png"
     },
-  "permissions": ["tabs", "http://*/*", "unlimitedStorage"],
+  "permissions": ["http://*/*",
+                  "https://*/*",
+                  "tabs",
+                  "unlimitedStorage"],
   "update_url": "http://tape-deck.com/update"
 }

@@ -22,9 +22,16 @@ Tapedeck.Backend.MessageHandler = {
 
     // Handle url updates
     if (typeof(changeInfo.url) != "undefined") {
-      // url was just set, mark associate the tabID to the url and
-      // wait for the completed event from that tabID
-      msgHandler.waitingToLoad[tabID] = changeInfo.url;
+      
+      // now make sure it's not supposed to be blocked
+      if (!msgHandler.isURLBlocked(changeInfo.url)) {
+        // url was just set, mark associate the tabID to the url and
+        // wait for the completed event from that tabID
+        msgHandler.waitingToLoad[tabID] = changeInfo.url;
+        
+        // Everything looks good.  Number 1, inject!
+        msgHandler.injectInto(tabID);
+      }
     }
 
     // Handle status == 'complete' updates
@@ -41,22 +48,20 @@ Tapedeck.Backend.MessageHandler = {
         return;
       }
 
-      // a tab that we expected to load has loaded, now make sure it's
-      // not supposed to be blocked
-      var blockList = Tapedeck.Backend.Bank.getBlockList();
-      for (var i = 0;
-           i < blockList.length;
-           i++) {
-        var pattern = blockList[i];
-        if (url.match(pattern) != null) {
-          // url is blocked
-          return;
-        }
-      }
-
-      // Everything looks good.  Number 1, inject!
-      msgHandler.injectInto(tabID);
+      // TODO trigger some load-complete event here?
     }
+  },
+
+  isURLBlocked: function(url) {
+    var blockList = Tapedeck.Backend.Bank.getBlockList();
+    for (var i = 0; i < blockList.length; i++) {
+      var pattern = blockList[i];
+      if (url.match(pattern) != null) {
+        // url is blocked
+        return true;
+      }
+    }
+    return false;
   },
 
   injectInto: function(tabID) {
@@ -441,6 +446,8 @@ Tapedeck.Backend.MessageHandler = {
   },
 
   executeScript: function(tab, options, responseCallback) {
+    var self = Tapedeck.Backend.MessageHandler;
+    
     if (typeof(responseCallback) != "undefined") {
       var wrappedCallback = function(response, sender, sendResponse) {
         responseCallback(response, sender, sendResponse);
@@ -451,7 +458,9 @@ Tapedeck.Backend.MessageHandler = {
     }
     
     if (!Tapedeck.Backend.MessageHandler.isTest(tab.url)) {
-      chrome.tabs.executeScript(tab.id, options);
+      if (!self.isURLBlocked(tab.url)) {
+        chrome.tabs.executeScript(tab.id, options);
+      }
     }
     else {
       var request = Tapedeck.Backend.MessageHandler.newRequest({
@@ -459,7 +468,7 @@ Tapedeck.Backend.MessageHandler = {
         script: options.file,
       });
 
-      Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+      self.postMessage(tab.id, request);
     }
   },
 
