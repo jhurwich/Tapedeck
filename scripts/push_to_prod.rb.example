@@ -11,7 +11,7 @@ if ARGV.length != 2
 end
 
 nochanges = false
-tapedeckRoot = "/home/jhurwich/Documents/Projects/tapedeck/"
+tapedeckRoot = "/home/jhurwich/Documents/Projects/tapedeck/src/"
 
 newVersion = ARGV[0]
 puts "Newversion = " + newVersion
@@ -40,7 +40,7 @@ if (updateXML.scan(oldVersion).size > 1)
 end
 
 puts "Oldversion = " + oldVersion
-
+puts "Moving aside old version. . . "
 # move aside old version
 old_tapedeck_obj.rename("tapedeck-" + oldVersion + ".crx") unless nochanges
 
@@ -56,21 +56,24 @@ end
 if (!nochanges)
   manifest.sub!(oldVersion, newVersion)
   manifestOut = File.open(tapedeckRoot + "manifest.json", "w")
+  puts "Updating manifest.json. . . "
   manifestOut.write(manifest)
   manifestOut.close
 
   # pack new version
-  output = %x[chromium-browser --pack-extension=/home/jhurwich/Documents/Projects/tapedeck --pack-extension-key=/home/jhurwich/Documents/Projects/tapedeck.pem]
+  output = %x[chromium-browser --pack-extension=/home/jhurwich/Documents/Projects/tapedeck/src --pack-extension-key=/home/jhurwich/Documents/Projects/tapedeck/tapedeck.pem]
   puts output.gsub!("\n", " ")
 
   # upload new version
+  puts "Uploading new version to AWS. . . "
   new_tapedeck = AWS::S3::S3Object.store('tapedeck.crx',
-                                         open("/home/jhurwich/Documents/Projects/tapedeck.crx"),
+                                         open("/home/jhurwich/Documents/Projects/tapedeck/src.crx"),
                                          'tape-deck',
                                          :content_type => "application/x-chrome-extension")
 
   # write out the new update.xml file with the new version
   updateXML.sub!(oldVersion, newVersion)
+  puts "Updating update.xml. . . "
   AWS::S3::S3Object.store('update.xml',
                           updateXML,
                           'tape-deck')
@@ -83,10 +86,11 @@ changes << "\n" + Time.now().strftime("%m/%d/%Y-%H.%M.%S") + ":"
 changes << "\n\toldversion: " + oldVersion
 changes << "\n\tnewversion: " + newVersion
 changes << "\n\tmessage: " + changeMessage
+puts "Updating changes.log. . . "
 AWS::S3::S3Object.store('changes.log',
                         changes,
                         'tape-deck')
 
 # remove the packed extension locally
-%x[rm /home/jhurwich/Documents/Projects/tapedeck.crx]
+%x[rm /home/jhurwich/Documents/Projects/tapedeck/src.crx]
 
