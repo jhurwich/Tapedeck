@@ -2,7 +2,9 @@ Tapedeck.Backend.MessageHandler = {
 
   ports: {},
   init: function() {
-
+    // listen for new pages to inject our content into
+    chrome.tabs.onUpdated.addListener(this.updatedListener);
+  
     // ports are used for communication with each of our player frames
     chrome.extension.onConnect.addListener(this.portListener);
 
@@ -12,6 +14,55 @@ Tapedeck.Backend.MessageHandler = {
     chrome.extension.onRequest.addListener(this.requestListener);
 
     chrome.tabs.onSelectionChanged.addListener(this.selectionListener);
+  },
+
+  waitingToLoad : { },
+  updatedListener: function(tabID, changeInfo, tab) {
+    var msgHandler = Tapedeck.Backend.MessageHandler;
+
+    // Handle url updates
+    if (typeof(changeInfo.url) != "undefined") {
+      // url was just set, mark associate the tabID to the url and
+      // wait for the completed event from that tabID
+      msgHandler.waitingToLoad[tabID] = changeInfo.url;
+    }
+
+    // Handle status == 'complete' updates
+    if (typeof(changeInfo.status) != "undefined" &&
+        changeInfo.status == "complete") {
+          
+      // we got a completed event, make sure that we expected it
+      var url = msgHandler.waitingToLoad[tabID];
+      msgHandler.waitingToLoad[tabID] = null;
+      
+      if (typeof(url) == "undefined" || url == null) {
+        console.log("Got a load complete event for unknown tabID: '" +
+                    tab.url + "'");
+        return;
+      }
+
+      // a tab that we expected to load has loaded, now make sure it's
+      // not supposed to be blocked
+      var blockList = Tapedeck.Backend.Bank.getBlockList();
+      for (var i = 0;
+           i < blockList.length;
+           i++) {
+        var pattern = blockList[i];
+        if (url.match(pattern) != null) {
+          // url is blocked
+          return;
+        }
+      }
+
+      // Everything looks good.  Number 1, inject!
+      msgHandler.injectInto(tabID);
+    }
+  },
+
+  injectInto: function(tabID) {
+    chrome.tabs.insertCSS(tabID, {file: "frontend/tapedeck-inject-all.css"});
+    chrome.tabs.executeScript(tabID, {file: "vendor/jquery-1.6.2.js"});
+    chrome.tabs.executeScript(tabID, {file: "frontend/tapedeck-inject-all.js"});
   },
 
   portListener: function(port) {
@@ -65,6 +116,15 @@ Tapedeck.Backend.MessageHandler = {
                                           opened : request.opened });
           chrome.tabs.sendRequest(parseInt(tabID), request);
         }
+        break;
+
+      case "getBlockList":
+        var blockListStr = Tapedeck.Backend.Bank.getBlockListStr();
+        sendResponse({ blockList: blockListStr });
+        break;
+      case "saveBlockList":
+        Tapedeck.Backend.Bank.saveBlockListStr(request.blockList);
+        sendResponse({ });
         break;
       
       default:

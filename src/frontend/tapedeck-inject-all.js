@@ -200,4 +200,4 @@ var TapedeckInjected = {
   },
 }
 
-window.onload = TapedeckInjected.init;
+TapedeckInjected.init();

@@ -4,20 +4,73 @@ Tapedeck.Backend.Bank = {
   drawerOpen: false,
   localStorage: null,
 
+  
+  defaultBlockPatterns : [ "chrome://",
+                           "chrome-devtools://",
+                           "mail",
+                           "maps.google.com" ],
+
   bankPrefix: "_tapedeckbank_",
   trackListPrefix: /* bankPrefix + */ "trackList-",
   playlistPrefix: /* trackListPrefix + */ "playlist-",
-  repeatKey: /* bankPrefix + */ + "repeat",
-  volumeKey: /* bankPrefix + */ + "volume",
+  repeatKey: /* bankPrefix + */ "repeat",
+  volumeKey: /* bankPrefix + */ "volume",
+  blockKey: /* bankPrefix + */ "block",
   init: function() {
     this.localStorage = window.localStorage;
+    
     this.trackListPrefix = this.bankPrefix + this.trackListPrefix;
     this.playlistPrefix = this.trackListPrefix + this.playlistPrefix;
     this.repeatKey = this.bankPrefix + this.repeatKey;
+    this.blockKey = this.bankPrefix + this.blockKey;
     if (this.localStorage.getItem(this.repeatKey) == null) {
       this.localStorage.setItem(this.repeatKey, "true");
     }
+    // initialize the block list if necessary
+    if (this.localStorage.getItem(this.blockKey) == null) {
+      this.saveBlockList(this.defaultBlockPatterns);
+    }
+    
     this.FileSystem.init();
+  },
+
+  // We expect this to be the most commonly used function so it is
+  // memoized.
+  blockList : null,
+  getBlockList : function() {
+    var bank = Tapedeck.Backend.Bank;
+
+    // Load the blocklist if we have not already
+    if (bank.blockList == null) {
+      var blockStr = bank.getBlockListStr();
+      bank.blockList = JSON.parse(blockStr);
+    }
+    return bank.blockList;
+  },
+  saveBlockList: function(blockArr) {
+    var bank = Tapedeck.Backend.Bank;
+
+    // sort and remove duplicates
+    blockArr.sort();
+    for (var i = 0; i < blockArr.length - 1;  i++) {
+      if (blockArr[i] == blockArr[i + 1]) {
+        blockArr.splice(i + 1, 1);
+        i--;
+      }
+    }
+    bank.blockList = blockArr;
+    bank.localStorage.setItem(bank.blockKey,
+                              JSON.stringify(bank.blockList));
+  },
+  getBlockListStr: function() {
+    var bank = Tapedeck.Backend.Bank;
+    var blockStr = bank.localStorage.getItem(bank.blockKey);
+
+    return blockStr;
+  },
+  saveBlockListStr: function(blockListStr) {
+    var bank = Tapedeck.Backend.Bank;
+    bank.saveBlockList(JSON.parse(blockListStr));
   },
 
   FileSystem : {
