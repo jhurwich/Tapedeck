@@ -1,5 +1,10 @@
 require 'aws/s3'
 
+if ARGV.length == 0
+  puts 'usage: ruby -rubygems push_to_prod.rb <new version num> "<change message>"'
+  exit(1)
+end
+
 if ARGV.length != 2
   puts "Not enough parameters specified"
   exit(1)
