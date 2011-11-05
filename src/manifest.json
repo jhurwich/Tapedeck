@@ -5,7 +5,7 @@
   "background_page" :"backend/background.html",
   "browser_action":
     {
-      "default_icon": "images/cassette-48.png",
+      "default_icon": "images/browseraction-cassette.png",
       "default_title": "Tapedeck",
       "default_popup": "frontend/browser-action.html"
     },
