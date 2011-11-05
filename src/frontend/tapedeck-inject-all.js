@@ -32,38 +32,43 @@ var TapedeckInjected = {
   injectSideButtons: function() {
     var htmlDOM = document.getElementsByTagName("html")[0];
      
-    var sideButtons = document.createElement('div');
+    var sideButtons = document.createElement('tapedeck-buttonbox');
     sideButtons.id = 'tapedeck-injected-buttons';
     
-    var drawerOpen = document.createElement('img');
+    var drawerOpen = document.createElement('tapedeck-button');
     drawerOpen.id = 'tapedeck-injected-draweropen';
     drawerOpen.className = 'tapedeck-injected-button';
-    drawerOpen.src = chrome.extension.getURL("images/draweropen-button.png");
+    drawerOpen.style.backgroundImage =
+      "url('" + chrome.extension.getURL("images/draweropen-button.png") + "')";
     drawerOpen.onclick = TapedeckInjected.setDrawerOpened;
 
-    var drawerClose = document.createElement('img');
+    var drawerClose = document.createElement('tapedeck-button');
     drawerClose.id = 'tapedeck-injected-drawerclose';
     drawerClose.className = 'tapedeck-injected-button';
-    drawerClose.src = chrome.extension.getURL("images/drawerclose-button.png");
+    drawerClose.style.backgroundImage =
+      "url('" + chrome.extension.getURL("images/drawerclose-button.png") + "')";
     drawerClose.onclick = TapedeckInjected.setDrawerClosed;
     drawerClose.setAttribute("hidden", true);
   
-    var play = document.createElement('img');
+    var play = document.createElement('tapedeck-button');
     play.id = 'tapedeck-injected-play';
     play.className = 'tapedeck-injected-button';
-    play.src = chrome.extension.getURL("images/play-pause-button.png");
+    play.style.backgroundImage =
+      "url('" + chrome.extension.getURL("images/play-pause-button.png") + "')";
     play.onclick = TapedeckInjected.playPause;
   
-    var next = document.createElement('img');
+    var next = document.createElement('tapedeck-button');
     next.id = 'tapedeck-injected-next';
     next.className = 'tapedeck-injected-button';
-    next.src = chrome.extension.getURL("images/next-button.png");
+    next.style.backgroundImage =
+      "url('" + chrome.extension.getURL("images/next-button.png") + "')";
     next.onclick = TapedeckInjected.next;
   
-    var prev = document.createElement('img');
+    var prev = document.createElement('tapedeck-button');
     prev.id = 'tapedeck-injected-prev';
     prev.className = 'tapedeck-injected-button';
-    prev.src = chrome.extension.getURL("images/prev-button.png");
+    prev.style.backgroundImage =
+      "url('" + chrome.extension.getURL("images/prev-button.png") + "')";
     prev.onclick = TapedeckInjected.prev;
   
     sideButtons.appendChild(drawerOpen);

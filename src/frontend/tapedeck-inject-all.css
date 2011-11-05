@@ -1,23 +1,29 @@
-*[hidden] {
-  display: none;
-} 
-
+/* The iframe needs !importants so that the outer page's css cannot
+ * affect its styling */
 #tapedeck-frame {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 350px;
-  height: 100%;
-  background-color: rgb(188,188,188);
-  border: 2px ridge rgb(188,188,188);
-  z-index: 9999;
+  display: block !important;
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 350px !important;
+  min-width: 350px !important;
+  max-width: 350px !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  background-color: rgb(188,188,188) !important;
+  border: 2px ridge rgb(188,188,188) !important;
+  padding: 0px !important;
+  margin: 0px !important;
+  z-index: 9999; /* we might need to increase this so no !important */
 }
 
 body[tapedeck-opened] {
   margin-right: 300px;
 }
 
-div#tapedeck-injected-buttons {
+tapedeck-buttonbox#tapedeck-injected-buttons {
+  display: block;
   position: fixed;
   top: 35px;
   right: 0px;
@@ -27,13 +33,20 @@ div#tapedeck-injected-buttons {
 }
 
 .tapedeck-injected-button {
+  display: inline-block;
   position: static;
   margin-bottom: 10px;
   width: 20px;
   height: 20px;
+  background-size: 20px 20px;
   clear: both;
 }
 
 .tapedeck-injected-button:hover {
   cursor: pointer;
 }
+
+#tapedeck-frame[hidden],
+.tapedeck-injected-button[hidden] {
+  display: none !important;
+} 
