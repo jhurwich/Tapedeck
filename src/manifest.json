@@ -18,5 +18,5 @@
                   "https://*/*",
                   "tabs",
                   "unlimitedStorage"],
-  "update_url": "http://tape-deck.com/update"
+  "update_url": "http://www.tape-deck.com/update"
 }
