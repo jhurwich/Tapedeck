@@ -13,6 +13,7 @@ Tapedeck.Backend.Bank = {
   bankPrefix: "_tapedeckbank_",
   trackListPrefix: /* bankPrefix + */ "trackList-",
   playlistPrefix: /* trackListPrefix + */ "playlist-",
+  currentCassetteKey: /* bankPrefix + */ "currentCassette",
   repeatKey: /* bankPrefix + */ "repeat",
   volumeKey: /* bankPrefix + */ "volume",
   blockKey: /* bankPrefix + */ "block",
@@ -21,6 +22,7 @@ Tapedeck.Backend.Bank = {
     
     this.trackListPrefix = this.bankPrefix + this.trackListPrefix;
     this.playlistPrefix = this.trackListPrefix + this.playlistPrefix;
+    this.currentCassetteKey = this.bankPrefix + this.currentCassetteKey;
     this.repeatKey = this.bankPrefix + this.repeatKey;
     this.blockKey = this.bankPrefix + this.blockKey;
     if (this.localStorage.getItem(this.repeatKey) == null) {
@@ -422,6 +424,14 @@ Tapedeck.Backend.Bank = {
   
   getDrawerOpened: function() {
     return Tapedeck.Backend.Bank.drawerOpen;
+  },
+
+  getCurrentCassette: function(currentCassette) {
+    return this.localStorage.getItem(this.currentCassetteKey);
+  },
+
+  saveCurrentCassette: function(currentCassette) {
+    this.localStorage.setItem(this.currentCassetteKey, currentCassette);
   },
 
   toggleRepeat: function() {

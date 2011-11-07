@@ -253,6 +253,28 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.port.postMessage(request);
   },
 
+  setCassette: function(cassetteID) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "setCassette",
+      cassetteID : cassetteID
+    });
+
+    Tapedeck.Frontend.Messenger.port.postMessage(request);
+  },
+
+  ejectCassette: function() {
+    this.setCassette("");
+  },
+
+  loadLink: function(url) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "loadLink",
+      url : url
+    });
+
+    Tapedeck.Frontend.Messenger.port.postMessage(request);
+  },
+
   newRequest: function(object, callback) {
     var request = (object ? object : { });
     request.type = "request";

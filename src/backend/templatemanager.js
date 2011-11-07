@@ -31,7 +31,8 @@ Tapedeck.Backend.TemplateManager = {
     var viewScript = this.getViewScript(scriptName, packageName);
     var view = new viewScript(options);
     
-    return view.render();
+    var el = view.render();
+    return el;
   },
 
   getViewScript: function(scriptName, packageName) {

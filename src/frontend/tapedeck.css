@@ -1,3 +1,7 @@
+*[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   overflow-x: hidden;
@@ -113,24 +117,27 @@ body {
   max-height: 280px;
 }
 #queue-region {
-  max-height: 330px;
-  height: 330px;
+   max-height: 330px;
+   height: 330px;
 }
 .region-header {
   font: bold 18px arial, sans-serif;
   height: 22px;
 }
 
-.tracklist-container {
+.tracklist-container,
+.cassettellist-container {
   position: relative;
   overflow-y: auto;
 }
-.tracklist {
+.tracklist,
+.cassettelist {
   display: table;
   empty-cells: show;
   border: solid 2px rgb(66,66,66); 
 }
-.tracklist .row {
+.tracklist .row,
+.cassettelist .row{
   position: relative;
   display: table-row;
   -khtml-user-select: none;
@@ -155,7 +162,8 @@ body {
 .tracklist .row:not(.playing) .cell{
   font-weight: normal !important;
 }
-.tracklist .cell {
+.tracklist-container .cell,
+.cassettelist .cell {
   position: relative;
   display: table-cell;
   min-height: 16px;
@@ -166,6 +174,7 @@ body {
   text-overflow: ellipsis;
   border-right: solid 1px rgb(50,153,187);
   border-bottom: solid 1px rgb(50,153,187);
+  padding-left: 2px;
 }
 .tracklist .row:last-child .cell{
   border-bottom: none;
@@ -183,9 +192,10 @@ body {
   border-right: none;
   width: 68px;
 }
-.tracklist .row-buttons {
-  display: none;
+.tracklist-container .row-buttons,
+.cassettelist .row-buttons {
   position: absolute;
+  top: 0px;
   right: 2px;
   margin: 1px;
 }
@@ -203,6 +213,9 @@ body {
   border: 1px solid black;
   background-position: center;
   margin-left: 1px;
+}
+.tracklist .row .row-buttons {
+  display: none;
 }
 .tracklist .row:hover .row-buttons{
   display: inline-block;
@@ -303,4 +316,55 @@ body {
   width: 200px;
 }
 
-
+.cassettelist .row,
+.tracklist-container #current-cassette-row {
+  background-color: #515151;
+}
+.cassettelist .row:hover {
+  background-color: #2f2f2f;
+  cursor: pointer;
+}
+.cassettelist .cell,
+.tracklist-container #current-cassette-row .cell {
+  min-height: 18px;
+  border-right: solid 1px #ff9900;
+  border-bottom: solid 1px #ff9900;
+  font: 16px arial,sans-serif;
+  color: #eeeeee;
+}
+.cassettelist .cell:first-child,
+.tracklist-container #current-cassette-row .cell:first-child {
+  font-weight: bold;
+}
+.cassettelist .row:last-child .cell{
+  border-bottom: none;
+}
+.cassettelist .cell.cassetteName-col {
+  width: 170px;
+}
+.cassettelist .cell.developerName-col {
+  width: 158px;
+  border-right: none;
+}
+#developer-link:hover {
+  color: #3299BB;
+}
+.tracklist-container #current-cassette-row .row-buttons > .button,
+.cassettelist .row-buttons > .button {
+  height: 14px;
+  width: 14px;
+  float: left;
+  border: 1px solid black;
+  background-position: center;
+  margin-left: 1px;
+}
+.tracklist-container #current-cassette-row {
+  width: 326px;
+  border: 2px solid rgb(66,66,66);
+  border-top: 0px;
+}
+.tracklist-container #current-cassette-row .cell {
+  width: 318px;
+  border: 0px;
+  float: none;
+}

@@ -1,14 +1,16 @@
 Tapedeck.Backend.Views.CassetteList = Backbone.View.extend({
 
   tagName: "div",
+  className: "cassettelist-container",
   id: "cassette-list",
-  className: "cassettelist",
   requiredTemplates: [
     "CassetteList"
   ],
   template: null,
   
-  proxyEvents: { },
+  proxyEvents: {
+    "click .cassettelist .row" : "cassetteRowClick",
+  },
   eventsName: "cassetteListEvents",
   
   initialize: function() {

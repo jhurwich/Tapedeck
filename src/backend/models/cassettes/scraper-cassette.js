@@ -1,6 +1,9 @@
 Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.extend({
-
-  cassetteName: "Scraper",
+  defaults : {
+    "name" : "Scraper",
+    "developer" : "Jhawk",
+    "developerLink" : "www.tape-deck.com",
+  },
 
   // Don't want the interval event
   events: [
@@ -13,7 +16,7 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
     var handleTracks = function(response, sender, sendResponse) {
       
       for (var i in response.tracks) {
-        response.tracks[i].cassette = self.cassetteName;
+        response.tracks[i].cassette = self.get("name");
       }
       callback(response.tracks);
     };

@@ -14,6 +14,9 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
   
   initialize: function() {
     this.trackList = this.options.trackList;
+    if (typeof(this.options.currentCassette) != "undefined") {
+      this.currentCassette = this.options.currentCassette;
+    }
 
     this.bindEvents(this.trackList);
                        
@@ -23,7 +26,7 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
   },
 
   bindEvents: function(trackList) {
-    // There can only be one view of a tracklist reciving updates.
+    // There can only be one view of a tracklist receiving updates.
     // Clear out the events for any other views
     trackList.unbind('add');
     trackList.unbind('remove');
@@ -37,7 +40,11 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
   },
 
   render: function() {
-    this.el.innerHTML =  this.template({ trackList: this.trackList.toJSON() });
+    var templateOptions = { trackList: this.trackList.toJSON() };
+    if (this.currentCassette != null) {
+      templateOptions.currentCassette = this.currentCassette.toJSON();
+    }
+    this.el.innerHTML =  this.template(templateOptions);
     $(this.el).attr("rowDblClick", this.rowDblClick);
 
     this.assignRowButtonImgs();

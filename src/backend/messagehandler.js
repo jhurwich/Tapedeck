@@ -323,6 +323,15 @@ Tapedeck.Backend.MessageHandler = {
         sqcr.next();
         break;
 
+      case "setCassette":
+        Tapedeck.Backend.CassetteManager.setCassette(request.cassetteID);
+        break;
+
+      case "loadLink":
+        var url = request.url.replace("http://", "");
+        chrome.tabs.create({ url: ("http://" + url) });
+        break;
+
       case "seek":
         var percent = request.percent;
         sqcr.Player.seekPercent(percent);

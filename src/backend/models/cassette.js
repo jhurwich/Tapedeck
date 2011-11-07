@@ -1,5 +1,16 @@
 Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
-  name: "Unnamed Cassette",
+  defaults : {
+    "name" : "Unnamed Cassette",
+    "developer" : "Unknown Developer",
+    "developerLink" : "",
+  },
+
+  initialize: function(options) {
+    if ($.isEmptyObject(options.attributes) ||
+        !("tdID" in options.attributes) ) {
+      this.set({ tdID:  _.uniqueId("tapedeck-cassette")});
+    }
+  },
 
   // Default events
   events: [

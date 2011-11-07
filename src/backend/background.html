@@ -26,6 +26,7 @@
     <script type="text/javascript" src="models/cassettes/scraper-cassette.js"></script>
 
     <!-- Default Views -->
+    <script type="text/javascript" src="views/browseregion-view.js"></script>
     <script type="text/javascript" src="views/cassettelist-view.js"></script>
     <script type="text/javascript" src="views/tracklist-view.js"></script>
     <script type="text/javascript" src="views/queue-view.js"></script>
@@ -62,10 +63,13 @@
         </div>
       </div>
 
-      <div id="browse-region" class="region">
-        <div class="region-header">Browse</div>
-        <div id="browse-list" class="tracklist"></div>
-      </div>
+      <div id="browse-region" class="region"></div>
+    </script>
+
+    <script id="BrowseRegion-default-template" type="text/template">
+      <div class="region-header">Browse or Cassettes</div>
+      <div id="browse-list" class="tracklist"></div>
+      <div id="cassette-list" class="cassettelist"></div>
     </script>
 
     <script id="Player-default-template" type="text/template">
@@ -171,6 +175,17 @@
           </div>
         <% } %>
       </div>
+      <% if (typeof(currentCassette) != "undefined") { %>
+        <div id="current-cassette-row" class="row">
+          <div class="cell current-cassette-col">
+            <%= currentCassette.name %>
+            <div class="row-buttons">
+              <div class="button eject"
+                   onclick="Tapedeck.Frontend.Frame.cassetteEject(event)"></div>
+            </div>
+          </div>
+        </div>
+      <% } %>
     </script>
 
     <script id="PlaylistList-default-template" type="text/template">
@@ -193,20 +208,31 @@
     </script>
 
     <script id="CassetteList-default-template" type="text/template">
-      <% for (var i=0; i < cassetteList.length; i++) {
-        var cassette = cassetteList[i];
-      %>
-        <div class="row"
-             index='<%= i %>'
-             cassette-id='<%= cassette.tdID %>'
-             onclick="alert('cassetteClick')" >
-          <div class="cell cassetteName-col"> <%= cassette.name %> </div>
-          <div class="row-buttons">
-              <div class="button remove"
-                   onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
+      <div class="cassettelist">
+        <% for (var i=0; i < cassetteList.length; i++) {
+          var cassette = cassetteList[i];
+        %>
+          <div class="row"
+               index='<%= i %>'
+               cassette-id='<%= cassette.tdID %>' >
+            <div class="cell cassetteName-col"> <%= cassette.name %> </div>
+            <div class="cell developerName-col">
+              <span id="developer-link"
+                    title='<%= cassette.developerLink %>'
+                    url='<%= cassette.developerLink %>'
+                    onclick="Tapedeck.Frontend.Frame.loadDeveloperLink(event)" >
+                <%= cassette.developer %>
+              </span>
+              <div class="row-buttons">
+                <!--
+                <div class="button remove"
+                     onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
+                -->
+              </div>
+            </div<
           </div>
-        </div>
-      <% } %>
+        <% } %>
+      </div>
     </script>
   
     <script type="text/javascript">

@@ -543,6 +543,30 @@ Tapedeck.Frontend.Frame = {
     Tapedeck.Frontend.Messenger.download(trackID, callback);
   },
 
+  cassetteEject: function(e) {
+    Tapedeck.Frontend.Messenger.ejectCassette();
+  },
+
+  cassetteRowClick: function(e) {
+    var target = e.target;
+    while(!$(target).hasClass("row")) {
+      target = $(target).parent();
+      if (target == null || !target) {
+        console.error("Couldn't locate handle");
+        return;
+      }
+    }
+
+    Tapedeck.Frontend.Messenger.setCassette($(target).attr("cassette-id"));
+  },
+
+  loadDeveloperLink: function(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+    Tapedeck.Frontend.Messenger.loadLink($(e.target).attr("url"));
+  },
+
   toggleRepeat: function() {
     Tapedeck.Frontend.Messenger.toggleRepeat();
     Tapedeck.Frontend.Frame.checkRepeat();

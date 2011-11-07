@@ -40,12 +40,12 @@ describe("Cassette Manager", function() {
     var cassette;
     for (var i = 0; i < cassettes.length; i++) {
       cassette = cassettes[i];
-      if (cassette.name = "Scraper") {
+      if (cassette.get("name") == "Scraper") {
         break;
       }
     }
-    this.cassetteMgr.setCassette(cassette.cid);
-    expect(this.cassetteMgr.currentCassette.name).toEqual("Scraper");
+    this.cassetteMgr.setCassette(cassette.get("tdID"));
+    expect(this.cassetteMgr.currentCassette.get("name")).toEqual("Scraper");
   });
 
 });

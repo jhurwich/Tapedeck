@@ -20,19 +20,10 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     this.renderPlayer();
     this.renderQueue();
     this.renderPlaylistList();
-    this.renderCassetteBrowser();
-    this.renderBrowseList();
+    this.renderBrowseRegion();
     
     this.assignPlaybackButtonImgs();
 
-    var cassetteMgr = Tapedeck.Backend.CassetteManager;
-
-    if (cassetteMgr.currentCassette) {
-
-    }
-    else {
-      // TODO show CassetteList in front
-    }
     return this.el
   },
 
@@ -51,7 +42,7 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     var queueView = Tapedeck.Backend
                             .TemplateManager
                             .renderView("Queue",
-                                        { trackList   : queueTracks });
+                                        { trackList : queueTracks });
     
     $(this.el).find("#queue-list").replaceWith(queueView);
   },
@@ -61,35 +52,18 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     var playlistListView = Tapedeck.Backend
                                    .TemplateManager
                                    .renderView("PlaylistList",
-                                               { playlistList   : playlistList });
+                                               { playlistList : playlistList });
                                                  
     $(this.el).find("#playlist-list").replaceWith(playlistListView);
   },
   
-  renderCassetteBrowser: function() {
+  renderBrowseRegion: function() {
+    var browseRegionView = Tapedeck.Backend
+                                   .TemplateManager
+                                   .renderView("BrowseRegion",
+                                               { tabID : this.tabID });
 
-  },
-  
-  renderBrowseList: function() {
-    chrome.tabs.get(this.tabID, function(tab) {
-      var currCassette = Tapedeck.Backend.CassetteManager.currentCassette;
-      var context = Tapedeck.Backend.Utils.getContext(tab);
-      
-      currCassette.getBrowseList(context, function(trackJSONs) {
-        var browseTrackList = new Tapedeck.Backend.Collections.TrackList
-                                                  (trackJSONs);
-  
-        Tapedeck.Backend.Bank.saveTracks(browseTrackList);
-  
-        var browseView = Tapedeck.Backend
-                                 .TemplateManager
-                                 .renderView("BrowseList",
-                                             { trackList   : browseTrackList });
-
-        Tapedeck.Backend.MessageHandler.pushView("browse-list",
-                                                 browseView);
-      });
-    });
+    $(this.el).find("#browse-region").replaceWith(browseRegionView);
   },
   
   assignPlaybackButtonImgs: function() {
