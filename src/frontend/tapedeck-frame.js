@@ -402,6 +402,7 @@ Tapedeck.Frontend.Frame = {
 
     var dataTransfer = window.event.dataTransfer;
     dataTransfer.effectAllowed = 'move';
+    dataTransfer.setData('Text', "hi!"); // needed for Mac drop effects
 
     rowDrag.from = $(target).closest(".tracklist-container").first().attr("id");
     console.log("id: " + rowDrag.from);
