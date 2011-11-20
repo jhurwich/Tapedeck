@@ -183,6 +183,8 @@ body {
 .cassettelist .cell {
   position: relative;
   display: table-cell;
+  -webkit-user-select: none;
+  user-select: none;
   min-height: 16px;
   float: left;
   font: 14px arial,sans-serif;
@@ -370,14 +372,18 @@ body {
 #developer-link:hover {
   color: #3299BB;
 }
+
+.tracklist-container #current-cassette-row .row-buttons {
+  margin: 0;
+  right: 0;
+}
 .tracklist-container #current-cassette-row .row-buttons > .button {
-  height: 16px;
+  height: 18px;
   width: 16px;
   float: left;
   border: 1px solid black;
   background-position: center;
   background-color: #181818;
-  margin-left: 1px;
   cursor: pointer;
 }
 .tracklist-container #current-cassette-row {
