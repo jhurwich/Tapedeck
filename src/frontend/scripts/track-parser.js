@@ -90,14 +90,10 @@ TapedeckInjected.TrackParser = {
         if (extension == '.mp3') {
           var track = { type : "mp3" };
           var text = $(a).text();
-          var pieces = text.split("-", 2);
-          if (pieces.length > 1) {
-            track.artistName = $.trim(pieces[0]).replace(/["']/g, "");
-            track.trackName = $.trim(pieces[1]).replace(/["']/g, "");;
-          }
-          else {
-            track.trackName = $.trim(text);
-          }
+
+          
+          track = TapedeckInjected.TrackParser
+                                  .addArtistAndTrackNames(track, text);
           
           if (track.trackName == "") {
             var splitHref = a.href.split(extension)[0];
@@ -369,6 +365,57 @@ TapedeckInjected.TrackParser = {
     }
     
     return str;
+  },
+
+  // Attempt to add artist and track name to the param track by
+  // splitting text in two.  If text cannot be split, the param
+  // track's trackName will be set to text.
+  addArtistAndTrackNames : function(track, text) {
+    var commonSplitUnicodes = [124, // vertical bar
+                               126, // tilde
+                               8208, // hyphen
+                               8209, // non-breaking hyphen
+                               8210, // figure dash
+                               8211, // en dash
+                               8212, // em dash
+                               8213, // horizontal bar
+                               45]; // hyphen-minus
+    var bestSplit = [];
+
+    // We define a better split as one for which the difference in
+    // length of track and artist name is a minimum
+    var isBetterSplit = function(checkPieces) {
+      if (bestSplit.length == 0) {
+        return true;
+      }
+
+      var checkSplitDiff = Math.abs(checkPieces[0].length - checkPieces[1].length);
+      var bestSplitDiff = Math.abs(bestSplit[0].length - bestSplit[1].length);
+
+      return (checkSplitDiff < bestSplitDiff);
+    }
+
+    // Try each common splitter to find which gives the best 2 pieces,
+    // if any.  First piece is set to artistName and second to trackName
+    // if there is a split, else trackName is set to the param text.
+    for (var i = 0; i < commonSplitUnicodes.length; i++) {
+      var unicode = commonSplitUnicodes[i];
+      var pieces = text.split(" " + String.fromCharCode(unicode) + " ", 2);
+
+      if (pieces.length > 1 &&
+          isBetterSplit(pieces)) {
+        bestSplit = pieces;
+      }
+    }
+    if (bestSplit.length > 1) {
+      track.artistName = $.trim(bestSplit[0]).replace(/["']/g, "");
+      track.trackName = $.trim(bestSplit[1]).replace(/["']/g, "");;
+    }
+    else {
+      track.trackName = $.trim(text);
+    }
+
+    return track;
   },
 };
 

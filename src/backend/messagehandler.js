@@ -155,7 +155,8 @@ Tapedeck.Backend.MessageHandler = {
 
   postMessage: function(tabID, message) {
     var ports = Tapedeck.Backend.MessageHandler.ports;
-    if (typeof(ports[tabID]) != "undefined") {
+    if (typeof(ports[tabID]) != "undefined" &&
+        ports[tabID] != null) {
       ports[tabID].postMessage(message);
     }
   },
