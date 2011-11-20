@@ -128,20 +128,37 @@ body {
 .tracklist-container,
 .cassettellist-container {
   position: relative;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 .tracklist,
 .cassettelist {
-  display: table;
-  empty-cells: show;
-  border: solid 2px rgb(66,66,66); 
+  border-right: none;
+  overflow: hidden;
+}
+.tracklist .row-container,
+.cassettelist .row-container {
+  position: relative;
+  -khtml-user-select: none;
+  width: 100%;
+  max-width: 326px;
+  overflow: hidden;
+  border-left: solid 2px rgb(66,66,66);
+  border-right: solid 2px rgb(66,66,66);
+}
+.tracklist .row-container:first-child {
+  border-top: solid 2px rgb(66,66,66);
+}
+.tracklist .row-container:last-child {
+  border-bottom: solid 2px rgb(66,66,66);
 }
 .tracklist .row,
 .cassettelist .row{
-  position: relative;
-  display: table-row;
-  -khtml-user-select: none;
   background-color: rgb(233,233,233);
+  position: relative;
+  min-width: 330px;
+  height: 16px;
+  z-index: 3;
 }
 .tracklist .row:hover {
   background-color: #d0d0d0;
@@ -176,7 +193,7 @@ body {
   border-bottom: solid 1px rgb(50,153,187);
   padding-left: 2px;
 }
-.tracklist .row:last-child .cell{
+.tracklist .row-container:last-child .cell{
   border-bottom: none;
 }
 .tracklist .row.drag-target .cell{
@@ -190,7 +207,7 @@ body {
 }
 .tracklist .cell.cassette-col {
   border-right: none;
-  width: 68px;
+  width: 71px;
 }
 .tracklist-container .row-buttons,
 .cassettelist .row-buttons {
@@ -245,7 +262,10 @@ body {
   cursor: pointer;
   width: 20px;
 }
-
+.tracklist #hidden-droprow {
+  max-height: 3px;
+  min-height: 3px;
+}
 .tracklist #hidden-droprow .cell {
   max-height: 3px;
   min-height: 3px;
@@ -319,6 +339,7 @@ body {
 .cassettelist .row,
 .tracklist-container #current-cassette-row {
   background-color: #515151;
+  height: 20px;
 }
 .cassettelist .row:hover {
   background-color: #2f2f2f;
@@ -343,20 +364,21 @@ body {
   width: 170px;
 }
 .cassettelist .cell.developerName-col {
-  width: 158px;
+  width: 155px;
   border-right: none;
 }
 #developer-link:hover {
   color: #3299BB;
 }
-.tracklist-container #current-cassette-row .row-buttons > .button,
-.cassettelist .row-buttons > .button {
-  height: 14px;
-  width: 14px;
+.tracklist-container #current-cassette-row .row-buttons > .button {
+  height: 16px;
+  width: 16px;
   float: left;
   border: 1px solid black;
   background-position: center;
+  background-color: #181818;
   margin-left: 1px;
+  cursor: pointer;
 }
 .tracklist-container #current-cassette-row {
   width: 326px;

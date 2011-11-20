@@ -397,14 +397,14 @@ Tapedeck.Frontend.Frame = {
   },
   rowDragStart: function(e) {
     var rowDrag = Tapedeck.Frontend.Frame.rowDrag;
-    
+    console.log("row-drag-start");
     var target = $(e.target).closest(".row");
 
     var dataTransfer = window.event.dataTransfer;
     dataTransfer.effectAllowed = 'move';
 
     rowDrag.from = $(target).closest(".tracklist-container").first().attr("id");
-
+    console.log("id: " + rowDrag.from);
     if ($(target).hasClass("selected")) {
       // target was selected, grab all selected tracks
       var trackList = $(target).closest(".tracklist");
@@ -425,14 +425,17 @@ Tapedeck.Frontend.Frame = {
     }
   },
   rowDragEnter: function(e) {
+    console.log("drag-enter");
     var target = $(e.target).closest(".row");
     $(target).addClass("drag-target");
   },
   rowDragLeave: function(e) {
+    console.log("drag-leave");
     var target = $(e.target).closest(".row");
     $(target).removeClass("drag-target");
   },
   rowDragEnd: function(e) {
+    console.log("drag-end");
     $(".drag-target").each(function(index, dragTarget) {
       $(dragTarget).removeClass("drag-target");
     });
@@ -441,8 +444,10 @@ Tapedeck.Frontend.Frame = {
     if (e.preventDefault) {
       e.preventDefault(); // Necessary. Allows us to drop.
     }
+    console.log("drag-over");
   },
   rowDrop: function(e) {
+    console.log("drag-drop");
     var rowDrag = Tapedeck.Frontend.Frame.rowDrag;
     if (e.stopPropagation) {
       e.stopPropagation(); // stops redirecting in some cases.

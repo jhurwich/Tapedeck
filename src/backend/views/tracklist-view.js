@@ -60,6 +60,8 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
     this.assignImgs(".button.queue", "rowbutton-queue.png");
     this.assignImgs(".button.download", "rowbutton-download.png");
     this.assignImgs(".spinner.download", "download-spinner.gif");
+    
+    this.assignImgs(".button.eject", "cassettebutton-eject.png");
   },
   
   assignImgs: function(selector, image) {

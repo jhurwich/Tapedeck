@@ -1,7 +1,7 @@
 <html>
   <head>
     <!-- Vendor includes -->
-    <script type="text/javascript" src="/vendor/jquery-1.6.2.js"></script>
+    <script type="text/javascript" src="/vendor/jquery-1.7.js"></script>
     <script type="text/javascript" src="/vendor/underscore.js"></script>
     <script type="text/javascript" src="/vendor/backbone.js"></script>
   
@@ -131,45 +131,49 @@
 
     <script id="TrackList-default-template" type="text/template">
       <div class="tracklist">
-        <div class="row" id="hidden-droprow" index="-1">
-          <div class="cell trackName-col"></div>
-          <div class="cell artistName-col"></div>
-          <div class="cell cassette-col"></div>
+        <div class="row-container">
+          <div class="row" id="hidden-droprow" index="-1">
+            <div class="cell trackName-col"></div>
+            <div class="cell artistName-col"></div>
+            <div class="cell cassette-col"></div>
+          </div>
         </div>
         <% for (var i=0; i < trackList.length; i++) {
           var track = trackList[i];
         %>
-          <div class="row
-                      <% if (track.listened) { print(" listened ") } %>
-                      <% if (track.playing) { print(" playing ") } %>"
-               index='<%= i %>'
-               track-id='<%= track.tdID %>'
-               track-type='<% if(typeof(track.type) == "undefined") {
-                                print("unknown")
-                              } else {
-                                print(track.type)
-                              } %>'
-               <% if (typeof(track.download) != "undefined") {
-                  print("download='" + track.download + "'");
-               } %> 
-               draggable="true"
-               onclick="Tapedeck.Frontend.Frame.rowClick(event)" >
-            <div class="cell trackName-col"> <%= track.trackName %> </div>
-            <div class="cell artistName-col"> <%= track.artistName %> </div>
-            <div class="cell cassette-col"> <%= track.cassette %>
-              <div class="row-buttons">
-                <div class="button playnow"
-                     onclick="Tapedeck.Frontend.Frame.rowButtonPlaynow(event)"></div>
-                <div class="button remove"
-                     onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
-                <div class="button queue"
-                     onclick="Tapedeck.Frontend.Frame.rowButtonQueue(event)"></div>
-                <div class="button download"
-                     onclick="Tapedeck.Frontend.Frame.rowButtonDownload(event)"></div>
-              </div>
-              <div class="row-indicators">
-                <div class="spinner download"
-                     id="download-spinner"></div>
+          <div class="row-container">
+            <div class="row
+                        <% if (track.listened) { print(" listened ") } %>
+                        <% if (track.playing) { print(" playing ") } %>"
+                 index='<%= i %>'
+                 track-id='<%= track.tdID %>'
+                 track-type='<% if(typeof(track.type) == "undefined") {
+                                  print("unknown")
+                                } else {
+                                  print(track.type)
+                                } %>'
+                 <% if (typeof(track.download) != "undefined") {
+                    print("download='" + track.download + "'");
+                 } %> 
+                 draggable="true"
+                 onclick="Tapedeck.Frontend.Frame.rowClick(event)" >
+              <div class="cell trackName-col"> <%= track.trackName %> </div>
+              <div class="cell artistName-col"> <%= track.artistName %> </div>
+              <div class="cell cassette-col"> <%= track.cassette %>
+                <div class="row-buttons">
+                  <div class="button playnow"
+                       onclick="Tapedeck.Frontend.Frame.rowButtonPlaynow(event)"></div>
+                  <div class="button remove"
+                       onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
+                  <div class="button queue"
+                       onclick="Tapedeck.Frontend.Frame.rowButtonQueue(event)"></div>
+                  <div class="button download"
+                       onclick="Tapedeck.Frontend.Frame.rowButtonDownload(event)"></div>
+                </div>
+                <div class="row-indicators">
+                  <div class="spinner download"
+                       id="download-spinner"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -212,24 +216,26 @@
         <% for (var i=0; i < cassetteList.length; i++) {
           var cassette = cassetteList[i];
         %>
-          <div class="row"
-               index='<%= i %>'
-               cassette-id='<%= cassette.tdID %>' >
-            <div class="cell cassetteName-col"> <%= cassette.name %> </div>
-            <div class="cell developerName-col">
-              <span id="developer-link"
-                    title='<%= cassette.developerLink %>'
-                    url='<%= cassette.developerLink %>'
-                    onclick="Tapedeck.Frontend.Frame.loadDeveloperLink(event)" >
-                <%= cassette.developer %>
-              </span>
-              <div class="row-buttons">
-                <!--
-                <div class="button remove"
-                     onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
-                -->
-              </div>
-            </div<
+          <div class="row-container">
+            <div class="row"
+                 index='<%= i %>'
+                 cassette-id='<%= cassette.tdID %>' >
+              <div class="cell cassetteName-col"> <%= cassette.name %> </div>
+              <div class="cell developerName-col">
+                <span id="developer-link"
+                      title='<%= cassette.developerLink %>'
+                      url='<%= cassette.developerLink %>'
+                      onclick="Tapedeck.Frontend.Frame.loadDeveloperLink(event)" >
+                  <%= cassette.developer %>
+                </span>
+                <div class="row-buttons">
+                  <!--
+                  <div class="button remove"
+                       onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
+                  -->
+                </div>
+              </div<
+            </div>
           </div>
         <% } %>
       </div>
