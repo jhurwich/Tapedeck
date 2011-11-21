@@ -40,7 +40,9 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
   },
 
   render: function() {
-    var templateOptions = { trackList: this.trackList.toJSON() };
+    var trackListJSON = this.trackList.toJSON();
+    trackListJSON.destination = this.viewName;
+    var templateOptions = { trackList: trackListJSON };
     if (this.currentCassette != null) {
       templateOptions.currentCassette = this.currentCassette.toJSON();
     }

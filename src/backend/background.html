@@ -131,52 +131,68 @@
 
     <script id="TrackList-default-template" type="text/template">
       <div class="tracklist">
-        <div class="row-container">
-          <div class="row" id="hidden-droprow" index="-1">
-            <div class="cell trackName-col"></div>
-            <div class="cell artistName-col"></div>
-            <div class="cell cassette-col"></div>
-          </div>
-        </div>
-        <% for (var i=0; i < trackList.length; i++) {
-          var track = trackList[i];
-        %>
+        <% if (trackList.length == 0) { %>
           <div class="row-container">
-            <div class="row
-                        <% if (track.listened) { print(" listened ") } %>
-                        <% if (track.playing) { print(" playing ") } %>"
-                 index='<%= i %>'
-                 track-id='<%= track.tdID %>'
-                 track-type='<% if(typeof(track.type) == "undefined") {
-                                  print("unknown")
-                                } else {
-                                  print(track.type)
-                                } %>'
-                 <% if (typeof(track.download) != "undefined") {
-                    print("download='" + track.download + "'");
-                 } %> 
-                 draggable="true"
-                 onclick="Tapedeck.Frontend.Frame.rowClick(event)" >
-              <div class="cell trackName-col" title='<%= track.trackName %>'> <%= track.trackName %> </div>
-              <div class="cell artistName-col" title='<%= track.artistName %>'> <%= track.artistName %> </div>
-              <div class="cell cassette-col" title='<%= track.cassette %>'> <%= track.cassette %>
-                <div class="row-buttons">
-                  <div class="button playnow"
-                       onclick="Tapedeck.Frontend.Frame.rowButtonPlaynow(event)"></div>
-                  <div class="button remove"
-                       onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
-                  <div class="button queue"
-                       onclick="Tapedeck.Frontend.Frame.rowButtonQueue(event)"></div>
-                  <div class="button download"
-                       onclick="Tapedeck.Frontend.Frame.rowButtonDownload(event)"></div>
-                </div>
-                <div class="row-indicators">
-                  <div class="spinner download"
-                       id="download-spinner"></div>
+            <div class="row blank">
+              <% if (trackList.destination == "Queue") { %>
+                There are no tracks in your queue.
+              <% }
+              else { %>
+                Sorry, this cassette seems blank.
+              <% } %>
+            </div>
+          </div>
+
+        <% }
+        else { %>
+          <div class="row-container">
+            <div class="row" id="hidden-droprow" index="-1">
+              <div class="cell trackName-col"></div>
+              <div class="cell artistName-col"></div>
+              <div class="cell cassette-col"></div>
+            </div>
+          </div>
+  
+          <% for (var i=0; i < trackList.length; i++) {
+            var track = trackList[i];
+          %>
+            <div class="row-container">
+              <div class="row
+                          <% if (track.listened) { print(" listened ") } %>
+                          <% if (track.playing) { print(" playing ") } %>"
+                   index='<%= i %>'
+                   track-id='<%= track.tdID %>'
+                   track-type='<% if(typeof(track.type) == "undefined") {
+                                    print("unknown")
+                                  } else {
+                                    print(track.type)
+                                  } %>'
+                   <% if (typeof(track.download) != "undefined") {
+                      print("download='" + track.download + "'");
+                   } %> 
+                   draggable="true"
+                   onclick="Tapedeck.Frontend.Frame.rowClick(event)" >
+                <div class="cell trackName-col" title='<%= track.trackName %>'> <%= track.trackName %> </div>
+                <div class="cell artistName-col" title='<%= track.artistName %>'> <%= track.artistName %> </div>
+                <div class="cell cassette-col" title='<%= track.cassette %>'> <%= track.cassette %>
+                  <div class="row-buttons">
+                    <div class="button playnow"
+                         onclick="Tapedeck.Frontend.Frame.rowButtonPlaynow(event)"></div>
+                    <div class="button remove"
+                         onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
+                    <div class="button queue"
+                         onclick="Tapedeck.Frontend.Frame.rowButtonQueue(event)"></div>
+                    <div class="button download"
+                         onclick="Tapedeck.Frontend.Frame.rowButtonDownload(event)"></div>
+                  </div>
+                  <div class="row-indicators">
+                    <div class="spinner download"
+                         id="download-spinner"></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          <% } %>
         <% } %>
       </div>
       <% if (typeof(currentCassette) != "undefined") { %>

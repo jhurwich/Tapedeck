@@ -179,6 +179,9 @@ body {
 .tracklist .row:not(.playing) .cell{
   font-weight: normal !important;
 }
+.tracklist .row.blank {
+  padding: 3px;
+}
 .tracklist-container .cell,
 .cassettelist .cell {
   position: relative;
