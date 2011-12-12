@@ -22,6 +22,7 @@ describe("Message Handler", function() {
   it("should execute the correct script with MessageHandler.executeScript", function() {
     var spy = spyOn(TapedeckInjected.TrackParser, "start").andCallThrough();
     var testTab = this.findTestTab();
+    expect(testTab).not.toBeNull();
 
     var testComplete = false;
 
@@ -29,7 +30,7 @@ describe("Message Handler", function() {
       testComplete = true;
     };
     
-    this.Tapedeck.Backend.MessageHandler
+    this.Tapedeck.Backend.InjectManager
                          .executeScript(testTab,
                                         { allFrames: false,
                                           file: "frontend/scripts/track-parser.js" },
@@ -51,6 +52,8 @@ describe("Message Handler", function() {
     
     var testDiv = "<div id='testdiv'></div>";
     var testTab = this.findTestTab();
+    expect(testTab).not.toBeNull();
+    
     this.Tapedeck.Backend.MessageHandler.pushView("browse-list",
                                                   testDiv,
                                                   testTab);

@@ -11,6 +11,7 @@
     <script type="text/javascript" src="bank.js"></script>
     <script type="text/javascript" src="cassettemanager.js"></script>
     <script type="text/javascript" src="templatemanager.js"></script>
+    <script type="text/javascript" src="injectmanager.js"></script>
     <script type="text/javascript" src="messagehandler.js"></script>
     <script type="text/javascript" src="sequencer.js"></script>
   
@@ -260,8 +261,6 @@
       $(function() {
           Tapedeck.Backend.init();
       });
-      chrome.extension.onRequest.addListener
-        (Tapedeck.Backend.MessageHandler.handleRequest);
     </script>
     
   </head>

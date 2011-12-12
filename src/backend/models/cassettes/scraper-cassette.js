@@ -21,7 +21,7 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
       callback(response.tracks);
     };
     
-    Tapedeck.Backend.MessageHandler
+    Tapedeck.Backend.InjectManager
                     .executeScript(context.tab,
                                    { allFrames: false,
                                      file: "frontend/scripts/track-parser.js" },

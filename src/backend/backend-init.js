@@ -13,6 +13,7 @@ Tapedeck.Backend.init = function() {
   Tapedeck.Backend.Bank.init();
   Tapedeck.Backend.CassetteManager.init();
   Tapedeck.Backend.TemplateManager.init();
+  Tapedeck.Backend.InjectManager.init();
   Tapedeck.Backend.MessageHandler.init();
   Tapedeck.Backend.Sequencer.init();
 };

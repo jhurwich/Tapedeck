@@ -1,15 +1,25 @@
 // Props to Dan Kantor @ ExFM for providing a great song-parser template
 // that this implementation was based off of.
 TapedeckInjected.TrackParser = {
-  debug : false,
+  DEBUG_LEVELS: {
+    NONE  : 0,
+    BASIC : 1,
+    ALL   : 2,
+  },
+  debug: 0,
 
   start : function() {
-    var tracks = TapedeckInjected.TrackParser.findSongs();
+    var self = TapedeckInjected.TrackParser
+    self.log("starting parsing", self.DEBUG_LEVELS.BASIC);
+    var tracks = self.findSongs();
 
     var response = {
       type: "response",
       tracks: tracks
-    }
+    };
+
+    self.log("ending parsing: " + JSON.stringify(response),
+             self.DEBUG_LEVELS.BASIC);
     chrome.extension.sendRequest(response);
   },
   
@@ -75,6 +85,8 @@ TapedeckInjected.TrackParser = {
 
   links : {
     scrape : function() {
+      var self = TapedeckInjected.TrackParser;
+      
       var links = $('a');
       var mp3Links = { };
       for (var i = 0; i < links.length; i++) {
@@ -92,8 +104,7 @@ TapedeckInjected.TrackParser = {
           var text = $(a).text();
 
           
-          track = TapedeckInjected.TrackParser
-                                  .addArtistAndTrackNames(track, text);
+          track = self.addArtistAndTrackNames(track, text);
           
           if (track.trackName == "") {
             var splitHref = a.href.split(extension)[0];
@@ -102,9 +113,8 @@ TapedeckInjected.TrackParser = {
             if (filename != '') {
               track.trackName = filename;
             } else {
-              if (TapedeckInjected.TrackParser.debug) {
-                console.log("No trackName found for '" + a.href + "'. Using 'Unknown Title'");
-              }
+              self.log("No trackName found for '" + a.href + "'. Using 'Unknown Title'",
+                       self.DEBUG_LEVELS.BASIC);
             }
           }
           
@@ -131,10 +141,11 @@ TapedeckInjected.TrackParser = {
               }
             });
             
-            track.description = TapedeckInjected.TrackParser.trimString(longestEntry, 200);
+            track.description = self.trimString(longestEntry, 200);
           }
-          if (TapedeckInjected.TrackParser.debug) {
-            console.log("new track object:", track);
+          if (self.debug) {
+            self.log("new track object: " + JSON.stringify(track),
+                     self.DEBUG_LEVELS.ALL);
           }
           
           mp3Links[track.url] = track;
@@ -155,6 +166,8 @@ TapedeckInjected.TrackParser = {
     },
     */
     scrape : function() {
+      var self = TapedeckInjected.TrackParser;
+      
       var mp3Links = { };
       var urls = [];
       var lis = $('li.audio');
@@ -171,16 +184,14 @@ TapedeckInjected.TrackParser = {
           
           if ($.inArray(track.url, urls) != -1) {
             // already seen this track
-            if (TapedeckInjected.TrackParser.debug) {
-              console.log("already scraped " + track.url);
-            }
+            self.log("already scraped " + track.url, self.DEBUG_LEVELS.BASIC);
             continue;
           }
           
           urls.push(track.url);
 
           var postBody = $(li).find('.post_body').first();
-          var post = TapedeckInjected.TrackParser.cleanHTML(postBody.html());
+          var post = self.cleanHTML(postBody.html());
 
           var albumArts = jQuery(li).find('.album_art');
           if (albumArts.length > 0) {
@@ -190,9 +201,9 @@ TapedeckInjected.TrackParser = {
             track.trackName = $.trim(titlePieces[1]);
           }
           else {
-            track.trackName = TapedeckInjected.TrackParser.trimString(post, 200);
+            track.trackName = self.trimString(post, 200);
           }
-          track.description = TapedeckInjected.TrackParser.trimString(post, 200);
+          track.description = self.trimString(post, 200);
 
           var perma = $(li).find('a.permalink').first();
           if (perma) {
@@ -206,9 +217,8 @@ TapedeckInjected.TrackParser = {
           mp3Links[track.url] = track;
         }
         catch(e) {
-          if (TapedeckInjected.TrackParser.debug) {
-            console.log("Error in tumblrDashboard scraping");
-          }
+          self.log("Error in tumblrDashboard scraping",
+                   self.DEBUG_LEVELS.NONE);
         }
       }
       return mp3Links;
@@ -258,6 +268,8 @@ TapedeckInjected.TrackParser = {
       },
       */
     scrape : function() {
+      var self = TapedeckInjected.TrackParser;
+      
       var mp3Links = { };
       var divs = $('div.audio_player');
       for (var i = 0; i < divs.length; i++) {
@@ -280,9 +292,8 @@ TapedeckInjected.TrackParser = {
           mp3Links[track.url] = track;
         }
         catch(e) {
-          if (TapedeckInjected.TrackParser.debug) {
-            console.log("Error in tumblr scraping");
-          }
+          self.log("Error in tumblr scraping",
+                   self.DEBUG_LEVELS.NONE);
         }
       }
       /* jhawk save for loadmore
@@ -297,6 +308,8 @@ TapedeckInjected.TrackParser = {
   
   audioElements : {
     scrape : function() {
+      var self = TapedeckInjected.TrackParser;
+      
       var audioElements = $('audio');
       var mp3Links = { };
       for (var i = 0; i < audioElements.length; i++) {
@@ -329,9 +342,8 @@ TapedeckInjected.TrackParser = {
           
           mp3Links[track.url] = track;
         } else {
-          if (TapedeckInjected.TrackParser.debug) {
-            console.log('<audio> must have src or <source>');
-          }
+          self.log('<audio> must have src or <source>',
+                   self.DEBUG_LEVELS.BASIC);
         }
         
       }
@@ -371,15 +383,17 @@ TapedeckInjected.TrackParser = {
   // splitting text in two.  If text cannot be split, the param
   // track's trackName will be set to text.
   addArtistAndTrackNames : function(track, text) {
-    var commonSplitUnicodes = [124, // vertical bar
-                               126, // tilde
+    var commonSplitUnicodes = [124,  // vertical bar
+                               126,  // tilde
                                8208, // hyphen
                                8209, // non-breaking hyphen
                                8210, // figure dash
                                8211, // en dash
                                8212, // em dash
                                8213, // horizontal bar
-                               45]; // hyphen-minus
+                               58,   // colon
+                               45];  // hyphen-minus
+                               
     var bestSplit = [];
 
     // We define a better split as one for which the difference in
@@ -398,8 +412,13 @@ TapedeckInjected.TrackParser = {
     // Try each common splitter to find which gives the best 2 pieces,
     // if any.  First piece is set to artistName and second to trackName
     // if there is a split, else trackName is set to the param text.
+
+    // First we try all of our splitters with spaces on either side,
+    // then if we can't find anything we try without spaces.
     for (var i = 0; i < commonSplitUnicodes.length; i++) {
       var unicode = commonSplitUnicodes[i];
+
+      // with spaces on either side of the splitter
       var pieces = text.split(" " + String.fromCharCode(unicode) + " ", 2);
 
       if (pieces.length > 1 &&
@@ -407,6 +426,20 @@ TapedeckInjected.TrackParser = {
         bestSplit = pieces;
       }
     }
+    if (bestSplit.length < 2) {
+      for (var i = 0; i < commonSplitUnicodes.length; i++) {
+        var unicode = commonSplitUnicodes[i];
+
+        // without spaces around the splitter
+        var pieces = text.split(String.fromCharCode(unicode), 2);
+  
+        if (pieces.length > 1 &&
+            isBetterSplit(pieces)) {
+          bestSplit = pieces;
+        }
+      }
+    }
+    
     if (bestSplit.length > 1) {
       track.artistName = $.trim(bestSplit[0]).replace(/["']/g, "");
       track.trackName = $.trim(bestSplit[1]).replace(/["']/g, "");;
@@ -417,6 +450,20 @@ TapedeckInjected.TrackParser = {
 
     return track;
   },
+
+  log: function(str, level) {
+    var self = TapedeckInjected.TrackParser;
+    if (self.debug == self.DEBUG_LEVELS.NONE) {
+      return;
+    }
+    if (typeof(level) == "undefined") {
+      level = self.DEBUG_LEVELS.BASIC;
+    }
+    if (self.debug >= level) {
+      var currentTime = new Date();
+      console.log("TrackParser (" + currentTime.getTime() + ") - " + str);
+    }
+  }
 };
 
 if (!TapedeckInjected.isTest()) {

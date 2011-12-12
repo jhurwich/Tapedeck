@@ -42,9 +42,11 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
     // browselist and it will update the view when it is ready.
     $(el).find("#browse-list").hide();
     if (cMgr.currentCassette != null) {
+      
       chrome.tabs.get(this.tabID, function(tab) {
         // There is a current cassette, render its browselist
         var context = Tapedeck.Backend.Utils.getContext(tab);
+        
         cMgr.currentCassette.getBrowseList(context, function(trackJSONs) {
           var browseTrackList = new Tapedeck.Backend.Collections.TrackList
                                                     (trackJSONs);

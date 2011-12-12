@@ -8,6 +8,13 @@ if (typeof(Tapedeck.Frontend.Messenger) != "undefined") {
 
 Tapedeck.Frontend.Messenger = {
 
+  DEBUG_LEVELS: {
+    NONE  : 0,
+    BASIC : 1,
+    ALL   : 2,
+  },
+  debug: 0,
+  
   port: null,
   init: function(callback) {
     var self = this;
@@ -15,7 +22,8 @@ Tapedeck.Frontend.Messenger = {
 
     self.port = chrome.extension.connect();
     self.port.onMessage.addListener(self.handleRequest);
-    self.port.onMessage.addListener(self.handleResponse);    
+    self.port.onMessage.addListener(self.handleResponse);   
+    self.log("Connected port for tab " + self.port.name);  
   },
 
   pendingCallbacks: {},
@@ -34,8 +42,10 @@ Tapedeck.Frontend.Messenger = {
     if (request.type != "request") {
       return;
     }
+    var self = Tapedeck.Frontend.Messenger;
     
-    var response = Tapedeck.Frontend.Messenger.newResponse(request);
+    var response = self.newResponse(request);
+    self.log("Receving request: " + request.action);
     
     switch(request.action)
     {
@@ -51,12 +61,18 @@ Tapedeck.Frontend.Messenger = {
                         words[i].slice(1);
         }
 
+        self.log("Executing script in test: " + scriptName);
         window.parent.TapedeckInjected[scriptName].start();
         break;
         
       case "pushView":
+        self.log("Replacing view: " + request.targetID);
         Tapedeck.Frontend.Frame.replaceView(request.targetID,
                                             request.view);
+        break;
+
+      case "loadComplete":
+        Tapedeck.Frontend.Frame.onLoadComplete();
         break;
 
       case "updateSeekSlider":
@@ -80,7 +96,7 @@ Tapedeck.Frontend.Messenger = {
       updateType : updateType
     });
     
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
   
   getView: function(viewName, options, packageName, callback) {
@@ -94,7 +110,7 @@ Tapedeck.Frontend.Messenger = {
       request.packageName = packageName;
     }
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   seekPercent: function(percent) {
@@ -103,7 +119,7 @@ Tapedeck.Frontend.Messenger = {
       percent : percent
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   setVolume: function(percent) {
@@ -112,7 +128,7 @@ Tapedeck.Frontend.Messenger = {
       percent : percent
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   download: function(trackID, callback) {
@@ -121,7 +137,7 @@ Tapedeck.Frontend.Messenger = {
       trackID : trackID
     }, callback);
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
   finishDownload: function(trackID) {
     var request = Tapedeck.Frontend.Messenger.newRequest({
@@ -129,7 +145,7 @@ Tapedeck.Frontend.Messenger = {
       trackID : trackID
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   queueTrack: function(trackX, index) {
@@ -149,7 +165,7 @@ Tapedeck.Frontend.Messenger = {
       request.index = index;
     };
     
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
   
   moveTracks: function(trackObjs, index) {
@@ -164,7 +180,7 @@ Tapedeck.Frontend.Messenger = {
       request.index = index;
     };
     
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   removeQueuedAt: function(pos) {
@@ -173,7 +189,7 @@ Tapedeck.Frontend.Messenger = {
       pos    : pos
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   playPlaylist: function(index) {
@@ -182,7 +198,7 @@ Tapedeck.Frontend.Messenger = {
       index  : index,
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   removePlaylist: function(index) {
@@ -191,7 +207,7 @@ Tapedeck.Frontend.Messenger = {
       index  : index,
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   getRepeat: function(callback) {
@@ -199,7 +215,7 @@ Tapedeck.Frontend.Messenger = {
       action       : "getRepeat",
     }, callback);
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   toggleRepeat: function() {
@@ -207,7 +223,7 @@ Tapedeck.Frontend.Messenger = {
       action       : "toggleRepeat",
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   shuffleQueue: function() {
@@ -215,7 +231,7 @@ Tapedeck.Frontend.Messenger = {
       action       : "shuffleQueue",
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   saveQueue: function(playlistName) {
@@ -224,7 +240,7 @@ Tapedeck.Frontend.Messenger = {
       playlistName : playlistName,
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
   
   clearQueue: function() {
@@ -232,7 +248,7 @@ Tapedeck.Frontend.Messenger = {
       action   : "clearQueue"
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   playIndex: function(index) {
@@ -241,7 +257,7 @@ Tapedeck.Frontend.Messenger = {
       index : index
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   queueAndPlayNow: function(trackID) {
@@ -250,7 +266,7 @@ Tapedeck.Frontend.Messenger = {
       trackID : trackID
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   setCassette: function(cassetteID) {
@@ -259,7 +275,7 @@ Tapedeck.Frontend.Messenger = {
       cassetteID : cassetteID
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   ejectCassette: function() {
@@ -272,7 +288,14 @@ Tapedeck.Frontend.Messenger = {
       url : url
     });
 
-    Tapedeck.Frontend.Messenger.port.postMessage(request);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  sendMessage: function(request) {
+    var self = Tapedeck.Frontend.Messenger;
+    self.log("Posting message: " + request.action, self.DEBUG_LEVELS.ALL);
+    
+    self.port.postMessage(request);
   },
 
   newRequest: function(object, callback) {
@@ -314,5 +337,19 @@ Tapedeck.Frontend.Messenger = {
     }
     return response;
   },
+  
+  log: function(str, level) {
+    if (this.debug == this.DEBUG_LEVELS.NONE) {
+      return;
+    }
+    if (typeof(level) == "undefined") {
+      level = this.DEBUG_LEVELS.BASIC;
+    }
+    if (this.debug >= level) {
+      
+      var currentTime = new Date();
+      console.log("Msgr (" + currentTime.getTime() + ") - " + str);
+    }
+  }
 };
  

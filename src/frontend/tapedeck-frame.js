@@ -589,14 +589,6 @@ Tapedeck.Frontend.Frame = {
     Tapedeck.Frontend.Messenger.clearQueue();
   },
 
-  onFrameRender: function() {
-    var frame = Tapedeck.Frontend.Frame;
-    
-    frame.forceSeekSliderUpdate();
-    frame.forceVolumeSliderUpdate();
-    frame.checkRepeat();
-  },
-
   forceSeekSliderUpdate: function() {
     if (!($("#seek-slider").hasClass("disabled"))) {
       Tapedeck.Frontend.Messenger.requestUpdate("SeekSlider");
@@ -620,4 +612,16 @@ Tapedeck.Frontend.Frame = {
     });
   },
 
+  onFrameRender: function() {
+    var frame = Tapedeck.Frontend.Frame;
+    
+    frame.forceSeekSliderUpdate();
+    frame.forceVolumeSliderUpdate();
+    frame.checkRepeat();
+  },
+
+  onLoadComplete: function() {
+    console.log("Got the loadComplete");
+    Tapedeck.Frontend.Messenger.requestUpdate("BrowseList");
+  },
 };
