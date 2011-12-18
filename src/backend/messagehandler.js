@@ -42,7 +42,10 @@ Tapedeck.Backend.MessageHandler = {
     }
     
     var self = Tapedeck.Backend.MessageHandler;
-    self.log("Request received: " + request.action + " from tab " + sender.tab.id);
+    var str = "Request received: " + request.action;
+    str += ((sender.tab == null) ? "from outside tabs"
+                                 : "from tab " + sender.tab.id)
+    self.log(str);
     
     switch (request.action) {
       case "play_pause":

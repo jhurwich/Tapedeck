@@ -2,7 +2,9 @@
   "name": "Tapedeck",
   "version": "0.1.5",
   "description": "The one player for the web.",
+  
   "background_page" :"backend/background.html",
+
   "browser_action":
     {
       "default_icon": "images/browseraction-cassette.png",
@@ -14,9 +16,12 @@
       "48": "images/cassette-48.png",
       "128": "images/cassette-128.png"
     },
+
   "permissions": ["http://*/*",
                   "https://*/*",
                   "tabs",
                   "unlimitedStorage"],
+  
+
   "update_url": "http://www.tape-deck.com/update"
 }
