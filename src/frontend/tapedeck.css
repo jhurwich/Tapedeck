@@ -214,6 +214,10 @@ body {
   border-right: none;
   width: 71px;
 }
+.tracklist .trackName-span:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
 .tracklist-container .row-buttons,
 .cassettelist .row-buttons {
   position: absolute;

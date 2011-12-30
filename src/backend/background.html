@@ -173,9 +173,17 @@
                    } %> 
                    draggable="true"
                    onclick="Tapedeck.Frontend.Frame.rowClick(event)" >
-                <div class="cell trackName-col" title='<%= track.trackName %>'> <%= track.trackName %> </div>
-                <div class="cell artistName-col" title='<%= track.artistName %>'> <%= track.artistName %> </div>
-                <div class="cell cassette-col" title='<%= track.cassette %>'> <%= track.cassette %>
+                <div class="cell trackName-col" title='<%= track.trackName %>'>
+                  <span class="trackName-span"
+                        onclick="Tapedeck.Frontend.Frame.rowDblClick(event)">
+                    <%= track.trackName %>
+                  </span>
+                </div>
+                <div class="cell artistName-col" title='<%= track.artistName %>'>
+                  <%= track.artistName %>
+                </div>
+                <div class="cell cassette-col" title='<%= track.cassette %>'>
+                  <%= track.cassette %>
                   <div class="row-buttons">
                     <div class="button playnow"
                          onclick="Tapedeck.Frontend.Frame.rowButtonPlaynow(event)"></div>

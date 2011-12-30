@@ -311,6 +311,12 @@ Tapedeck.Frontend.Frame = {
   clickTimer: null,
   clickID   : null,
   rowClick: function(e) {
+    // Make sure we aren't registering a single click that was
+    // shortcutted to double click (clicking on trackName)
+    if (Tapedeck.Frontend.Frame.lastDblClickTime == e.timeStamp) {
+      return;
+    }
+    
     var row = $(e.target).closest(".row");
     
     // make sure this isn't actually a double click
@@ -321,12 +327,7 @@ Tapedeck.Frontend.Frame = {
                   
       // make sure it's a double click on the same element
       if ($(row).attr("index") == Tapedeck.Frontend.Frame.clickID) {
-        Tapedeck.Frontend.Frame.clicked = null;
-
-        // Find out and call the correct double click function
-        var dblClickFnName = $(row).closest("[rowdblclick]")
-                                   .attr("rowdblclick");
-        Tapedeck.Frontend.Frame[dblClickFnName](row);
+        Tapedeck.Frontend.Frame.rowDblClick(e);
         return;
       }
     }
@@ -343,6 +344,20 @@ Tapedeck.Frontend.Frame = {
         $(row).removeClass("selected");
       }
     }, 200);
+  },
+
+  lastDblClickTime: -1,
+  rowDblClick: function(e) {
+    // Save the time of the dblClick because we'll get a single click
+    // if this is coming from a trackName click
+    Tapedeck.Frontend.Frame.lastDblClickTime = e.timeStamp;
+    
+    var row = $(e.target).closest(".row");
+    
+    // Find out and call the correct double click function
+    var dblClickFnName = $(row).closest("[rowdblclick]")
+                               .attr("rowdblclick");
+    Tapedeck.Frontend.Frame[dblClickFnName](row);
   },
 
   browseDblClick: function(row) {
