@@ -1,6 +1,6 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Bank"
+  "The Scraper Cassette"
 ];
 
 beforeEach(function() {
@@ -34,6 +34,17 @@ beforeEach(function() {
       domain        : "postdubstep.tumblr.com",
       description   : "A really cool jam.",
       albumArtSrc   : "http://29.media.tumblr.com/tumblr_lonc8qnYGB1qc4gv0o1_1311189640_cover.jpg",
+    },
+    {
+      type          : "soundcloud",
+      trackName     : "Bernal Heights",
+      artistName    : "jhameel",
+      url           : "http://api.soundcloud.com/tracks/10558879/stream?consumer_key=46785bdeaee8ea7f992b1bd8333c4445",
+      trackInfoURL  : "http://api.soundcloud.com/tracks/10558879",
+      location      : "http://www.audiocred.com/2011/11/jhameel-wicked/",
+      domain        : "www.audiocred.com",
+      description   : "free album download at http://www.jhameel.com",
+      albumArtSrc   : "",
     },
   ]; // End testTracks
   

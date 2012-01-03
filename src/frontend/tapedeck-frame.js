@@ -529,6 +529,7 @@ Tapedeck.Frontend.Frame = {
     var trackType = $(row).attr("track-type");
 
     switch (trackType) {
+      case "soundcloud": // TODO special soundcloud dl handling
       case "mp3":
         Tapedeck.Frontend.Frame.download($(row).attr("track-id"));
         break;

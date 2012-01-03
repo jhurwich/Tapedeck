@@ -421,7 +421,19 @@ Tapedeck.Backend.Bank = {
   setDrawerOpened: function(open) {
     Tapedeck.Backend.Bank.drawerOpen = open;
   },
-  
+
+  savedBrowseListName: "__browseList",
+  saveBrowseList: function(trackList) {
+    var bank = Tapedeck.Backend.Bank;
+    bank.saveTracks(trackList);
+    bank.saveTrackList(bank.savedBrowseListName, trackList);
+  },
+
+  getBrowseList: function() {
+    var bank = Tapedeck.Backend.Bank;
+    return bank.getTrackList(bank.savedBrowseListName);
+  },
+
   getDrawerOpened: function() {
     return Tapedeck.Backend.Bank.drawerOpen;
   },

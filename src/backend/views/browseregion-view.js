@@ -51,7 +51,7 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
           var browseTrackList = new Tapedeck.Backend.Collections.TrackList
                                                     (trackJSONs);
     
-          Tapedeck.Backend.Bank.saveTracks(browseTrackList);
+          Tapedeck.Backend.Bank.saveBrowseList(browseTrackList);
     
           var browseView = Tapedeck.Backend
                                    .TemplateManager
@@ -61,9 +61,10 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
           $(el).find("#browse-list").replaceWith(browseView);
           $(el).find("#cassette-list").hide();
           Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
+
           Tapedeck.Backend.MessageHandler.pushView("browse-region",
                                                    el,
-                                                   tab) 
+                                                   tab);
         });
       });
     }

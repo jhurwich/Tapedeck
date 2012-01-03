@@ -48,6 +48,25 @@ Tapedeck.Backend.MessageHandler = {
     self.log(str);
     
     switch (request.action) {
+      case "add_tracks":
+
+        var browseList = Tapedeck.Backend.Bank.getBrowseList();
+
+        // make sure there isn't already this track in the list
+        var existingURLs = browseList.pluck("url");
+        for (var i in request.tracks) {
+          var track = request.tracks[i];
+          
+          if (jQuery.inArray(track.url, existingURLs) == -1) {
+            // the track is new, set the cassette and add it
+            track.cassette = request.cassetteName;
+            browseList.add(track);
+          }
+        }
+
+        self.pushBrowseTrackList(browseList);
+        break;
+      
       case "play_pause":
         var state = Tapedeck.Backend.Sequencer.getCurrentState();
         if (state == "play") {
@@ -334,20 +353,27 @@ Tapedeck.Backend.MessageHandler = {
       cMgr.currentCassette.getBrowseList(context, function(trackJSONs) {
         var browseTrackList = new Tapedeck.Backend.Collections.TrackList
                                                   (trackJSONs);
-  
-        Tapedeck.Backend.Bank.saveTracks(browseTrackList);
-  
-        var browseView = Tapedeck.Backend
-                                 .TemplateManager
-                                 .renderView("BrowseList",
-                                             { trackList   : browseTrackList,
-                                               currentCassette : cMgr.currentCassette });
 
-        Tapedeck.Backend.MessageHandler.pushView("browse-list",
-                                                 browseView,
-                                                 tab);
+        Tapedeck.Backend
+                .MessageHandler
+                .pushBrowseTrackList(browseTrackList, tab);
       });
     }
+  },
+
+  pushBrowseTrackList: function(browseTrackList, tab) {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    Tapedeck.Backend.Bank.saveBrowseList(browseTrackList);
+
+    var browseView = Tapedeck.Backend
+                             .TemplateManager
+                             .renderView("BrowseList",
+                                         { trackList   : browseTrackList,
+                                           currentCassette : cMgr.currentCassette });
+
+    Tapedeck.Backend.MessageHandler.pushView("browse-list",
+                                             browseView,
+                                             tab);
   },
 
   updateSeekSlider: function(tab) {
