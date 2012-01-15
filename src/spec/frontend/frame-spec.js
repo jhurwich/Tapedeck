@@ -39,7 +39,7 @@ describe("Frontend Frame Logic", function() {
     for (var i = 0; i < numTracks; i++) {
       // handle in reverse order
       var currRow = rows[numTracks - 1 - i];
-      this.Tapedeck.Frontend.Frame.browseDblClick(currRow);
+      this.Tapedeck.Frontend.Frame.TrackLists.browseDblClick(currRow);
     }
 
     waitsFor(function() {
@@ -75,7 +75,7 @@ describe("Frontend Frame Logic", function() {
       return spy.callCount > 0;
     }, "Timed out waiting for tracks to be played", 1000);
 
-    this.Tapedeck.Frontend.Frame.queueDblClick(rows[0]);
+    this.Tapedeck.Frontend.Frame.TrackLists.queueDblClick(rows[0]);
     
     runs(function() {
       expect(spy.callCount).toEqual(1);
