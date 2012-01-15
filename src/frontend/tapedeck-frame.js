@@ -296,6 +296,8 @@ Tapedeck.Frontend.Frame = {
   TrackLists: {
     clickTimer: null,
     clickID   : null,
+    lastSelected: -1,
+    lastWasSelected: false,
     rowClick: function(e) {
       var tracklists = Tapedeck.Frontend.Frame.TrackLists;
       
@@ -319,17 +321,54 @@ Tapedeck.Frontend.Frame = {
           return;
         }
       }
-  
-      tracklists.clickID = $(row).attr("index");
+
+      var clickIndex = $(row).attr("index")
+      tracklists.clickID = clickIndex;
       tracklists.clickTimer = setTimeout(function() {
         
         tracklists.clickTimer = null;
-        
-        if (!$(row).hasClass("selected")) {
-          $(row).addClass("selected");
-        }
-        else {
-          $(row).removeClass("selected");
+
+        var isSelect = !$(row).hasClass("selected");
+
+        // Shift-click trumps other selects when possible
+        if (tracklists.lastSelected != -1 &&
+            isSelect == tracklists.lastWasSelected &&
+            e.shiftKey) {
+          var highBound, lowBound;
+          // This is a shift click, connect lastSelected and the clickRow
+          if (clickIndex > tracklists.lastSelected) {
+            lowBound = tracklists.lastSelected;
+            highBound = clickIndex;
+          }
+          else {
+            lowBound = clickIndex;
+            highBound = tracklists.lastSelected;
+          }
+          
+          var rows = $(row).closest(".tracklist").find(".row");
+          rows.each( function(i, aRow) {
+            var pos = $(aRow).attr("index");
+            if (pos <= highBound && pos >= lowBound) {
+              if (isSelect) {
+                $(aRow).addClass("selected");
+              } else {
+                $(aRow).removeClass("selected");
+              }
+            }
+          });
+          
+          tracklists.lastSelected = -1;
+        } else {
+          if (isSelect) {
+            $(row).addClass("selected");
+            tracklists.lastWasSelected = true;
+          }
+          else {
+            tracklists.lastSelected = -1;
+            $(row).removeClass("selected");
+            tracklists.lastWasSelected = false;
+          }
+          tracklists.lastSelected = clickIndex;
         }
       }, 200);
     },
