@@ -47,7 +47,7 @@
           
           <button id="queue-save"
                   type="button"
-                  onclick="Tapedeck.Frontend.Frame.saveQueue()">
+                  onclick="Tapedeck.Frontend.Frame.PlaylistList.saveQueue()">
             Save
           </button>
           <div id="playback-button-box">
@@ -172,10 +172,12 @@
                       print("download='" + track.download + "'");
                    } %> 
                    draggable="true"
-                   onclick="Tapedeck.Frontend.Frame.rowClick(event)" >
+                   onclick="Tapedeck.Frontend.Frame.TrackLists.
+                                    rowClick(event)" >
                 <div class="cell trackName-col" title='<%= track.trackName %>'>
                   <span class="trackName-span"
-                        onclick="Tapedeck.Frontend.Frame.rowDblClick(event)">
+                        onclick="Tapedeck.Frontend.Frame.TrackLists.
+                                         rowDblClick(event)">
                     <%= track.trackName %>
                   </span>
                 </div>
@@ -186,13 +188,17 @@
                   <%= track.cassette %>
                   <div class="row-buttons">
                     <div class="button playnow"
-                         onclick="Tapedeck.Frontend.Frame.rowButtonPlaynow(event)"></div>
+                         onclick="Tapedeck.Frontend.Frame.TrackLists.
+                                          rowButtonPlaynow(event)"></div>
                     <div class="button remove"
-                         onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
+                         onclick="Tapedeck.Frontend.Frame.TrackLists.
+                                          rowButtonRemove(event)"></div>
                     <div class="button queue"
-                         onclick="Tapedeck.Frontend.Frame.rowButtonQueue(event)"></div>
+                         onclick="Tapedeck.Frontend.Frame.TrackLists.
+                                          rowButtonQueue(event)"></div>
                     <div class="button download"
-                         onclick="Tapedeck.Frontend.Frame.rowButtonDownload(event)"></div>
+                         onclick="Tapedeck.Frontend.Frame.TrackLists.
+                                          rowButtonDownload(event)"></div>
                   </div>
                   <div class="row-indicators">
                     <div class="spinner download"
@@ -210,7 +216,7 @@
             <%= currentCassette.name %>
             <div class="row-buttons">
               <div class="button eject"
-                   onclick="Tapedeck.Frontend.Frame.cassetteEject(event)"></div>
+                   onclick="Tapedeck.Frontend.Frame.TrackLists.eject(event)"></div>
             </div>
           </div>
         </div>
@@ -225,11 +231,11 @@
         %>
           <div class="row"
              index='<%= i %>'
-             onclick="Tapedeck.Frontend.Frame.playPlaylist(event)" >
+             onclick="Tapedeck.Frontend.Frame.PlaylistList.playPlaylist(event)" >
             <div class="cell playlistName-col"> <%= playlist.id %> </div>
             <div class="cell row-buttons">
               <div class="button removePlaylist"
-                   onclick="Tapedeck.Frontend.Frame.rowButtonRemovePlaylist(event)"></div>
+                   onclick="Tapedeck.Frontend.Frame.PlaylistList.removePlaylist(event)"></div>
             </div>
           </div>
         <% } %>
@@ -249,7 +255,7 @@
               <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
                 <span id="developer-link"
                       url='<%= cassette.developerLink %>'
-                      onclick="Tapedeck.Frontend.Frame.loadDeveloperLink(event)" >
+                      onclick="Tapedeck.Frontend.Frame.CassetteList.loadDeveloperLink(event)" >
                   <%= cassette.developer %>
                 </span>
                 <div class="row-buttons">
@@ -258,10 +264,17 @@
                        onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
                   -->
                 </div>
-              </div<
+              </div>
             </div>
           </div>
         <% } %>
+        <div class="row-container button-row">
+          <div class="row-buttons">
+            <div id="add-cassette-button"
+                 class="button"
+                 onclick="Tapedeck.Frontend.Frame.cListButtonAdd(event)"></div>
+          </div>
+        </div>
       </div>
     </script>
   

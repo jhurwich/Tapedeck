@@ -9,7 +9,7 @@ Tapedeck.Backend.Views.CassetteList = Backbone.View.extend({
   template: null,
   
   proxyEvents: {
-    "click .cassettelist .row" : "cassetteRowClick",
+    "click .cassettelist .row" : "CassetteList.rowClick",
   },
   eventsName: "cassetteListEvents",
   

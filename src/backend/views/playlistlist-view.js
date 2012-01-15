@@ -8,8 +8,8 @@ Tapedeck.Backend.Views.PlaylistList = Backbone.View.extend({
   template: null,
   
   proxyEvents: {
-    "mouseover #playlist-list-header": "showPlaylistList",
-    "mouseleave #playlist-list": "hidePlaylistList",
+    "mouseover #playlist-list-header" : "PlaylistList.showPlaylistList",
+    "mouseleave #playlist-list"       : "PlaylistList.hidePlaylistList",
   },
   eventsName: "playlistListEvents",
   
