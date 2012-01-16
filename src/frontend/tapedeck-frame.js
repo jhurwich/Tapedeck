@@ -592,6 +592,36 @@ Tapedeck.Frontend.Frame = {
       }
       Tapedeck.Frontend.Messenger.loadLink($(e.target).attr("url"));
     },
+
+    showAddCassettes: function(e) {
+      alert('showadd');
+    },
+
+    cassettify: function(e) {
+      var modalOptions = {
+        fields: [
+          { type          : "input",
+            text          : "Please enter playlist name",
+            callbackParam : "playlistName" },
+          { type          : "info",
+            text          : "Please browse to previous page of blog..." },
+          { type          : "input",
+            text          : "Please enter blog name",
+            callbackParam : "blogName" },
+        ],
+        title: "Cassettify Wizard",
+        submitButtons: [
+          { text          : "Yes",
+            callbackParam : "looksCorrect" },
+          { text          : "No",
+            callbackParam : "looksWrong" },
+        ],
+      };
+      
+      Tapedeck.Frontend.Frame.Modal.show(modalOptions, function(params) {
+
+      });
+    },
   },
 
   PlaylistList: {
@@ -667,6 +697,34 @@ Tapedeck.Frontend.Frame = {
         $("#repeat").attr("src", chrome.extension.getURL("images/repeat.png"))
       }
     });
+  },
+
+  Modal: {
+    /* Modal params: {
+     *  title         : "titlegoeshere",
+     *  fields        : [{ type: "input"|"info",
+     *                     text: "textgoeshere",
+     *                     callbackParam: "paramName" <input only> },
+     *                 ...],
+     *
+     *  <optionals>
+     *  submitButtons : [{ text: "buttontexthere",
+     *                     callbackParam: "paramName" }]
+     */
+    show: function(params, callback) {
+      var getViewCallback = function(response) {
+        Tapedeck.Frontend.Frame.replaceView("modal", response.view);
+        $("#modal").removeAttr("hidden");
+      };
+      
+      Tapedeck.Frontend
+              .Messenger
+              .getView("Modal", params, null, getViewCallback);  
+    },
+    
+    close: function() {
+      $("#modal").attr("hidden", true);
+    },
   },
 
   replaceView: function(id, viewStr) {

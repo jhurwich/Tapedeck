@@ -311,7 +311,7 @@ body {
   left: 3px;
   border: solid 2px rgb(66,66,66); 
   background-color: #f2f2f2;
-  z-index: 100;
+  z-index: 50;
 }
 #playlist-list-content .row:hover {
   background-color: #d0d0d0;
@@ -350,7 +350,7 @@ body {
   background-color: #515151;
   height: 20px;
 }
-.cassettelist .row:hover {
+.cassettelist .row:not(.button-row):hover {
   background-color: #2f2f2f;
   cursor: pointer;
 }
@@ -379,6 +379,43 @@ body {
 #developer-link:hover {
   color: #3299BB;
 }
+.cassettelist .button-row {
+  height: 20px;
+  border-bottom: 2px solid #424242;
+}
+.cassettelist .button-row .row-buttons {
+  right: 0px;
+  margin: 0px;
+}
+.cassettelist .button-row .row-buttons .button {
+  height: 20px;
+  width: 20px;
+  background-color: red;
+  cursor: pointer;
+}
+.cassettelist #add-cassettes-menu {
+  position: absolute;
+  right: 16px;
+  width: 235px;
+  border: 1px solid rgb(66,66,66);
+  background-color: #F2F2F2;
+}
+.cassettelist #add-cassettes-menu .menu-row {
+  border-bottom: 1px solid rgb(66,66,66);
+  padding-left: 4px;
+  -khtml-user-select: none;
+}
+.cassettelist #add-cassettes-menu .menu-row.coming-soon {
+  opacity : 0.4;
+  cursor: default;
+}
+.cassettelist #add-cassettes-menu .menu-row:last-child {
+  border-bottom: none;
+}
+.cassettelist #add-cassettes-menu .menu-row:not(.coming-soon):hover {
+  background-color: #d0d0d0;
+  cursor: pointer;
+}
 
 .tracklist-container #current-cassette-row .row-buttons {
   margin: 0;
@@ -402,4 +439,41 @@ body {
   width: 318px;
   border: 0px;
   float: none;
+}
+
+#blackout {
+  position: fixed;
+  top:0;
+  left: 0;
+  width: 500px;
+  height: 100%;
+  background-color: black;
+  opacity: .4;
+  z-index: 100;
+}
+#modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-left: -150px;
+  margin-top: -100px;
+  width: 300px;
+  height: 200px;
+  background-color: rgb(233,233,233);
+  z-index: 101;
+  padding: 8px 6px;
+  border-radius: 7px;
+}
+#modal #close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 14px;
+  width: 14px;
+  margin: 3px;
+  cursor: pointer;
+}
+#modal #modal-title {
+  text-decoration: underline;
+  font-size: 20px;
 }
