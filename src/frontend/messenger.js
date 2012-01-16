@@ -282,6 +282,15 @@ Tapedeck.Frontend.Messenger = {
     this.setCassette("");
   },
 
+  cassettify: function(options, callback) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "cassettify",
+      options : options
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request); 
+  },
+
   loadLink: function(url) {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action  : "loadLink",

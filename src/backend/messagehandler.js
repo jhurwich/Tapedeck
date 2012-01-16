@@ -298,6 +298,16 @@ Tapedeck.Backend.MessageHandler = {
         Tapedeck.Backend.CassetteManager.setCassette(request.cassetteID);
         break;
 
+      case "cassettify":
+        var sendResponse = function(returnObject) {
+          $.extend(response, returnObject);
+          self.postMessage(port.tab.id, response);
+        }
+        
+        Tapedeck.Backend.CassetteManager.cassettify(request.options,
+                                                    sendResponse)
+        break;
+
       case "loadLink":
         var url = request.url.replace("http://", "");
         chrome.tabs.create({ url: ("http://" + url) });

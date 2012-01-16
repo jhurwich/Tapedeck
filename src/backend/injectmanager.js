@@ -47,6 +47,16 @@ Tapedeck.Backend.InjectManager = {
                     tab.url + "'");
         return;
       }
+      // Handle any postInject scripts if there are any
+      var postScripts = injectMgr.postInjectMap[tabID];
+      if (typeof(postScripts) != "undefined" &&
+          postScripts != null &&
+          postScripts.length > 0) {
+        for (var i = 0; i < postScripts.length; i++) {
+          var context = Tapedeck.Backend.Utils.getContext(tab);
+          postScripts[i](context);
+        }
+      }
 
       // Delay loadcomplete just a bit. It seems to be more consistent.
       setTimeout(Tapedeck.Backend.MessageHandler.signalLoadComplete(tab),
@@ -62,6 +72,29 @@ Tapedeck.Backend.InjectManager = {
 
   removedListener: function(tabID, removeInfo) {
     Tapedeck.Backend.InjectManager.expectedToLoad[tabID] = null;
+  },
+
+  // Post inject scripts are provided context as their only param
+  postInjectMap: { }, // { tabID => [scripts] }
+  registerPostInjectScript: function(tabID, script) {
+    if (typeof(this.postInjectMap[tabID]) == "undefined") {
+      this.postInjectMap[tabID] = [];
+    }
+    this.postInjectMap[tabID].push(script);
+  },
+
+  removePostInjectScript: function(tabID, scriptToRemove) {
+    var scripts = this.postInjectMap[tabID];
+    for (var i = 0; i < scripts.length; i++) {
+      if (scripts[i] == scriptToRemove) {
+        scripts.splice(i, 1);
+        i--;
+      };
+    }
+  },
+
+  clearPostInjectScripts: function(tabID) {
+    this.postInjectMap[tabID] = null;
   },
 
   selectionListener: function(tabID, selectInfo) {

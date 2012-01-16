@@ -66,7 +66,6 @@
       </div>
 
       <div id="browse-region" class="region"></div>
-      <div id="modal" hidden=true></div>
     </script>
 
     <script id="BrowseRegion-default-template" type="text/template">
@@ -304,16 +303,21 @@
               <% if (field.type == "info") { %>
                 <span class="info"><%= field.text %></span>
               <% } else if (field.type == "input") { %>
-                <span class="input"><%= field.text %></span><input type="text">
+                <span class="input"><%= field.text %></span>
+                <input callbackParam="<%= field.callbackParam %>" type="text">
               <% } %>
             </div>
           <% } %>
           <% if (typeof(params.submitButtons) == "undefined") { %>
-            <input type="submit" value="Ok" />
+            <input type="button"
+                   onclick="Tapedeck.Frontend.Frame.Modal.submit();"
+                   value="Ok" />
           <% } else {
             for (var i=0; i < params.submitButtons.length; i++) {
               var button = params.submitButtons[i]; %>
-              <input type="submit" value="<%= button.text %>" />
+              <input type="button"
+                     onclick="Tapedeck.Frontend.Frame.Modal.submit('<%= button.callbackParam %>');" +
+                     value="<%= button.text %>" />
             <% }
           } %>
         </form>

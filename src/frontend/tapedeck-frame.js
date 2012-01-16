@@ -598,28 +598,8 @@ Tapedeck.Frontend.Frame = {
     },
 
     cassettify: function(e) {
-      var modalOptions = {
-        fields: [
-          { type          : "input",
-            text          : "Please enter playlist name",
-            callbackParam : "playlistName" },
-          { type          : "info",
-            text          : "Please browse to previous page of blog..." },
-          { type          : "input",
-            text          : "Please enter blog name",
-            callbackParam : "blogName" },
-        ],
-        title: "Cassettify Wizard",
-        submitButtons: [
-          { text          : "Yes",
-            callbackParam : "looksCorrect" },
-          { text          : "No",
-            callbackParam : "looksWrong" },
-        ],
-      };
-      
-      Tapedeck.Frontend.Frame.Modal.show(modalOptions, function(params) {
-
+      Tapedeck.Frontend.Messenger.cassettify({ phase : "start" }, function(params) {
+        
       });
     },
   },
@@ -710,20 +690,40 @@ Tapedeck.Frontend.Frame = {
      *  <optionals>
      *  submitButtons : [{ text: "buttontexthere",
      *                     callbackParam: "paramName" }]
+     * }
+     * 
+     * aCallback will be provided null if the modal is closed.
      */
-    show: function(params, callback) {
+    callback: null,
+    show: function(params, aCallback) {
       var getViewCallback = function(response) {
         Tapedeck.Frontend.Frame.replaceView("modal", response.view);
-        $("#modal").removeAttr("hidden");
       };
-      
+
+      this.callback = aCallback;
       Tapedeck.Frontend
               .Messenger
               .getView("Modal", params, null, getViewCallback);  
     },
+
+    submit: function(submitter) {
+      var params = { };
+      if (typeof(submitter) != "undefined") {
+        params.submitButton = submitter;
+      }
+      
+      var inputs = $("#modal").find("input[type='text']");
+      inputs.each( function(i, input) {
+        params[$(input).attr('callbackParam')] = $(input).attr('value');
+      });
+      
+      this.close();
+      this.callback(params);
+    },
     
     close: function() {
       $("#modal").attr("hidden", true);
+      this.callback(null);
     },
   },
 
