@@ -71,6 +71,15 @@ Tapedeck.Frontend.Messenger = {
                                             request.view);
         break;
 
+      case "showModal":
+        var wrappedCallback = function(params) {
+          response.params = params;
+          self.sendMessage(response);
+        };
+        Tapedeck.Frontend.Frame.Modal.show(request.params,
+                                           wrappedCallback);
+        break;
+
       case "loadComplete":
         Tapedeck.Frontend.Frame.onLoadComplete();
         break;
@@ -282,11 +291,10 @@ Tapedeck.Frontend.Messenger = {
     this.setCassette("");
   },
 
-  cassettify: function(options, callback) {
+  cassettify: function() {
     var request = Tapedeck.Frontend.Messenger.newRequest({
-      action  : "cassettify",
-      options : options
-    }, callback);
+      action  : "cassettify"
+    });
 
     Tapedeck.Frontend.Messenger.sendMessage(request); 
   },
@@ -300,11 +308,17 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
-  sendMessage: function(request) {
+  sendMessage: function(message) {
     var self = Tapedeck.Frontend.Messenger;
-    self.log("Posting message: " + request.action, self.DEBUG_LEVELS.ALL);
+    if (message.type == "request") {
+      self.log("Posting request: " + message.action, self.DEBUG_LEVELS.ALL);
+    }
+    else if (message.type == "response") {
+      self.log("Posting response - callback: " + message.callbackID,
+               self.DEBUG_LEVELS.ALL);
+    }
     
-    self.port.postMessage(request);
+    self.port.postMessage(message);
   },
 
   newRequest: function(object, callback) {

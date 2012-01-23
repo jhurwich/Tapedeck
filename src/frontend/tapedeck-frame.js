@@ -598,9 +598,7 @@ Tapedeck.Frontend.Frame = {
     },
 
     cassettify: function(e) {
-      Tapedeck.Frontend.Messenger.cassettify({ phase : "start" }, function(params) {
-        
-      });
+      Tapedeck.Frontend.Messenger.cassettify();
     },
   },
 
@@ -697,7 +695,8 @@ Tapedeck.Frontend.Frame = {
     callback: null,
     show: function(params, aCallback) {
       var getViewCallback = function(response) {
-        Tapedeck.Frontend.Frame.replaceView("modal", response.view);
+        Tapedeck.Frontend.Frame.replaceView("modal-container",
+                                            response.view);
       };
 
       this.callback = aCallback;
@@ -717,13 +716,12 @@ Tapedeck.Frontend.Frame = {
         params[$(input).attr('callbackParam')] = $(input).attr('value');
       });
       
-      this.close();
       this.callback(params);
+      this.close();
     },
     
     close: function() {
-      $("#modal").attr("hidden", true);
-      this.callback(null);
+      $("#modal-container").attr("hidden", true);
     },
   },
 

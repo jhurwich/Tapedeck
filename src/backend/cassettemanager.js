@@ -69,75 +69,95 @@ Tapedeck.Backend.CassetteManager = {
   // sendResponse can be passed an object containing return values
   origURL: "",
   secondURL: "",
-  cassettify: function(options, sendResponse) {
-    var self = this;
-    var msgHandler = Tapedeck.Backend.MessageHandler;
-    var injectMgr = Tapedeck.Backend.InjectManager;
+  Cassettify: {
 
-    var showModal = function(opts) {
-      var newModalView = Tapedeck.Backend
-                                 .TemplateManager
-                                 .renderView
-                                 ("Modal", opts);
+    start: function() {
+      var self = this;
+      var msgHandler = Tapedeck.Backend.MessageHandler;
+      var injectMgr = Tapedeck.Backend.InjectManager;
+          
+      msgHandler.getSelectedTab(function(tab) {
+        self.origURL = tab.url;
+        msgHandler.showModal({
+          fields: [
+            { type          : "info",
+              text          : "Please browse to previous page of '" +
+                              self.origURL + "'." },
+            { type          : "input",
+              text          : "or enter pattern with '$#' for page number.",
+              callbackParam : "pattern" },
+          ],
+          title: "Cassettify Wizard",
+        }, self.handlePatternInput);
+        injectMgr.registerPostInjectScript(tab.id, self.captureNextLoad);
+      });
+    },
+
+    captureNextLoad: function(context) {
+      var msgHandler = Tapedeck.Backend.MessageHandler;
+      var injectMgr = Tapedeck.Backend.InjectManager;
       
-      msgHandler.pushView("modal", newModalView);
-    };
-
-    
-    switch(options.phase)
-    {
-      case "start":
-        var startPostLoad = function(context) {
-          if (context.tab.url != self.origURL) {
-            // loaded a new page
-            self.secondURL = context.tab.url;
-            showModal({
-              fields: [
-                { type          : "info",
-                  text          : "Got a second page of '" +
-                                  self.secondURL + "'." },
-              ],
-              title: "Cassettify Wizard 2",
-            });
-            
-            injectMgr.removePostInjectScript(context.tab.id, arguments.callee);
-          }
-          else {
-            // same page loaded
-            injectMgr.removePostInjectScript(context.tab.id, arguments.callee);
-          }
-        }; // end startPostLoad
+      if (context.tab.url != self.origURL) {
+        // loaded a new page
+        self.secondURL = context.tab.url;
+        msgHandler.showModal({
+          fields: [
+            { type          : "info",
+              text          : "Got a second page of '" +
+                              self.secondURL + "'." },
+          ],
+          title: "Cassettify Wizard 2",
+        });
         
-        msgHandler.getSelectedTab(function(tab) {
-          self.origURL = tab.url;
-          showModal({
-            fields: [
-              { type          : "info",
-                text          : "Please browse to previous page of '" +
-                                self.origURL + "'." },
-              { type          : "input",
-                text          : "or enter pattern with '$#' for page number.",
-                callbackParam : "pattern" },
-            ],
-            title: "Cassettify Wizard",
-          });
-          injectMgr.registerPostInjectScript(tab.id, startPostLoad);
-          
-          sendResponse({ url : tab.url });
-        });
-        break;
-          
-      case "secondPage":
-        msgHandler.getSelectedTab(function(tab) {
-          self.secondURL = tab.url;
-          sendResponse({ url : tab.url });
-        });
-        break;
+        injectMgr.removePostInjectScript(context.tab.id, arguments.callee);
+      }
+      else {
+        // same page loaded
+        injectMgr.removePostInjectScript(context.tab.id, arguments.callee);
+      }
+    },
 
-      default:
-        console.error("Unrecognized phase in cassettify");
-        break;
-    }
+    handlePatternInput: function(params) {
+
+      console.log(JSON.stringify(params));
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
+      
+      var pattern = params.pattern;
+      /*
+      var index = pattern.indexOf("$#");
+      if (index == -1) {
+        // didn't find the pattern
+        return;
+      }
+      */
+
+      var template = _.template(cMgr.CassettifyTemplate.template);
+
+      var domain = pattern.replace("http://", "");
+      domain = domain.replace("www.", "");
+      domain = domain.substring(0, domain.indexOf('/'));
+
+      var cassetteModel = template({ domain  : domain,
+                                     pattern : pattern });
+      
+      var script = new Function(cassetteModel)();
+
+      var newCassette = new Tapedeck.Backend.Cassettes.CassetteFromTemplate();
+     
+
+      // 1. null out CassetteFromTemplate
+      // 2. test the new cassette
+      // 3. if cassette works, prompt for name and modify cassetteModel
+
+      cMgr.cassettes.push(newCassette);
+      // 4. like line above, add cassette to CassetteList and update it
+      // 5. save the cassette with the bank
+      // 6. make sure saved cassettes are read in see 'readInCassettes()'
+            
+      for (var i = 0; i < cMgr.cassettes.length; i++) {
+        console.log(JSON.stringify(cMgr.cassettes[i].toJSON()));
+      }
+    },
   },
-
 };

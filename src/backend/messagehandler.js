@@ -299,13 +299,7 @@ Tapedeck.Backend.MessageHandler = {
         break;
 
       case "cassettify":
-        var sendResponse = function(returnObject) {
-          $.extend(response, returnObject);
-          self.postMessage(port.tab.id, response);
-        }
-        
-        Tapedeck.Backend.CassetteManager.cassettify(request.options,
-                                                    sendResponse)
+        Tapedeck.Backend.CassetteManager.Cassettify.start();
         break;
 
       case "loadLink":
@@ -421,6 +415,31 @@ Tapedeck.Backend.MessageHandler = {
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
+  showModal: function(params, callback, tab) {
+    if (typeof(tab) == "undefined") {
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.showModal(params,
+                                                  callback,
+                                                  selectedTab);
+      });
+      return;
+    }
+    
+    var unwrapParams = null;
+    if (typeof(callback) != "undefined" && callback != null) {
+      unwrapParams = function(response) {
+        callback(response.params);
+      };
+    }
+    
+    var request = Tapedeck.Backend.MessageHandler.newRequest({
+      action: "showModal",
+      params: params,
+    }, unwrapParams);
+    
+    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+  },
+
   pushView: function(targetID, view, tab) {
     var self = Tapedeck.Backend.MessageHandler;
     if (typeof(tab) == "undefined") {
@@ -458,7 +477,8 @@ Tapedeck.Backend.MessageHandler = {
     var request = (object ? object : { });
     request.type = "request";
 
-    if (typeof(callback) != "undefined") {
+    if (typeof(callback) != "undefined" &&
+        callback != null) {
       var cbID = new Date().getTime();
       Tapedeck.Backend.MessageHandler.pendingCallbacks[cbID] = callback;
       request.callbackID = cbID;

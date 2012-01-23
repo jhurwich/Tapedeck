@@ -1,7 +1,7 @@
 Tapedeck.Backend.Views.Modal = Backbone.View.extend({
 
   tagName: "div",
-  id: "modal",
+  id: "modal-container",
   requiredTemplates: [
     "Modal"
   ],

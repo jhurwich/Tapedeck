@@ -25,6 +25,7 @@
 
     <!-- Cassettes -->
     <script type="text/javascript" src="models/cassettes/scraper-cassette.js"></script>
+    <script type="text/javascript" src="models/cassettes/cassettify-template.js"></script>
 
     <!-- Default Views -->
     <script type="text/javascript" src="views/browseregion-view.js"></script>
@@ -304,7 +305,9 @@
                 <span class="info"><%= field.text %></span>
               <% } else if (field.type == "input") { %>
                 <span class="input"><%= field.text %></span>
-                <input callbackParam="<%= field.callbackParam %>" type="text">
+                <input callbackParam="<%= field.callbackParam %>"
+                       type="text"
+                       onkeypress="if (event.which == 13) { Tapedeck.Frontend.Frame.Modal.submit(); return false; }">
               <% } %>
             </div>
           <% } %>
