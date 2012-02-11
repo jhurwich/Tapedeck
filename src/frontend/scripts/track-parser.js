@@ -107,6 +107,11 @@ if (typeof(TapedeckInjected) != "undefined" &&
   
     links : {
       scrape : function() {
+
+        var body = $("body").first();
+        TapedeckInjected.ParserSuite.Links.parse(body.html());
+
+        return { };
         var self = TapedeckInjected.TrackParser;
         
         var links = $('a');

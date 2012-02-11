@@ -138,17 +138,20 @@ Tapedeck.Backend.CassetteManager = {
       domain = domain.replace("www.", "");
       domain = domain.substring(0, domain.indexOf('/'));
 
-      var cassetteModel = template({ domain  : domain,
-                                     pattern : pattern });
+      var modelLoader = template({ domain  : "steam.com",
+                                   pattern : pattern });
       
-      var script = new Function(cassetteModel)();
+      // Run the modelLoader to prepare the new Cassette Model 
+      new Function(modelLoader)();
 
+      // ...Cassettes.CassetteFromTemplate is a temporary model for the
+      // new cassette.  Use it, then destroy it.
       var newCassette = new Tapedeck.Backend.Cassettes.CassetteFromTemplate();
-     
 
-      // 1. null out CassetteFromTemplate
-      // 2. test the new cassette
-      // 3. if cassette works, prompt for name and modify cassetteModel
+      Tapedeck.Backend.Cassettes.CassetteFromTemplate = null;
+     
+      newCassette.getBrowseList();
+      // 3. if cassette works, prompt for name and modify modelLoader
 
       cMgr.cassettes.push(newCassette);
       // 4. like line above, add cassette to CassetteList and update it

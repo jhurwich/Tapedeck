@@ -14,12 +14,13 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
     events: [], \
    \
     getBrowseList: function(context, callback) { \
+      console.log("GETTING BROWSE LIST"); \
       var self = this; \
  \
       /* First hit the domain itself, usually the first page */ \
       $.ajax({ \
         type: "GET", \
-        url: self.domain, \
+        url: "http://www." + self.domain, \
         dataType: "html", \
  \
         success: self.parseResponse, \
@@ -30,6 +31,22 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       }); \
  \
     }, /* end getBrowseList */ \
+ \
+    parseResponse: function(response) { \
+      var div = document.getElementById("dump"); \
+      console.log(div.tagName); \
+      $(div).load(response); \
+      var links = $(div).find("a"); \
+      console.log(links.length); \
+      var xmlDoc = $.parseXML(body); \
+ \
+      console.log("got response::" + $(xmlDoc).html()); \
+      var closeHead = response.indexOf("</head>"); \
+ \
+      var doc = $(response); \
+      console.log(">>" + doc.html()); \
+ \
+    }, \
   }); \
     '
 /*

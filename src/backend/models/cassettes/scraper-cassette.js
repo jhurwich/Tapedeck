@@ -24,6 +24,11 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
     Tapedeck.Backend.InjectManager
                     .executeScript(context.tab,
                                    { allFrames: false,
+                                     file: "util/parser-suite.js" });
+    
+    Tapedeck.Backend.InjectManager
+                    .executeScript(context.tab,
+                                   { allFrames: false,
                                      file: "frontend/scripts/track-parser.js" },
                                    handleTracks);
   } 
