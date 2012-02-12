@@ -68,6 +68,57 @@ if (onObject != null) {
     },
 
     Util: {
+      removeUnwantedTags: function(text) {
+        var openTagRegex = function(tag) {
+          return new RegExp("<\s*" + tag + "[^<>]*>");
+        }
+
+        var closeTagRegex = function(tag) {
+          return new RegExp("<\/" + tag + "[^<>]*>", "i");
+        }
+
+        var selfClosedTagRegex = function(tag) {
+          return new RegExp("<\s*" + tag + "[^<>]*\/>", "i");
+        }
+        
+        var unwantedBlocks = ["head", "meta", "script", "noscript"]; // remove these tags and everything that may be in them
+        for (var i = 0; i < unwantedBlocks.length; i++) {
+          var tag = unwantedBlocks[i];
+
+          var openPos = -1;
+          var closeMatch = null;
+          while ((openPos = text.search(openTagRegex(tag))) != -1) {
+            if ((closeMatch = text.match(closeTagRegex(tag))) != null) {
+              var closeLen = closeMatch[0].length;
+              var toRemove = text.substring(openPos, closeMatch.index + closeLen);
+              text = text.replace(toRemove, "");
+            }
+            else {
+              console.error("no close tag for open tag '" + tag + "'");
+            }
+            
+          }
+        }
+
+        var unwantedTags = ["html", "body", "!DOCTYPE"]; // only remove these tags themselves, not their contents
+        for (var i = 0; i < unwantedTags.length; i++) {
+          var tag = unwantedTags[i];
+
+          var match = null;
+          while ((match = text.match(openTagRegex(tag))) != null) {
+              text = text.replace(match[0], "");
+          }
+          while ((match = text.match(closeTagRegex(tag))) != null) {
+              text = text.replace(match[0], "");
+          }
+          while ((match = text.match(selfClosedTagRegex(tag))) != null) {
+              text = text.replace(match[0], "");
+          }
+        }
+
+        return text;
+      },
+      
       findParent: function(text, eoi) {
         var containerTags = {"p": { },
                              "div" : { },

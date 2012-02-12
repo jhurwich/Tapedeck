@@ -118,6 +118,14 @@ Tapedeck.Backend.CassetteManager = {
     },
 
     handlePatternInput: function(params) {
+      var msgHandler = Tapedeck.Backend.MessageHandler;
+      msgHandler.showModal({
+        fields: [
+          { type          : "info",
+            text          : "Building Cassette, please wait." },
+        ],
+        title: "Cassettify Wizard",
+      });
 
       console.log(JSON.stringify(params));
       var cMgr = Tapedeck.Backend.CassetteManager;
@@ -138,28 +146,53 @@ Tapedeck.Backend.CassetteManager = {
       domain = domain.replace("www.", "");
       domain = domain.substring(0, domain.indexOf('/'));
 
-      var modelLoader = template({ domain  : "steam.com",
+      var modelLoader = template({ domain  : "theburningear.com",
                                    pattern : pattern });
-      
-      // Run the modelLoader to prepare the new Cassette Model 
-      new Function(modelLoader)();
+      console.log(modelLoader);
 
-      // ...Cassettes.CassetteFromTemplate is a temporary model for the
-      // new cassette.  Use it, then destroy it.
-      var newCassette = new Tapedeck.Backend.Cassettes.CassetteFromTemplate();
 
-      Tapedeck.Backend.Cassettes.CassetteFromTemplate = null;
-     
-      newCassette.getBrowseList();
-      // 3. if cassette works, prompt for name and modify modelLoader
+      var nameAndSaveCassette = function(params) {
+        modelLoader = modelLoader.replace("CassetteFromTemplate",
+                                          params.cassetteName);
+        Tapedeck.Backend.Bank.FileSystem.saveCassette(modelLoader,
+                                                      params.cassetteName,
+                                                      cMgr.Cassettify.finish);
 
-      cMgr.cassettes.push(newCassette);
+        // Run the modelLoader to prepare the new Cassette Model 
+        /*
+        new Function(modelLoader)();
+        
+        var newCassette = new Tapedeck.Backend.Cassettes[params.cassetteName]();
+        
+        cMgr.cassettes.push(newCassette);
+        */
+      };
+
+      msgHandler.showModal({
+        fields: [
+          { type          : "input",
+            text          : "Name your new cassette",
+            callbackParam : "cassetteName"  },
+        ],
+        title: "Cassettify Wizard",
+      }, nameAndSaveCassette);
+
       // 4. like line above, add cassette to CassetteList and update it
       // 5. save the cassette with the bank
       // 6. make sure saved cassettes are read in see 'readInCassettes()'
             
       for (var i = 0; i < cMgr.cassettes.length; i++) {
         console.log(JSON.stringify(cMgr.cassettes[i].toJSON()));
+      }
+    },
+
+    finish: function(success) {
+      if(success) {
+        console.log("Cassette saved");
+        Tapedeck.Backend.Bank.FileSystem.getCassettes();
+      }
+      else {
+        console.error("Cassette could not be properly saved");
       }
     },
   },

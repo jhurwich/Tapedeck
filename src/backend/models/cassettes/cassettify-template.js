@@ -17,13 +17,21 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       console.log("GETTING BROWSE LIST"); \
       var self = this; \
  \
+      var parseResponse = function(data, status, xhr) { \
+        var responseText = xhr.responseText; \
+        var cleanedText = Tapedeck.Backend.ParserSuite.Util.removeUnwantedTags(responseText); \
+        $("#dump").append(cleanedText); \
+   \
+        Tapedeck.Backend.TrackParser.start($("#dump"), callback); \
+      }; \
+ \
       /* First hit the domain itself, usually the first page */ \
       $.ajax({ \
         type: "GET", \
         url: "http://www." + self.domain, \
         dataType: "html", \
  \
-        success: self.parseResponse, \
+        success: parseResponse, \
  \
         error: function (response) { \
           console.error("Ajax error retrieving " + self.domain + ""); \
@@ -31,22 +39,6 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       }); \
  \
     }, /* end getBrowseList */ \
- \
-    parseResponse: function(response) { \
-      var div = document.getElementById("dump"); \
-      console.log(div.tagName); \
-      $(div).load(response); \
-      var links = $(div).find("a"); \
-      console.log(links.length); \
-      var xmlDoc = $.parseXML(body); \
- \
-      console.log("got response::" + $(xmlDoc).html()); \
-      var closeHead = response.indexOf("</head>"); \
- \
-      var doc = $(response); \
-      console.log(">>" + doc.html()); \
- \
-    }, \
   }); \
     '
 /*

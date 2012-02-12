@@ -1,39 +1,66 @@
 // Props to Dan Kantor @ ExFM for providing a great song-parser template
 // that this implementation was based off of.
-if (typeof(TapedeckInjected) != "undefined" &&
-    (typeof(TapedeckInjected.TrackParser) == "undefined" ||
-     !TapedeckInjected.TrackParser.isParsing)) {
+var onObject = null;
+if (typeof(TapedeckInjected) != "undefined") {
+  onObject = TapedeckInjected;
+}
+else if (typeof(Tapedeck) != "undefined" &&
+         typeof(Tapedeck.Backend) != "undefined") {
+  onObject = Tapedeck.Backend;
+}
+
+if (onObject != null &&
+    (typeof(onObject.TrackParser) == "undefined" ||
+     !onObject.TrackParser.isParsing)) {
     
-  TapedeckInjected.TrackParser = {
+  onObject.TrackParser = {
     DEBUG_LEVELS: {
       NONE  : 0,
       BASIC : 1,
       ALL   : 2,
     },
     debug: 0,
-    
-    isParsing: false,
-    start : function() {
-      var self = TapedeckInjected.TrackParser
 
-      self.isParsing = true;
-      self.log("starting parsing", self.DEBUG_LEVELS.BASIC);
+    context: null,
+    isParsing: false,
+    onBackgroundPage: false, 
+    start : function(context, callback) {
+      var parser = onObject.TrackParser;
+
+      if (typeof(callback) != "undefined") {
+        parser.onBackgroundPage = true;
+      }
+      if (typeof(context) == "undefined") {
+        parser.context = document;
+      }
+      else {
+        parser.context = context;
+      }
       
-      var tracks = self.findSongs();
-  
-      var response = {
-        type: "response",
-        tracks: tracks
-      };
-  
-      self.log("ending parsing - response: " + JSON.stringify(response),
-               self.DEBUG_LEVELS.BASIC);
-      self.isParsing = false;
+      parser.isParsing = true;
+      parser.log("starting parsing", parser.DEBUG_LEVELS.BASIC);
       
-      chrome.extension.sendRequest(response);
+      var tracks = parser.findSongs();
+
+      parser.log("ending parsing - got tracks: " + JSON.stringify(tracks),
+               parser.DEBUG_LEVELS.BASIC);
+      parser.isParsing = false;
+
+      if (!parser.onBackgroundPage) {
+        var response = {
+          type: "response",
+          tracks: tracks
+        };
+        chrome.extension.sendRequest(response);
+      }
+      else {
+        callback(tracks);
+      }
     },
     
     findSongs : function() {
+      var parser = onObject.TrackParser;
+      
       //  Each scrape returns a map of url => track objects.
       //  This allows us to merge, preventing url duplicates and
       //  preserving the tracks relative order.
@@ -41,34 +68,39 @@ if (typeof(TapedeckInjected) != "undefined" &&
       var resultObjects = [];
       // ================ Synchronous Scrapes ================
       // Scrape Tumblr
-      if ($("#tumblr_controls").length > 0 ||
-          TapedeckInjected.TrackParser.forceTumblr) {
-        resultObjects.push(TapedeckInjected.TrackParser.tumblr.scrape());
+      if ($("#tumblr_controls", parser.context).length > 0 ||
+          parser.forceTumblr) {
+        resultObjects.push(parser.tumblr.scrape());
       }
 
       // Scrape TumblrDashboard
       if (location.href.indexOf('tumblr.com/dashboard') != -1 ||
-          TapedeckInjected.TrackParser.forceTumblrDashboard) {
-        resultObjects.push(TapedeckInjected.TrackParser.tumblrDashboard.scrape());
+          parser.forceTumblrDashboard) {
+        resultObjects.push(parser.tumblrDashboard.scrape());
       }
 
       // Scrape mp3 Links
-      resultObjects.push(TapedeckInjected.TrackParser.links.scrape());
+      console.log("Scraping for links");
+      resultObjects.push(parser.links.scrape());
 
       // Scrape <audio> elements
-      resultObjects.push(TapedeckInjected.TrackParser.audioElements.scrape());
+      resultObjects.push(parser.audioElements.scrape());
 
       // Scrape flash players with a 'soundFile=...' param
-      //resultObjects.push(TapedeckInjected.TrackParser.flashPlayers.scrape());
+      //resultObjects.push(parser.flashPlayers.scrape());
 
       // ================ Async Scrapes ================
       //Scrape Soundcloud 
-      TapedeckInjected.TrackParser.soundcloud.scrape();
+      parser.soundcloud.scrape();
       
-      return TapedeckInjected.TrackParser.mergeResults(resultObjects);
+      var toReturn = parser.mergeResults(resultObjects);
+      console.log(JSON.stringify(toReturn));
+      return toReturn;
     },
   
     mergeResults : function(resultObjects) {
+      var parser = onObject.TrackParser;
+
       var resultMap = { };
   
       // We merge in from the end so that we end up with the first
@@ -80,7 +112,7 @@ if (typeof(TapedeckInjected) != "undefined" &&
       var tracks = [];
       for (var url in resultMap) {
         var track  = resultMap[url];
-        tracks.push(this.cleanTrack(track));
+        tracks.push(parser.cleanTrack(track));
       }
       return tracks;
     },
@@ -107,14 +139,10 @@ if (typeof(TapedeckInjected) != "undefined" &&
   
     links : {
       scrape : function() {
+        var parser = onObject.TrackParser;
 
-        var body = $("body").first();
-        TapedeckInjected.ParserSuite.Links.parse(body.html());
-
-        return { };
-        var self = TapedeckInjected.TrackParser;
-        
-        var links = $('a');
+        var links = $('a', parser.context);
+        console.log(links.length + " links found");
         var mp3Links = { };
         for (var i = 0; i < links.length; i++) {
           var a = links[i];
@@ -131,7 +159,7 @@ if (typeof(TapedeckInjected) != "undefined" &&
             var text = $(a).text();
   
             
-            track = self.addArtistAndTrackNames(track, text);
+            track = parser.addArtistAndTrackNames(track, text);
             
             if (track.trackName == "") {
               var splitHref = a.href.split(extension)[0];
@@ -140,8 +168,8 @@ if (typeof(TapedeckInjected) != "undefined" &&
               if (filename != '') {
                 track.trackName = filename;
               } else {
-                self.log("No trackName found for '" + a.href + "'. Using 'Unknown Title'",
-                         self.DEBUG_LEVELS.BASIC);
+                parser.log("No trackName found for '" + a.href + "'. Using 'Unknown Title'",
+                         parser.DEBUG_LEVELS.BASIC);
               }
             }
             
@@ -162,17 +190,17 @@ if (typeof(TapedeckInjected) != "undefined" &&
     
               var longestEntry = "";
               $(wpParentEntry).children("p").each(function(index, p) {
-                var entry = TapedeckInjected.TrackParser.cleanHTML($(p).html());
+                var entry = parser.cleanHTML($(p).html());
                 if (entry.length > longestEntry.length) {
                   longestEntry = entry;
                 }
               });
               
-              track.description = self.trimString(longestEntry, 200);
+              track.description = parser.trimString(longestEntry, 200);
             }
-            if (self.debug) {
-              self.log("new track object: " + JSON.stringify(track),
-                       self.DEBUG_LEVELS.ALL);
+            if (parser.debug) {
+              parser.log("new track object: " + JSON.stringify(track),
+                       parser.DEBUG_LEVELS.ALL);
             }
             
             mp3Links[track.url] = track;
@@ -180,24 +208,24 @@ if (typeof(TapedeckInjected) != "undefined" &&
         }
         return mp3Links;
       },
-    }, // end TapedeckInjected.TrackParser.links
+    }, // end parser.links
     
     tumblrDashboard : {
       /* jhawk Save for later
       loadMore : function(){
-          var mp3Links = TapedeckInjected.TrackParser.tumblrDasboard.scrape();
+          var mp3Links = parser.tumblrDasboard.scrape();
           if (mp3Links.length > 0){
-              var o = {"msg" : "pageSongsMore", "sessionKey" : TapedeckInjected.TrackParser.SessionKey, "data" : mp3Links};
-              TapedeckInjected.TrackParser.Comm.send(o);
+              var o = {"msg" : "pageSongsMore", "sessionKey" : parser.SessionKey, "data" : mp3Links};
+              parser.Comm.send(o);
           }
       },
       */
       scrape : function() {
-        var self = TapedeckInjected.TrackParser;
-        
+        var parser = onObject.TrackParser;
+
         var mp3Links = { };
         var urls = [];
-        var lis = $('li.audio');
+        var lis = $('li.audio', parser.context);
         for (var i = 0; i < lis.length; i++) {
           try {
             var li = lis[i];
@@ -211,14 +239,14 @@ if (typeof(TapedeckInjected) != "undefined" &&
             
             if ($.inArray(track.url, urls) != -1) {
               // already seen this track
-              self.log("already scraped " + track.url, self.DEBUG_LEVELS.BASIC);
+              parser.log("already scraped " + track.url, parser.DEBUG_LEVELS.BASIC);
               continue;
             }
             
             urls.push(track.url);
   
             var postBody = $(li).find('.post_body').first();
-            var post = self.cleanHTML(postBody.html());
+            var post = parser.cleanHTML(postBody.html());
   
             var albumArts = jQuery(li).find('.album_art');
             if (albumArts.length > 0) {
@@ -228,9 +256,9 @@ if (typeof(TapedeckInjected) != "undefined" &&
               track.trackName = $.trim(titlePieces[1]);
             }
             else {
-              track.trackName = self.trimString(post, 200);
+              track.trackName = parser.trimString(post, 200);
             }
-            track.description = self.trimString(post, 200);
+            track.description = parser.trimString(post, 200);
   
             var perma = $(li).find('a.permalink').first();
             if (perma) {
@@ -244,18 +272,18 @@ if (typeof(TapedeckInjected) != "undefined" &&
             mp3Links[track.url] = track;
           }
           catch(e) {
-            self.log("Error in tumblrDashboard scraping",
-                     self.DEBUG_LEVELS.NONE);
+            parser.log("Error in tumblrDashboard scraping",
+                     parser.DEBUG_LEVELS.NONE);
           }
         }
         return mp3Links;
       }
-    }, // End TapedeckInjected.TrackParser.tumblrDashboard
+    }, // End this.tumblrDashboard
     
     tumblr: {
         /* Save for loadMore
         response : function(json){
-            clearTimeout(TapedeckInjected.TrackParser.tumblrAPI.timeout);
+            clearTimeout(this.tumblrAPI.timeout);
             try {
                 var str = json.substr(22);
                 str = str.substr(0, str.length - 2);
@@ -287,18 +315,18 @@ if (typeof(TapedeckInjected) != "undefined" &&
                     mp3Links.push(trackVO);
                 }
                 if (mp3Links.length > 0){
-                    var o = {"msg" : "pageSongsMore", "sessionKey" : TapedeckInjected.TrackParser.SessionKey, "data" : mp3Links};
-                    TapedeckInjected.TrackParser.Comm.send(o);
+                    var o = {"msg" : "pageSongsMore", "sessionKey" : this.SessionKey, "data" : mp3Links};
+                    this.Comm.send(o);
                 }
             } catch(e){}
-            TapedeckInjected.TrackParser.tumblrAPI.scrape();
+            this.tumblrAPI.scrape();
         },
         */
       scrape : function() {
-        var self = TapedeckInjected.TrackParser;
-        
+        var parser = onObject.TrackParser;
+
         var mp3Links = { };
-        var divs = $('div.audio_player');
+        var divs = $('div.audio_player', parser.context);
         for (var i = 0; i < divs.length; i++) {
           try {
             var div = divs[i];
@@ -319,25 +347,25 @@ if (typeof(TapedeckInjected) != "undefined" &&
             mp3Links[track.url] = track;
           }
           catch(e) {
-            self.log("Error in tumblr scraping",
-                     self.DEBUG_LEVELS.NONE);
+            parser.log("Error in tumblr scraping",
+                     parser.DEBUG_LEVELS.NONE);
           }
         }
         /* jhawk save for loadmore
         if (mp3Links.length > 0){
-          var obj = {"msg" : "pageSongsMore", "sessionKey" : TapedeckInjected.TrackParser.SessionKey, "data" : mp3Links};
-          TapedeckInjected.TrackParser.Comm.send(obj);
+          var obj = {"msg" : "pageSongsMore", "sessionKey" : parser.SessionKey, "data" : mp3Links};
+          parser.Comm.send(obj);
         }
         */
         return mp3Links;
       }
-    }, // End TapedeckInjected.TrackParser.tumblr
+    }, // End parser.tumblr
     
     audioElements : {
       scrape : function() {
-        var self = TapedeckInjected.TrackParser;
-        
-        var audioElements = $('audio');
+        var parser = onObject.TrackParser;
+
+        var audioElements = $('audio', parser.context);
         var mp3Links = { };
         for (var i = 0; i < audioElements.length; i++) {
           var audio = audioElements[i];
@@ -369,20 +397,18 @@ if (typeof(TapedeckInjected) != "undefined" &&
             
             mp3Links[track.url] = track;
           } else {
-            self.log('<audio> must have src or <source>',
-                     self.DEBUG_LEVELS.BASIC);
+            parser.log('<audio> must have src or <source>',
+                     parser.DEBUG_LEVELS.BASIC);
           }
           
         }
         return mp3Links;
       }
-    }, // end TapedeckInjected.TrackParser.audioElements
+    }, // end parser.audioElements
 
     /*
     flashPlayers : {
       scrape : function() {
-        var self = TapedeckInjected.TrackParser;
-        
         var flashPlayers = $("object[type='application/x-shockwave-flash']");
 
         var trackMap = { };
@@ -427,11 +453,11 @@ if (typeof(TapedeckInjected) != "undefined" &&
                 !$(pBefore).hasClass("scraped") &&
                 $(pBefore).html().length > 0) {
               console.log('a2');                  
-              var beforeEntry = TapedeckInjected.TrackParser
+              var beforeEntry = this
                                                 .cleanHTML
                                                 ($(pBefore).html());
               console.log('a3');
-              TapedeckInjected.TrackParser
+              this
                               .addArtistAndTrackNames(track, beforeEntry);
             }
             
@@ -447,11 +473,11 @@ if (typeof(TapedeckInjected) != "undefined" &&
               if (pAfter != null &&
                   !$(pAfter).hasClass("scraped") &&
                   $(pAfter).html().length > 0) {
-                var afterEntry = TapedeckInjected.TrackParser
+                var afterEntry = this
                                                  .cleanHTML
                                                  ($(pAfter).html());
                 console.log('a5');
-                TapedeckInjected.TrackParser
+                this
                                 .addArtistAndTrackNames(track, afterEntry);
               }
               
@@ -474,7 +500,7 @@ if (typeof(TapedeckInjected) != "undefined" &&
         
         return trackMap;
       }
-    }, // end TapedeckInjected.TrackParser.flashPlayers
+    }, // end parser.flashPlayers
     */
   
     soundcloud : {
@@ -482,10 +508,11 @@ if (typeof(TapedeckInjected) != "undefined" &&
       consumerKey: "46785bdeaee8ea7f992b1bd8333c4445",
       
       scrape : function() {
-        var self = TapedeckInjected.TrackParser;
-        var soundcloud = self.soundcloud;
+        var parser = onObject.TrackParser;
 
-        var objects = $('object');
+        var soundcloud = parser.soundcloud;
+
+        var objects = $('object', parser.context);
         objects.each( function(index, object) {
           var params = $(object).children('param');
           var swfValue = "";
@@ -496,26 +523,26 @@ if (typeof(TapedeckInjected) != "undefined" &&
                 paramName == "src" ||
                 paramName == "data") {
               if (swfValue.length > 0) {
-                self.log("Got multiple src's for one object! (" +
+                parser.log("Got multiple src's for one object! (" +
                          swfValue + ", " + param.attr("value") + ")");
               }
               
               swfValue = $(param).attr("value");
             }
             else if (paramName != "allowscriptaccess") {
-              self.log("Unrecognized param name " + paramName);
+              parser.log("Unrecognized param name " + paramName);
             }
           }); // end params.each
 
           if (swfValue.length == 0) {
-            self.log("Couldn't find url param in Soundcloud object");
+            parser.log("Couldn't find url param in Soundcloud object");
             return;
           }
 
           soundcloud.findURLAndQuery(swfValue);
         }); // end objects.each
 
-        var iframes = $('iframe');
+        var iframes = $('iframe', parser.context);
         iframes.each( function(index, iframe) {
           var src = $(iframe).attr("src");
 
@@ -529,8 +556,8 @@ if (typeof(TapedeckInjected) != "undefined" &&
       },
 
       findURLAndQuery : function(str) {
-        var self = TapedeckInjected.TrackParser;
-        var soundcloud = self.soundcloud;
+        var parser = onObject.TrackParser;
+        var soundcloud = parser.soundcloud;
         
         var matches = str.match(/\?url=(.*?)&/);
         if (matches == null) {
@@ -557,16 +584,17 @@ if (typeof(TapedeckInjected) != "undefined" &&
           });
         }
         else {
-          self.log("Counldn't locate a url for Soundcloud object");
+          parser.log("Counldn't locate a url for Soundcloud object");
         }
       },
   
       parseJSONResponse : function(response) {
-        var self = TapedeckInjected.TrackParser;
-        var soundcloud = self.soundcloud;
+        var parser = onObject.TrackParser;
+        var soundcloud = parser.soundcloud;
 
         var responseToTrack = function(responseTrack) {
-          var track = { type : "soundcloud" };
+          var track = { type : "soundcloud",
+                        cassette : "Scraper" };
 
           if (typeof(responseTrack.title) != "undefined") {
             track.trackName = $.trim(responseTrack.title);
@@ -611,14 +639,18 @@ if (typeof(TapedeckInjected) != "undefined" &&
           tracks.push(newTrack);
         }
 
-        var request = {
-          action: "add_tracks",
-          tracks: tracks,
-          cassetteName: "Scraper",
-        };
-        chrome.extension.sendRequest(request);
+        if (!parser.onBackgroundPage) {
+          var request = {
+            action: "add_tracks",
+            tracks: tracks,
+          };
+          chrome.extension.sendRequest(request);
+        }
+        else {
+          
+        }
       },
-    }, // end TapedeckInjected.TrackParser.soundcloud
+    }, // end parser.soundcloud
   
     trimString : function(str, length) {
       if (str.length > length) {
@@ -721,22 +753,23 @@ if (typeof(TapedeckInjected) != "undefined" &&
     },
   
     log: function(str, level) {
-      var self = TapedeckInjected.TrackParser;
-      if (self.debug == self.DEBUG_LEVELS.NONE) {
+      var parser = onObject.TrackParser;
+      if (parser.debug == parser.DEBUG_LEVELS.NONE) {
         return;
       }
       if (typeof(level) == "undefined") {
-        level = self.DEBUG_LEVELS.BASIC;
+        level = parser.DEBUG_LEVELS.BASIC;
       }
-      if (self.debug >= level) {
+      if (parser.debug >= level) {
         var currentTime = new Date();
         console.log("TrackParser (" + currentTime.getTime() + ") - " + str);
       }
     }
   };
   
-  if (!TapedeckInjected.isTest()) {
-    TapedeckInjected.TrackParser.start();
+  if (true || typeof(TapedeckInjected) != "undefined" &&
+      !TapedeckInjected.isTest()) {
+    onObject.TrackParser.start();
   }
 
 }

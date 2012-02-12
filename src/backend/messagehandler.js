@@ -49,22 +49,7 @@ Tapedeck.Backend.MessageHandler = {
     
     switch (request.action) {
       case "add_tracks":
-
-        var browseList = Tapedeck.Backend.Bank.getBrowseList();
-
-        // make sure there isn't already this track in the list
-        var existingURLs = browseList.pluck("url");
-        for (var i in request.tracks) {
-          var track = request.tracks[i];
-          
-          if (jQuery.inArray(track.url, existingURLs) == -1) {
-            // the track is new, set the cassette and add it
-            track.cassette = request.cassetteName;
-            browseList.add(track);
-          }
-        }
-
-        self.pushBrowseTrackList(browseList);
+        self.addTracksAndPushBrowseList(request.tracks);
         break;
       
       case "play_pause":
@@ -363,6 +348,22 @@ Tapedeck.Backend.MessageHandler = {
                 .pushBrowseTrackList(browseTrackList, tab);
       });
     }
+  },
+
+  addTracksAndPushBrowseList: function(newTracks, tab) {
+    var browseList = Tapedeck.Backend.Bank.getBrowseList();
+
+    // make sure there isn't already this track in the list
+    var existingURLs = browseList.pluck("url");
+    for (var i in newTracks) {
+      var track = newTracks[i];
+      
+      if (jQuery.inArray(track.url, existingURLs) == -1) {
+        browseList.add(track);
+      }
+    }
+
+    Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
   },
 
   pushBrowseTrackList: function(browseTrackList, tab) {

@@ -9,7 +9,15 @@ Tapedeck.Backend.Utils = {
   ],
 
   getContext: function(tab) {
-    var context = { tab: tab };
+    var context = { };
+    if (typeof(tab) == "undefined") {
+      // get context of background page
+      context.tab = "background";
+    }
+    else {
+      // context in specified tab
+      context.tab = tab;
+    }
     var isContextComplete = function(contextCheck) {
       var attrs =  Tapedeck.Backend.Utils.CONTEXT_ATTRIBUTES;
       for (var i = 0; i < attrs.length; i++) {
