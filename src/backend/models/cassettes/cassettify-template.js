@@ -4,7 +4,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
   Tapedeck.Backend.Cassettes.CassetteFromTemplate = Tapedeck.Backend.Models.Cassette.extend({\
     domain : "<%= domain %>", \
     defaults : { \
-      "name" : "_Unnamed_", \
+      "name" : "Unnamed", \
       "developer" : "<%= domain %>", \
       "developerLink" : "<%= domain %>", \
     }, \
@@ -18,6 +18,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       var self = this; \
  \
       var parseResponse = function(data, status, xhr) { \
+        $("#dump").html(""); \
         var responseText = xhr.responseText; \
         var cleanedText = Tapedeck.Backend.ParserSuite.Util.removeUnwantedTags(responseText); \
         $("#dump").append(cleanedText); \

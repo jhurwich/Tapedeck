@@ -3,20 +3,42 @@ Tapedeck.Backend.CassetteManager = {
   cassettes: [],
   currentCassette: null,
   
-  init: function() {
-    this.cassettes = [];
-    this.readInCassettes();
-    if (this.currentCassette == null) {
-      var saved = Tapedeck.Backend.Bank.getCurrentCassette();
-      this.setCassette(saved);
-    }
+  init: function(continueInit) {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    cMgr.cassettes = [];
+    cMgr.readInCassettes(function() {
+      if (cMgr.currentCassette == null) {
+        var saved = Tapedeck.Backend.Bank.getCurrentCassette();
+        cMgr.setCassette(saved);
+      }
+      continueInit();
+    });
   },
 
-  readInCassettes: function() {
-    for (var CassetteModel in Tapedeck.Backend.Cassettes) {
-      var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
-      this.cassettes.push(cassette);
-    }
+  readInCassettes: function(callback) {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    cMgr.cassettes = [];
+
+    // Read saved cassettes into memory
+    Tapedeck.Backend.Bank.FileSystem.getCassettes(function(cassetteDatas) {
+      for (var i = 0; i < cassetteDatas.length; i++) {
+        var data = cassetteDatas[i];
+        console.log(JSON.stringify(data));
+
+        // writes the cassette to Tapedeck.Backend.Cassettes[CassetteName]
+        new Function(data.code)();
+      }
+
+      for (var CassetteModel in Tapedeck.Backend.Cassettes) {
+        var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
+        cMgr.cassettes.push(cassette);
+      }
+      callback();
+    });
+    
+    // Read in provided cassettes
+
+
   },
 
   setCassette: function(id) {
@@ -59,6 +81,7 @@ Tapedeck.Backend.CassetteManager = {
   },
 
   getCassettes: function() {
+    console.log("RETRIEVING " + this.cassettes.length);
     return new Tapedeck.Backend.Collections.CassetteList(this.cassettes);
   },
 
@@ -78,6 +101,8 @@ Tapedeck.Backend.CassetteManager = {
           
       msgHandler.getSelectedTab(function(tab) {
         self.origURL = tab.url;
+        self.tabID = tab.id;
+
         msgHandler.showModal({
           fields: [
             { type          : "info",
@@ -88,8 +113,8 @@ Tapedeck.Backend.CassetteManager = {
               callbackParam : "pattern" },
           ],
           title: "Cassettify Wizard",
-        }, self.handlePatternInput);
-        injectMgr.registerPostInjectScript(tab.id, self.captureNextLoad);
+        }, self.handlePatternInput, self.postLoadCleanup);
+        injectMgr.registerPostInjectScript(self.tabID, self.captureNextLoad);
       });
     },
 
@@ -109,11 +134,11 @@ Tapedeck.Backend.CassetteManager = {
           title: "Cassettify Wizard 2",
         });
         
-        injectMgr.removePostInjectScript(context.tab.id, arguments.callee);
+        Tapedeck.Backend.CassetteManager.Cassettify.postLoadCleanup();
       }
       else {
         // same page loaded
-        injectMgr.removePostInjectScript(context.tab.id, arguments.callee);
+        Tapedeck.Backend.CassetteManager.Cassettify.postLoadCleanup();
       }
     },
 
@@ -127,9 +152,9 @@ Tapedeck.Backend.CassetteManager = {
         title: "Cassettify Wizard",
       });
 
-      console.log(JSON.stringify(params));
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
+      self.postLoadCleanup();
       
       var pattern = params.pattern;
       /*
@@ -144,56 +169,81 @@ Tapedeck.Backend.CassetteManager = {
 
       var domain = pattern.replace("http://", "");
       domain = domain.replace("www.", "");
-      domain = domain.substring(0, domain.indexOf('/'));
-
-      var modelLoader = template({ domain  : "theburningear.com",
+      if (domain.indexOf('/') != -1) {
+        domain = domain.substring(0, domain.indexOf('/'));
+      }
+      
+      var modelLoader = template({ domain  : domain,
                                    pattern : pattern });
-      console.log(modelLoader);
 
+      cMgr.Cassettify.nameCassette(modelLoader);
+    },
 
+    nameCassette: function(code, msg) {
+      var msgHandler = Tapedeck.Backend.MessageHandler;
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      
       var nameAndSaveCassette = function(params) {
-        modelLoader = modelLoader.replace("CassetteFromTemplate",
-                                          params.cassetteName);
-        Tapedeck.Backend.Bank.FileSystem.saveCassette(modelLoader,
-                                                      params.cassetteName,
-                                                      cMgr.Cassettify.finish);
+        var saveableName = params.cassetteName.replace(" ", "_");
+        if (saveableName.length == 0) {
+          cMgr.Cassettify.nameCassette(code, "You must enter a name");
+          return;
+        }
+        
+        if (typeof(Tapedeck.Backend.Cassettes[saveableName]) != "undefined") {
+          cMgr.Cassettify.nameCassette(code, "The name you enterred is in use");
+          return;
+        }
 
-        // Run the modelLoader to prepare the new Cassette Model 
-        /*
-        new Function(modelLoader)();
-        
-        var newCassette = new Tapedeck.Backend.Cassettes[params.cassetteName]();
-        
-        cMgr.cassettes.push(newCassette);
-        */
+        code = code.replace(/CassetteFromTemplate/g,
+                            saveableName);
+
+        code = code.replace(/Unnamed/g, params.cassetteName);
+                                          
+        Tapedeck.Backend.Bank.FileSystem.saveCassette(code,
+                                                      saveableName,
+                                                      cMgr.Cassettify.finish);
       };
 
+      var modalFields = [];
+      if (typeof(msg) != "undefined") {
+        modalFields.push({ type : "info",
+                           text : msg });
+      }
+      modalFields.push({ type          : "input",
+                         text          : "Name your new cassette",
+                         callbackParam : "cassetteName"  });
+
       msgHandler.showModal({
-        fields: [
-          { type          : "input",
-            text          : "Name your new cassette",
-            callbackParam : "cassetteName"  },
-        ],
+        fields: modalFields,
         title: "Cassettify Wizard",
       }, nameAndSaveCassette);
-
-      // 4. like line above, add cassette to CassetteList and update it
-      // 5. save the cassette with the bank
-      // 6. make sure saved cassettes are read in see 'readInCassettes()'
-            
-      for (var i = 0; i < cMgr.cassettes.length; i++) {
-        console.log(JSON.stringify(cMgr.cassettes[i].toJSON()));
-      }
     },
 
     finish: function(success) {
+      var cMgr = Tapedeck.Backend.CassetteManager;
       if(success) {
-        console.log("Cassette saved");
-        Tapedeck.Backend.Bank.FileSystem.getCassettes();
+        console.log("reading in all cassettes");
+        cMgr.readInCassettes(function() {
+          var cassetteListView =
+            Tapedeck.Backend.TemplateManager.renderView
+                    ("CassetteList",
+                     { cassetteList : cMgr.getCassettes() });
+          
+          Tapedeck.Backend.MessageHandler.pushView("cassette-list",
+                                                   cassetteListView);
+        });
       }
       else {
         console.error("Cassette could not be properly saved");
       }
+    },
+
+    postLoadCleanup: function() {
+      var injectMgr = Tapedeck.Backend.InjectManager;
+      var cassettify = Tapedeck.Backend.CassetteManager.Cassettify;
+      injectMgr.removePostInjectScript(cassettify.tabID,
+                                       cassettify.captureNextLoad);
     },
   },
 };

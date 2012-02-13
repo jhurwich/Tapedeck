@@ -72,12 +72,20 @@ Tapedeck.Frontend.Messenger = {
         break;
 
       case "showModal":
+        console.log("showing modal");
         var wrappedCallback = function(params) {
           response.params = params;
           self.sendMessage(response);
         };
+        var cleanupCallback = function() {
+          console.log("messenger cleanup");
+          response.error = true;
+          self.sendMessage(response);
+        };
+        
         Tapedeck.Frontend.Frame.Modal.show(request.params,
-                                           wrappedCallback);
+                                           wrappedCallback,
+                                           cleanupCallback);
         break;
 
       case "loadComplete":
@@ -373,6 +381,14 @@ Tapedeck.Frontend.Messenger = {
       var currentTime = new Date();
       console.log("Msgr (" + currentTime.getTime() + ") - " + str);
     }
-  }
+  },
+
+  clear: function() {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "clear",
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
 };
  

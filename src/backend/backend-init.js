@@ -10,10 +10,13 @@ Tapedeck.Backend.Collections = { };
 Tapedeck.Backend.Views = { };
 Tapedeck.Backend.Controllers = { };
 Tapedeck.Backend.init = function() {
-  Tapedeck.Backend.Bank.init();
-  Tapedeck.Backend.CassetteManager.init();
-  Tapedeck.Backend.TemplateManager.init();
-  Tapedeck.Backend.InjectManager.init();
-  Tapedeck.Backend.MessageHandler.init();
-  Tapedeck.Backend.Sequencer.init();
+  Tapedeck.Backend.Bank.init(function() {
+    Tapedeck.Backend.CassetteManager.init(function() {
+      console.log("ASD");
+      Tapedeck.Backend.TemplateManager.init();
+      Tapedeck.Backend.InjectManager.init();
+      Tapedeck.Backend.MessageHandler.init();
+      Tapedeck.Backend.Sequencer.init();
+    });
+  });
 };

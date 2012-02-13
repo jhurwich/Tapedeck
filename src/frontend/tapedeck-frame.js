@@ -693,13 +693,24 @@ Tapedeck.Frontend.Frame = {
      * aCallback will be provided null if the modal is closed.
      */
     callback: null,
-    show: function(params, aCallback) {
+    cleanup: null,
+    show: function(params, aCallback, aCleanup) {
+      console.log("showing modal");
+
+      if (typeof(aCleanup) == "undefined") {
+        console.log("no cleanup");
+      }
       var getViewCallback = function(response) {
         Tapedeck.Frontend.Frame.replaceView("modal-container",
                                             response.view);
       };
 
       this.callback = aCallback;
+      if (typeof(aCleanup) != "undefined") {
+        console.log("assigning cleanup");
+        this.cleanup = aCleanup;
+      }
+      
       Tapedeck.Frontend
               .Messenger
               .getView("Modal", params, null, getViewCallback);  
@@ -717,11 +728,19 @@ Tapedeck.Frontend.Frame = {
       });
       
       this.callback(params);
-      this.close();
+      this.close(false);
     },
     
-    close: function() {
+    close: function(doCleanup) {
+      if (typeof(doCleanup) == "undefined") {
+        doCleanup = false;
+      }
+      
       $("#modal-container").attr("hidden", true);
+      if (doCleanup && this.cleanup != null) {
+        console.log("got a cleanup to do");
+        this.cleanup();
+      }
     },
   },
 

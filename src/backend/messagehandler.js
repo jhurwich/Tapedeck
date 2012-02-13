@@ -306,6 +306,11 @@ Tapedeck.Backend.MessageHandler = {
         response.volume = bank.getVolume();
         self.postMessage(port.tab.id, response);
         break;
+
+      case "clear":
+        Tapedeck.Backend.Bank.clear();
+        console.log("database cleared");
+        break;
         
       default:
         throw new Error("MessageHandler's handleMessage was sent an unknown action");
@@ -416,11 +421,12 @@ Tapedeck.Backend.MessageHandler = {
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
-  showModal: function(params, callback, tab) {
+  showModal: function(params, callback, cleanup, tab) {
     if (typeof(tab) == "undefined") {
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
         Tapedeck.Backend.MessageHandler.showModal(params,
                                                   callback,
+                                                  cleanup,
                                                   selectedTab);
       });
       return;
@@ -429,7 +435,18 @@ Tapedeck.Backend.MessageHandler = {
     var unwrapParams = null;
     if (typeof(callback) != "undefined" && callback != null) {
       unwrapParams = function(response) {
-        callback(response.params);
+        console.log("got response " + JSON.stringify(response));
+        if (typeof(response.params) != "undefined") {
+          // success callback
+          callback(response.params);
+          return;
+        }
+        else if (typeof(cleanup) != "undefined") {
+          // error callback (includes closing the modal)
+          console.log("showModal cleaning");
+          cleanup();
+          return;
+        }
       };
     }
     

@@ -290,6 +290,10 @@
                                 cassettify(event)">
             'Cassettify' current page
           </div>
+          <div class="menu-row"
+               onclick="Tapedeck.Frontend.Messenger.clear()">
+           !~ Clear database
+          </div>
         </div>
       </div>
     </script>
@@ -298,7 +302,7 @@
       <!-- Note options are params.X here -->
       <div id="blackout"></div>
       <div id="modal">
-        <div id="close-button" onclick="Tapedeck.Frontend.Frame.Modal.close()"></div>
+        <div id="close-button" onclick="Tapedeck.Frontend.Frame.Modal.close(true)"></div>
         <span id="modal-title"><% if (typeof(params.title) != "undefined") print(params.title);  %></span> 
         <form id="modal-form">
           <% for (var i=0; i < params.fields.length; i++) {
@@ -332,6 +336,7 @@
   
     <script type="text/javascript">
       $(function() {
+          console.log("initing");
           Tapedeck.Backend.init();
       });
     </script>

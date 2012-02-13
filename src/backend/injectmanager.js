@@ -81,16 +81,24 @@ Tapedeck.Backend.InjectManager = {
       this.postInjectMap[tabID] = [];
     }
     this.postInjectMap[tabID].push(script);
+    console.log("on reg: " + JSON.stringify(this.postInjectMap));
   },
 
   removePostInjectScript: function(tabID, scriptToRemove) {
     var scripts = this.postInjectMap[tabID];
+    if (typeof(scripts) == "undefined" ||
+        scripts.length == 0) {
+      console.log("nothing to remove for " + tabID);
+      return;
+    }
+    
     for (var i = 0; i < scripts.length; i++) {
       if (scripts[i] == scriptToRemove) {
         scripts.splice(i, 1);
         i--;
       };
     }
+    console.log("on remove: " + JSON.stringify(this.postInjectMap));
   },
 
   clearPostInjectScripts: function(tabID) {

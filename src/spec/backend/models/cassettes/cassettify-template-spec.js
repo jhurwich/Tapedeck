@@ -33,6 +33,34 @@ describe("Cassettification", function() {
     
     $(modal).find("input[type='button']").first().click();
 
+    waitsFor(function() {
+      modal = $("#tapedeck-frame").contents().find("#modal");
+      return $(modal).find("input[callbackparam='cassetteName']").length > 0;
+    }, "Waiting for modal to change", 500);
+
+    runs(function() {
+      // Name the Cassette when it's ready
+      $(modal).find("input[callbackparam='cassetteName']")
+              .first()
+              .val("Test Cassette");
+
+      var origCassetteNum = this.cMgr.cassettes.length;
+
+      var saveSpy = spyOn(this.Tapedeck.Backend.Bank.FileSystem,
+                          "saveCassette").andCallThrough();
+
+      // Begin the Cassette save
+      $(modal).find("input[type='button']").first().click();
+
+      waitsFor(function() {
+        return saveSpy.callCount > 0;
+      }, "Waiting for Cassette Save", 500);
+
+      runs(function() {
+        // The Cassette was saved make sure it's in the cassettelist
+        expect(this.cMgr.cassettes.length).toEqual(origCassetteNum + 1);
+      });
+    });
     // template should be generated and pinged
 
     // if successful, template will request a name
