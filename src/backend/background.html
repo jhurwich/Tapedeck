@@ -220,6 +220,10 @@
           <div class="cell current-cassette-col">
             <%= currentCassette.name %>
             <div class="row-buttons">
+              <div class="button next-page"
+                   onclick="Tapedeck.Frontend.Frame.TrackLists.prevPage(event)">P</div>
+              <div class="button next-page"
+                   onclick="Tapedeck.Frontend.Frame.TrackLists.nextPage(event)">N</div>
               <div class="button eject"
                    onclick="Tapedeck.Frontend.Frame.TrackLists.eject(event)"></div>
             </div>
@@ -336,7 +340,6 @@
   
     <script type="text/javascript">
       $(function() {
-          console.log("initing");
           Tapedeck.Backend.init();
       });
     </script>

@@ -23,4 +23,8 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
 
   // No menuitems by default
   menuitems: [],
+
+  isPageable: function() {
+    return (typeof(this.getPage) != "undefined");
+  },
 });

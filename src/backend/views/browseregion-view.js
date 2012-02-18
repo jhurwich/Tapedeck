@@ -46,8 +46,8 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
       chrome.tabs.get(this.tabID, function(tab) {
         // There is a current cassette, render its browselist
         var context = Tapedeck.Backend.Utils.getContext(tab);
-        
-        cMgr.currentCassette.getBrowseList(context, function(trackJSONs) {
+
+        var handleTrackJSONs = function(trackJSONs) {
           var browseTrackList = new Tapedeck.Backend.Collections.TrackList
                                                     (trackJSONs);
     
@@ -65,7 +65,16 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
           Tapedeck.Backend.MessageHandler.pushView("browse-region",
                                                    el,
                                                    tab);
-        });
+        };
+
+        if (cMgr.currentCassette.isPageable()) {
+          cMgr.currentCassette.getPage(cMgr.currPage,
+                                       context,
+                                       handleTrackJSONs);
+        }
+        else {
+          cMgr.currentCassette.getBrowseList(context, handleTrackJSONs);
+        }
       });
     }
     

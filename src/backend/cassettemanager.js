@@ -2,10 +2,11 @@ Tapedeck.Backend.CassetteManager = {
 
   cassettes: [],
   currentCassette: null,
+  currPage: 1,
   
   init: function(continueInit) {
     var cMgr = Tapedeck.Backend.CassetteManager;
-    cMgr.cassettes = [];
+    cMgr.cassettes = []; // array of { cassette : __, (page: __) }
     cMgr.readInCassettes(function() {
       if (cMgr.currentCassette == null) {
         var saved = Tapedeck.Backend.Bank.getCurrentCassette();
@@ -21,28 +22,34 @@ Tapedeck.Backend.CassetteManager = {
 
     // Read saved cassettes into memory
     Tapedeck.Backend.Bank.FileSystem.getCassettes(function(cassetteDatas) {
+      var pageMap = { };
       for (var i = 0; i < cassetteDatas.length; i++) {
         var data = cassetteDatas[i];
-        console.log(JSON.stringify(data));
 
+        if (typeof(data.page) != "undefined") {
+          pageMap[data.name] = data.page
+        }
         // writes the cassette to Tapedeck.Backend.Cassettes[CassetteName]
         new Function(data.code)();
       }
 
       for (var CassetteModel in Tapedeck.Backend.Cassettes) {
         var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
-        cMgr.cassettes.push(cassette);
+        if (typeof(pageMap[CassetteModel]) != "undefined") {
+          cMgr.cassettes.push({ cassette : cassette,
+                                page     : parseInt(pageMap[CassetteModel]) });
+        }
+        else {
+          cMgr.cassettes.push({ cassette: cassette });
+        }
       }
       callback();
     });
-    
-    // Read in provided cassettes
-
-
   },
 
   setCassette: function(id) {
     var oldCurrent = this.currentCassette;
+    this.currPage = 1;
 
     // Find the specified cassette, or if it was null set the cassette
     // to null, 'ejecting' it.
@@ -53,9 +60,12 @@ Tapedeck.Backend.CassetteManager = {
     }
     else {
       for (var i = 0; i < this.cassettes.length; i++) {
-        var cassette = this.cassettes[i];
+        var cassette = this.cassettes[i].cassette;
         if (cassette.get("tdID") == id) {
           this.currentCassette = cassette;
+          if (typeof(this.cassettes[i].page) != "undefined") {
+            this.currPage = parseInt(this.cassettes[i].page);
+          }
         }
       }
     }
@@ -81,8 +91,41 @@ Tapedeck.Backend.CassetteManager = {
   },
 
   getCassettes: function() {
-    console.log("RETRIEVING " + this.cassettes.length);
-    return new Tapedeck.Backend.Collections.CassetteList(this.cassettes);
+    var cassettes = _.pluck(this.cassettes, "cassette");
+    return new Tapedeck.Backend.Collections.CassetteList(cassettes);
+  },
+
+  browsePrevPage: function() {
+    if (this.currentCassette != null) {
+      this.setPage(this.currPage - 1);
+    }
+  },
+  browseNextPage: function() {
+    if (this.currentCassette != null) {
+      this.setPage(this.currPage + 1);
+    }
+  },
+  setPage: function(page) {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    cMgr.currPage = parseInt(page);
+    if (cMgr.currPage < 1) {
+      cMgr.currPage = 1;
+    }
+
+    // update the page in memory
+    for (var i = 0; i < cMgr.cassettes.length; i++) {
+      var cassette = cMgr.cassettes[i].cassette;
+      if (cassette.get("tdID") == cMgr.currentCassette.get("tdID")) {
+        cMgr.cassettes[i].page = cMgr.currPage;
+      }
+    }
+
+    // change to the new page in the frontend
+    Tapedeck.Backend.MessageHandler.updateBrowseList();
+
+    // save the page to persist
+    Tapedeck.Backend.Bank.saveCassettePage(cMgr.currentCassette.get("name"),
+                                           cMgr.currPage);
   },
 
   // cassettify() is called in a series of phases.
@@ -223,7 +266,6 @@ Tapedeck.Backend.CassetteManager = {
     finish: function(success) {
       var cMgr = Tapedeck.Backend.CassetteManager;
       if(success) {
-        console.log("reading in all cassettes");
         cMgr.readInCassettes(function() {
           var cassetteListView =
             Tapedeck.Backend.TemplateManager.renderView

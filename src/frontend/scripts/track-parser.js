@@ -80,7 +80,6 @@ if (onObject != null &&
       }
 
       // Scrape mp3 Links
-      console.log("Scraping for links");
       resultObjects.push(parser.links.scrape());
 
       // Scrape <audio> elements
@@ -94,7 +93,6 @@ if (onObject != null &&
       parser.soundcloud.scrape();
       
       var toReturn = parser.mergeResults(resultObjects);
-      console.log(JSON.stringify(toReturn));
       return toReturn;
     },
   
@@ -142,7 +140,6 @@ if (onObject != null &&
         var parser = onObject.TrackParser;
 
         var links = $('a', parser.context);
-        console.log(links.length + " links found");
         var mp3Links = { };
         for (var i = 0; i < links.length; i++) {
           var a = links[i];
@@ -513,7 +510,6 @@ if (onObject != null &&
         var soundcloud = parser.soundcloud;
 
         var objects = $('object', parser.context);
-        console.log(objects.length + " objects found ");
         objects.each( function(index, object) {
           var params = $(object).children('param');
           var swfValue = "";
@@ -540,18 +536,15 @@ if (onObject != null &&
             return;
           }
 
-          console.log("object findURLAndQuery(" + swfValue + ")");
           soundcloud.findURLAndQuery(swfValue);
         }); // end objects.each
 
         var iframes = $('iframe', parser.context);
-        console.log(iframes.length + " objects found ");
         iframes.each( function(index, iframe) {
           var src = $(iframe).attr("src");
 
           if (src != null &&
               src.match(/api.soundcloud.com/) != null) {
-            console.log("iframe findURLAndQuery(" + src + ")");
             soundcloud.findURLAndQuery(src);
           }
           
@@ -575,7 +568,7 @@ if (onObject != null &&
           queryURL += "?format=json&consumer_key=";
           queryURL += soundcloud.consumerKey;
 
-          console.log("sending request to " + queryURL);
+          parser.log("sending request to " + queryURL);
           $.ajax({
             type: "GET",
             url: queryURL,
@@ -594,7 +587,6 @@ if (onObject != null &&
       },
   
       parseJSONResponse : function(response) {
-        console.log("got JSON response");
         var parser = onObject.TrackParser;
         var soundcloud = parser.soundcloud;
 
@@ -628,7 +620,7 @@ if (onObject != null &&
                         soundcloud.consumerKey
           }
 
-          console.log("built track " + JSON.stringify(track));
+          parser.log("built track " + JSON.stringify(track));
           return track;
         };
         

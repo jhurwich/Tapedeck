@@ -1,7 +1,7 @@
 Tapedeck.Backend.Bank = {
 
   tracks: { },
-  drawerOpen: false,
+  drawerOpen: true, //TODO set to false
   localStorage: null,
 
   
@@ -14,15 +14,17 @@ Tapedeck.Backend.Bank = {
   trackListPrefix: /* bankPrefix + */ "trackList-",
   playlistPrefix: /* trackListPrefix + */ "playlist-",
   currentCassetteKey: /* bankPrefix + */ "currentCassette",
+  cassettePagePrefix: /* bankPrefix + */ "cassettePages",
   repeatKey: /* bankPrefix + */ "repeat",
   volumeKey: /* bankPrefix + */ "volume",
   blockKey: /* bankPrefix + */ "block",
-  init: function() {
+  init: function(continueInit) {
     this.localStorage = window.localStorage;
     
     this.trackListPrefix = this.bankPrefix + this.trackListPrefix;
     this.playlistPrefix = this.trackListPrefix + this.playlistPrefix;
     this.currentCassetteKey = this.bankPrefix + this.currentCassetteKey;
+    this.cassettePagePrefix = this.bankPrefix + this.cassettePagePrefix;
     this.repeatKey = this.bankPrefix + this.repeatKey;
     this.blockKey = this.bankPrefix + this.blockKey;
     if (this.localStorage.getItem(this.repeatKey) == null) {
@@ -33,7 +35,9 @@ Tapedeck.Backend.Bank = {
       this.saveBlockList(this.defaultBlockPatterns);
     }
     
-    this.FileSystem.init();
+    this.FileSystem.init(function() {
+      continueInit();
+    });
   },
 
   // We expect this to be the most commonly used function so it is
@@ -78,18 +82,102 @@ Tapedeck.Backend.Bank = {
   FileSystem : {
     root : null,
     fileSystemSize: 100, // in MB
-    init: function() {
+    init: function(continueInit) {
       window.requestFileSystem  = window.requestFileSystem ||
                                   window.webkitRequestFileSystem;
 
       var successCallback = function(e) {
         Tapedeck.Backend.Bank.FileSystem.root = e.root;
+        continueInit();
       };
         
       window.requestFileSystem(window.TEMPORARY,
                                this.fileSystemSize*1024*1024, // specified in MB
                                successCallback,
                                this.errorHandler)
+    },
+
+    saveCassette: function(code, name, callback) {
+      var fs = Tapedeck.Backend.Bank.FileSystem;
+
+      fs.root.getDirectory('Cassettes', {create: true}, function(dirEntry) {
+        dirEntry.getFile(name, {create: true}, function(fileEntry) {
+          // Create a FileWriter object for our FileEntry 
+          fileEntry.createWriter(function(fileWriter) {
+
+            fileWriter.onwriteend = function(e) {
+              callback(true);
+            };
+            fileWriter.onerror = function(e) {
+              callback(false);
+            };
+  
+            var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
+            bb.append(code);
+            fileWriter.write(bb.getBlob('text/plain'));
+          }, fs.errorHandler);
+        }, fs.errorHandler);
+      }, fs.errorHandler);
+    },
+
+    // Returns cassetteDatas of the form { name: "", code: "" }
+    getCassettes: function(callback) {
+      var fs = Tapedeck.Backend.Bank.FileSystem;
+      var cassetteDatas = [];
+
+      fs.root.getDirectory('Cassettes', {create: true}, function(dirEntry) {
+        var dirReader = dirEntry.createReader();
+        dirReader.readEntries(function(entries) {
+          var numReads = entries.length;
+          if (numReads == 0) {
+            callback(cassetteDatas);
+            return;
+          }
+          
+          for (var i = 0; i < entries.length; i++) {
+            var entry = entries[i];
+
+            var scoped = function() {
+              var name = entry.name;
+              if (!entry.isFile) {
+                numReads--;
+                if (numReads == 0) {
+                  callback(cassetteDatas);
+                }              
+                return;
+              }
+  
+              entry.file(function(file) {
+                var reader = new FileReader();
+                reader.onloadend = function(e) {
+                  numReads--;                  
+                  var data = { name: name,
+                               code: this.result };
+
+                  var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix +
+                                name;
+                  var page = Tapedeck.Backend.Bank.localStorage
+                                                  .getItem(pageKey);
+                  
+                  if (page != null) {
+                    data.page = page;
+                  }
+
+                  cassetteDatas.push(data);
+                  
+                  if (numReads == 0) {
+                    callback(cassetteDatas);
+                  }
+                };
+                
+                reader.readAsText(file);
+              });
+            }();
+          }
+
+        });
+      }, fs.errorHandler);
+      
     },
 
     download: function(trackID, callback) {
@@ -274,6 +362,13 @@ Tapedeck.Backend.Bank = {
       };
       console.error('File System Error: ' + msg);
     },
+  },
+  
+  saveCassettePage: function(cassetteName, page) {
+    var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix +
+                  cassetteName;
+    var page = Tapedeck.Backend.Bank.localStorage
+                                    .setItem(pageKey, page);
   },
 
   clear: function() {

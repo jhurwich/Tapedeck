@@ -12,7 +12,6 @@ Tapedeck.Backend.Controllers = { };
 Tapedeck.Backend.init = function() {
   Tapedeck.Backend.Bank.init(function() {
     Tapedeck.Backend.CassetteManager.init(function() {
-      console.log("ASD");
       Tapedeck.Backend.TemplateManager.init();
       Tapedeck.Backend.InjectManager.init();
       Tapedeck.Backend.MessageHandler.init();

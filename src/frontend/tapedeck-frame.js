@@ -567,6 +567,13 @@ Tapedeck.Frontend.Frame = {
       Tapedeck.Frontend.Messenger.download(trackID, callback);
     },
 
+    prevPage: function(e) {
+      Tapedeck.Frontend.Messenger.browsePrevPage();
+    },
+    nextPage: function(e) {
+      Tapedeck.Frontend.Messenger.browseNextPage();
+    },
+  
     eject: function(e) {
       Tapedeck.Frontend.Messenger.ejectCassette();
     },
@@ -695,19 +702,17 @@ Tapedeck.Frontend.Frame = {
     callback: null,
     cleanup: null,
     show: function(params, aCallback, aCleanup) {
-      console.log("showing modal");
-
-      if (typeof(aCleanup) == "undefined") {
-        console.log("no cleanup");
-      }
       var getViewCallback = function(response) {
         Tapedeck.Frontend.Frame.replaceView("modal-container",
                                             response.view);
+        var inputs = $("#modal").find("input[type='text']");
+        if (inputs.length > 0) {
+          inputs.first().select();
+        }
       };
 
       this.callback = aCallback;
       if (typeof(aCleanup) != "undefined") {
-        console.log("assigning cleanup");
         this.cleanup = aCleanup;
       }
       
@@ -738,7 +743,6 @@ Tapedeck.Frontend.Frame = {
       
       $("#modal-container").attr("hidden", true);
       if (doCleanup && this.cleanup != null) {
-        console.log("got a cleanup to do");
         this.cleanup();
       }
     },
@@ -768,7 +772,6 @@ Tapedeck.Frontend.Frame = {
   },
 
   onLoadComplete: function() {
-    console.log("Got the loadComplete");
     Tapedeck.Frontend.Messenger.requestUpdate("BrowseList");
   },
 };

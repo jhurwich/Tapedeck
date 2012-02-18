@@ -14,56 +14,72 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
     events: [], \
    \
     getBrowseList: function(context, callback) { \
-      console.log("GETTING BROWSE LIST"); \
       var self = this; \
-      var ourDump = $("#dump").find("#CassetteFromTemplate"); \
-      if (ourDump.length == 0) { \
-        console.log("making new dump"); \
-        ourDump = $("<div id=\'CassetteFromTemplate\'>"); \
-        $(ourDump).appendTo($("#dump")); \
-      } \
+      self.getPage(1, context, callback); \
+    }, /* end getBrowseList */ \
  \
-      var ourDumpIsCached = function() { \
-        if ($(ourDump).attr("filled-at") != null) { \
-          var filled = parseInt($(ourDump).attr("filled-at")); \
-          var diff = (new Date()).getTime() - filled; \
-          console.log("diff: " + diff); \
-          return (diff / 1000 / 60 / 60 < 1); \
-        } \
-        else { \
-          return false; \
-        } \
-      }; \
+    getPage: function(pageNum, context, callback) { \
+      var self = this; \
+      var pageURL = self.pattern.replace(/\\$#/g, pageNum); \
  \
-      if (!ourDumpIsCached()) { \
-        var parseResponse = function(data, status, xhr) { \
-          var responseText = xhr.responseText; \
-          var cleanedText = Tapedeck.Backend.ParserSuite.Util.removeUnwantedTags(responseText); \
-          $(ourDump).append(cleanedText); \
-          $(ourDump).attr("filled-at", (new Date()).getTime()); \
-     \
-          Tapedeck.Backend.TrackParser.start($(ourDump), callback); \
-        }; \
-   \
+      if (!self.isDumpCached(pageNum)) { \
         /* First hit the domain itself, usually the first page */ \
         $.ajax({ \
           type: "GET", \
-          url: "http://www." + self.domain, \
+          url: "http://www." + pageURL, \
           dataType: "html", \
    \
-          success: parseResponse, \
+          success: self.parseResponse.curry(callback, pageNum), \
    \
           error: function (response) { \
-            console.error("Ajax error retrieving " + self.domain + ""); \
+            console.error("Ajax error retrieving " + self.domain + ", page " + pageNum); \
           }, \
         }); \
       } \
       else { \
         /* the dump for this cassette is cached and non-stale */ \
-        Tapedeck.Backend.TrackParser.start($(ourDump), callback); \
+        var ourDump = $("#dump").find("#CassetteFromTemplate"); \
+        var pageDump = $(ourDump).find("#page" + pageNum); \
+        Tapedeck.Backend.TrackParser.start($(pageDump), callback); \
+      } \
+    }, \
+ \
+    parseResponse: function(callback, page, data, status, xhr) { \
+      var ourDump = $("#dump").find("#CassetteFromTemplate"); \
+      if (ourDump.length == 0) { \
+        ourDump = $("<div id=\'CassetteFromTemplate\'>"); \
+        $(ourDump).appendTo($("#dump")); \
       } \
  \
-    }, /* end getBrowseList */ \
+      var pageDump = $(ourDump).find("#page" + page); \
+      if (pageDump.length == 0) { \
+        pageDump = $("<div id=\'page" + page + "\'>"); \
+        $(pageDump).appendTo($(ourDump)); \
+      } \
+      var responseText = xhr.responseText; \
+      var cleanedText = Tapedeck.Backend.ParserSuite.Util.removeUnwantedTags(responseText); \
+      $(pageDump).append(cleanedText); \
+      $(pageDump).attr("filled-at", (new Date()).getTime()); \
+ \
+      Tapedeck.Backend.TrackParser.start($(pageDump), callback); \
+    }, \
+ \
+    isDumpCached: function(page) { \
+      var ourDump = $("#dump").find("#CassetteFromTemplate"); \
+      if (ourDump.length == 0) { \
+        return false; \
+      } \
+ \
+      var pageDump = $(ourDump).find("#page" + page); \
+      if (pageDump.length > 0 && $(pageDump).attr("filled-at") != null) { \
+        var filled = parseInt($(pageDump).attr("filled-at")); \
+        var diff = (new Date()).getTime() - filled; \
+        return (diff / 1000 / 60 / 30 < 1); /* 30 min */ \
+      } \
+      else { \
+        return false; \
+      } \
+    }, \
   }); \
     '
 /*

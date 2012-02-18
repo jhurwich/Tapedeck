@@ -279,6 +279,13 @@ Tapedeck.Backend.MessageHandler = {
         sqcr.next();
         break;
 
+      case "browsePrevPage":
+        Tapedeck.Backend.CassetteManager.browsePrevPage();
+        break;
+      case "browseNextPage":
+        Tapedeck.Backend.CassetteManager.browseNextPage();
+        break;
+
       case "setCassette":
         Tapedeck.Backend.CassetteManager.setCassette(request.cassetteID);
         break;
@@ -309,7 +316,6 @@ Tapedeck.Backend.MessageHandler = {
 
       case "clear":
         Tapedeck.Backend.Bank.clear();
-        console.log("database cleared");
         break;
         
       default:
@@ -339,19 +345,39 @@ Tapedeck.Backend.MessageHandler = {
   },
 
   updateBrowseList: function(tab) {
+    if (typeof(tab) == "undefined") {
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.updateBrowseList(selectedTab);
+      });
+      return;
+    }
     var cMgr = Tapedeck.Backend.CassetteManager;
 
     if (cMgr.currentCassette != null) {
       var context = Tapedeck.Backend.Utils.getContext(tab);
 
-      cMgr.currentCassette.getBrowseList(context, function(trackJSONs) {
-        var browseTrackList = new Tapedeck.Backend.Collections.TrackList
-                                                  (trackJSONs);
-
-        Tapedeck.Backend
-                .MessageHandler
-                .pushBrowseTrackList(browseTrackList, tab);
-      });
+      if (!cMgr.currentCassette.isPageable() || cMgr.currPage <= 1) {
+        cMgr.currentCassette.getBrowseList(context, function(trackJSONs) {
+          var browseTrackList = new Tapedeck.Backend.Collections.TrackList
+                                                    (trackJSONs);
+  
+          Tapedeck.Backend
+                  .MessageHandler
+                  .pushBrowseTrackList(browseTrackList, tab);
+        });
+      }
+      else {
+        cMgr.currentCassette.getPage(cMgr.currPage,
+                                     context,
+                                     function(trackJSONs) {
+          var browseTrackList = new Tapedeck.Backend.Collections.TrackList
+                                                    (trackJSONs);
+  
+          Tapedeck.Backend
+                  .MessageHandler
+                  .pushBrowseTrackList(browseTrackList, tab);
+        });
+      }
     }
   },
 
@@ -435,7 +461,6 @@ Tapedeck.Backend.MessageHandler = {
     var unwrapParams = null;
     if (typeof(callback) != "undefined" && callback != null) {
       unwrapParams = function(response) {
-        console.log("got response " + JSON.stringify(response));
         if (typeof(response.params) != "undefined") {
           // success callback
           callback(response.params);
@@ -443,7 +468,6 @@ Tapedeck.Backend.MessageHandler = {
         }
         else if (typeof(cleanup) != "undefined") {
           // error callback (includes closing the modal)
-          console.log("showModal cleaning");
           cleanup();
           return;
         }

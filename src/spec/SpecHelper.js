@@ -85,6 +85,7 @@ beforeEach(function() {
 
   runs(function() {
     this.Tapedeck.Frontend = tapedeckFrame[0].contentWindow.Tapedeck.Frontend;
+     this.Tapedeck.Backend.Bank.clear();
   });
 
   this.findTestTab = function() {
@@ -100,6 +101,7 @@ beforeEach(function() {
 
 afterEach(function() {
   this.Tapedeck.Backend.Sequencer.clear();
+  this.Tapedeck.Backend.Bank.clear();
 }); // end afterEach
 
 

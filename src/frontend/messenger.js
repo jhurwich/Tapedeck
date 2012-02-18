@@ -72,13 +72,11 @@ Tapedeck.Frontend.Messenger = {
         break;
 
       case "showModal":
-        console.log("showing modal");
         var wrappedCallback = function(params) {
           response.params = params;
           self.sendMessage(response);
         };
         var cleanupCallback = function() {
-          console.log("messenger cleanup");
           response.error = true;
           self.sendMessage(response);
         };
@@ -290,6 +288,21 @@ Tapedeck.Frontend.Messenger = {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action  : "setCassette",
       cassetteID : cassetteID
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  browsePrevPage: function() {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "browsePrevPage"
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+  browseNextPage: function() {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "browseNextPage"
     });
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
