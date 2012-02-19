@@ -60,9 +60,7 @@ describe("Message Handler", function() {
                                                   testDiv,
                                                   testTab);
 
-   waitsFor(function() {
-      return $("#tapedeck-frame").contents().find("#testdiv").length > 0;
-    }, "Timed out waiting for view update", 2000);
+    waitsForElement("#testdiv");
 
     runs(function() {
       expect($("#tapedeck-frame").contents()).not.toContain("#browse-list");

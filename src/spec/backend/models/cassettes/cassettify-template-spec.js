@@ -4,6 +4,7 @@ describe("Cassettification", function() {
     this.frame = this.Tapedeck.Frontend.Frame;
     this.cMgr = this.Tapedeck.Backend.CassetteManager;
     this.pattern = "www.theburningear.com/page/$#";
+    this.cassetteName = "TestCassette";
 
     waitsForFrontendInit();
     runs(function() {
@@ -42,20 +43,17 @@ describe("Cassettification", function() {
       // Name the Cassette when it's ready
       $(modal).find("input[callbackparam='cassetteName']")
               .first()
-              .val("Test Cassette");
+              .val(this.cassetteName);
 
       var origCassetteNum = this.cMgr.cassettes.length;
 
-      var saveSpy = spyOn(this.Tapedeck.Backend.Bank.FileSystem,
-                          "saveCassette").andCallThrough();
+      var readInSpy = spyOn(this.Tapedeck.Backend.CassetteManager,
+                          "readInCassettes").andCallThrough();
 
       // Begin the Cassette save
       $(modal).find("input[type='button']").first().click();
 
-      waitsFor(function() {
-        return saveSpy.callCount > 0;
-      }, "Waiting for Cassette Save", 500);
-
+      waitsForElement(".row[cassette-name='" + this.cassetteName + "']");
       runs(function() {
         // The Cassette was saved make sure it's in the cassettelist
         expect(this.cMgr.cassettes.length).toEqual(origCassetteNum + 1);
@@ -74,10 +72,41 @@ describe("Cassettification", function() {
 
   });
 
-  /*
-  it("should make a new cassette from browsing through pages", function() {
+  it("should make cassettes that work (depends on TBE having tracks!)", function() {
+    var foundCassette = null;
+    for (var i = 0; i < this.cMgr.cassettes.length; i++) {
+      var cassette = this.cMgr.cassettes[i].cassette;
+      if (cassette.get("name") == this.cassetteName) {
+        foundCassette = cassette;
+      }
+    }
+    expect(foundCassette).not.toBeNull();
+    
+    var testTab = this.findTestTab();
+    var context = this.Tapedeck.Backend.Utils.getContext(testTab);
 
+    var testComplete = false;
+    foundCassette.getBrowseList(context, function(tracks) {
+      expect(tracks.length).toBeGreaterThan(0);
+      testComplete = true;
+    });
+
+    waitsFor(function() { return testComplete },
+             "Timed out waiting for Cassettification result to getBrowseList",
+             4000);
   });
-*/
 
+  it("should make cassettes that are removeable", function() {
+
+    var origCassetteNum = this.cMgr.cassettes.length;
+    this.cMgr.removeCassette(this.cassetteName);
+
+    waitsFor(function() {
+      return (this.cMgr.cassettes.length < origCassetteNum);
+    }, "Timed out waiting for a cassette to be remove", 1000);
+
+    runs(function() {
+      expect(this.cMgr.cassettes.length).toEqual(origCassetteNum - 1);
+    });
+  });
 });

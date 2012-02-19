@@ -13,13 +13,22 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
   rowDblClick: "noFnNameDefined",
   
   initialize: function() {
-    this.trackList = this.options.trackList;
+    if (this.options.trackList != null &&
+        typeof(this.options.trackList) != "undefined") {
+      this.trackList = this.options.trackList;
+      this.bindEvents(this.trackList);
+    }
+    else {
+      // tracklist == null usually means the tracklist is loading
+      this.trackList = null;
+    }
     if (typeof(this.options.currentCassette) != "undefined") {
       this.currentCassette = this.options.currentCassette;
     }
+    if (typeof(this.options.currentPage) != "undefined") {
+      this.currentPage = this.options.currentPage;
+    }
 
-    this.bindEvents(this.trackList);
-                       
     this.template = _.template(Tapedeck.Backend
                                        .TemplateManager
                                        .getTemplate("TrackList"));
@@ -40,11 +49,19 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
   },
 
   render: function() {
-    var trackListJSON = this.trackList.toJSON();
-    trackListJSON.destination = this.viewName;
-    var templateOptions = { trackList: trackListJSON };
+    var templateOptions = { };
+    
+    if (this.trackList != null) {
+      var trackListJSON = this.trackList.toJSON();
+      trackListJSON.destination = this.viewName;
+      templateOptions.trackList = trackListJSON;
+    }
     if (this.currentCassette != null) {
-      templateOptions.currentCassette = this.currentCassette.toJSON();
+      templateOptions.currentCassette = this.currentCassette;
+
+      if (this.currentPage != null) {
+        templateOptions.currentPage = this.currentPage;
+      }
     }
     this.el.innerHTML =  this.template(templateOptions);
     $(this.el).attr("rowDblClick", this.rowDblClick);
@@ -63,7 +80,11 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
     this.assignImgs(".button.download", "rowbutton-download.png");
     this.assignImgs(".spinner.download", "download-spinner.gif");
     
-    this.assignImgs(".button.eject", "cassettebutton-eject.png");
+    this.assignImgs(".button.prev-page", "prev-page.png");
+    this.assignImgs(".button.next-page", "next-page.png");
+    this.assignImgs(".button.eject", "cassettebutton-eject-grey.png");
+    
+    this.assignImgs(".spinner.loading", "tracklist-loading.gif");
   },
   
   assignImgs: function(selector, image) {

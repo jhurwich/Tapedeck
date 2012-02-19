@@ -12,6 +12,7 @@ Tapedeck.Backend.CassetteManager = {
         var saved = Tapedeck.Backend.Bank.getCurrentCassette();
         cMgr.setCassette(saved);
       }
+      window.setInterval(cMgr.dumpCollector, 1000 * 60 * 10 /* 10 min */);
       continueInit();
     });
   },
@@ -47,37 +48,55 @@ Tapedeck.Backend.CassetteManager = {
     });
   },
 
-  setCassette: function(id) {
+  refreshCassetteListView: function() {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    cMgr.readInCassettes(function() {
+      var cassetteListView =
+        Tapedeck.Backend.TemplateManager.renderView
+                ("CassetteList",
+                 { cassetteList : cMgr.getCassettes() });
+      
+      Tapedeck.Backend.MessageHandler.pushView("cassette-list",
+                                               cassetteListView);
+    });
+  },
+
+  setCassette: function(name) {
     var oldCurrent = this.currentCassette;
     this.currPage = 1;
 
     // Find the specified cassette, or if it was null set the cassette
     // to null, 'ejecting' it.
-    if (typeof(id) == "undefined" ||
-        id == null ||
-        id.length == 0) {
+    if (typeof(name) == "undefined" ||
+        name == null ||
+        name.length == 0) {
       this.currentCassette = null;
     }
     else {
       for (var i = 0; i < this.cassettes.length; i++) {
         var cassette = this.cassettes[i].cassette;
-        if (cassette.get("tdID") == id) {
+        if (cassette.get("name") == name) {
           this.currentCassette = cassette;
+          this.currentCassette.set({ active: "active" });
+          
           if (typeof(this.cassettes[i].page) != "undefined") {
             this.currPage = parseInt(this.cassettes[i].page);
           }
         }
       }
     }
-
+    
     // If the current cassette changes, we need to save the new 
     // cassette's id and update the browse region.
     if (this.currentCassette != oldCurrent) {
-      var cassetteID = "";
+      var cassetteName = "";
       if (this.currentCassette != null) {
-        cassetteID = this.currentCassette.get("tdID") 
+        cassetteName = this.currentCassette.get("name") 
       }
-      Tapedeck.Backend.Bank.saveCurrentCassette(cassetteID);
+      if(oldCurrent != null) {
+        oldCurrent.unset("active");
+      }
+      Tapedeck.Backend.Bank.saveCurrentCassette(cassetteName);
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
         var browseRegionView = Tapedeck.Backend
                                        .TemplateManager
@@ -90,8 +109,29 @@ Tapedeck.Backend.CassetteManager = {
     }
   },
 
+  removeCassette: function(name) {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    
+    var foundCassette = null;
+    for (var i = 0; i < cMgr.cassettes.length; i++) {
+      var cassette = cMgr.cassettes[i].cassette;
+      if (cassette.get("name") == name) {
+        foundCassette = cassette;
+        cMgr.cassettes.splice(i, 1);
+        break;
+      }
+    }
+    
+    delete Tapedeck.Backend.Cassettes[name];
+    Tapedeck.Backend.Bank.FileSystem.removeCassette(name, function() {
+      cMgr.refreshCassetteListView();
+    });
+    
+  },
+
   getCassettes: function() {
-    var cassettes = _.pluck(this.cassettes, "cassette");
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    var cassettes = _.pluck(cMgr.cassettes, "cassette");
     return new Tapedeck.Backend.Collections.CassetteList(cassettes);
   },
 
@@ -107,15 +147,21 @@ Tapedeck.Backend.CassetteManager = {
   },
   setPage: function(page) {
     var cMgr = Tapedeck.Backend.CassetteManager;
+    if (cMgr.currPage == parseInt(page)) {
+      return;
+    }
     cMgr.currPage = parseInt(page);
     if (cMgr.currPage < 1) {
       cMgr.currPage = 1;
     }
+    
+    // this triggers the loading browseList state
+    Tapedeck.Backend.MessageHandler.pushBrowseTrackList(null);
 
     // update the page in memory
     for (var i = 0; i < cMgr.cassettes.length; i++) {
       var cassette = cMgr.cassettes[i].cassette;
-      if (cassette.get("tdID") == cMgr.currentCassette.get("tdID")) {
+      if (cassette.get("name") == cMgr.currentCassette.get("name")) {
         cMgr.cassettes[i].page = cMgr.currPage;
       }
     }
@@ -148,42 +194,17 @@ Tapedeck.Backend.CassetteManager = {
 
         msgHandler.showModal({
           fields: [
-            { type          : "info",
-              text          : "Please browse to previous page of '" +
-                              self.origURL + "'." },
             { type          : "input",
-              text          : "or enter pattern with '$#' for page number.",
+              text          : "Please enter the url for the site with '$#' for the page number.",
               callbackParam : "pattern" },
           ],
           title: "Cassettify Wizard",
         }, self.handlePatternInput, self.postLoadCleanup);
-        injectMgr.registerPostInjectScript(self.tabID, self.captureNextLoad);
+        
+        // injectMgr.registerPostInjectScript(self.tabID, self.captureNextLoad); SAVE_FOR_CAPTURE_NEXT_LOAD
       });
     },
 
-    captureNextLoad: function(context) {
-      var msgHandler = Tapedeck.Backend.MessageHandler;
-      var injectMgr = Tapedeck.Backend.InjectManager;
-      
-      if (context.tab.url != self.origURL) {
-        // loaded a new page
-        self.secondURL = context.tab.url;
-        msgHandler.showModal({
-          fields: [
-            { type          : "info",
-              text          : "Got a second page of '" +
-                              self.secondURL + "'." },
-          ],
-          title: "Cassettify Wizard 2",
-        });
-        
-        Tapedeck.Backend.CassetteManager.Cassettify.postLoadCleanup();
-      }
-      else {
-        // same page loaded
-        Tapedeck.Backend.CassetteManager.Cassettify.postLoadCleanup();
-      }
-    },
 
     handlePatternInput: function(params) {
       var msgHandler = Tapedeck.Backend.MessageHandler;
@@ -200,20 +221,33 @@ Tapedeck.Backend.CassetteManager = {
       self.postLoadCleanup();
       
       var pattern = params.pattern;
-      /*
+      
       var index = pattern.indexOf("$#");
       if (index == -1) {
-        // didn't find the pattern
+        // couldn't find the pattern
+        msgHandler.showModal({
+          fields: [
+            { type          : "info",
+              text          : "Couldn't find '$#' please try again.", },
+            { type          : "input",
+              text          : "Please enter the url for the site with '$#' for the page number.",
+              callbackParam : "pattern" },
+          ],
+          title: "Cassettify Wizard",
+        }, self.handlePatternInput, self.postLoadCleanup);
         return;
       }
-      */
 
       var template = _.template(cMgr.CassettifyTemplate.template);
 
-      var domain = pattern.replace("http://", "");
-      domain = domain.replace("www.", "");
-      if (domain.indexOf('/') != -1) {
-        domain = domain.substring(0, domain.indexOf('/'));
+      pattern = pattern.replace("http://", "");
+      pattern = pattern.replace("www.", "");
+      var domain;
+      if (pattern.indexOf('/') != -1) {
+        domain = pattern.substring(0, pattern.indexOf('/'));
+      }
+      else {
+        domain = pattern;
       }
       
       var modelLoader = template({ domain  : domain,
@@ -227,11 +261,17 @@ Tapedeck.Backend.CassetteManager = {
       var cMgr = Tapedeck.Backend.CassetteManager;
       
       var nameAndSaveCassette = function(params) {
-        var saveableName = params.cassetteName.replace(" ", "_");
-        if (saveableName.length == 0) {
+        if (params.cassetteName.length == 0) {
           cMgr.Cassettify.nameCassette(code, "You must enter a name");
           return;
         }
+
+        // any non-a-Z,0-9,., or space
+        if ((/[^a-zA-Z0-9\s]/).test(params.cassetteName)) {
+          cMgr.Cassettify.nameCassette(code, "Only a-Z, 0-9, and spaces are allowed.");
+          return;
+        }
+        var saveableName = params.cassetteName.replace(/\s/g, "_");
         
         if (typeof(Tapedeck.Backend.Cassettes[saveableName]) != "undefined") {
           cMgr.Cassettify.nameCassette(code, "The name you enterred is in use");
@@ -240,9 +280,8 @@ Tapedeck.Backend.CassetteManager = {
 
         code = code.replace(/CassetteFromTemplate/g,
                             saveableName);
-
-        code = code.replace(/Unnamed/g, params.cassetteName);
-                                          
+        code = code.replace(/Unnamed/g, saveableName);
+        
         Tapedeck.Backend.Bank.FileSystem.saveCassette(code,
                                                       saveableName,
                                                       cMgr.Cassettify.finish);
@@ -266,26 +305,56 @@ Tapedeck.Backend.CassetteManager = {
     finish: function(success) {
       var cMgr = Tapedeck.Backend.CassetteManager;
       if(success) {
-        cMgr.readInCassettes(function() {
-          var cassetteListView =
-            Tapedeck.Backend.TemplateManager.renderView
-                    ("CassetteList",
-                     { cassetteList : cMgr.getCassettes() });
-          
-          Tapedeck.Backend.MessageHandler.pushView("cassette-list",
-                                                   cassetteListView);
-        });
+        cMgr.refreshCassetteListView();
       }
       else {
         console.error("Cassette could not be properly saved");
       }
     },
 
+
+/* SAVE_FOR_CAPTURE_NEXT_LOAD
+*    captureNextLoad: function(context) {
+*      var msgHandler = Tapedeck.Backend.MessageHandler;
+*      var injectMgr = Tapedeck.Backend.InjectManager;
+*      
+*      if (context.tab.url != self.origURL) {
+*        // loaded a new page
+*        self.secondURL = context.tab.url;
+*        msgHandler.showModal({
+*          fields: [
+*            { type          : "info",
+*              text          : "Got a second page of '" +
+*                              self.secondURL + "'." },
+*          ],
+*          title: "Cassettify Wizard 2",
+*        });
+*        
+*        Tapedeck.Backend.CassetteManager.Cassettify.postLoadCleanup();
+*      }
+*      else {
+*        // same page loaded
+*        Tapedeck.Backend.CassetteManager.Cassettify.postLoadCleanup();
+*      }
+*    },
+*/
     postLoadCleanup: function() {
-      var injectMgr = Tapedeck.Backend.InjectManager;
-      var cassettify = Tapedeck.Backend.CassetteManager.Cassettify;
-      injectMgr.removePostInjectScript(cassettify.tabID,
-                                       cassettify.captureNextLoad);
+    /*  SAVE_FOR_CAPTURE_NEXT_LOAD
+     *  var injectMgr = Tapedeck.Backend.InjectManager;
+     *  var cassettify = Tapedeck.Backend.CassetteManager.Cassettify;
+     *  injectMgr.removePostInjectScript(cassettify.tabID,
+     *                                   cassettify.captureNextLoad);
+     */
     },
+  },
+  
+  dumpCollector: function() {
+    $("[expiry]").each(function(index, expire) {
+      var expiry = parseInt($(expire).attr("expiry"));
+      
+      if ((expiry - (new Date()).getTime()) < 0) {
+        $(expire).remove();
+      }
+    });
   },
 };

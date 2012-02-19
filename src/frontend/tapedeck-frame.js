@@ -322,7 +322,7 @@ Tapedeck.Frontend.Frame = {
         }
       }
 
-      var clickIndex = $(row).attr("index")
+      var clickIndex = parseInt($(row).attr("index"));
       tracklists.clickID = clickIndex;
       tracklists.clickTimer = setTimeout(function() {
         
@@ -347,7 +347,7 @@ Tapedeck.Frontend.Frame = {
           
           var rows = $(row).closest(".tracklist").find(".row");
           rows.each( function(i, aRow) {
-            var pos = $(aRow).attr("index");
+            var pos = parseInt($(aRow).attr("index"));
             if (pos <= highBound && pos >= lowBound) {
               if (isSelect) {
                 $(aRow).addClass("selected");
@@ -570,6 +570,25 @@ Tapedeck.Frontend.Frame = {
     prevPage: function(e) {
       Tapedeck.Frontend.Messenger.browsePrevPage();
     },
+    setCurrentPage: function(e) {
+      $("#current-page").after("<input type='text' id='set-page' />");
+      $("#current-page").hide();
+      $("#set-page").keypress(function(e) {
+        if(e.which == 13) {
+          var page = parseInt($("#set-page").val());
+          if (!isNaN(page) && page > 0) { 
+             Tapedeck.Frontend.Messenger.setPage(page);
+          }
+          $("#set-page").blur();
+        }
+      });
+      $("#set-page").select();
+      $("#set-page").blur(function(e) {
+        $("#set-page").off("blur");
+        $("#set-page").remove();
+        $("#current-page").show();
+      });
+    },
     nextPage: function(e) {
       Tapedeck.Frontend.Messenger.browseNextPage();
     },
@@ -585,12 +604,28 @@ Tapedeck.Frontend.Frame = {
       while(!$(target).hasClass("row")) {
         target = $(target).parent();
         if (target == null || !target) {
-          console.error("Couldn't locate handle");
+          console.error("Couldn't locate row");
           return;
         }
       }
   
-      Tapedeck.Frontend.Messenger.setCassette($(target).attr("cassette-id"));
+      Tapedeck.Frontend.Messenger.setCassette($(target).attr("cassette-name"));
+    },
+
+    rowButtonRemove: function(e) {
+      var target = e.target;
+      while(!$(target).hasClass("row")) {
+        target = $(target).parent();
+        if (target == null || !target) {
+          console.error("Couldn't locate row");
+          return;
+        }
+      }
+      if (e.preventDefault) {
+        e.preventDefault(); // Necessary. Allows us to drop.
+      }
+
+      Tapedeck.Frontend.Messenger.removeCassette($(target).attr("cassette-name"));
     },
   
     loadDeveloperLink: function(e) {

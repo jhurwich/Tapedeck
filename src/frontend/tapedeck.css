@@ -154,7 +154,7 @@ body {
 }
 .tracklist .row,
 .cassettelist .row{
-  background-color: rgb(233,233,233);
+  background-color: #E9E9E9;
   position: relative;
   min-width: 330px;
   height: 16px;
@@ -181,6 +181,14 @@ body {
 }
 .tracklist .row.blank {
   padding: 3px;
+}
+.tracklist .spinner.loading {
+  height: 9px;
+  width: 16px;
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  margin-left: -8px;
 }
 .tracklist-container .cell,
 .cassettelist .cell {
@@ -232,7 +240,8 @@ body {
   margin: 1px;
 }
 .tracklist .row-buttons > .button,
-.tracklist .row-indicators > #download-spinner {
+.tracklist .row-indicators > #download-spinner,
+.cassettelist .row-buttons > .button {
   height: 12px;
   width: 12px;
   float: left;
@@ -240,11 +249,16 @@ body {
   background-position: center;
   margin-left: 1px;
 }
-.tracklist .row .row-buttons {
-  display: none;
+.tracklist .row .row-buttons,
+.cassettelist .row .row-buttons {
 }
-.tracklist .row:hover .row-buttons{
+.tracklist .row:hover .row-buttons, 
+.cassettelist .row:hover .row-buttons {
   display: inline-block;
+}
+.cassettelist .row:hover .row-buttons {
+  background-color: yellow;
+  z-index: 5;
 }
 #browse-list .row .row-buttons > .button.remove {
   display: none;
@@ -354,6 +368,9 @@ body {
   background-color: #2f2f2f;
   cursor: pointer;
 }
+.cassettelist .row.active {
+  background-color: #272727 !important;
+}
 .cassettelist .cell,
 .tracklist-container #current-cassette-row .cell {
   min-height: 18px;
@@ -422,6 +439,8 @@ body {
   right: 0;
 }
 .tracklist-container #current-cassette-row .row-buttons > .button {
+  margin: 0 1px;
+  
   height: 18px;
   width: 16px;
   float: left;
@@ -429,6 +448,21 @@ body {
   background-position: center;
   background-color: #181818;
   cursor: pointer;
+}
+.tracklist-container #current-cassette-row .button.current-page {
+  display: inline-block;
+  font: bold 16px arial, sans-serif;
+  text-align: center;
+  max-width: 16px;
+  padding-right: 1px;
+  color: #EEE;
+}
+.tracklist-container #current-cassette-row #set-page {
+  width: 19px;
+  border: none;
+  float: left;
+  margin: 1px;
+  padding-left: 5px;
 }
 .tracklist-container #current-cassette-row {
   width: 326px;

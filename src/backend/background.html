@@ -8,7 +8,6 @@
   
     <!-- Initialize -->
     <script type="text/javascript" src="/util/backend-util.js"></script>
-    <script type="text/javascript" src="/util/parser-suite.js"></script>
     <script type="text/javascript" src="/frontend/scripts/track-parser.js"></script>
     <script type="text/javascript" src="backend-init.js"></script>
     <script type="text/javascript" src="bank.js"></script>
@@ -137,14 +136,21 @@
 
     <script id="TrackList-default-template" type="text/template">
       <div class="tracklist">
-        <% if (trackList.length == 0) { %>
+        <% if(typeof(trackList) == "undefined" || trackList == null) { %>
+          <div class="row-container">
+            <div class="row blank">
+              <div class="spinner loading"
+                   id="loading-spinner"></div>
+            </div>
+          </div>            
+        <% } else if (trackList.length == 0) { %>
           <div class="row-container">
             <div class="row blank">
               <% if (trackList.destination == "Queue") { %>
                 There are no tracks in your queue.
               <% }
               else { %>
-                Sorry, this cassette seems blank.
+                Cassette is blank. (Soundcloud may be loading)
               <% } %>
             </div>
           </div>
@@ -218,12 +224,19 @@
       <% if (typeof(currentCassette) != "undefined") { %>
         <div id="current-cassette-row" class="row">
           <div class="cell current-cassette-col">
-            <%= currentCassette.name %>
+            <%= currentCassette.get("name").replace(/_/g, " ") %>
             <div class="row-buttons">
-              <div class="button next-page"
-                   onclick="Tapedeck.Frontend.Frame.TrackLists.prevPage(event)">P</div>
-              <div class="button next-page"
-                   onclick="Tapedeck.Frontend.Frame.TrackLists.nextPage(event)">N</div>
+              <% if (currentCassette.isPageable() && typeof(currentPage) != "undefined") { %>
+                <div class="button prev-page"
+                     onclick="Tapedeck.Frontend.Frame.TrackLists.prevPage(event)"></div>
+                <div id="current-page"
+                     class="button current-page"
+                     onclick="Tapedeck.Frontend.Frame.TrackLists.setCurrentPage(event)">
+                  <%= currentPage %>
+                </div>
+                <div class="button next-page"
+                     onclick="Tapedeck.Frontend.Frame.TrackLists.nextPage(event)"></div>
+              <% } %>
               <div class="button eject"
                    onclick="Tapedeck.Frontend.Frame.TrackLists.eject(event)"></div>
             </div>
@@ -255,12 +268,13 @@
       <div class="cassettelist">
         <% for (var i=0; i < cassetteList.length; i++) {
           var cassette = cassetteList[i];
+          var displayName = cassette.name.replace(/_/g, " ");
         %>
           <div class="row-container">
-            <div class="row"
+            <div class="row <% if (cassette.active) { print(" active "); } %>"
                  index='<%= i %>'
-                 cassette-id='<%= cassette.tdID %>' >
-              <div class="cell cassetteName-col" title='<%= cassette.name %>'> <%= cassette.name %> </div>
+                 cassette-name='<%= cassette.name %>' >
+              <div class="cell cassetteName-col" title='<%= displayName %>'> <%= displayName %> </div>
               <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
                 <span id="developer-link"
                       url='<%= cassette.developerLink %>'
@@ -268,10 +282,8 @@
                   <%= cassette.developer %>
                 </span>
                 <div class="row-buttons">
-                  <!--
                   <div class="button remove"
-                       onclick="Tapedeck.Frontend.Frame.rowButtonRemove(event)"></div>
-                  -->
+                       onclick="Tapedeck.Frontend.Frame.CassetteList.rowButtonRemove(event)"></div>
                 </div>
               </div>
             </div>

@@ -42,7 +42,14 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
     // browselist and it will update the view when it is ready.
     $(el).find("#browse-list").hide();
     if (cMgr.currentCassette != null) {
-      
+      var browseView = Tapedeck.Backend
+                               .TemplateManager
+                               .renderView("BrowseList",
+                                           { currentCassette : cMgr.currentCassette,
+                                             currentPage     : cMgr.currPage });
+      $(el).find("#browse-list").replaceWith(browseView);
+      $(el).find("#cassette-list").hide();
+
       chrome.tabs.get(this.tabID, function(tab) {
         // There is a current cassette, render its browselist
         var context = Tapedeck.Backend.Utils.getContext(tab);
@@ -52,14 +59,15 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
                                                     (trackJSONs);
     
           Tapedeck.Backend.Bank.saveBrowseList(browseTrackList);
-    
-          var browseView = Tapedeck.Backend
-                                   .TemplateManager
-                                   .renderView("BrowseList",
-                                               { trackList   : browseTrackList,
-                                                 currentCassette : cMgr.currentCassette });
+
+          browseView = Tapedeck.Backend
+                               .TemplateManager
+                               .renderView("BrowseList",
+                                           { trackList       : browseTrackList,
+                                             currentCassette : cMgr.currentCassette,
+                                             currentPage     : cMgr.currPage });
           $(el).find("#browse-list").replaceWith(browseView);
-          $(el).find("#cassette-list").hide();
+
           Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
 
           Tapedeck.Backend.MessageHandler.pushView("browse-region",

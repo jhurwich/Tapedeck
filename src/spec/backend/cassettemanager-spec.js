@@ -27,24 +27,25 @@ describe("Cassette Manager", function() {
                              .andCallThrough();
     }
 
-    this.Tapedeck.Backend.CassetteManager.init();
+    this.Tapedeck.Backend.CassetteManager.init(function() {
 
-    for (var i = 0; i < spies.length; i++) {
-      expect(spies[i]).toHaveBeenCalled();
-      expect(spies[i].callCount).toEqual(1);
-    }
+      for (var i = 0; i < spies.length; i++) {
+        expect(spies[i]).toHaveBeenCalled();
+        expect(spies[i].callCount).toEqual(1);
+      }
+    });
   });
 
   it("should set the currentCassette with setCassette", function() {
     var cassettes = this.cassetteMgr.cassettes;
     var cassette;
     for (var i = 0; i < cassettes.length; i++) {
-      cassette = cassettes[i];
+      cassette = cassettes[i].cassette;
       if (cassette.get("name") == "Scraper") {
         break;
       }
     }
-    this.cassetteMgr.setCassette(cassette.get("tdID"));
+    this.cassetteMgr.setCassette(cassette.get("name"));
     expect(this.cassetteMgr.currentCassette.get("name")).toEqual("Scraper");
   });
 

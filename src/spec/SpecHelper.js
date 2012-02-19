@@ -85,7 +85,7 @@ beforeEach(function() {
 
   runs(function() {
     this.Tapedeck.Frontend = tapedeckFrame[0].contentWindow.Tapedeck.Frontend;
-     this.Tapedeck.Backend.Bank.clear();
+    this.Tapedeck.Backend.Bank.clear();
   });
 
   this.findTestTab = function() {
@@ -104,11 +104,14 @@ afterEach(function() {
   this.Tapedeck.Backend.Bank.clear();
 }); // end afterEach
 
-
+// Convenience method to wait for the frontend's initialization
 waitsForFrontendInit = function() {
-  // Convenience method to wait for the frontend's initialization
+  waitsForElement("#player");
+}
+
+waitsForElement = function(selector) {
   waitsFor(function() {
-    return ($("#tapedeck-frame").contents().find("#player").length > 0);
-  }, "Timedout waiting for #app to be swapped out", 1000);
+    return ($("#tapedeck-frame").contents().find(selector).length > 0);
+  }, "Timedout waiting for '" + selector + "' to populate", 2000);
 }
 

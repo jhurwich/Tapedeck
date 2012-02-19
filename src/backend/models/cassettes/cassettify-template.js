@@ -57,9 +57,10 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         $(pageDump).appendTo($(ourDump)); \
       } \
       var responseText = xhr.responseText; \
-      var cleanedText = Tapedeck.Backend.ParserSuite.Util.removeUnwantedTags(responseText); \
+      var cleanedText = Tapedeck.Backend.TrackParser.Util.removeUnwantedTags(responseText); \
+      $(pageDump).html(""); \
       $(pageDump).append(cleanedText); \
-      $(pageDump).attr("filled-at", (new Date()).getTime()); \
+      $(pageDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
  \
       Tapedeck.Backend.TrackParser.start($(pageDump), callback); \
     }, \
@@ -71,10 +72,9 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       } \
  \
       var pageDump = $(ourDump).find("#page" + page); \
-      if (pageDump.length > 0 && $(pageDump).attr("filled-at") != null) { \
-        var filled = parseInt($(pageDump).attr("filled-at")); \
-        var diff = (new Date()).getTime() - filled; \
-        return (diff / 1000 / 60 / 30 < 1); /* 30 min */ \
+      if (pageDump.length > 0 && $(pageDump).attr("expiry") != null) { \
+        var expiry = parseInt($(pageDump).attr("expiry")); \
+        return ((expiry - (new Date()).getTime()) < 0); \
       } \
       else { \
         return false; \

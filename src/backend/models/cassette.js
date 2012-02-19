@@ -8,6 +8,8 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
   initialize: function(options) {
     if ($.isEmptyObject(options.attributes) ||
         !("tdID" in options.attributes) ) {
+
+      // Names should be the unique indicator of choice, not this id
       this.set({ tdID:  _.uniqueId("tapedeck-cassette")});
     }
   },

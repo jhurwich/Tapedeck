@@ -282,12 +282,19 @@ Tapedeck.Backend.MessageHandler = {
       case "browsePrevPage":
         Tapedeck.Backend.CassetteManager.browsePrevPage();
         break;
+      case "setPage":
+        Tapedeck.Backend.CassetteManager.setPage(request.page);
+        break;
       case "browseNextPage":
         Tapedeck.Backend.CassetteManager.browseNextPage();
         break;
 
       case "setCassette":
         Tapedeck.Backend.CassetteManager.setCassette(request.cassetteID);
+        break;
+
+      case "removeCassette":
+        Tapedeck.Backend.CassetteManager.removeCassette(request.cassetteID);
         break;
 
       case "cassettify":
@@ -381,7 +388,27 @@ Tapedeck.Backend.MessageHandler = {
     }
   },
 
+  // Basic mutex.  Push tracks to queue if lock is held.
+  addTrackAvailable: true,
+  addTracksQueued: [ ],
   addTracksAndPushBrowseList: function(newTracks, tab) {
+    var msgHandler = Tapedeck.Backend.MessageHandler;
+    if (!msgHandler.addTrackAvailable) {
+      // We shifted the new tracks to the queue, and push empty array
+      msgHandler.addTracksQueued = msgHandler.addTracksQueued.concat(newTracks);
+      setTimeout(msgHandler.addTracksAndPushBrowseList.curry([], tab),
+                 200);
+      return;
+    }
+
+    // pull in the queued tracks and blank the queue
+    newTracks = newTracks.concat(msgHandler.addTracksQueued)
+    msgHandler.addTracksQueued = [];
+    if (newTracks.length == 0) {
+      // if empty then nothing to do
+      return;
+    }
+    msgHandler.addTrackAvailable = false;
     var browseList = Tapedeck.Backend.Bank.getBrowseList();
 
     // make sure there isn't already this track in the list
@@ -397,15 +424,30 @@ Tapedeck.Backend.MessageHandler = {
     Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
   },
 
+  // browseTrackList == null means push the loading state
   pushBrowseTrackList: function(browseTrackList, tab) {
+    if (typeof(tab) == "undefined") {
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseTrackList,
+                                                            selectedTab);
+      });
+      return;
+    }
     var cMgr = Tapedeck.Backend.CassetteManager;
-    Tapedeck.Backend.Bank.saveBrowseList(browseTrackList);
+    var msgHandler = Tapedeck.Backend.MessageHandler;
+    
+    if (browseTrackList != null) {
+      Tapedeck.Backend.Bank.saveBrowseList(browseTrackList);
+      var browseList = Tapedeck.Backend.Bank.getBrowseList();
+    }
+    msgHandler.addTrackAvailable = true;
 
     var browseView = Tapedeck.Backend
                              .TemplateManager
                              .renderView("BrowseList",
-                                         { trackList   : browseTrackList,
-                                           currentCassette : cMgr.currentCassette });
+                                         { trackList       : browseTrackList,
+                                           currentCassette : cMgr.currentCassette,
+                                           currentPage     : cMgr.currPage });
 
     Tapedeck.Backend.MessageHandler.pushView("browse-list",
                                              browseView,

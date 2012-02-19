@@ -1,7 +1,7 @@
 Tapedeck.Backend.Bank = {
 
   tracks: { },
-  drawerOpen: true, //TODO set to false
+  drawerOpen: false,
   localStorage: null,
 
   
@@ -118,6 +118,23 @@ Tapedeck.Backend.Bank = {
           }, fs.errorHandler);
         }, fs.errorHandler);
       }, fs.errorHandler);
+    },
+
+    removeCassette: function(name, callback) {
+      var fs = Tapedeck.Backend.Bank.FileSystem;
+      
+      fs.root.getDirectory('Cassettes', {create: true}, function(dirEntry) {
+        dirEntry.getFile(name, {create: true}, function(fileEntry) {
+
+          fileEntry.remove(function() {
+            callback();
+          }, fs.errorHandler);
+
+        }, fs.errorHandler);
+      }, fs.errorHandler);
+      
+      var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix + name;
+      var page = Tapedeck.Backend.Bank.localStorage.removeItem(pageKey);
     },
 
     // Returns cassetteDatas of the form { name: "", code: "" }
@@ -363,16 +380,12 @@ Tapedeck.Backend.Bank = {
       console.error('File System Error: ' + msg);
     },
   },
-  
-  saveCassettePage: function(cassetteName, page) {
-    var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix +
-                  cassetteName;
-    var page = Tapedeck.Backend.Bank.localStorage
-                                    .setItem(pageKey, page);
-  },
 
   clear: function() {
-    this.playlistList.reset();
+    if (typeof(this.playlistList) != "undefined" &&
+        this.playlistList != null) {
+      this.playlistList.reset();
+    }
     this.localStorage.clear();
     this.FileSystem.clear();
   },
@@ -539,6 +552,13 @@ Tapedeck.Backend.Bank = {
 
   saveCurrentCassette: function(currentCassette) {
     this.localStorage.setItem(this.currentCassetteKey, currentCassette);
+  },
+  
+  saveCassettePage: function(cassetteName, page) {
+    var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix +
+                  cassetteName;
+    var page = Tapedeck.Backend.Bank.localStorage
+                                    .setItem(pageKey, page);
   },
 
   toggleRepeat: function() {

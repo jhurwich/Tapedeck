@@ -293,9 +293,26 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
+  removeCassette: function(cassetteID) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "removeCassette",
+      cassetteID : cassetteID
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
   browsePrevPage: function() {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action  : "browsePrevPage"
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+  setPage: function(page) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "setPage",
+      page    : page
     });
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
