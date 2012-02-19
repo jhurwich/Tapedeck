@@ -59,17 +59,6 @@ describe("Cassettification", function() {
         expect(this.cMgr.cassettes.length).toEqual(origCassetteNum + 1);
       });
     });
-    // template should be generated and pinged
-
-    // if successful, template will request a name
-      // provide name
-      // template then saved to disc and inserted to cassettelist
-        // normally saved cassettes will be read in on load
-      // confirm expectations for saved cassette
-      // remove saved cassette
-
-    // if not, ???
-
   });
 
   it("should make cassettes that work (depends on TBE having tracks!)", function() {

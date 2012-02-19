@@ -137,7 +137,7 @@ Tapedeck.Backend.Bank = {
       var page = Tapedeck.Backend.Bank.localStorage.removeItem(pageKey);
     },
 
-    // Returns cassetteDatas of the form { name: "", code: "" }
+    // Returns cassetteDatas of the form { name: "", code: "" (, page: num) }
     getCassettes: function(callback) {
       var fs = Tapedeck.Backend.Bank.FileSystem;
       var cassetteDatas = [];

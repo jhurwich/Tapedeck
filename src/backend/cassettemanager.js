@@ -12,7 +12,7 @@ Tapedeck.Backend.CassetteManager = {
         var saved = Tapedeck.Backend.Bank.getCurrentCassette();
         cMgr.setCassette(saved);
       }
-      window.setInterval(cMgr.dumpCollector, 1000 * 60 * 10 /* 10 min */);
+      window.setInterval(cMgr.dumpCollector, 1000 * 60 * 2 /* 2 min */);
       continueInit();
     });
   },
@@ -177,8 +177,6 @@ Tapedeck.Backend.CassetteManager = {
   // cassettify() is called in a series of phases.
   // The 'start' phase will always begin the cassettify process,
   // potentially cancelling a previous cassettify in progress.
-  //
-  // sendResponse can be passed an object containing return values
   origURL: "",
   secondURL: "",
   Cassettify: {
@@ -266,7 +264,7 @@ Tapedeck.Backend.CassetteManager = {
           return;
         }
 
-        // any non-a-Z,0-9,., or space
+        // any non-a-Z,0-9, or space
         if ((/[^a-zA-Z0-9\s]/).test(params.cassetteName)) {
           cMgr.Cassettify.nameCassette(code, "Only a-Z, 0-9, and spaces are allowed.");
           return;
