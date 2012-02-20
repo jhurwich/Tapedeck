@@ -23,9 +23,11 @@ if (onObject != null &&
 
     context: null,
     isParsing: false,
-    onBackgroundPage: false, 
-    start : function(context, callback) {
+    onBackgroundPage: false,
+    cassetteName: "",
+    start : function(cassetteName, context, callback) {
       var parser = onObject.TrackParser;
+      parser.cassetteName = cassetteName;
 
       if (typeof(callback) != "undefined") {
         parser.onBackgroundPage = true;
@@ -110,6 +112,7 @@ if (onObject != null &&
       var tracks = [];
       for (var url in resultMap) {
         var track  = resultMap[url];
+        track.cassette = parser.cassetteName;
         tracks.push(parser.cleanTrack(track));
       }
       return tracks;
@@ -613,6 +616,7 @@ if (onObject != null &&
 
           track.domain = location.hostname;
           track.location = location.href;
+          track.cassette = parser.cassetteName;
 
           if (typeof(track.url) != "undefined") {
             track.url = track.url +
@@ -823,7 +827,8 @@ if (onObject != null &&
   
   if (typeof(TapedeckInjected) != "undefined" &&
       !TapedeckInjected.isTest()) {
-    onObject.TrackParser.start();
+    // Scraper is the trackparser on a webpage
+    onObject.TrackParser.start("Scraper"); 
   }
 
 }

@@ -192,8 +192,13 @@ Tapedeck.Backend.CassetteManager = {
 
         msgHandler.showModal({
           fields: [
+            { type          : "info",
+              text          : "Please enter the url for a site with '$#' for the page number." },
+            { type          : "info",
+              text          : "For example: theburningear.com/page/$#" },
             { type          : "input",
-              text          : "Please enter the url for the site with '$#' for the page number.",
+              text          : "",
+              width         : "300",
               callbackParam : "pattern" },
           ],
           title: "Cassettify Wizard",
@@ -227,8 +232,13 @@ Tapedeck.Backend.CassetteManager = {
           fields: [
             { type          : "info",
               text          : "Couldn't find '$#' please try again.", },
+            { type          : "info",
+              text          : "Please enter the url for a site with '$#' for the page number." },
+            { type          : "info",
+              text          : "For example: theburningear.com/page/$#" },
             { type          : "input",
-              text          : "Please enter the url for the site with '$#' for the page number.",
+              text          : "",
+              width         : "300",
               callbackParam : "pattern" },
           ],
           title: "Cassettify Wizard",
@@ -290,8 +300,10 @@ Tapedeck.Backend.CassetteManager = {
         modalFields.push({ type : "info",
                            text : msg });
       }
+      modalFields.push({ type          : "info",
+                         text          : "Name your new cassette",});
       modalFields.push({ type          : "input",
-                         text          : "Name your new cassette",
+                         text          : "",
                          callbackParam : "cassetteName"  });
 
       msgHandler.showModal({

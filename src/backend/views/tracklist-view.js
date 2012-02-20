@@ -73,7 +73,7 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
     return this.el;
   },
   
-  assignRowButtonImgs: function() {     
+  assignRowButtonImgs: function() {
     this.assignImgs(".button.playnow", "rowbutton-playnow.png");
     this.assignImgs(".button.remove", "rowbutton-remove.png");
     this.assignImgs(".button.queue", "rowbutton-queue.png");
@@ -82,7 +82,7 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
     
     this.assignImgs(".button.prev-page", "prev-page.png");
     this.assignImgs(".button.next-page", "next-page.png");
-    this.assignImgs(".button.eject", "cassettebutton-eject-grey.png");
+    this.assignImgs(".button.eject", "cassettebutton-eject.png");
     
     this.assignImgs(".spinner.loading", "tracklist-loading.gif");
   },

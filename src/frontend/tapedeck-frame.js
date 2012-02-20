@@ -635,8 +635,16 @@ Tapedeck.Frontend.Frame = {
       Tapedeck.Frontend.Messenger.loadLink($(e.target).attr("url"));
     },
 
-    showAddCassettes: function(e) {
-      alert('showadd');
+    showCassetteMenu: function(e) {
+      $("#add-cassettes-menu").attr("visible", "visible");
+      var content = $("#add-cassettes-content");
+      $(content).css("display", "block");
+    },
+
+    hideCassetteMenu: function(e) {
+      $("#add-cassettes-menu").removeAttr("visible");
+      var content = $("#add-cassettes-content");
+      $(content).css("display", "none");
     },
 
     cassettify: function(e) {

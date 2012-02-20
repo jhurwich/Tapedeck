@@ -42,7 +42,6 @@
     <script id="Frame-default-template" type="text/template">
       <div id="player">Player Here</div>
       <div id="queue-region" class="region">
-        <div class="region-header">Queue</div>
         <div id="queue-list" class="tracklist"></div>
   
         <div id="queue-buttons">
@@ -71,7 +70,6 @@
     </script>
 
     <script id="BrowseRegion-default-template" type="text/template">
-      <div class="region-header">Browse or Cassettes</div>
       <div id="browse-list" class="tracklist"></div>
       <div id="cassette-list" class="cassettelist"></div>
     </script>
@@ -194,8 +192,8 @@
                 <div class="cell artistName-col" title='<%= track.artistName %>'>
                   <%= track.artistName %>
                 </div>
-                <div class="cell cassette-col" title='<%= track.cassette %>'>
-                  <%= track.cassette %>
+                <div class="cell cassette-col" title='<%= track.cassette.replace(/_/g, " ") %>'>
+                  <%= track.cassette.replace(/_/g, " ") %>
                   <div class="row-buttons">
                     <div class="button playnow"
                          onclick="Tapedeck.Frontend.Frame.TrackLists.
@@ -288,26 +286,24 @@
             </div>
           </div>
         <% } %>
-        <div class="row-container button-row">
-          <div class="row-buttons">
-            <div id="add-cassette-button"
-                 class="button"
-                 onclick="Tapedeck.Frontend.Frame.CassetteList.
-                                  showAddCassettes(event)"></div>
-          </div>
+      </div>
+      <div class="row-container" id="cassettelist-button-row">
+        <div class="row-buttons">
         </div>
-        <div id="add-cassettes-menu">
+      </div>
+      <div id="add-cassettes-menu">
+        <div id="add-cassettes-button"
+             class="button"
+             onclick="Tapedeck.Frontend.Frame.CassetteList.
+                              cassettify(event)"></div>
+        <div id="add-cassettes-content">
           <div class="menu-row coming-soon">
             Get more cassettes (coming soon)
           </div>
           <div class="menu-row"
                onclick="Tapedeck.Frontend.Frame.CassetteList.
                                 cassettify(event)">
-            'Cassettify' current page
-          </div>
-          <div class="menu-row"
-               onclick="Tapedeck.Frontend.Messenger.clear()">
-           !~ Clear database
+            Cassettify
           </div>
         </div>
       </div>
@@ -322,13 +318,14 @@
         <form id="modal-form">
           <% for (var i=0; i < params.fields.length; i++) {
             var field = params.fields[i]; %>
-            <div class="field-row row">
+            <div class="field-row row <%= field.type %>">
               <% if (field.type == "info") { %>
                 <span class="info"><%= field.text %></span>
               <% } else if (field.type == "input") { %>
                 <span class="input"><%= field.text %></span>
                 <input callbackParam="<%= field.callbackParam %>"
                        type="text"
+                       <% if (typeof(field.width) != "undefined") print("style='width: " + field.width + "px;'"); %>
                        onkeypress="if (event.which == 13) { Tapedeck.Frontend.Frame.Modal.submit(); return false; }">
               <% } %>
             </div>

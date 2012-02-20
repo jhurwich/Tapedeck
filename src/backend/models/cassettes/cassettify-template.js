@@ -29,7 +29,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           url: "http://www." + pageURL, \
           dataType: "html", \
    \
-          success: self.parseResponse.curry(callback, pageNum), \
+          success: self.parseResponse.curry(callback, pageNum, self), \
    \
           error: function (response) { \
             console.error("Ajax error retrieving " + self.domain + ", page " + pageNum); \
@@ -40,11 +40,11 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         /* the dump for this cassette is cached and non-stale */ \
         var ourDump = $("#dump").find("#CassetteFromTemplate"); \
         var pageDump = $(ourDump).find("#page" + pageNum); \
-        Tapedeck.Backend.TrackParser.start($(pageDump), callback); \
+        Tapedeck.Backend.TrackParser.start(self.get("name"), $(pageDump), callback); \
       } \
     }, \
  \
-    parseResponse: function(callback, page, data, status, xhr) { \
+    parseResponse: function(callback, page, self, data, status, xhr) { \
       var ourDump = $("#dump").find("#CassetteFromTemplate"); \
       if (ourDump.length == 0) { \
         ourDump = $("<div id=\'CassetteFromTemplate\'>"); \
@@ -62,7 +62,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       $(pageDump).append(cleanedText); \
       $(pageDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
  \
-      Tapedeck.Backend.TrackParser.start($(pageDump), callback); \
+      Tapedeck.Backend.TrackParser.start(self.get("name"), $(pageDump), callback); \
     }, \
  \
     isDumpCached: function(page) { \

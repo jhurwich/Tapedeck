@@ -29,7 +29,7 @@ body {
   position: relative;
   height: 40px;
   width: 100%;
-  border: solid 2px rgb(66,66,66);
+  border: solid 2px #424242;
   margin-bottom: 10px;
   padding: 0 2px;
   white-space: nowrap;
@@ -124,14 +124,17 @@ body {
   font: bold 18px arial, sans-serif;
   height: 22px;
 }
-
-.tracklist-container,
+.tracklist {
+  max-height: 260px;
+  width: 345px;
+}
+.tracklist,
 .cassettellist-container {
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
 }
-.tracklist,
+.tracklist-container,
 .cassettelist {
   border-right: none;
   overflow: hidden;
@@ -143,14 +146,14 @@ body {
   width: 100%;
   max-width: 326px;
   overflow: hidden;
-  border-left: solid 2px rgb(66,66,66);
-  border-right: solid 2px rgb(66,66,66);
+  border-left: solid 2px #424242;
+  border-right: solid 2px #424242;
 }
 .tracklist .row-container:first-child {
-  border-top: solid 2px rgb(66,66,66);
+  border-top: solid 2px #424242;
 }
 .tracklist .row-container:last-child {
-  border-bottom: solid 2px rgb(66,66,66);
+  border-bottom: solid 2px #424242;
 }
 .tracklist .row,
 .cassettelist .row{
@@ -202,8 +205,8 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-right: solid 1px rgb(50,153,187);
-  border-bottom: solid 1px rgb(50,153,187);
+  border-right: solid 1px #3299BB;
+  border-bottom: solid 1px #3299BB;
   padding-left: 2px;
 }
 .tracklist .row-container:last-child .cell{
@@ -251,14 +254,18 @@ body {
 }
 .tracklist .row .row-buttons,
 .cassettelist .row .row-buttons {
+  display: none;
 }
 .tracklist .row:hover .row-buttons, 
 .cassettelist .row:hover .row-buttons {
   display: inline-block;
 }
-.cassettelist .row:hover .row-buttons {
-  background-color: yellow;
-  z-index: 5;
+.cassettelist .row-buttons .button {
+  border: none;
+  margin: 2px;
+}
+.cassettelist .row[cassette-name='Scraper'] .button.remove {
+  display: none;
 }
 #browse-list .row .row-buttons > .button.remove {
   display: none;
@@ -292,7 +299,7 @@ body {
 .tracklist #hidden-droprow .cell {
   max-height: 3px;
   min-height: 3px;
-  background-color: rgb(233,233,233) !important;
+  background-color: #E9E9E9 !important;
 }
 .tracklist #hidden-droprow .cell {
   border-bottom: transparent !important;
@@ -311,7 +318,7 @@ body {
 }
 #playlist-list #playlist-list-header {
   width: 90px;
-  border: 2px solid rgb(66,66,66);
+  border: 2px solid #424242;
   background-color: #f2f2f2;
   margin: 3px;
   float: left;
@@ -323,7 +330,7 @@ body {
   position: absolute;
   top: 22px;
   left: 3px;
-  border: solid 2px rgb(66,66,66); 
+  border: solid 2px #424242; 
   background-color: #f2f2f2;
   z-index: 50;
 }
@@ -350,7 +357,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-bottom: solid 1px rgb(50,153,187);
+  border-bottom: solid 1px #3299BB;
 }
 #playlist-list .row:last-child .cell{
   border-bottom: none;
@@ -373,21 +380,24 @@ body {
 }
 .cassettelist .cell,
 .tracklist-container #current-cassette-row .cell {
-  min-height: 18px;
-  border-right: solid 1px #ff9900;
-  border-bottom: solid 1px #ff9900;
+  min-height: 20px;
+  border-right: solid 2px #424242;
+  border-bottom: solid 2px #424242;
   font: 16px arial,sans-serif;
   color: #eeeeee;
+}
+.cassettelist .row-container:first-child .row {
+  border-top: 2px solid #424242;
 }
 .cassettelist .cell:first-child,
 .tracklist-container #current-cassette-row .cell:first-child {
   font-weight: bold;
 }
 .cassettelist .row:last-child .cell{
-  border-bottom: none;
+  
 }
 .cassettelist .cell.cassetteName-col {
-  width: 170px;
+  width: 168px;
 }
 .cassettelist .cell.developerName-col {
   width: 155px;
@@ -396,40 +406,46 @@ body {
 #developer-link:hover {
   color: #3299BB;
 }
-.cassettelist .button-row {
-  height: 20px;
-  border-bottom: 2px solid #424242;
+
+#add-cassettes-menu {
+  postion: relative;
+  margin-right: 12px;
 }
-.cassettelist .button-row .row-buttons {
-  right: 0px;
-  margin: 0px;
-}
-.cassettelist .button-row .row-buttons .button {
+#add-cassettes-button {
+  float: right;
   height: 20px;
   width: 20px;
-  background-color: red;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+#add-cassettes-menu[visible] #add-cassettes-button {
+  background-color: #F2F2F2;
+  border: 1px solid #424242;
   cursor: pointer;
 }
-.cassettelist #add-cassettes-menu {
-  position: absolute;
-  right: 16px;
+#add-cassettes-content {
+  display: none;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: -1px;
   width: 235px;
-  border: 1px solid rgb(66,66,66);
+  border: 1px solid #424242;
   background-color: #F2F2F2;
 }
-.cassettelist #add-cassettes-menu .menu-row {
-  border-bottom: 1px solid rgb(66,66,66);
+#add-cassettes-content .menu-row {
+  border-bottom: 1px solid #424242;
   padding-left: 4px;
   -khtml-user-select: none;
 }
-.cassettelist #add-cassettes-menu .menu-row.coming-soon {
+#add-cassettes-content .menu-row.coming-soon {
   opacity : 0.4;
   cursor: default;
 }
-.cassettelist #add-cassettes-menu .menu-row:last-child {
+#add-cassettes-content .menu-row:last-child {
   border-bottom: none;
 }
-.cassettelist #add-cassettes-menu .menu-row:not(.coming-soon):hover {
+#add-cassettes-content .menu-row:not(.coming-soon):hover {
   background-color: #d0d0d0;
   cursor: pointer;
 }
@@ -466,7 +482,7 @@ body {
 }
 .tracklist-container #current-cassette-row {
   width: 326px;
-  border: 2px solid rgb(66,66,66);
+  border: 2px solid #424242;
   border-top: 0px;
 }
 .tracklist-container #current-cassette-row .cell {
@@ -493,7 +509,7 @@ body {
   margin-top: -100px;
   width: 300px;
   height: 200px;
-  background-color: rgb(233,233,233);
+  background-color: #E9E9E9;
   z-index: 101;
   padding: 8px 6px;
   border-radius: 7px;
@@ -510,4 +526,7 @@ body {
 #modal #modal-title {
   text-decoration: underline;
   font-size: 20px;
+}
+#modal .field-row.info {
+  margin-top: 5px;
 }
