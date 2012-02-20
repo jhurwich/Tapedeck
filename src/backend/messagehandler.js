@@ -435,10 +435,22 @@ Tapedeck.Backend.MessageHandler = {
     }
     var cMgr = Tapedeck.Backend.CassetteManager;
     var msgHandler = Tapedeck.Backend.MessageHandler;
-    
+
+    // Can only push a new browselist if there's a cassette being browsed
+    if (typeof(cMgr.currentCassette) == "undefined" ||
+               cMgr.currentCassette == null) {
+      msgHandler.addTrackAvailable = true;
+      return;
+    }
     if (browseTrackList != null) {
       Tapedeck.Backend.Bank.saveBrowseList(browseTrackList);
-      var browseList = Tapedeck.Backend.Bank.getBrowseList();
+
+      // Confirm that the tracks are for the current cassette
+      if (browseTrackList.length > 0 &&
+          browseTrackList.at(0).get("cassette") != cMgr.currentCassette.get("name")) {
+        msgHandler.addTrackAvailable = true;
+        return;
+      }
     }
     msgHandler.addTrackAvailable = true;
 

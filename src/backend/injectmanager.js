@@ -81,7 +81,6 @@ Tapedeck.Backend.InjectManager = {
       this.postInjectMap[tabID] = [];
     }
     this.postInjectMap[tabID].push(script);
-    console.log("on reg: " + JSON.stringify(this.postInjectMap));
   },
 
   removePostInjectScript: function(tabID, scriptToRemove) {
@@ -98,7 +97,6 @@ Tapedeck.Backend.InjectManager = {
         i--;
       };
     }
-    console.log("on remove: " + JSON.stringify(this.postInjectMap));
   },
 
   clearPostInjectScripts: function(tabID) {
@@ -128,7 +126,7 @@ Tapedeck.Backend.InjectManager = {
     });
   },
 
-  executeScript: function(tab, options, responseCallback) {
+  executeScript: function(tab, options, responseCallback, testParams) {
     var injectMgr = Tapedeck.Backend.InjectManager;
     if (injectMgr.isURLBlocked(tab.url)) {
       return;
@@ -146,15 +144,19 @@ Tapedeck.Backend.InjectManager = {
       chrome.extension.onRequest.addListener(wrappedCallback);
     }
 
-    // If it's the test tab, fake the injection
     if (!injectMgr.isTest(tab.url)) {
       chrome.tabs.executeScript(tab.id, options);
     }
     else {
+      // If it's the test tab, fake the injection
       var request = Tapedeck.Backend.MessageHandler.newRequest({
         action: "executeScriptInTest",
         script: options.file,
       });
+      if (typeof(options.params) != "undefined") {
+        /* Special means of sending params to start() for test setup */
+        request.params = testParams;
+      }
 
       Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
     }

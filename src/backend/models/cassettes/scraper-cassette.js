@@ -25,6 +25,7 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
                     .executeScript(context.tab,
                                    { allFrames: false,
                                      file: "frontend/scripts/track-parser.js" },
-                                   handleTracks);
+                                   handleTracks,
+                                   { cassetteName : self.get("name") });
   } 
 });

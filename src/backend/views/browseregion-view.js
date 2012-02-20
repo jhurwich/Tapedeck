@@ -55,6 +55,16 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
         var context = Tapedeck.Backend.Utils.getContext(tab);
 
         var handleTrackJSONs = function(trackJSONs) {
+
+          // Only push the browselist if we are still browsing the
+          // cassette that these tracks belong to
+          if (typeof(cMgr.currentCassette) == "undefined" ||
+              cMgr.currentCassette == null ||
+              typeof(trackJSONs) == "undefined" ||
+              (trackJSONs.length > 0 &&
+               trackJSONs[0].cassette != cMgr.currentCassette.get("name"))) {
+            return;
+          }
           var browseTrackList = new Tapedeck.Backend.Collections.TrackList
                                                     (trackJSONs);
     

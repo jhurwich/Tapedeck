@@ -89,6 +89,7 @@ Tapedeck.Backend.CassetteManager = {
     // If the current cassette changes, we need to save the new 
     // cassette's id and update the browse region.
     if (this.currentCassette != oldCurrent) {
+      // Change the current cassette
       var cassetteName = "";
       if (this.currentCassette != null) {
         cassetteName = this.currentCassette.get("name") 
@@ -97,6 +98,11 @@ Tapedeck.Backend.CassetteManager = {
         oldCurrent.unset("active");
       }
       Tapedeck.Backend.Bank.saveCurrentCassette(cassetteName);
+
+      // Clear the old cassette's tracks
+      Tapedeck.Backend.Bank.clearBrowseList();
+
+      // Push the new view
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
         var browseRegionView = Tapedeck.Backend
                                        .TemplateManager

@@ -40,7 +40,9 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         /* the dump for this cassette is cached and non-stale */ \
         var ourDump = $("#dump").find("#CassetteFromTemplate"); \
         var pageDump = $(ourDump).find("#page" + pageNum); \
-        Tapedeck.Backend.TrackParser.start(self.get("name"), $(pageDump), callback); \
+        Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
+                                             context      : $(pageDump), \
+                                             callback     : callback }); \
       } \
     }, \
  \
@@ -62,7 +64,9 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       $(pageDump).append(cleanedText); \
       $(pageDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
  \
-      Tapedeck.Backend.TrackParser.start(self.get("name"), $(pageDump), callback); \
+      Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
+                                           context      : $(pageDump), \
+                                           callback     : callback }); \
     }, \
  \
     isDumpCached: function(page) { \

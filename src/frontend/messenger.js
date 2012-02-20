@@ -62,11 +62,15 @@ Tapedeck.Frontend.Messenger = {
         }
 
         self.log("Executing script in test: " + scriptName);
-        window.parent.TapedeckInjected[scriptName].start();
+        if (typeof(request.params) != "undefined") {
+          window.parent.TapedeckInjected[scriptName].start(request.params);
+        }
+        else {
+          window.parent.TapedeckInjected[scriptName].start();
+        }
         break;
         
       case "pushView":
-        self.log("Replacing view: " + request.targetID);
         Tapedeck.Frontend.Frame.replaceView(request.targetID,
                                             request.view);
         break;

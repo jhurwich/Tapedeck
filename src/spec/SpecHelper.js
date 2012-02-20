@@ -1,6 +1,6 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Cassettification"
+  "Sequencer"
 ];
 
 beforeEach(function() {
@@ -8,6 +8,7 @@ beforeEach(function() {
     {
       type          : "mp3",
       trackName     : "Rad Racer",
+      cassette      : "TestCassette",
       artistName    : "Work Drugs",
       url           : "http://www.theburningear.com/media/2011/03/Work-Drugs-Rad-Racer-Final.mp3",
       location      : "http://www.theburningear.com/page/26/",
@@ -19,6 +20,7 @@ beforeEach(function() {
       type          : "mp3",
       trackName     : "Pretend",
       artistName    : "Ryden Ridge",
+      cassette      : "TestCassette",
       url           : "http://www.theburningear.com/media/2011/08/Ryan-Ridge-Pretend.mp3",
       location      : "http://www.theburningear.com",
       domain        : "www.theburningear.com",
@@ -29,6 +31,7 @@ beforeEach(function() {
       type          : "tumblr",
       trackName     : "Ultra Thizz",
       artistName    : "Rustie",
+      cassette      : "TestCassette",
       url           : "http://www.tumblr.com/audio_file/10011528101/tumblr_lra3d00jJO1qfvyur",
       location      : "http://postdubstep.tumblr.com/post/10011528101/rustie-ultra-thizz",
       domain        : "postdubstep.tumblr.com",
@@ -39,6 +42,7 @@ beforeEach(function() {
       type          : "soundcloud",
       trackName     : "Bernal Heights",
       artistName    : "jhameel",
+      cassette      : "TestCassette",
       url           : "http://api.soundcloud.com/tracks/10558879/stream?consumer_key=46785bdeaee8ea7f992b1bd8333c4445",
       trackInfoURL  : "http://api.soundcloud.com/tracks/10558879",
       location      : "http://www.audiocred.com/2011/11/jhameel-wicked/",

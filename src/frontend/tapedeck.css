@@ -125,7 +125,7 @@ body {
   height: 22px;
 }
 .tracklist {
-  max-height: 260px;
+  max-height: 256px;
   width: 345px;
 }
 .tracklist,
@@ -152,7 +152,7 @@ body {
 .tracklist .row-container:first-child {
   border-top: solid 2px #424242;
 }
-.tracklist .row-container:last-child {
+#queue-list > .tracklist .row-container:last-child {
   border-bottom: solid 2px #424242;
 }
 .tracklist .row,
@@ -456,7 +456,6 @@ body {
 }
 .tracklist-container #current-cassette-row .row-buttons > .button {
   margin: 0 1px;
-  
   height: 18px;
   width: 16px;
   float: left;
@@ -483,7 +482,6 @@ body {
 .tracklist-container #current-cassette-row {
   width: 326px;
   border: 2px solid #424242;
-  border-top: 0px;
 }
 .tracklist-container #current-cassette-row .cell {
   width: 318px;

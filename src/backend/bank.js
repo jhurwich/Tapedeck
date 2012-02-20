@@ -488,6 +488,16 @@ Tapedeck.Backend.Bank = {
     return this.recoverList(key);
   },
 
+  clearTrackList: function(name) {
+    var key = this.trackListPrefix + name;
+    try { 
+      this.localStorage.removeItem(key);
+    }
+    catch (error) {
+      console.error("Could not remove trackList '" + name + "'");
+    }
+  },
+
   recoverList: function(key) {
     var tracksJSON = { };
     try {
@@ -522,6 +532,17 @@ Tapedeck.Backend.Bank = {
     }
   },
 
+  clearTrack: function(trackModel) {
+    delete Tapedeck.Backend.Bank.tracks[trackModel.get("tdID")];
+  },
+
+  clearTracks: function(trackCollection) {
+    for (var i = 0; i < trackCollection.length; i++) {
+      var trackModel = trackCollection.at(i);
+      this.clearTrack(trackModel);
+    }
+  },
+
   getTrack: function(trackID) {
     return Tapedeck.Backend.Bank.tracks[trackID];
   },
@@ -540,6 +561,12 @@ Tapedeck.Backend.Bank = {
   getBrowseList: function() {
     var bank = Tapedeck.Backend.Bank;
     return bank.getTrackList(bank.savedBrowseListName);
+  },
+
+  clearBrowseList: function() {
+    var bank = Tapedeck.Backend.Bank;
+    bank.clearTracks(bank.getBrowseList());
+    bank.clearTrackList(bank.savedBrowseListName);
   },
 
   getDrawerOpened: function() {

@@ -25,18 +25,27 @@ if (onObject != null &&
     isParsing: false,
     onBackgroundPage: false,
     cassetteName: "",
-    start : function(cassetteName, context, callback) {
+    start : function(params) {
+      if (typeof(params) == "undefined") {
+        params = { };
+      }
       var parser = onObject.TrackParser;
-      parser.cassetteName = cassetteName;
 
-      if (typeof(callback) != "undefined") {
+      if (typeof(params.cassetteName) != "undefined") {
+        parser.cassetteName = params.cassetteName;
+      }
+      else {
+        parser.cassetteName = "";
+      }
+
+      if (typeof(params.callback) != "undefined") {
         parser.onBackgroundPage = true;
       }
-      if (typeof(context) == "undefined") {
+      if (typeof(params.context) == "undefined") {
         parser.context = document;
       }
       else {
-        parser.context = context;
+        parser.context = params.context;
       }
       
       parser.isParsing = true;
@@ -56,7 +65,7 @@ if (onObject != null &&
         chrome.extension.sendRequest(response);
       }
       else {
-        callback(tracks);
+        params.callback(tracks);
       }
     },
     
@@ -827,8 +836,9 @@ if (onObject != null &&
   
   if (typeof(TapedeckInjected) != "undefined" &&
       !TapedeckInjected.isTest()) {
+
     // Scraper is the trackparser on a webpage
-    onObject.TrackParser.start("Scraper"); 
+    onObject.TrackParser.start({ cassetteName: "Scraper" }); 
   }
 
 }
