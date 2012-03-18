@@ -22,6 +22,25 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       var self = this; \
       var pageURL = self.pattern.replace(/\\$#/g, pageNum); \
  \
+      /* Check if we already have the tracks saved for this page */ \
+      var foundTracks = Tapedeck.Backend.Bank.getTracksForURL(pageURL); \
+      if (foundTracks != null) { \
+        /* Its possible we appropriated another cassettes page, rebrand */ \
+        if (foundTracks[0].cassette != self.get("name")) { \
+          for (var i = 0; i < foundTracks.length; i++) { \
+            foundTracks[i].cassette = self.get("name"); \
+          } \
+        } \
+        callback(foundTracks); \
+        return; \
+      } \
+ \
+      /* Modify the callback slightly so that the tracks are saved */ \
+      var saveAndCallback = function(tracks) { \
+        Tapedeck.Backend.Bank.saveTracksForURL(pageURL, tracks); \
+        callback(tracks); \
+      }; \
+ \
       if (!self.isDumpCached(pageNum)) { \
         /* First hit the domain itself, usually the first page */ \
         $.ajax({ \
@@ -29,7 +48,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           url: "http://www." + pageURL, \
           dataType: "html", \
    \
-          success: self.parseResponse.curry(callback, pageNum, self), \
+          success: self.parseResponse.curry(saveAndCallback, pageURL, pageNum, self), \
    \
           error: function (response) { \
             console.error("Ajax error retrieving " + self.domain + ", page " + pageNum); \
@@ -42,11 +61,12 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         var pageDump = $(ourDump).find("#page" + pageNum); \
         Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                              context      : $(pageDump), \
-                                             callback     : callback }); \
+                                             callback     : saveAndCallback, \
+                                             moreCallback : self.addMoreCallback.curry(pageURL) }); \
       } \
     }, \
  \
-    parseResponse: function(callback, page, self, data, status, xhr) { \
+    parseResponse: function(callback, url, page, self, data, status, xhr) { \
       var ourDump = $("#dump").find("#CassetteFromTemplate"); \
       if (ourDump.length == 0) { \
         ourDump = $("<div id=\'CassetteFromTemplate\'>"); \
@@ -66,7 +86,13 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
  \
       Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                            context      : $(pageDump), \
-                                           callback     : callback }); \
+                                           callback     : callback, \
+                                           moreCallback : self.addMoreCallback.curry(url) }); \
+    }, \
+ \
+    addMoreCallback: function(url, tracks) { \
+      Tapedeck.Backend.Bank.saveMoreTracksForURL(url, tracks); \
+      Tapedeck.Backend.MessageHandler.addTracksAndPushBrowseList(tracks); \
     }, \
  \
     isDumpCached: function(page) { \

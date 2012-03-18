@@ -21,6 +21,7 @@ if (onObject != null &&
     },
     debug: 0,
 
+    moreCallback: null,
     context: null,
     isParsing: false,
     onBackgroundPage: false,
@@ -38,16 +39,33 @@ if (onObject != null &&
         parser.cassetteName = "";
       }
 
+      // Check if we have a callback, and are thus on the bkgrd page.
+      // If so, save the add more callback too, otherwise use sendRequest
+      // because we're not on the bkgrd page.
       if (typeof(params.callback) != "undefined") {
         parser.onBackgroundPage = true;
       }
+      if (parser.onBackgroundPage &&
+          typeof(params.moreCallback) != "undefined") {
+        parser.moreCallback = params.moreCallback;
+      }
+      else {
+        parser.moreCallback = function(tracks) {
+          var request = {
+            action: "add_tracks",
+            tracks: tracks,
+          };
+          chrome.extension.sendRequest(request);
+        };
+      }
+      
       if (typeof(params.context) == "undefined") {
         parser.context = document;
       }
       else {
         parser.context = params.context;
       }
-      
+
       parser.isParsing = true;
       parser.log("starting parsing", parser.DEBUG_LEVELS.BASIC);
       
@@ -652,17 +670,7 @@ if (onObject != null &&
         }
 
         parser.log("adding Soundcloud tracks: " + JSON.stringify(tracks));
-        if (!parser.onBackgroundPage) {
-          var request = {
-            action: "add_tracks",
-            tracks: tracks,
-          };
-          chrome.extension.sendRequest(request);
-        }
-        else {
-          Tapedeck.Backend.MessageHandler
-                          .addTracksAndPushBrowseList(tracks);
-        }
+        parser.moreCallback(tracks);
       },
     }, // end parser.Soundcloud
 

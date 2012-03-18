@@ -34,7 +34,8 @@ Tapedeck.Backend.Bank = {
     if (this.localStorage.getItem(this.blockKey) == null) {
       this.saveBlockList(this.defaultBlockPatterns);
     }
-    
+
+    this.Memory.init();
     this.FileSystem.init(function() {
       continueInit();
     });
@@ -381,6 +382,105 @@ Tapedeck.Backend.Bank = {
     },
   },
 
+  Memory: {
+    tracks: { },
+    urlMap:   { }, // maps a url to a tracksData object
+    /* tracksData = { tracks: _, expiry: _ } */
+
+    init: function() {
+      var mem = Tapedeck.Backend.Bank.Memory;
+      window.setInterval(mem.memoryCollector, 1000 * 60 * 5); /* 5 min */
+    },
+
+    // save a mapping of url to trackJSONs
+    saveTracksForURL: function(url, tracks) {
+      var mem = Tapedeck.Backend.Bank.Memory;
+      url = url.replace("http://", "");
+      url = url.replace("www.", "");
+      
+      var expiry =(new Date()).getTime() + (1000 * 60 * 15); /* in 15 min */
+      mem.urlMap[url] = { tracks: tracks, expiry: expiry };
+    },
+
+    saveMoreTracksForURL: function(url, tracks) {
+      var mem = Tapedeck.Backend.Bank.Memory;
+      url = url.replace("http://", "");
+      url = url.replace("www.", "");
+      
+      var currTracks = mem.urlMap[url].tracks;
+      tracks = currTracks.concat(tracks);
+
+      var expiry =(new Date()).getTime() + (1000 * 60 * 15); /* in 15 min */
+      mem.urlMap[url] = { tracks: tracks, expiry: expiry };
+    },
+
+    // retrieve an array of trackJSONs for the url, null if not found
+    getTracksForURL: function(url) {
+      var mem = Tapedeck.Backend.Bank.Memory;
+
+      if (typeof(mem.urlMap[url]) != "undefined") {
+        // tracks found, but make sure they aren't expired
+        if ((mem.urlMap[url].expiry - (new Date()).getTime()) < 0) {
+          delete mem.urlMap[url];
+          return null;
+        }
+        return mem.urlMap[url].tracks;
+      }
+      else {
+        return null;
+      }
+    },
+
+    // Cleanup any expired pages
+    memoryCollector: function() {
+      var mem = Tapedeck.Backend.Bank.Memory;
+      for(var url in mem.urlMap) {
+        var expiry = mem.urlMap[url].expiry;
+        if ((expiry - (new Date()).getTime()) < 0) {
+          delete mem.urlMap[url];
+        }
+      }
+    },
+  },
+
+  // returns null if not found
+  getTracksForURL: function(url) {
+    var mem = Tapedeck.Backend.Bank.Memory;
+    return mem.getTracksForURL(url);
+  },
+
+  // trackJSONs are saved
+  saveTracksForURL: function(url, tracks) {
+    var mem = Tapedeck.Backend.Bank.Memory;
+    return mem.saveTracksForURL(url, tracks);
+  },
+  saveMoreTracksForURL: function(url, tracks) {
+    var mem = Tapedeck.Backend.Bank.Memory;
+    return mem.saveMoreTracksForURL(url, tracks);
+  },
+  
+  saveTrack: function(trackModel) {
+    Tapedeck.Backend.Bank.tracks[trackModel.get("tdID")] = trackModel;
+  },
+
+  saveTracks: function(trackCollection) {
+    for (var i = 0; i < trackCollection.length; i++) {
+      var trackModel = trackCollection.at(i);
+      this.saveTrack(trackModel);
+    }
+  },
+
+  clearTrack: function(trackModel) {
+    delete Tapedeck.Backend.Bank.tracks[trackModel.get("tdID")];
+  },
+
+  clearTracks: function(trackCollection) {
+    for (var i = 0; i < trackCollection.length; i++) {
+      var trackModel = trackCollection.at(i);
+      this.clearTrack(trackModel);
+    }
+  },
+  
   clear: function() {
     if (typeof(this.playlistList) != "undefined" &&
         this.playlistList != null) {
@@ -521,27 +621,6 @@ Tapedeck.Backend.Bank = {
     return list;
   },
   
-  saveTrack: function(trackModel) {
-    Tapedeck.Backend.Bank.tracks[trackModel.get("tdID")] = trackModel;
-  },
-
-  saveTracks: function(trackCollection) {
-    for (var i = 0; i < trackCollection.length; i++) {
-      var trackModel = trackCollection.at(i);
-      this.saveTrack(trackModel);
-    }
-  },
-
-  clearTrack: function(trackModel) {
-    delete Tapedeck.Backend.Bank.tracks[trackModel.get("tdID")];
-  },
-
-  clearTracks: function(trackCollection) {
-    for (var i = 0; i < trackCollection.length; i++) {
-      var trackModel = trackCollection.at(i);
-      this.clearTrack(trackModel);
-    }
-  },
 
   getTrack: function(trackID) {
     return Tapedeck.Backend.Bank.tracks[trackID];
