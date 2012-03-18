@@ -5,6 +5,12 @@ if (typeof(TapedeckInjected) == "undefined") {
     tapedeckFrame: null,
     init: function() {
       var htmlDOM = document.getElementsByTagName("html")[0];
+
+      if (document.getElementById("tapedeck-frame") != null) {
+        // We're already injected, not sure how this happened with the
+        // TapedeckInjected check, but abort.
+        return;
+      }
       
       TapedeckInjected.tapedeckFrame = document.createElement("iframe");
       TapedeckInjected.tapedeckFrame.src =

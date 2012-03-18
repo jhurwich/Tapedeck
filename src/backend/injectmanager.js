@@ -4,13 +4,13 @@ Tapedeck.Backend.InjectManager = {
     // listen for new pages to inject our content into
     chrome.tabs.onUpdated.addListener(this.updatedListener);
 
-    // listen for remove so that we can remove the tab from expectedToLoad
-    chrome.tabs.onRemoved.addListener(this.removedListener);
-
     chrome.tabs.onSelectionChanged.addListener(this.selectionListener);
   },
 
-  expectedToLoad : { },
+  /* changeInfo has status and optionally url.
+   * status is loading at start of page load, no url will be set.
+   * status is complete at end of page load, url will be set if not reload.
+   */
   updatedListener: function(tabID, changeInfo, tab) {
     var injectMgr = Tapedeck.Backend.InjectManager;
 
@@ -19,34 +19,14 @@ Tapedeck.Backend.InjectManager = {
         injectMgr.isTest(tab.url)) {
         return;
     }
-    
-    if (typeof(changeInfo.url) != "undefined") {
-      // url was just set, associate the tabID to the url in our
-      // expectations
-      injectMgr.expectedToLoad[tabID] = changeInfo.url;
-    }
-
-    // It's possible that changeInfo.url is undefined, but we still
-    // need to inject (happens for refresh).  Hence the check here to
-    // see if it was loaded previously and inject if so.
-    if (typeof(injectMgr.expectedToLoad[tabID]) != "undefined") {
-      
-      // Everything looks good.  Number 1, inject!
-      injectMgr.injectInto(tabID);
-    }
 
     // Handle status == 'complete' updates
     if (typeof(changeInfo.status) != "undefined" &&
         changeInfo.status == "complete") {
 
-      // make sure that we expected it
-      var url = injectMgr.expectedToLoad[tabID];
+      // Load is complete.  Number 1, inject!
+      injectMgr.injectInto(tabID);
       
-      if (typeof(url) == "undefined" || url == null) {
-        console.log("Got a load complete event for unknown tabID: '" +
-                    tab.url + "'");
-        return;
-      }
       // Handle any postInject scripts if there are any
       var postScripts = injectMgr.postInjectMap[tabID];
       if (typeof(postScripts) != "undefined" &&
@@ -68,10 +48,6 @@ Tapedeck.Backend.InjectManager = {
     chrome.tabs.insertCSS(tabID, {file: "frontend/tapedeck-inject-all.css"});
     chrome.tabs.executeScript(tabID, {file: "vendor/jquery-1.7.js"});
     chrome.tabs.executeScript(tabID, {file: "frontend/tapedeck-inject-all.js"});
-  },
-
-  removedListener: function(tabID, removeInfo) {
-    Tapedeck.Backend.InjectManager.expectedToLoad[tabID] = null;
   },
 
   // Post inject scripts are provided context as their only param
