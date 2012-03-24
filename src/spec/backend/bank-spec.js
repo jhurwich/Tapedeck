@@ -12,7 +12,12 @@ describe("Bank", function() {
 
   it("should save and retrieve tracks", function() {
     var track = new this.Tapedeck.Backend.Models.Track(this.testTracks[0]);
-    this.bank.saveTrack(track);
+    var trackList = new this.Tapedeck
+                            .Backend
+                            .Collections
+                            .TrackList();
+    trackList.add(track);
+    this.bank.Memory.rememberTrackList("__testTracks", trackList);
 
     var bankedTrack = this.bank.getTrack(track.get("tdID"));
     expect(bankedTrack).toReflectJSON(track.toJSON());
@@ -70,7 +75,7 @@ describe("Bank", function() {
                             .Collections
                             .TrackList(this.testTracks);
 
-    this.bank.saveTracks(trackList);
+    this.bank.Memory.rememberTrackList("__testTracklist", trackList);
 
     var testComplete = false;
     var testTrack = trackList.at(0);

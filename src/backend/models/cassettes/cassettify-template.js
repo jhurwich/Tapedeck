@@ -24,7 +24,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
  \
       /* Check if we already have the tracks saved for this page */ \
       var foundTracks = Tapedeck.Backend.Bank.getTracksForURL(pageURL); \
-      if (foundTracks != null) { \
+      if (foundTracks != null && foundTracks.length > 0) { \
         /* Its possible we appropriated another cassettes page, rebrand */ \
         if (foundTracks[0].cassette != self.get("name")) { \
           for (var i = 0; i < foundTracks.length; i++) { \
@@ -36,8 +36,11 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       } \
  \
       /* Modify the callback slightly so that the tracks are saved */ \
-      var saveAndCallback = function(tracks) { \
+      var saveClearAndCallback = function(tracks) { \
         Tapedeck.Backend.Bank.saveTracksForURL(pageURL, tracks); \
+        var ourDump = $("#dump").find("#CassetteFromTemplate"); \
+        var pageDump = $(ourDump).find("#page" + pageNum); \
+        pageDump.remove(); \
         callback(tracks); \
       }; \
  \
@@ -48,7 +51,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           url: "http://www." + pageURL, \
           dataType: "html", \
    \
-          success: self.parseResponse.curry(saveAndCallback, pageURL, pageNum, self), \
+          success: self.parseResponse.curry(saveClearAndCallback, pageURL, pageNum, self), \
    \
           error: function (response) { \
             console.error("Ajax error retrieving " + self.domain + ", page " + pageNum); \
@@ -61,7 +64,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         var pageDump = $(ourDump).find("#page" + pageNum); \
         Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                              context      : $(pageDump), \
-                                             callback     : saveAndCallback, \
+                                             callback     : saveClearAndCallback, \
                                              moreCallback : self.addMoreCallback.curry(pageURL) }); \
       } \
     }, \

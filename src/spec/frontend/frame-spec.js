@@ -6,11 +6,12 @@ describe("Frontend Frame Logic", function() {
                                           .TrackList
                                           (this.testTracks);
 
-    this.Tapedeck.Backend.Bank.saveTracks(this.testTrackList);
     waitsForFrontendInit();
   });
 
   it("should queue a browse-track when it is double-clicked", function() {
+
+    this.Tapedeck.Backend.Bank.saveBrowseList(this.testTrackList);
 
     var testTrackView = this.Tapedeck.Backend
                                      .TemplateManager
@@ -44,7 +45,7 @@ describe("Frontend Frame Logic", function() {
 
     waitsFor(function() {
       return tracksQueued >= numTracks;
-    }, "Timed out waiting for tracks to be queued", 1000);
+    }, "Timed out waiting for tracks to be queued", 2000);
 
     runs(function() {
       expect(tracksQueued).toEqual(numTracks);
@@ -53,7 +54,9 @@ describe("Frontend Frame Logic", function() {
   });
 
   it("should play a queued track when it is double-clicked", function() {
-    return;
+
+    this.Tapedeck.Backend.Bank.saveQueue(this.testTrackList);
+
     var testTrackView = this.Tapedeck.Backend
                                      .TemplateManager
                                      .renderView
@@ -73,7 +76,7 @@ describe("Frontend Frame Logic", function() {
     var spy = spyOn(this.Tapedeck.Backend.Sequencer, "playIndex");
     waitsFor(function() {
       return spy.callCount > 0;
-    }, "Timed out waiting for tracks to be played", 1000);
+    }, "Timed out waiting for tracks to be played", 2000);
 
     this.Tapedeck.Frontend.Frame.TrackLists.queueDblClick(rows[0]);
     

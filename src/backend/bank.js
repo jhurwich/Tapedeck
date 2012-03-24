@@ -1,6 +1,5 @@
 Tapedeck.Backend.Bank = {
 
-  tracks: { },
   drawerOpen: false,
   localStorage: null,
 
@@ -441,6 +440,35 @@ Tapedeck.Backend.Bank = {
         }
       }
     },
+
+    tracks: { },
+    trackLists: { },
+    
+    rememberTrackList: function(name, trackList) {
+      this.trackLists[name] = trackList;
+    },
+
+    getTrack: function(trackID) {
+      for (var listName in this.trackLists) {
+        var list = this.trackLists[listName];
+        var found = list.select(function(tr) {
+          return tr.get("tdID") == trackID;
+        });
+
+        if (found.length == 1) {
+          console.log("found in " + listName);
+          return found[0];
+        }
+        else { 
+          console.log("NOT FOUND in " + listName);
+        }
+      }
+      return null;
+    },
+
+    forgetList: function(name) {
+      delete this.trackLists[name];
+    },
   },
 
   // returns null if not found
@@ -459,26 +487,9 @@ Tapedeck.Backend.Bank = {
     return mem.saveMoreTracksForURL(url, tracks);
   },
   
-  saveTrack: function(trackModel) {
-    Tapedeck.Backend.Bank.tracks[trackModel.get("tdID")] = trackModel;
-  },
-
-  saveTracks: function(trackCollection) {
-    for (var i = 0; i < trackCollection.length; i++) {
-      var trackModel = trackCollection.at(i);
-      this.saveTrack(trackModel);
-    }
-  },
-
-  clearTrack: function(trackModel) {
-    delete Tapedeck.Backend.Bank.tracks[trackModel.get("tdID")];
-  },
-
-  clearTracks: function(trackCollection) {
-    for (var i = 0; i < trackCollection.length; i++) {
-      var trackModel = trackCollection.at(i);
-      this.clearTrack(trackModel);
-    }
+  getTrack: function(trackID) {
+    var bank = Tapedeck.Backend.Bank;
+    return bank.Memory.getTrack(trackID);
   },
   
   clear: function() {
@@ -572,6 +583,8 @@ Tapedeck.Backend.Bank = {
   },
   
   saveTrackList: function(name, trackList) {
+    Tapedeck.Backend.Bank.Memory.rememberTrackList(name, trackList);
+    
     var key = this.trackListPrefix + name;
     var listStr = trackList.serialize();
     
@@ -585,10 +598,16 @@ Tapedeck.Backend.Bank = {
 
   getTrackList: function(name) {
     var key = this.trackListPrefix + name;
-    return this.recoverList(key);
+    var tracks = this.recoverList(key);
+
+    // save tracks in memory so that they're ready for use
+    Tapedeck.Backend.Bank.Memory.rememberTrackList(name, tracks);
+    return tracks;
   },
 
   clearTrackList: function(name) {
+    Tapedeck.Backend.Bank.Memory.forgetList(name);
+    
     var key = this.trackListPrefix + name;
     try { 
       this.localStorage.removeItem(key);
@@ -620,34 +639,40 @@ Tapedeck.Backend.Bank = {
     list.removeTempProperties();
     return list;
   },
+
+  savedQueueName: "__queue",
+  saveQueue: function(trackList) {
+    var bank = Tapedeck.Backend.Bank;
+    bank.saveTrackList(bank.savedQueueName, trackList);
+  },
+  getQueue: function() {
+    var bank = Tapedeck.Backend.Bank; 
+    return bank.getTrackList(bank.savedQueueName);
+  },
+  clearQueue: function() {
+    var bank = Tapedeck.Backend.Bank;
+    bank.clearTrackList(bank.savedQueueName);
+  },
   
-
-  getTrack: function(trackID) {
-    return Tapedeck.Backend.Bank.tracks[trackID];
-  },
-
-  setDrawerOpened: function(open) {
-    Tapedeck.Backend.Bank.drawerOpen = open;
-  },
-
   savedBrowseListName: "__browseList",
   saveBrowseList: function(trackList) {
     var bank = Tapedeck.Backend.Bank;
-    bank.saveTracks(trackList);
     bank.saveTrackList(bank.savedBrowseListName, trackList);
   },
-
   getBrowseList: function() {
-    var bank = Tapedeck.Backend.Bank;
+    var bank = Tapedeck.Backend.Bank; 
     return bank.getTrackList(bank.savedBrowseListName);
   },
 
   clearBrowseList: function() {
     var bank = Tapedeck.Backend.Bank;
-    bank.clearTracks(bank.getBrowseList());
     bank.clearTrackList(bank.savedBrowseListName);
   },
 
+  setDrawerOpened: function(open) {
+    Tapedeck.Backend.Bank.drawerOpen = open;
+  },
+  
   getDrawerOpened: function() {
     return Tapedeck.Backend.Bank.drawerOpen;
   },

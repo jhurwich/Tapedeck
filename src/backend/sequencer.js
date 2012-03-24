@@ -2,14 +2,12 @@ Tapedeck.Backend.Sequencer = {
 
   queue: null,
   queuePosition: -1, // nothing playing
-  savedQueueName: "__queue",
   init: function() {
     if (!this.Player.playerElement) {
       this.Player.init();
     }
     var bank = Tapedeck.Backend.Bank
-    this.queue = bank.getTrackList(this.savedQueueName);
-    bank.saveTracks(this.queue);
+    this.queue = bank.getQueue();
 
     var volume = bank.getVolume();
     this.Player.setVolume(volume);
@@ -395,6 +393,6 @@ Tapedeck.Backend.Sequencer = {
 
   saveQueue: function() {
     var sqcr = Tapedeck.Backend.Sequencer;
-    Tapedeck.Backend.Bank.saveTrackList(sqcr.savedQueueName, sqcr.queue);
+    Tapedeck.Backend.Bank.saveQueue(sqcr.queue);
   }
 };
