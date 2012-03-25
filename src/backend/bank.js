@@ -456,11 +456,7 @@ Tapedeck.Backend.Bank = {
         });
 
         if (found.length == 1) {
-          console.log("found in " + listName);
           return found[0];
-        }
-        else { 
-          console.log("NOT FOUND in " + listName);
         }
       }
       return null;

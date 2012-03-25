@@ -9,7 +9,7 @@ describe("Frontend Frame Logic", function() {
     waitsForFrontendInit();
   });
 
-  it("should queue a browse-track when it is double-clicked", function() {
+  it("should queue a browse-track when it is double-clicked *flaky*", function() {
 
     this.Tapedeck.Backend.Bank.saveBrowseList(this.testTrackList);
 
@@ -53,7 +53,7 @@ describe("Frontend Frame Logic", function() {
     
   });
 
-  it("should play a queued track when it is double-clicked", function() {
+  it("should play a queued track when it is double-clicked *flaky*", function() {
 
     this.Tapedeck.Backend.Bank.saveQueue(this.testTrackList);
 

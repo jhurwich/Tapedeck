@@ -82,7 +82,8 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         $(pageDump).appendTo($(ourDump)); \
       } \
       var responseText = xhr.responseText; \
-      var cleanedText = Tapedeck.Backend.TrackParser.Util.removeUnwantedTags(responseText); \
+      responseText = Tapedeck.Backend.TrackParser.Util.inflateWPFlashObjects(responseText); \
+      cleanedText = Tapedeck.Backend.TrackParser.Util.removeUnwantedTags(responseText); \
       $(pageDump).html(""); \
       $(pageDump).append(cleanedText); \
       $(pageDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \

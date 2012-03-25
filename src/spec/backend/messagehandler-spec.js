@@ -48,7 +48,7 @@ describe("Message Handler", function() {
   });
 */
 
-  it("should update the correct view with MessageHandler.pushView" , function() {
+  it("should update the correct view with MessageHandler.pushView *flaky*" , function() {
     expect($("#tapedeck-frame").contents()).toContain("#browse-list");
     expect($("#tapedeck-frame").contents()).not.toContain("#testdiv");
     

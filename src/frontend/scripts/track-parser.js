@@ -114,8 +114,8 @@ if (onObject != null &&
       // Scrape <audio> elements
       resultObjects.push(parser.AudioElements.scrape());
 
-      // Scrape flash players with a 'soundFile=...' param
-      //resultObjects.push(parser.flashPlayers.scrape());
+      // Scrape flash players of WordPress's form
+      resultObjects.push(parser.WPFlashPlayers.scrape());
 
       // ================ Async Scrapes ================
       //Scrape Soundcloud 
@@ -433,31 +433,41 @@ if (onObject != null &&
       }
     }, // end parser.AudioElements
 
-    /*
-    flashPlayers : {
+    WPFlashPlayers : {
       scrape : function() {
-        var flashPlayers = $("object[type='application/x-shockwave-flash']");
+        // We understand how both WordPress's flashplayer and our
+        // own <td-object>s that mimic WordPress's flashplayer inflation
+        var parser = onObject.TrackParser;
+        var flashPlayers = $("object[type='application/x-shockwave-flash']",
+                             parser.context);
+        $.merge(flashPlayers, $("td-object"));
 
         var trackMap = { };
         flashPlayers.each( function(index, player) {
-          var params = $(player).children('param');
+
           var fileURL = "";
+          if (player.tagName == "OBJECT") {
+            var params = $(player).children('param');
 
-          params.each( function(index, param) {
-            var paramName = $(param).attr("name").toLowerCase();
-            if (paramName == "flashvars") {
-              var val = $(param).attr("value");
-              var matches = val.match(/soundFile=(.*?)&/);
-              if (matches == null) {
-                matches = val.match(/soundFile=(.*?)/);
+            params.each( function(index, param) {
+              var paramName = $(param).attr("name").toLowerCase();
+              if (paramName == "flashvars") {
+                var val = $(param).attr("value");
+                var matches = val.match(/soundFile=(.*?)&/);
+                if (matches == null) {
+                  matches = val.match(/soundFile=(.*?)/);
+                }
+  
+                if (matches != null && matches.length > 1) {
+                  fileURL = decodeURIComponent(matches[1]);
+                  return;
+                }
               }
-
-              if (matches != null && matches.length > 1) {
-                fileURL = decodeURIComponent(matches[1]);
-                return;
-              }
-            }
-          }); // end params.each
+            }); // end params.each
+          }
+          else if (player.tagName == "TD-OBJECT") {
+            fileURL = decodeURIComponent($(player).attr("url"));
+          }
 
           if (fileURL.length > 0) {
             
@@ -474,38 +484,27 @@ if (onObject != null &&
                                           (".audioplayer_container")
                                           .first();
 
-            var pBefore = $(audioContainer).prevUntil("p").last();
-            console.log('a1 - ' + pBefore.innerHTML);
+            var pBefore = $(audioContainer).prevAll("p").last();
             if (pBefore != null &&
                 !$(pBefore).hasClass("scraped") &&
                 $(pBefore).html().length > 0) {
-              console.log('a2');                  
-              var beforeEntry = this
-                                                .cleanHTML
-                                                ($(pBefore).html());
-              console.log('a3');
-              this
-                              .addArtistAndTrackNames(track, beforeEntry);
+              var beforeEntry = parser.Util.cleanHTML($(pBefore).html());
+              parser.Util.addArtistAndTrackNames(track, beforeEntry);
             }
             
-            if (typeof(track.artistName) == "undefined" ||
+            if (typeof(track.artistName) != "undefined" &&
                 track.artistName.length > 0) {
               // That gave us a full track, mark the entry as used
               $(pBefore).addClass("scraped");
             }
             else {
               // Incomplete track, try the entry after
-              var pAfter = $(audioContainer).nextUntil("p").last();
-              console.log('a4 - ' + pAfter.innerHTML);
+              var pAfter = $(audioContainer).nextAll("p").first();
               if (pAfter != null &&
                   !$(pAfter).hasClass("scraped") &&
                   $(pAfter).html().length > 0) {
-                var afterEntry = this
-                                                 .cleanHTML
-                                                 ($(pAfter).html());
-                console.log('a5');
-                this
-                                .addArtistAndTrackNames(track, afterEntry);
+                var afterEntry = parser.Util.cleanHTML($(pAfter).html());
+                parser.Util.addArtistAndTrackNames(track, afterEntry);
               }
               
               if (typeof(track.artistName) == "undefined" ||
@@ -513,7 +512,6 @@ if (onObject != null &&
                 // That gave us a full track, mark the entry as used
                 $(pAfter).addClass("scraped");
               }
-              console.log('a6');
             }
 
             // As a last resort, use the filename
@@ -527,8 +525,8 @@ if (onObject != null &&
         
         return trackMap;
       }
-    }, // end parser.flashPlayers
-    */
+    }, // end parser.WPFlashPlayers
+
   
     Soundcloud : {
       objectCount : -1,
@@ -725,6 +723,36 @@ if (onObject != null &&
 
         return text;
       },
+
+      inflateWPFlashObjects: function(text) {
+        // first find the inflation data that we need
+        var embedRegex = new RegExp('AudioPlayer\.embed.\s*"(.*)"\s*,.*soundFile\s*:\s*"(.*)"', 'g');
+        var match = embedRegex.exec(text);
+        if (!match) {
+          return text;
+        }
+        
+        var inflations = [ ];
+        while (match) {
+          inflations.push({ id: match[1], url: match[2] });
+          match = embedRegex.exec(text);
+        }
+
+        // use the inflation data to inject extra info at the right place
+        for (var i = 0; i < inflations.length; i++) {
+          // find the tag with the id for the inflation
+          var tagRegex = new RegExp('<([^<>]*?)id=[\"\']?' + inflations[i].id + '[\"\']?([^<>]*?)>', 'g');
+          var tagMatch = tagRegex.exec(text);
+          if (tagMatch) {
+            // inject our tag right before the tag with that id
+            var index = tagRegex.lastIndex - tagMatch[0].length;
+            text = text.substr(0, index) +
+                   "<td-object url='" + inflations[i].url + "'></td-object>" +
+                   text.substr(index);
+          }
+        }
+        return text;
+      },
       
       trimString : function(str, length) {
         if (str.length > length) {
@@ -774,13 +802,21 @@ if (onObject != null &&
         // We define a better split as one for which the difference in
         // length of track and artist name is a minimum
         var isBetterSplit = function(checkPieces) {
+          // "And you will know us by the trail of dead." is the
+          // longest band name we support with 9 spaces.  
+          // Anything with more is invalid.
+          if (checkPieces[0].split(" ").length > 10 ||
+              checkPieces[1].split(" ").length > 10) {
+            return false;
+          }
+
           if (bestSplit.length == 0) {
             return true;
           }
     
           var checkSplitDiff = Math.abs(checkPieces[0].length - checkPieces[1].length);
           var bestSplitDiff = Math.abs(bestSplit[0].length - bestSplit[1].length);
-    
+
           return (checkSplitDiff < bestSplitDiff);
         }
     
@@ -816,10 +852,22 @@ if (onObject != null &&
         }
         
         if (bestSplit.length > 1) {
-          track.artistName = $.trim(bestSplit[0]).replace(/["']/g, "");
-          track.trackName = $.trim(bestSplit[1]).replace(/["']/g, "");;
+          // things like angled quote marks only seem to work through codes
+          var unwantedCharCodes = [8220, 8221, 8242, 8243];
+          var unwantedStr = "";
+          for (var i = 0; i < unwantedCharCodes.length; i++) {
+            unwantedStr = unwantedStr + String.fromCharCode(unwantedCharCodes[i]);
+          }
+          
+          track.artistName = $.trim(bestSplit[0]).replace(/[‘’“”'"]/g, "");
+          track.artistName = track.artistName.replace(new RegExp("[" + unwantedStr + "]", "g"), "");
+
+          track.trackName = $.trim(bestSplit[1]).replace(/[‘’“”'"]/g, "");;
+          track.trackName = track.trackName.replace(new RegExp("[" + unwantedStr + "]", "g"), "");
         }
-        else {
+        else if (text.length < 100 && text.split(" ") < 10) {
+          // If we get this far, we could just have a short trackName
+          // that we're considering.  We check that's the case heuristically.
           track.trackName = $.trim(text);
         }
     
