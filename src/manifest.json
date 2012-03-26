@@ -1,6 +1,6 @@
 {
   "name": "Tapedeck",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "The one player for the web.",
   
   "background_page" :"backend/background.html",
