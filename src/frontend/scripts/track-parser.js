@@ -726,7 +726,7 @@ if (onObject != null &&
 
       inflateWPFlashObjects: function(text) {
         // first find the inflation data that we need
-        var embedRegex = new RegExp('AudioPlayer\.embed.\s*"(.*)"\s*,.*soundFile\s*:\s*"(.*)"', 'g');
+        var embedRegex = new RegExp('AudioPlayer\.embed.\s*[\'\"]([^\'\"]*)[\'\"]\s*?,.*soundFile\s*:\s*[\'\"]([^\'\"]*)[\'\"]', 'g');
         var match = embedRegex.exec(text);
         if (!match) {
           return text;
