@@ -537,6 +537,14 @@ if (onObject != null &&
 
         var soundcloud = parser.Soundcloud;
 
+        // first see if we are parsing a Soundcloud user page,
+        // if so use their API instead
+        var url = parser.Util.getCurrentURL();
+        if (url.indexOf('soundcloud.com') != -1) {
+          soundcloud.parseWithAPI(url);
+          return;
+        }
+
         var objects = $('object', parser.context);
         objects.each( function(index, object) {
           var params = $(object).children('param');
@@ -613,6 +621,51 @@ if (onObject != null &&
           parser.log("Counldn't locate a url for Soundcloud object");
         }
       },
+
+      parseWithAPI: function(url) {
+        var parser = onObject.TrackParser;
+        var soundcloud = parser.Soundcloud;
+        
+        parser.log("defering to Soundcloud API: " + url);
+
+        var queryURL = "";
+        if (url.indexOf('groups') != -1) {
+          // parsing a group page
+          var icons = $(parser.context).find('.icons-group').first();
+          var wordURL = $(icons).find('a.wordpress').first().attr("href");
+          var scURL = wordURL.match(/soundcloud url=["']([^"']*)["']/)[1];
+          var groupID = scURL.match(/api.soundcloud.com\/groups\/(\d*)/)[1];
+          
+          queryURL = 'https://api.soundcloud.com/groups/' + groupID + '/tracks';
+        }
+        else if (url.indexOf('/you/') != -1) {
+          // parsing the current user's page requires OAuth and
+          // is not supported yet
+          return;
+        }
+        else {
+          // parsing another user's page
+          var firstSlash = url.indexOf('/');
+          var nextSlash = url.indexOf('/', firstSlash + 1);
+          var user = (nextSlash != -1) ? url.substring(firstSlash + 1, nextSlash) :
+                                         url.substring(firstSlash + 1);
+          queryURL = 'https://api.soundcloud.com/users/' + user + '/tracks';
+        }
+        queryURL += "?format=json&consumer_key=" + soundcloud.consumerKey;
+
+        parser.log("sending request to " + queryURL);
+          $.ajax({
+            type: "GET",
+            url: queryURL,
+            dataType: "json",
+
+            success: soundcloud.parseJSONResponse,
+
+            error: function (response) {
+              console.error("Ajax error retrieving '" + queryURL + "'");
+            },
+          });
+      },
   
       parseJSONResponse : function(response) {
         var parser = onObject.TrackParser;
@@ -662,7 +715,17 @@ if (onObject != null &&
             tracks.push(newTrack);
           }
         }
+        else if (typeof(response.length) != "undefined" &&
+                 response.length > 0) {
+          // parsing a response containing an array of tracks
+          for (var i = 0; i < response.length; i++) {
+            var rTrack = response[i];
+            var newTrack = responseToTrack(rTrack);
+            tracks.push(newTrack);
+          }
+        }
         else {
+          // parsing a response for one track
           var newTrack = responseToTrack(response);
           tracks.push(newTrack);
         }
@@ -872,6 +935,19 @@ if (onObject != null &&
         }
     
         return track;
+      },
+
+      getCurrentURL: function() {
+        var parser = onObject.TrackParser;
+        var url = null;
+        if (typeof(parser.context.location) == "undefined") {
+          // context is not a document
+          url = $(parser.context).attr("url");
+        }
+        else {
+          url = parser.context.location.href;
+        }
+        return url;
       },
     },
     

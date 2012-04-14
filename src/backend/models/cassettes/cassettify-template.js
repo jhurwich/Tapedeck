@@ -78,7 +78,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
  \
       var pageDump = $(ourDump).find("#page" + page); \
       if (pageDump.length == 0) { \
-        pageDump = $("<div id=\'page" + page + "\'>"); \
+        pageDump = $("<div id=\'page" + page + "\' url=\'" + url + "\'>"); \
         $(pageDump).appendTo($(ourDump)); \
       } \
       var responseText = xhr.responseText; \
