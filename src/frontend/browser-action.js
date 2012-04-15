@@ -1,6 +1,12 @@
 TapedeckBA = {
   blockList: null,
   onload: function() {
+    var blockButton = document.getElementById("block-button");
+    blockButton.addEventListener('click', TapedeckBA.blockCurrent);
+    var blockInput = document.getElementById("block-input");
+    blockInput.addEventListener('keydown', function(event) {
+      if (event.keyCode == 13) TapedeckBA.addBlockInput();
+    });
     TapedeckBA.loadBlockList();
   },
 

@@ -19,3 +19,7 @@ Tapedeck.Backend.init = function() {
     });
   });
 };
+
+$(function() {
+  Tapedeck.Backend.init();
+});

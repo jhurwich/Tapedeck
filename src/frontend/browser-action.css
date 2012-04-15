@@ -1,0 +1,72 @@
+body {
+  width: 280px;
+  background-color: rgb(188,188,188);
+  margin: 2px 0 2px 6px;
+}
+
+.heading {
+  display: block;
+  margin-top: 6px;
+  font: 16px arial, sans-serif;
+}
+
+#blocklist {
+  border-top: 0px;
+  width: 260px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.blocklist-row {
+  position: relative;
+  background-color: rgb(233,233,233);
+  border: solid 1px rgb(66,66,66);
+  border-bottom: none;
+  max-width: 260px;
+}
+.blocklist-row:hover {
+   background-color: #d0d0d0;
+}
+.blocklist-row.active {
+   background-color: #d8ffd8;
+}
+.blocklist-row.active:hover {
+   background-color: #a5ffa5;
+}
+
+.blocklist-row:last-child {
+  border-bottom: solid 1px rgb(66,66,66);
+}
+
+.blocklist-entry {
+  display: table-cell;
+  min-height: 14px;
+  font: 12px arial,sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+  padding: 0 0 0 2px;
+}
+
+.row-buttons {
+  position: absolute;
+  top: 0px;
+  right: 2px;
+  margin: 2px 0 2px 0;
+}
+
+.row-buttons > .button {
+  height: 9px;
+  width: 9px;
+  float: left;
+  border: 1px solid black;
+  background-position: center;
+  background-size: 11px 11px;
+  margin-left: 1px;
+}
+
+#hint {
+  font: 10px arial, sans-serif;
+  margin-top: 6px;
+}
