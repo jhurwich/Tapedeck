@@ -7,11 +7,16 @@ Tapedeck.Backend.Views.CassetteList = Backbone.View.extend({
     "CassetteList"
   ],
   template: null,
-  
+
   proxyEvents: {
-    "click .cassettelist .row"        : "CassetteList.rowClick",
-    "mouseover #add-cassettes-button"  : "CassetteList.showCassetteMenu",
-    "mouseleave #add-cassettes-menu" : "CassetteList.hideCassetteMenu",
+    "click .cassettelist .row"            : "CassetteList.rowClick",
+    "mouseover #add-cassettes-button"     : "CassetteList.showCassetteMenu",
+    "mouseleave #add-cassettes-menu"      : "CassetteList.hideCassetteMenu",
+    "click .cassettelist .developer-link" : "CassetteList.loadDeveloperLink",
+    "click .cassettelist .remove"         : "CassetteList.rowButtonRemove",
+    
+    "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
+    "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
   },
   eventsName: "cassetteListEvents",
   

@@ -150,11 +150,12 @@ Tapedeck.Backend.MessageHandler = {
         var rendered = Tapedeck.Backend.TemplateManager.renderView
                                 (scriptName, request.options, packageName);
 
-        var viewString = $('<div>').append($(rendered))
+        var viewString = $('<div>').append($(rendered.el))
                                    .remove()
                                    .html();
                                    
         response.view = viewString;
+        response.proxyEvents = rendered.proxyEvents;
         self.postMessage(port.tab.id, response);
         break;
 
@@ -348,7 +349,7 @@ Tapedeck.Backend.MessageHandler = {
 
     var playerView = Tapedeck.Backend.TemplateManager
                                      .renderView("Player", { });
-    this.pushView("player", playerView, tab);
+    this.pushView("player", playerView.el, playerView.proxyEvents, tab);
   },
 
   updateBrowseList: function(tab) {
@@ -462,7 +463,8 @@ Tapedeck.Backend.MessageHandler = {
                                            currentPage     : cMgr.currPage });
 
     Tapedeck.Backend.MessageHandler.pushView("browse-list",
-                                             browseView,
+                                             browseView.el,
+                                             browseView.proxyEvents,
                                              tab);
   },
 
@@ -536,17 +538,17 @@ Tapedeck.Backend.MessageHandler = {
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
-  pushView: function(targetID, view, tab) {
+  pushView: function(targetID, view, proxyEvents, tab) {
     var self = Tapedeck.Backend.MessageHandler;
     if (typeof(tab) == "undefined") {
       self.log("Pushing to undefined tab: " + targetID);
       
       self.getSelectedTab(function(selectedTab) {
-        self.pushView(targetID, view, selectedTab);
+        self.pushView(targetID, view, proxyEvents, selectedTab);
       });
       return;
     }
-    self.log("Pushing view to '" + targetID + "' in tab " + tab.id);
+    self.log("Pushing view to '" + targetID + "' in tab " + tab.id + " with events " + JSON.stringify(proxyEvents));
     
     var viewString = $('<div>').append($(view))
                                .remove()
@@ -555,6 +557,7 @@ Tapedeck.Backend.MessageHandler = {
     var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "pushView",
       view: viewString,
+      proxyEvents : proxyEvents,
       targetID: targetID,
     });
 

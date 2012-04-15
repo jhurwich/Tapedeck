@@ -7,10 +7,23 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
   ],
   template: null,
 
-  viewName: "XXundefinedViewNameXX",
-  proxyEvents: { },
-  eventsName: "XXtrackListEventsNoNameXX",
-  rowDblClick: "noFnNameDefined",
+  viewName: "XXundefinedViewNameXX", // populated by concrete class
+  rowDblClick: "noFnNameDefined", // populated by concrete class
+
+  proxyEvents: { }, // populated by concrete class
+  extendProxyEvents: {
+    "click #@ .row"                 : "TrackLists.rowClick",
+    "click #@ .trackName-span"      : "TrackLists.rowDblClick",
+    "click #@ .button.playnow"      : "TrackLists.rowButtonPlaynow",
+    "click #@ .button.remove"       : "TrackLists.rowButtonRemove",
+    "click #@ .button.queue"        : "TrackLists.rowButtonQueue",
+    "click #@ .button.download"     : "TrackLists.rowButtonDownload",
+    "click #@ .button.prev-page"    : "TrackLists.prevPage",
+    "click #@ .button.current-page" : "TrackLists.setCurrentPage",
+    "click #@ .button.next-page"    : "TrackLists.nextPage",
+    "click #@ .button.eject"        : "TrackLists.eject",
+  }, // events we'll add to proxyEvents
+  eventsName: "XXundefinedEventsNameXX", // populated by concrete class
   
   initialize: function() {
     if (this.options.trackList != null &&
@@ -67,8 +80,9 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
     $(this.el).attr("rowDblClick", this.rowDblClick);
 
     this.assignRowButtonImgs();
-    
-    Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
+
+    // make the extendProxyEvents apply to concrete class
+    this.updateEvents();
     
     return this.el;
   },
@@ -102,8 +116,16 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
   
   updateView: function(self) {
     var viewID = self.id;
+    self.updateEvents();
     Tapedeck.Backend.MessageHandler.pushView(viewID,
-                                             self.render());
+                                             self.render(),
+                                             self.proxyEvents);
+  },
+
+  updateEvents: function() {
+    for (var key in this.extendProxyEvents) {
+      this.proxyEvents[key.replace("@", this.id)] = this.extendProxyEvents[key];
+    }
   },
 });
 

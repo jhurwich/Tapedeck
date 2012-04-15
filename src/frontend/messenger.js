@@ -72,7 +72,8 @@ Tapedeck.Frontend.Messenger = {
         
       case "pushView":
         Tapedeck.Frontend.Frame.replaceView(request.targetID,
-                                            request.view);
+                                            request.view,
+                                            request.proxyEvents);
         break;
 
       case "showModal":

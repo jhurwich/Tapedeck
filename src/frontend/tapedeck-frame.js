@@ -747,7 +747,8 @@ Tapedeck.Frontend.Frame = {
     show: function(params, aCallback, aCleanup) {
       var getViewCallback = function(response) {
         Tapedeck.Frontend.Frame.replaceView("modal-container",
-                                            response.view);
+                                            response.view,
+                                            response.proxyEvents);
         var inputs = $("#modal").find("input[type='text']");
         if (inputs.length > 0) {
           inputs.first().select();
@@ -764,10 +765,10 @@ Tapedeck.Frontend.Frame = {
               .getView("Modal", params, null, getViewCallback);  
     },
 
-    submit: function(submitter) {
+    submit: function(event) {
       var params = { };
-      if (typeof(submitter) != "undefined") {
-        params.submitButton = submitter;
+      if (typeof(event) != "undefined") {
+        params.submitButton = $(event.target).attr("callbackParam");
       }
       
       var inputs = $("#modal").find("input[type='text']");
@@ -780,6 +781,7 @@ Tapedeck.Frontend.Frame = {
     },
     
     close: function(doCleanup) {
+      console.log("Closing  cleanup=" + doCleanup);
       if (typeof(doCleanup) == "undefined") {
         doCleanup = false;
       }
@@ -791,18 +793,37 @@ Tapedeck.Frontend.Frame = {
     },
   },
 
-  replaceView: function(id, viewStr) {
+  replaceView: function(id, viewStr, proxyEvents) {
     var view = $(viewStr);
     $("#" + id).replaceWith(view);
+    this.attachEvents(id, proxyEvents);
+  },
+  
+  attachEvents: function(id, events) {    
+    for (var key in events) {
+      var methodPieces = events[key].split(".");
+      var method = Tapedeck.Frontend.Frame;
+      for(var i = 0; i < methodPieces.length; i++) {
+        method = method[methodPieces[i]];
+      }
 
-    var delegates = $(view).find(".delegate-events");
-    
-    for (var i = 0; i < delegates.length; i++) {
-      var delegate = delegates[i];
-      var functionStr = $(delegate).html();
+      if (methodPieces.length == 0 ||
+          typeof(method) == "undefined") {
+        console.error("Event " + JSON.stringify(methodPieces) + " does not exist");
+      }
+      
+      var match = key.match(/^(\S+)\s*(.*)$/);
+      var eventName = match[1];
+      var selector = match[2];
 
-      var attachEvents = new Function(functionStr);
-      attachEvents();
+      if (eventName.indexOf("onreplace") == -1) {
+        $(selector).unbind(eventName);
+        $(selector).bind(eventName, method);
+      }
+      else {
+        // onreplace actions should happen immediately
+        method();
+      }
     }
   },
   

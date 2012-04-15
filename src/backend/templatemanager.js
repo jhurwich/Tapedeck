@@ -24,6 +24,7 @@ Tapedeck.Backend.TemplateManager = {
     }
   },
 
+  // returns an object of the form { el: __, proxyEvents: __ }
   renderView: function(scriptName, options, packageName) {
     if (typeof(options) == "undefined") {
       options = { };
@@ -32,7 +33,7 @@ Tapedeck.Backend.TemplateManager = {
     var view = new viewScript(options);
     
     var el = view.render();
-    return el;
+    return { el: el, proxyEvents: view.proxyEvents };
   },
 
   getViewScript: function(scriptName, packageName) {

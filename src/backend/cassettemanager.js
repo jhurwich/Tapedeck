@@ -57,7 +57,8 @@ Tapedeck.Backend.CassetteManager = {
                  { cassetteList : cMgr.getCassettes() });
       
       Tapedeck.Backend.MessageHandler.pushView("cassette-list",
-                                               cassetteListView);
+                                               cassetteListView.el,
+                                               cassetteListView.proxyEvents);
     });
   },
 
@@ -110,7 +111,8 @@ Tapedeck.Backend.CassetteManager = {
                                                    { tabID : selectedTab.id });
     
         Tapedeck.Backend.MessageHandler.pushView("browse-region",
-                                                 browseRegionView);
+                                                 browseRegionView.el,
+                                                 browseRegionView.proxyEvents);
       });
     }
   },

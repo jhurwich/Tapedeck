@@ -7,7 +7,9 @@ Tapedeck.Frontend.init = function() {
   Tapedeck.Frontend.Messenger.init();
 
   var callback = function(response) {
-    Tapedeck.Frontend.Frame.replaceView("tapedeck-content", response.view);
+    Tapedeck.Frontend.Frame.replaceView("tapedeck-content",
+                                        response.view,
+                                        response.proxyEvents);
     Tapedeck.Frontend.Frame.init();
   };
 
@@ -16,4 +18,6 @@ Tapedeck.Frontend.init = function() {
           .getView("Frame", { }, null, callback);                          
 
 };
+
+$(function() { Tapedeck.Frontend.init() });
 

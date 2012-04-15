@@ -6,7 +6,15 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     "Frame",
   ],
   template: null,
-
+  
+  proxyEvents: {
+    "click #queue-save"    : "PlaylistList.saveQueue",
+    "click #repeat"        : "toggleRepeat",
+    "click #queue-shuffle" : "shuffleQueue",
+    "click #queue-clear"   : "clearQueue",
+  },
+  eventsName: "frameEvents",
+  
   initialize: function() {
     this.tabID = this.options.tabID;
     this.template = _.template(Tapedeck.Backend
@@ -23,47 +31,52 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     this.renderBrowseRegion();
     
     this.assignPlaybackButtonImgs();
+    Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
 
     return this.el
   },
 
   renderPlayer: function() {
-    var playerView = Tapedeck.Backend
-                             .TemplateManager
-                             .renderView("Player", { });
+    var viewData = Tapedeck.Backend
+                           .TemplateManager
+                           .renderView("Player", { });
     var playerID = "player";
-    playerView.id = playerID;
+    viewData.el.id = playerID;
     
-    $(this.el).find("#" + playerID).replaceWith(playerView);
+    $(this.el).find("#" + playerID).replaceWith(viewData.el);
+    this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
 
   renderQueue: function() {
     var queueTracks = Tapedeck.Backend.Sequencer.queue;
-    var queueView = Tapedeck.Backend
-                            .TemplateManager
-                            .renderView("Queue",
-                                        { trackList : queueTracks });
+    var viewData = Tapedeck.Backend
+                           .TemplateManager
+                           .renderView("Queue",
+                                       { trackList : queueTracks });
     
-    $(this.el).find("#queue-list").replaceWith(queueView);
+    $(this.el).find("#queue-list").replaceWith(viewData.el);
+    this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
 
   renderPlaylistList: function() {
     var playlistList = Tapedeck.Backend.Bank.getPlaylists();
-    var playlistListView = Tapedeck.Backend
-                                   .TemplateManager
-                                   .renderView("PlaylistList",
-                                               { playlistList : playlistList });
+    var viewData = Tapedeck.Backend
+                           .TemplateManager
+                           .renderView("PlaylistList",
+                                       { playlistList : playlistList });
                                                  
-    $(this.el).find("#playlist-list").replaceWith(playlistListView);
+    $(this.el).find("#playlist-list").replaceWith(viewData.el);
+    this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
   
   renderBrowseRegion: function() {
-    var browseRegionView = Tapedeck.Backend
-                                   .TemplateManager
-                                   .renderView("BrowseRegion",
-                                               { tabID : this.tabID });
+    var viewData = Tapedeck.Backend
+                           .TemplateManager
+                           .renderView("BrowseRegion",
+                                       { tabID : this.tabID });
 
-    $(this.el).find("#browse-region").replaceWith(browseRegionView);
+    $(this.el).find("#browse-region").replaceWith(viewData.el);
+    this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
   
   assignPlaybackButtonImgs: function() {

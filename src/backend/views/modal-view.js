@@ -8,7 +8,8 @@ Tapedeck.Backend.Views.Modal = Backbone.View.extend({
   template: null,
   
   proxyEvents: {
-    
+    "click .modal #close-button"  : "Modal.close",
+    "click .modal .submit-button" : "Modal.submit",
   },
   eventsName: "modalEvents",
   

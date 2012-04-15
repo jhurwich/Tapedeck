@@ -92,12 +92,13 @@ Tapedeck.Backend.InjectManager = {
                                      .renderView("Frame",
                                                  { tabID: tabID });
 
-      var viewString = $('<div>').append($(rendered))
+      var viewString = $('<div>').append($(rendered.el))
                                  .remove()
                                  .html();
 
       Tapedeck.Backend.MessageHandler.pushView("tapedeck-content",
                                                viewString,
+                                               rendered.proxyEvents,
                                                tab);
     });
   },

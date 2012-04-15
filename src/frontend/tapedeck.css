@@ -403,7 +403,7 @@ body {
   width: 155px;
   border-right: none;
 }
-#developer-link:hover {
+.developer-link:hover {
   color: #3299BB;
 }
 

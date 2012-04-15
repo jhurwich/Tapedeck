@@ -575,7 +575,8 @@ Tapedeck.Backend.Bank = {
                             { playlistList : playlistList });
 
     Tapedeck.Backend.MessageHandler.pushView("playlist-list",
-                                             listView);
+                                             listView.el,
+                                             listView.proxyEvents);
   },
   
   saveTrackList: function(name, trackList) {
