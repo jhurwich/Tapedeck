@@ -745,6 +745,8 @@ Tapedeck.Frontend.Frame = {
     callback: null,
     cleanup: null,
     show: function(params, aCallback, aCleanup) {
+      var modal = Tapedeck.Frontend.Frame.Modal;
+      
       var getViewCallback = function(response) {
         Tapedeck.Frontend.Frame.replaceView("modal-container",
                                             response.view,
@@ -755,9 +757,9 @@ Tapedeck.Frontend.Frame = {
         }
       };
 
-      this.callback = aCallback;
+      modal.callback = aCallback;
       if (typeof(aCleanup) != "undefined") {
-        this.cleanup = aCleanup;
+        modal.cleanup = aCleanup;
       }
       
       Tapedeck.Frontend
@@ -766,6 +768,8 @@ Tapedeck.Frontend.Frame = {
     },
 
     submit: function(event) {
+      var modal = Tapedeck.Frontend.Frame.Modal;
+      
       var params = { };
       if (typeof(event) != "undefined") {
         params.submitButton = $(event.target).attr("callbackParam");
@@ -776,19 +780,22 @@ Tapedeck.Frontend.Frame = {
         params[$(input).attr('callbackParam')] = $(input).attr('value');
       });
       
-      this.callback(params);
-      this.close(false);
+      modal.callback(params);
+      modal.close(false);
     },
     
-    close: function(doCleanup) {
-      console.log("Closing  cleanup=" + doCleanup);
-      if (typeof(doCleanup) == "undefined") {
-        doCleanup = false;
+    close: function(event) {
+      var doCleanup = false;
+      if (typeof(event) != "undefined" &&
+          event.target.id.indexOf("close") != -1) {
+        doCleanup = true;
       }
       
+      var modal = Tapedeck.Frontend.Frame.Modal;
+      
       $("#modal-container").attr("hidden", true);
-      if (doCleanup && this.cleanup != null) {
-        this.cleanup();
+      if (doCleanup && modal.cleanup != null) {
+        modal.cleanup();
       }
     },
   },
@@ -817,8 +824,15 @@ Tapedeck.Frontend.Frame = {
       var selector = match[2];
 
       if (eventName.indexOf("onreplace") == -1) {
-        $(selector).unbind(eventName);
-        $(selector).bind(eventName, method);
+        if (selector === '') {
+          // no selector applies to #tapedeck-content
+          $("#tapedeck-content").unbind(eventName);
+          $("#tapedeck-content").bind(eventName, method);
+        }
+        else {
+          $(selector).unbind(eventName);
+          $(selector).bind(eventName, method);
+        }
       }
       else {
         // onreplace actions should happen immediately

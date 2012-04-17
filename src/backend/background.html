@@ -296,7 +296,7 @@
             </div>
           <% } %>
           <% if (typeof(params.submitButtons) == "undefined") { %>
-            <input type="button" class="submit-button" value="Ok" />
+            <input type="button" id="submit-button" value="Ok" />
           <% } else {
             for (var i=0; i < params.submitButtons.length; i++) {
               var button = params.submitButtons[i]; %>
