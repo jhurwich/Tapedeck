@@ -26,10 +26,10 @@ describe("TrackList View", function() {
                             .Collections
                             .TrackList(this.testTracks);
     
-    var listDOM = this.Tapedeck.Backend.TemplateManager.renderView
-                      ("TrackList", { trackList: trackList }, null);
+    var viewData = this.Tapedeck.Backend.TemplateManager.renderView
+                       ("TrackList", { trackList: trackList }, null);
     
-    var rows  = $(listDOM).find(".row").not("#hidden-droprow");
+    var rows  = $(viewData.el).find(".row").not("#hidden-droprow");
 
     expect(rows.length).toEqual(this.testTracks.length);
   });

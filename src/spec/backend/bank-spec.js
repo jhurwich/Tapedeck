@@ -89,6 +89,7 @@ describe("Bank", function() {
 
       var fileURI = new RegExp("^filesystem:chrome-extension://(.*)" +
                                fileName);
+      url = decodeURIComponent(url);
       expect(url).toMatch(fileURI);
     };
     

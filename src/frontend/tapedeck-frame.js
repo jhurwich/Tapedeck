@@ -787,6 +787,7 @@ Tapedeck.Frontend.Frame = {
     close: function(event) {
       var doCleanup = false;
       if (typeof(event) != "undefined" &&
+          typeof(event.target) != "undefined" &&
           event.target.id.indexOf("close") != -1) {
         doCleanup = true;
       }
@@ -796,6 +797,13 @@ Tapedeck.Frontend.Frame = {
       $("#modal-container").attr("hidden", true);
       if (doCleanup && modal.cleanup != null) {
         modal.cleanup();
+      }
+    },
+
+    enterPress: function(event) {
+      if (event.which == 13) {
+        Tapedeck.Frontend.Frame.Modal.submit();
+        return false;
       }
     },
   },

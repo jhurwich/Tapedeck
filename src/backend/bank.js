@@ -154,9 +154,9 @@ Tapedeck.Backend.Bank = {
           for (var i = 0; i < entries.length; i++) {
             var entry = entries[i];
 
-            var scoped = function() {
-              var name = entry.name;
-              if (!entry.isFile) {
+            var scoped = function(currEntry) {
+              var name = currEntry.name;
+              if (!currEntry.isFile) {
                 numReads--;
                 if (numReads == 0) {
                   callback(cassetteDatas);
@@ -164,12 +164,13 @@ Tapedeck.Backend.Bank = {
                 return;
               }
   
-              entry.file(function(file) {
+              currEntry.file(function(file) {
                 var reader = new FileReader();
                 reader.onloadend = function(e) {
                   numReads--;                  
                   var data = { name: name,
-                               code: this.result };
+                               code: this.result,
+                               url : currEntry.toURL() };
 
                   var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix +
                                 name;
@@ -189,7 +190,7 @@ Tapedeck.Backend.Bank = {
                 
                 reader.readAsText(file);
               });
-            }();
+            }(entry);
           }
 
         });

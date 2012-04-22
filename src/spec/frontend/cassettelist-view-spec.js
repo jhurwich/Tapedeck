@@ -32,10 +32,10 @@ describe("CassetteList View", function() {
                                .Collections
                                .CassetteList(this.cassettes);
     
-    var listDOM = this.Tapedeck.Backend.TemplateManager.renderView
-                      ("CassetteList", { cassetteList: cassetteList }, null);
+    var viewData = this.Tapedeck.Backend.TemplateManager.renderView
+                       ("CassetteList", { cassetteList: cassetteList }, null);
     
-    var rows  = $(listDOM).find(".row");
+    var rows  = $(viewData.el).find(".row");
 
     expect(rows.length).toEqual(this.cassettes.length);
   });

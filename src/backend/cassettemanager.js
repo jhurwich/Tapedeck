@@ -3,6 +3,7 @@ Tapedeck.Backend.CassetteManager = {
   cassettes: [],
   currentCassette: null,
   currPage: 1,
+  numPreinstalled: 1, // Scraper is preinstalled
   
   init: function(continueInit) {
     var cMgr = Tapedeck.Backend.CassetteManager;
@@ -19,7 +20,6 @@ Tapedeck.Backend.CassetteManager = {
 
   readInCassettes: function(callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
-    cMgr.cassettes = [];
 
     // Read saved cassettes into memory
     Tapedeck.Backend.Bank.FileSystem.getCassettes(function(cassetteDatas) {
@@ -30,22 +30,51 @@ Tapedeck.Backend.CassetteManager = {
         if (typeof(data.page) != "undefined") {
           pageMap[data.name] = data.page
         }
+        
         // writes the cassette to Tapedeck.Backend.Cassettes[CassetteName]
-        new Function(data.code)();
+        var script = document.createElement('script');
+        script.setAttribute('type', 'text/javascript'); 
+        script.setAttribute('src', data.url);
+        document.getElementsByTagName('head')[0].appendChild(script);
       }
 
-      for (var CassetteModel in Tapedeck.Backend.Cassettes) {
-        var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
-        if (typeof(pageMap[CassetteModel]) != "undefined") {
-          cMgr.cassettes.push({ cassette : cassette,
-                                page     : parseInt(pageMap[CassetteModel]) });
-        }
-        else {
-          cMgr.cassettes.push({ cassette: cassette });
-        }
-      }
-      callback();
+      // We expect all the preinstalled cassettes plus the saved ones
+      var numExpected = cMgr.numPreinstalled + cassetteDatas.length;
+      cMgr.populateCassetteList(numExpected, pageMap, 1, callback);
     });
+  },
+
+  // The call to populate will likely beat the new script, so this
+  // method needs to be told what to expect and back off if we don't
+  // get that number of cassettes.
+  populateCassetteList: function(numExpected, pageMap, currTimeout, callback) {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    cMgr.cassettes = [];
+    
+    for (var CassetteModel in Tapedeck.Backend.Cassettes) {
+      var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
+      if (typeof(pageMap) != "undefined" &&
+          typeof(pageMap[CassetteModel]) != "undefined") {
+        cMgr.cassettes.push({ cassette : cassette,
+                              page     : parseInt(pageMap[CassetteModel]) });
+      }
+      else {
+        cMgr.cassettes.push({ cassette: cassette });
+      }
+    }
+
+    // confirm that everything was ready to be read in
+    if (cMgr.cassettes.length != numExpected) {
+      if (currTimeout == 0) {
+        currTimeout = 1;
+      }
+      currTimeout = currTimeout * 2;
+      setTimeout(function() { cMgr.populateCassetteList(numExpected, pageMap, currTimeout, callback); },
+                 currTimeout);
+    }
+    else {
+      callback();
+    }
   },
 
   refreshCassetteListView: function() {
@@ -297,7 +326,7 @@ Tapedeck.Backend.CassetteManager = {
         code = code.replace(/CassetteFromTemplate/g,
                             saveableName);
         code = code.replace(/Unnamed/g, saveableName);
-        
+
         Tapedeck.Backend.Bank.FileSystem.saveCassette(code,
                                                       saveableName,
                                                       cMgr.Cassettify.finish);

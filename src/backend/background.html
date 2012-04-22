@@ -290,8 +290,7 @@
                 <span class="input"><%= field.text %></span>
                 <input callbackParam="<%= field.callbackParam %>"
                        type="text"
-                       <% if (typeof(field.width) != "undefined") print("style='width: " + field.width + "px;'"); %>
-                       onkeypress="if (event.which == 13) { Tapedeck.Frontend.Frame.Modal.submit(); return false; }">
+                       <% if (typeof(field.width) != "undefined") print("style='width: " + field.width + "px;'"); %> >
               <% } %>
             </div>
           <% } %>

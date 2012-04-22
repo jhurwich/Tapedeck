@@ -21,8 +21,8 @@ describe("Frontend Frame Logic", function() {
 
     $("#tapedeck-frame").contents()
                         .find("#browse-list")
-                        .replaceWith(testTrackView);
-                         
+                        .replaceWith(testTrackView.el);
+
     var rows = $("#tapedeck-frame").contents()
                                    .find("#browse-list")
                                    .first()
@@ -65,7 +65,7 @@ describe("Frontend Frame Logic", function() {
 
     $("#tapedeck-frame").contents()
                         .find("#queue-list")
-                        .replaceWith(testTrackView);
+                        .replaceWith(testTrackView.el);
                          
     var rows = $("#tapedeck-frame").contents()
                                    .find("#queue-list")
