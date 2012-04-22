@@ -3,25 +3,25 @@
   "version": "0.2.1",
   "description": "The one player for the web.",
   
-  "background_page" :"backend/background.html",
+  "background" : {
+    "page" : "backend/background.html"
+  },
 
-  "browser_action":
-    {
-      "default_icon": "images/browseraction-cassette.png",
-      "default_title": "Tapedeck",
-      "default_popup": "frontend/browser-action.html"
-    },
-  "icons":
-    {
-      "48": "images/cassette-48.png",
-      "128": "images/cassette-128.png"
-    },
+  "browser_action": {
+    "default_icon": "images/browseraction-cassette.png",
+    "default_title": "Tapedeck",
+    "default_popup": "frontend/browser-action.html"
+  },
+  
+  "icons": {
+    "48": "images/cassette-48.png",
+    "128": "images/cassette-128.png"
+  },
 
   "permissions": ["http://*/*",
                   "https://*/*",
                   "tabs",
                   "unlimitedStorage"],
   
-
   "update_url": "http://www.tape-deck.com/update"
 }
