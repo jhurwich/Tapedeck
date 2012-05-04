@@ -753,6 +753,12 @@ if (onObject != null &&
         for (var i = 0; i < unwantedBlocks.length; i++) {
           var tag = unwantedBlocks[i];
 
+          // we don't want the tags as blocks or as self closed tags
+          var selfCloseMatch = null;
+          while ((selfCloseMatch = text.match(selfClosedTagRegex(tag))) != null) {
+            text = text.replace(selfCloseMatch[0], "");
+          }
+
           var openPos = -1;
           var closeMatch = null;
           while ((openPos = text.search(openTagRegex(tag))) != -1) {
@@ -762,7 +768,9 @@ if (onObject != null &&
               text = text.replace(toRemove, "");
             }
             else {
+              // couldn't find a close tag, just remove the open tag
               console.error("no close tag for open tag '" + tag + "'");
+              text = text.replace(text.match(openTagRegex(tag))[0], "");
             }
             
           }
@@ -774,13 +782,13 @@ if (onObject != null &&
 
           var match = null;
           while ((match = text.match(openTagRegex(tag))) != null) {
-              text = text.replace(match[0], "");
+            text = text.replace(match[0], "");
           }
           while ((match = text.match(closeTagRegex(tag))) != null) {
-              text = text.replace(match[0], "");
+            text = text.replace(match[0], "");
           }
           while ((match = text.match(selfClosedTagRegex(tag))) != null) {
-              text = text.replace(match[0], "");
+            text = text.replace(match[0], "");
           }
         }
 
