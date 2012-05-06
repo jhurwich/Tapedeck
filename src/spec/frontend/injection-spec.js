@@ -1,5 +1,5 @@
 describe("After content-scripts are injected", function() {
-  
+
   beforeEach(function() {
   });
 
@@ -29,12 +29,12 @@ describe("After content-scripts are injected", function() {
     $("#tapedeck-injected-draweropen").click();
 
     expect($("body").attr("tapedeck-opened")).toBeTruthy();
-    
+
     expect($("#tapedeck-frame")).toExist();
     expect($("#tapedeck-frame")).not.toBeHidden();
 
     expect($("#tapedeck-injected-draweropen")).toBeHidden();
-    
+
     expect($("#tapedeck-injected-drawerclose")).toExist();
     expect($("#tapedeck-injected-drawerclose")).not.toBeHidden();
   });
@@ -44,12 +44,12 @@ describe("After content-scripts are injected", function() {
     $("#tapedeck-injected-drawerclose").click();
 
     expect($("body").attr("tapedeck-opened")).not.toBeTruthy();
-    
+
     expect($("#tapedeck-frame")).toExist();
     expect($("#tapedeck-frame")).toBeHidden();
 
     expect($("#tapedeck-injected-drawerclose")).toBeHidden();
-    
+
     expect($("#tapedeck-injected-draweropen")).toExist();
     expect($("#tapedeck-injected-draweropen")).not.toBeHidden();
   });

@@ -1,11 +1,11 @@
 describe("Bank", function() {
-  
+
   beforeEach(function() {
     this.bank = this.Tapedeck
                     .Backend
                     .Bank;
   });
-  
+
   afterEach(function() {
     this.bank.clear();
   });
@@ -33,14 +33,14 @@ describe("Bank", function() {
     this.bank.saveTrackList(listName, trackList);
 
     var bankedList = this.bank.getTrackList(listName);
-    
+
     for (var i = 0; i < trackList.length; i++) {
       var expectedTrack = trackList.at(i);
       var bankedTrack = bankedList.at(i);
       expect(bankedTrack).toReflectJSON(expectedTrack.toJSON());
     };
   });
-  
+
   it("should save and retrieve playlists", function() {
     var origPlaylistNum = this.bank.getPlaylists().length;
     var playlist = new this.Tapedeck
@@ -50,12 +50,12 @@ describe("Bank", function() {
 
     var playlistID = "testPlaylist123";
     playlist.id = playlistID;
-    
+
     this.bank.savePlaylist(playlist);
-    
+
     var bankedPlaylists = this.bank.getPlaylists();
     expect(bankedPlaylists.length).toEqual(origPlaylistNum + 1);
-    
+
     var foundPlaylist = false;
     for (var i = 0; i < bankedPlaylists.length; i++) {
       var bankedPlaylist = bankedPlaylists.at(i);
@@ -68,7 +68,7 @@ describe("Bank", function() {
   });
 
   it("should save and retrieve downloaded tracks", function() {
-    
+
     // Save the tracks so the bank can find them
     var trackList = new this.Tapedeck
                             .Backend
@@ -80,7 +80,7 @@ describe("Bank", function() {
     var testComplete = false;
     var testTrack = trackList.at(0);
     var spy = spyOn(this.bank.FileSystem, "saveResponse").andCallThrough();
-    
+
     var callback = function(url) {
       testComplete = true;
       var fileName = testTrack.get("artistName") +
@@ -92,7 +92,7 @@ describe("Bank", function() {
       url = decodeURIComponent(url);
       expect(url).toMatch(fileURI);
     };
-    
+
     this.bank.FileSystem.download(testTrack.get("tdID"),
                                   callback);
     waitsFor(function() {
@@ -103,5 +103,5 @@ describe("Bank", function() {
       expect(spy.callCount).toEqual(1);
     });
   });
-  
+
 });

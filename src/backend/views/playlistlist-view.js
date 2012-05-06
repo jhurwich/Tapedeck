@@ -6,7 +6,7 @@ Tapedeck.Backend.Views.PlaylistList = Backbone.View.extend({
     "PlaylistList"
   ],
   template: null,
-  
+
   proxyEvents: {
     "mouseover #playlist-list-header"   : "PlaylistList.showPlaylistList",
     "mouseleave #playlist-list"         : "PlaylistList.hidePlaylistList",
@@ -14,7 +14,7 @@ Tapedeck.Backend.Views.PlaylistList = Backbone.View.extend({
     "click #playlist-list-content .removePlaylist" : "PlaylistList.removePlaylist",
   },
   eventsName: "playlistListEvents",
-  
+
   initialize: function() {
     this.playlistList = this.options.playlistList;
     this.template = _.template(Tapedeck.Backend
@@ -27,12 +27,12 @@ Tapedeck.Backend.Views.PlaylistList = Backbone.View.extend({
                              ({ playlistList : this.playlistList });
 
     this.assignRowButtonImgs();
-    
+
     Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
     return this.el;
   },
-   
-  assignRowButtonImgs: function() {     
+
+  assignRowButtonImgs: function() {
     var removePlaylistImgURL =
       "url('" +
       chrome.extension.getURL("images/rowbutton-remove.png") +
@@ -41,5 +41,5 @@ Tapedeck.Backend.Views.PlaylistList = Backbone.View.extend({
       $(element).css("background-image", removePlaylistImgURL);
     });
   },
-  
+
 });

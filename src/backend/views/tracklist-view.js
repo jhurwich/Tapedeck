@@ -24,7 +24,7 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
     "click #@ .button.eject"        : "TrackLists.eject",
   }, // events we'll add to proxyEvents
   eventsName: "XXundefinedEventsNameXX", // populated by concrete class
-  
+
   initialize: function() {
     if (this.options.trackList != null &&
         typeof(this.options.trackList) != "undefined") {
@@ -63,7 +63,7 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
 
   render: function() {
     var templateOptions = { };
-    
+
     if (this.trackList != null) {
       var trackListJSON = this.trackList.toJSON();
       trackListJSON.destination = this.viewName;
@@ -83,24 +83,24 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
 
     // make the extendProxyEvents apply to concrete class
     this.updateEvents();
-    
+
     return this.el;
   },
-  
+
   assignRowButtonImgs: function() {
     this.assignImgs(".button.playnow", "rowbutton-playnow.png");
     this.assignImgs(".button.remove", "rowbutton-remove.png");
     this.assignImgs(".button.queue", "rowbutton-queue.png");
     this.assignImgs(".button.download", "rowbutton-download.png");
     this.assignImgs(".spinner.download", "download-spinner.gif");
-    
+
     this.assignImgs(".button.prev-page", "prev-page.png");
     this.assignImgs(".button.next-page", "next-page.png");
     this.assignImgs(".button.eject", "cassettebutton-eject.png");
-    
+
     this.assignImgs(".spinner.loading", "tracklist-loading.gif");
   },
-  
+
   assignImgs: function(selector, image) {
     $(this.el).find(selector).each(function(index, elem) {
       var url = chrome.extension.getURL("images/" + image);
@@ -113,7 +113,7 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
       }
     });
   },
-  
+
   updateView: function(self) {
     var viewID = self.id;
     self.updateEvents();

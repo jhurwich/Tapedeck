@@ -6,14 +6,14 @@ Tapedeck.Backend.Views.Modal = Backbone.View.extend({
     "Modal"
   ],
   template: null,
-  
+
   proxyEvents: {
     "click .modal #close-button"  : "Modal.close",
     "click .modal #submit-button" : "Modal.submit",
     "keypress .modal input[type='text']" : "Modal.enterPress",
   },
   eventsName: "modalEvents",
-  
+
   initialize: function() {
     this.params = this.options;
     this.template = _.template(Tapedeck.Backend
@@ -25,7 +25,7 @@ Tapedeck.Backend.Views.Modal = Backbone.View.extend({
     this.el.innerHTML =  this.template({ params: this.params });
 
     this.assignImg("close-button", "modal-close.png");
-    
+
     Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
 
     return this.el;

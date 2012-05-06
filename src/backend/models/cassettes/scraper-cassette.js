@@ -14,18 +14,18 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
   getBrowseList: function(context, callback) {
     var self = this;
     var handleTracks = function(response, sender, sendResponse) {
-      
+
       for (var i in response.tracks) {
         response.tracks[i].cassette = self.get("name");
       }
       callback(response.tracks);
     };
-    
+
     Tapedeck.Backend.InjectManager
                     .executeScript(context.tab,
                                    { allFrames: false,
                                      file: "frontend/scripts/track-parser.js" },
                                    handleTracks,
                                    { cassetteName : self.get("name") });
-  } 
+  }
 });

@@ -3,17 +3,17 @@ describe("Message Handler", function() {
   beforeEach(function() {
     waitsForFrontendInit();
   });
-  
+
   it("should return a rendered view when requested", function() {
     var requestProcessed = false;
     var callback = function(response) {
       expect($(response.view)).toHaveId("tapedeck-content");
       requestProcessed = true;
     };
-    
+
     this.Tapedeck.Frontend.Messenger.getView
         ("Frame", { }, null, callback);
-        
+
     waitsFor(function() {
       return requestProcessed;
     }, "Request for Frame View never processed", 1000);
@@ -30,7 +30,7 @@ describe("Message Handler", function() {
     var responseCallback = function(sender, response, sendResponse) {
       testComplete = true;
     };
-    
+
     this.Tapedeck.Backend.InjectManager
                          .executeScript(testTab,
                                         { allFrames: false,
@@ -51,11 +51,11 @@ describe("Message Handler", function() {
   it("should update the correct view with MessageHandler.pushView *flaky*" , function() {
     expect($("#tapedeck-frame").contents()).toContain("#browse-list");
     expect($("#tapedeck-frame").contents()).not.toContain("#testdiv");
-    
+
     var testDiv = "<div id='testdiv'></div>";
     var testTab = this.findTestTab();
     expect(testTab).not.toBeNull();
-    
+
     this.Tapedeck.Backend.MessageHandler.pushView("browse-list",
                                                   testDiv,
                                                   testTab);

@@ -31,7 +31,7 @@ Tapedeck.Backend.TemplateManager = {
     }
     var viewScript = this.getViewScript(scriptName, packageName);
     var view = new viewScript(options);
-    
+
     var el = view.render();
     return { el: el, proxyEvents: view.proxyEvents };
   },
@@ -40,7 +40,7 @@ Tapedeck.Backend.TemplateManager = {
     if (!this.isValidPackage(packageName)) {
       packageName = this.currentPackage;
     }
-    
+
     return this.packages[packageName][scriptName];
   },
 

@@ -8,12 +8,12 @@ describe("The Scraper Cassette", function() {
     }
     TapedeckInjected.TrackParser.forceTumblr = false;
     TapedeckInjected.TrackParser.forceTumblrDashboard = false;
-    
+
     var testzone = $("<div id='testzone'></div>");
     $("body").append(testzone);
-    
+
     // inject some audio files into the page
-    
+
     this.loadTracksIntoDOM = function(trackJSONs, formatFn, limitTypes) {
       for (var i = 0; i < trackJSONs.length; i++) {
         var trackJSON = trackJSONs[i];
@@ -29,7 +29,7 @@ describe("The Scraper Cassette", function() {
                                  expectedAttrs,
                                  expectedTypes) {
       var self = this;
-      
+
       var actualOfTypeCount = 0;
       for (var i = 0; i < actualTrackJSONs.length; i++) {
         var actualJSON = actualTrackJSONs[i];
@@ -44,7 +44,7 @@ describe("The Scraper Cassette", function() {
           }
         }
       }
-      
+
       expect(actualOfTypeCount).toEqual(expectedTrackJSONs.length);
       self.testComplete = true;
     };
@@ -65,19 +65,19 @@ describe("The Scraper Cassette", function() {
           expectedTrackJSONs.push(testTrackJSON);
         }
       }
-      
+
       var testTab = self.findTestTab();
       var context = self.Tapedeck.Backend.Utils.getContext(testTab);
 
       var spy = null;
       if(numPostLoads != 0) {
-        
+
         // We need to see that the postLoads are completed, but
         // we need to call getBrowseList to queue the postLoads.
 
         // NOTE: Careful here, numPostLoads != postLoadTracks.length.
         // numPostLoads refers to the number of times groups of tracks
-        // will be added after the original, in the event of a 
+        // will be added after the original, in the event of a
         // soundcloud playlist this can contain more than one track.
         spy = spyOn(this.Tapedeck.Backend.MessageHandler,
                     "pushBrowseTrackList");
@@ -114,15 +114,15 @@ describe("The Scraper Cassette", function() {
                             expectedTypes);
         }
       });
-      
+
       // This should be instantaneous but somehow the waitsFor won't
       // let the above get scheduled.
       waitsFor(function() {
         return self.testComplete;
       }, "Timed out waiting for track parsing", 5000);
-      
+
     };
-    
+
     waitsForFrontendInit();
   }); // end beforeEach
 
@@ -162,11 +162,11 @@ describe("The Scraper Cassette", function() {
 
     //  tumblr is pretty freeform
     //    trackName and artistName are pretty unreliable, and
-    //    domain and location, for tumblr, are based on the current 
+    //    domain and location, for tumblr, are based on the current
     //    page which is currently SpecRunner.html.
     var tumblrExpectedAttrs = ["url"];
     var tumblrExpectedTypes = ["mp3", "tumblr"];
-    
+
     this.loadTracksIntoDOM(this.testTracks,
                            asTumblr,
                            tumblrExpectedTypes);
@@ -176,13 +176,13 @@ describe("The Scraper Cassette", function() {
 
     this.verifyGetBrowseList(tumblrExpectedAttrs, tumblrExpectedTypes);
   });
-  
+
 /****************************
 *  Tumblr Dashboard 9-9-11
-* 
+*
 *  <li id="post_9930597361" class="post   audio  ">
 *    <div class="post_content" id="post_content_9930597361">
-*      <img class="album_art" style="margin-bottom:20px"></img> 
+*      <img class="album_art" style="margin-bottom:20px"></img>
 *      <span id="audio_node_9930597361">
 *        <div>
 *          <embed type="application/x-shockwave-flash" src="http://assets.tumblr.com/swf/audio_player_black.swf?audio_file=http://www.tumblr.com/audio_file/9930597361/tumblr_lonc8qnYGB1qc4gv0&amp;color=FFFFFF" height="27" width="207" quality="best">
@@ -249,7 +249,7 @@ describe("The Scraper Cassette", function() {
                                         "artistName",
                                         "location"];
     var tumblrDashboardExpectedTypes = ["mp3", "tumblr"];
-    
+
     this.loadTracksIntoDOM(this.testTracks,
                            asTumblrDashboard,
                            tumblrDashboardExpectedTypes);
@@ -263,7 +263,7 @@ describe("The Scraper Cassette", function() {
 
 /****************************
 *  The Burning Ear (http://www.theburningear.com/2011/03/mp3-dont-forget-paola-and-her-interstellar-love/)
-* 
+*
 *  <div class="post-10201 post type-post post_box top" id="post-10201">
 *    <div class="headline_area">
 *      <h2 class="entry-title">
@@ -298,7 +298,7 @@ describe("The Scraper Cassette", function() {
 
       var perma = post.find("h2 > a").first();
       perma.attr("href", trackJSON.location);
-      
+
       var mp3Link = post.find("a").last();
       mp3Link.attr("href", trackJSON.url);
       mp3Link.html(trackJSON.artistName + " - " + trackJSON.trackName);
@@ -334,7 +334,7 @@ describe("The Scraper Cassette", function() {
                            asLinks,
                            linkExpectedTypes);
 
-    
+
     this.verifyGetBrowseList(linkExpectedAttrs, linkExpectedTypes);
   });
 
@@ -384,7 +384,7 @@ describe("The Scraper Cassette", function() {
       var src = "https://player.soundcloud.com/player.swf?url=";
       src += trackJSON.trackInfoURL;
       src += "&show_comments=true&auto_play=false&color=3299bb";
-      
+
       $(srcParam).attr("value", src);
 
       return object;
@@ -399,7 +399,7 @@ describe("The Scraper Cassette", function() {
     this.loadTracksIntoDOM(this.testTracks,
                            asSoundcloud,
                            soundcloudExpectedTypes);
-    
+
     this.verifyGetBrowseList(soundcloudExpectedAttrs,
                              soundcloudExpectedTypes,
                              1);

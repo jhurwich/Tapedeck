@@ -7,10 +7,10 @@ describe("Template Manager", function() {
 
     this.templateMgr.setPackage("default");
   });
-  
+
   it("should get Backbone view constructors from getViewScript", function() {
     var Backbone = chrome.extension.getBackgroundPage().Backbone;
-  
+
     for (var i = 0; i < this.templateMgr.requiredScripts.length; i++) {
       var scriptName = this.templateMgr.requiredScripts[i];
       var viewScript = this.templateMgr.getViewScript(scriptName);
@@ -32,5 +32,5 @@ describe("Template Manager", function() {
     };
   });
 
-  
+
 });

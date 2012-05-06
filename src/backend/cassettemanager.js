@@ -4,7 +4,7 @@ Tapedeck.Backend.CassetteManager = {
   currentCassette: null,
   currPage: 1,
   numPreinstalled: 1, // Scraper is preinstalled
-  
+
   init: function(continueInit) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.cassettes = []; // array of { cassette : __, (page: __) }
@@ -30,10 +30,10 @@ Tapedeck.Backend.CassetteManager = {
         if (typeof(data.page) != "undefined") {
           pageMap[data.name] = data.page
         }
-        
+
         // writes the cassette to Tapedeck.Backend.Cassettes[CassetteName]
         var script = document.createElement('script');
-        script.setAttribute('type', 'text/javascript'); 
+        script.setAttribute('type', 'text/javascript');
         script.setAttribute('src', data.url);
         document.getElementsByTagName('head')[0].appendChild(script);
       }
@@ -50,7 +50,7 @@ Tapedeck.Backend.CassetteManager = {
   populateCassetteList: function(numExpected, pageMap, currTimeout, callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.cassettes = [];
-    
+
     for (var CassetteModel in Tapedeck.Backend.Cassettes) {
       var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
       if (typeof(pageMap) != "undefined" &&
@@ -84,7 +84,7 @@ Tapedeck.Backend.CassetteManager = {
         Tapedeck.Backend.TemplateManager.renderView
                 ("CassetteList",
                  { cassetteList : cMgr.getCassettes() });
-      
+
       Tapedeck.Backend.MessageHandler.pushView("cassette-list",
                                                cassetteListView.el,
                                                cassetteListView.proxyEvents);
@@ -108,21 +108,21 @@ Tapedeck.Backend.CassetteManager = {
         if (cassette.get("name") == name) {
           this.currentCassette = cassette;
           this.currentCassette.set({ active: "active" });
-          
+
           if (typeof(this.cassettes[i].page) != "undefined") {
             this.currPage = parseInt(this.cassettes[i].page);
           }
         }
       }
     }
-    
-    // If the current cassette changes, we need to save the new 
+
+    // If the current cassette changes, we need to save the new
     // cassette's id and update the browse region.
     if (this.currentCassette != oldCurrent) {
       // Change the current cassette
       var cassetteName = "";
       if (this.currentCassette != null) {
-        cassetteName = this.currentCassette.get("name") 
+        cassetteName = this.currentCassette.get("name")
       }
       if(oldCurrent != null) {
         oldCurrent.unset("active");
@@ -138,7 +138,7 @@ Tapedeck.Backend.CassetteManager = {
                                        .TemplateManager
                                        .renderView("BrowseRegion",
                                                    { tabID : selectedTab.id });
-    
+
         Tapedeck.Backend.MessageHandler.pushView("browse-region",
                                                  browseRegionView.el,
                                                  browseRegionView.proxyEvents);
@@ -148,7 +148,7 @@ Tapedeck.Backend.CassetteManager = {
 
   removeCassette: function(name) {
     var cMgr = Tapedeck.Backend.CassetteManager;
-    
+
     var foundCassette = null;
     for (var i = 0; i < cMgr.cassettes.length; i++) {
       var cassette = cMgr.cassettes[i].cassette;
@@ -158,12 +158,12 @@ Tapedeck.Backend.CassetteManager = {
         break;
       }
     }
-    
+
     delete Tapedeck.Backend.Cassettes[name];
     Tapedeck.Backend.Bank.FileSystem.removeCassette(name, function() {
       cMgr.refreshCassetteListView();
     });
-    
+
   },
 
   getCassettes: function() {
@@ -191,7 +191,7 @@ Tapedeck.Backend.CassetteManager = {
     if (cMgr.currPage < 1) {
       cMgr.currPage = 1;
     }
-    
+
     // this triggers the loading browseList state
     Tapedeck.Backend.MessageHandler.pushBrowseTrackList(null);
 
@@ -222,7 +222,7 @@ Tapedeck.Backend.CassetteManager = {
       var self = this;
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var injectMgr = Tapedeck.Backend.InjectManager;
-          
+
       msgHandler.getSelectedTab(function(tab) {
         self.origURL = tab.url;
         self.tabID = tab.id;
@@ -240,7 +240,7 @@ Tapedeck.Backend.CassetteManager = {
           ],
           title: "Cassettify Wizard",
         }, self.handlePatternInput, self.postLoadCleanup);
-        
+
         // injectMgr.registerPostInjectScript(self.tabID, self.captureNextLoad); SAVE_FOR_CAPTURE_NEXT_LOAD
       });
     },
@@ -259,9 +259,9 @@ Tapedeck.Backend.CassetteManager = {
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
       self.postLoadCleanup();
-      
+
       var pattern = params.pattern;
-      
+
       var index = pattern.indexOf("$#");
       if (index == -1) {
         // couldn't find the pattern
@@ -294,7 +294,7 @@ Tapedeck.Backend.CassetteManager = {
       else {
         domain = pattern;
       }
-      
+
       var modelLoader = template({ domain  : domain,
                                    pattern : pattern });
 
@@ -304,7 +304,7 @@ Tapedeck.Backend.CassetteManager = {
     nameCassette: function(code, msg) {
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var cMgr = Tapedeck.Backend.CassetteManager;
-      
+
       var nameAndSaveCassette = function(params) {
         if (params.cassetteName.length == 0) {
           cMgr.Cassettify.nameCassette(code, "You must enter a name");
@@ -317,7 +317,7 @@ Tapedeck.Backend.CassetteManager = {
           return;
         }
         var saveableName = params.cassetteName.replace(/\s/g, "_");
-        
+
         if (typeof(Tapedeck.Backend.Cassettes[saveableName]) != "undefined") {
           cMgr.Cassettify.nameCassette(code, "The name you enterred is in use");
           return;
@@ -364,7 +364,7 @@ Tapedeck.Backend.CassetteManager = {
 *    captureNextLoad: function(context) {
 *      var msgHandler = Tapedeck.Backend.MessageHandler;
 *      var injectMgr = Tapedeck.Backend.InjectManager;
-*      
+*
 *      if (context.tab.url != self.origURL) {
 *        // loaded a new page
 *        self.secondURL = context.tab.url;
@@ -376,7 +376,7 @@ Tapedeck.Backend.CassetteManager = {
 *          ],
 *          title: "Cassettify Wizard 2",
 *        });
-*        
+*
 *        Tapedeck.Backend.CassetteManager.Cassettify.postLoadCleanup();
 *      }
 *      else {
@@ -394,11 +394,11 @@ Tapedeck.Backend.CassetteManager = {
      */
     },
   },
-  
+
   dumpCollector: function() {
     $("[expiry]").each(function(index, expire) {
       var expiry = parseInt($(expire).attr("expiry"));
-      
+
       if ((expiry - (new Date()).getTime()) < 0) {
         $(expire).remove();
       }

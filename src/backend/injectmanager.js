@@ -26,7 +26,7 @@ Tapedeck.Backend.InjectManager = {
 
       // Load is complete.  Number 1, inject!
       injectMgr.injectInto(tabID);
-      
+
       // Handle any postInject scripts if there are any
       var postScripts = injectMgr.postInjectMap[tabID];
       if (typeof(postScripts) != "undefined" &&
@@ -66,7 +66,7 @@ Tapedeck.Backend.InjectManager = {
       console.log("nothing to remove for " + tabID);
       return;
     }
-    
+
     for (var i = 0; i < scripts.length; i++) {
       if (scripts[i] == scriptToRemove) {
         scripts.splice(i, 1);
@@ -81,7 +81,7 @@ Tapedeck.Backend.InjectManager = {
 
   selectionListener: function(tabID, selectInfo) {
     var injectMgr = Tapedeck.Backend.InjectManager;
-    
+
     chrome.tabs.get(tabID, function(tab) {
       // make sure it's a tab we like
       if (injectMgr.isURLBlocked(tab.url) ||
@@ -109,13 +109,13 @@ Tapedeck.Backend.InjectManager = {
       return;
     }
 
-    // We'll need to wrap the callback so we can make it's 
+    // We'll need to wrap the callback so we can make it's
     // request listener self-destruct when it's called.
     if (typeof(responseCallback) != "undefined") {
-      
+
       var wrappedCallback = function(response, sender, sendResponse) {
         responseCallback(response, sender, sendResponse);
-        
+
         chrome.extension.onRequest.removeListener(arguments.callee);
       }
       chrome.extension.onRequest.addListener(wrappedCallback);
@@ -138,12 +138,12 @@ Tapedeck.Backend.InjectManager = {
       Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
     }
   },
-  
+
   isTest: function(url) {
     var match = url.match(/chrome-extension.*SpecRunner.html$/);
     return (match != null);
   },
-  
+
   isURLBlocked: function(url) {
     var blockList = Tapedeck.Backend.Bank.getBlockList();
     for (var i = 0; i < blockList.length; i++) {

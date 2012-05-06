@@ -12,7 +12,7 @@ else if (typeof(Tapedeck) != "undefined" &&
 if (onObject != null &&
     (typeof(onObject.TrackParser) == "undefined" ||
      !onObject.TrackParser.isParsing)) {
-    
+
   onObject.TrackParser = {
     DEBUG_LEVELS: {
       NONE  : 0,
@@ -58,7 +58,7 @@ if (onObject != null &&
           chrome.extension.sendRequest(request);
         };
       }
-      
+
       if (typeof(params.context) == "undefined") {
         parser.context = document;
       }
@@ -68,7 +68,7 @@ if (onObject != null &&
 
       parser.isParsing = true;
       parser.log("starting parsing", parser.DEBUG_LEVELS.BASIC);
-      
+
       var tracks = parser.findSongs();
 
       parser.log("ending parsing - got tracks: " + JSON.stringify(tracks),
@@ -86,14 +86,14 @@ if (onObject != null &&
         params.callback(tracks);
       }
     },
-    
+
     findSongs : function() {
       var parser = onObject.TrackParser;
-      
+
       //  Each scrape returns a map of url => track objects.
       //  This allows us to merge, preventing url duplicates and
       //  preserving the tracks relative order.
-      
+
       var resultObjects = [];
       // ================ Synchronous Scrapes ================
       // Scrape Tumblr
@@ -118,24 +118,24 @@ if (onObject != null &&
       resultObjects.push(parser.WPFlashPlayers.scrape());
 
       // ================ Async Scrapes ================
-      //Scrape Soundcloud 
+      //Scrape Soundcloud
       parser.Soundcloud.scrape();
-      
+
       var toReturn = parser.mergeResults(resultObjects);
       return toReturn;
     },
-  
+
     mergeResults : function(resultObjects) {
       var parser = onObject.TrackParser;
 
       var resultMap = { };
-  
+
       // We merge in from the end so that we end up with the first
       // object that we found with the same url.
       for (var i = resultObjects.length - 1; i >= 0; i--) {
         $.extend(resultMap, resultObjects[i]);
       }
-  
+
       var tracks = [];
       for (var url in resultMap) {
         var track  = resultMap[url];
@@ -144,14 +144,14 @@ if (onObject != null &&
       }
       return tracks;
     },
-  
+
     cleanTrack : function(track) {
       // Sometimes artist names are concatted to trackName,
       // if we have the trackName but no artist try to figure it out
       if (track.trackName &&
           track.trackName.length > 0 &&
           (!track.artistName || track.artistName.length == 0)) {
-  
+
         // if the trackName has only one dash or hypen, split on it
         var pieces = track.trackName.split("–");
         if (pieces.length < 2) {
@@ -164,7 +164,7 @@ if (onObject != null &&
       }
       return track;
     },
-  
+
     Links : {
       scrape : function() {
         var parser = onObject.TrackParser;
@@ -175,19 +175,19 @@ if (onObject != null &&
           var a = links[i];
           var href = a.href;
           var extension = href.substr(href.lastIndexOf('.'), 4);
-    
+
           // If Yahoo Media Player is installed we could double count tracks
           if ($(a).hasClass('ymp-tray-track') == true) {
             continue;
           }
-          
+
           if (extension == '.mp3') {
             var track = { type : "mp3" };
             var text = $(a).text();
-  
-            
+
+
             track = parser.Util.addArtistAndTrackNames(track, text);
-            
+
             if (track.trackName == "") {
               var splitHref = a.href.split(extension)[0];
               var filename = unescape(splitHref.substr
@@ -199,11 +199,11 @@ if (onObject != null &&
                          parser.DEBUG_LEVELS.BASIC);
               }
             }
-            
+
             track.url = a.href;
             track.location = location.href;
             track.domain = location.hostname;
-    
+
             var wpParentPost = $(a).parents('div.post');
             if (wpParentPost.length > 0) {
               var wpBookmark = $(wpParentPost).find("a[rel='bookmark']");
@@ -214,7 +214,7 @@ if (onObject != null &&
               if (wpParentEntry.length == 0) {
                 wpParentEntry = $(wpParentPost).children('div.entry-content');
               }
-    
+
               var longestEntry = "";
               $(wpParentEntry).children("p").each(function(index, p) {
                 var entry = parser.Util.cleanHTML($(p).html());
@@ -222,21 +222,21 @@ if (onObject != null &&
                   longestEntry = entry;
                 }
               });
-              
+
               track.description = parser.Util.trimString(longestEntry, 200);
             }
             if (parser.debug) {
               parser.log("new track object: " + JSON.stringify(track),
                        parser.DEBUG_LEVELS.ALL);
             }
-            
+
             mp3Links[track.url] = track;
           }
         }
         return mp3Links;
       },
     }, // end parser.Links
-    
+
     TumblrDashboard : {
       /* jhawk Save for later
       loadMore : function(){
@@ -258,23 +258,23 @@ if (onObject != null &&
             var li = lis[i];
             var track = { type : "mp3" };
             var embed = $(li).find('embed')[0];
-            
+
             track.url = $(embed).attr("src")
                                .split('audio_file=')[1]
                                .split('&color=')[0];
             track.location = location.href;
-            
+
             if ($.inArray(track.url, urls) != -1) {
               // already seen this track
               parser.log("already scraped " + track.url, parser.DEBUG_LEVELS.BASIC);
               continue;
             }
-            
+
             urls.push(track.url);
-  
+
             var postBody = $(li).find('.post_body').first();
             var post = parser.Util.cleanHTML(postBody.html());
-  
+
             var albumArts = jQuery(li).find('.album_art');
             if (albumArts.length > 0) {
               var albumArt = albumArts[0];
@@ -286,7 +286,7 @@ if (onObject != null &&
               track.trackName = parser.Util.trimString(post, 200);
             }
             track.description = parser.Util.trimString(post, 200);
-  
+
             var perma = $(li).find('a.permalink').first();
             if (perma) {
               track.location = perma.attr("href");
@@ -295,7 +295,7 @@ if (onObject != null &&
               track.location = location.href;
             }
             track.domain = location.hostname;
-  
+
             mp3Links[track.url] = track;
           }
           catch(e) {
@@ -306,7 +306,7 @@ if (onObject != null &&
         return mp3Links;
       }
     }, // End this.TumblrDashboard
-    
+
     Tumblr: {
         /* Save for loadMore
         response : function(json){
@@ -359,18 +359,18 @@ if (onObject != null &&
             var div = divs[i];
             var track = { type: "mp3" };
             var embed = $(div).find('embed').first();
-          
+
             var src = $(embed).attr('src');
             track.url = src.split("?audio_file=")[1].split("&")[0];
-            
+
             track.domain = location.hostname;
             track.location = location.href;
-  
+
             /*  jhawk track is lacking
              *    trackName
              *    artistName
              */
-            
+
             mp3Links[track.url] = track;
           }
           catch(e) {
@@ -387,7 +387,7 @@ if (onObject != null &&
         return mp3Links;
       }
     }, // End parser.Tumblr
-    
+
     AudioElements : {
       scrape : function() {
         var parser = onObject.TrackParser;
@@ -397,7 +397,7 @@ if (onObject != null &&
         for (var i = 0; i < audioElements.length; i++) {
           var audio = audioElements[i];
           var track = { type: "mp3" };
-  
+
           var src = audio.src;
           if (typeof(src) == "undefined" || src == "") {
             var sources = $(audio).children("source");
@@ -411,23 +411,23 @@ if (onObject != null &&
               });
             }
           }
-          
+
           if (src != undefined && src != "") {
             track.url = src;
             track.location = location.href;
             track.domain = location.hostname;
-            
+
             /*  jhawk track is lacking
              *    trackName
              *    artistName
              */
-            
+
             mp3Links[track.url] = track;
           } else {
             parser.log('<audio> must have src or <source>',
                      parser.DEBUG_LEVELS.BASIC);
           }
-          
+
         }
         return mp3Links;
       }
@@ -457,7 +457,7 @@ if (onObject != null &&
                 if (matches == null) {
                   matches = val.match(/soundFile=(.*?)/);
                 }
-  
+
                 if (matches != null && matches.length > 1) {
                   fileURL = decodeURIComponent(matches[1]);
                   return;
@@ -470,12 +470,12 @@ if (onObject != null &&
           }
 
           if (fileURL.length > 0) {
-            
+
             var track = { type      : "mp3",
                           url       : fileURL,
                           location  : location.href,
                           domain    : location.hostname };
-                          
+
             // Looks like flashplayers of this style are wordpress,
             // a <p> with class="audioplayer_container is the root
             // of the player, but the trackName could be before or after
@@ -491,7 +491,7 @@ if (onObject != null &&
               var beforeEntry = parser.Util.cleanHTML($(pBefore).html());
               parser.Util.addArtistAndTrackNames(track, beforeEntry);
             }
-            
+
             if (typeof(track.artistName) != "undefined" &&
                 track.artistName.length > 0) {
               // That gave us a full track, mark the entry as used
@@ -506,7 +506,7 @@ if (onObject != null &&
                 var afterEntry = parser.Util.cleanHTML($(pAfter).html());
                 parser.Util.addArtistAndTrackNames(track, afterEntry);
               }
-              
+
               if (typeof(track.artistName) == "undefined" ||
                   track.artistName.length > 0) {
                 // That gave us a full track, mark the entry as used
@@ -522,16 +522,16 @@ if (onObject != null &&
             trackMap[track.url] = track;
           }
         }); // end flashPlayers.each
-        
+
         return trackMap;
       }
     }, // end parser.WPFlashPlayers
 
-  
+
     Soundcloud : {
       objectCount : -1,
       consumerKey: "46785bdeaee8ea7f992b1bd8333c4445",
-      
+
       scrape : function() {
         var parser = onObject.TrackParser;
 
@@ -549,7 +549,7 @@ if (onObject != null &&
         objects.each( function(index, object) {
           var params = $(object).children('param');
           var swfValue = "";
-  
+
           params.each( function(index, param) {
             var paramName = $(param).attr("name").toLowerCase();
             if (paramName == "movie" ||
@@ -559,7 +559,7 @@ if (onObject != null &&
                 parser.log("Got multiple src's for one object! (" +
                          swfValue + ", " + param.attr("value") + ")");
               }
-              
+
               swfValue = $(param).attr("value");
             }
             else if (paramName != "allowscriptaccess") {
@@ -583,15 +583,15 @@ if (onObject != null &&
               src.match(/api.soundcloud.com/) != null) {
             soundcloud.findURLAndQuery(src);
           }
-          
+
         }); // end iframes.each
-  
+
       },
 
       findURLAndQuery : function(str) {
         var parser = onObject.TrackParser;
         var soundcloud = parser.Soundcloud;
-        
+
         var matches = str.match(/\?url=(.*?)&/);
         if (matches == null) {
           // possible there were just no other params
@@ -625,7 +625,7 @@ if (onObject != null &&
       parseWithAPI: function(url) {
         var parser = onObject.TrackParser;
         var soundcloud = parser.Soundcloud;
-        
+
         parser.log("defering to Soundcloud API: " + url);
 
         var queryURL = "";
@@ -635,7 +635,7 @@ if (onObject != null &&
           var wordURL = $(icons).find('a.wordpress').first().attr("href");
           var scURL = wordURL.match(/soundcloud url=["']([^"']*)["']/)[1];
           var groupID = scURL.match(/api.soundcloud.com\/groups\/(\d*)/)[1];
-          
+
           queryURL = 'https://api.soundcloud.com/groups/' + groupID + '/tracks';
         }
         else if (url.indexOf('/you/') != -1) {
@@ -666,7 +666,7 @@ if (onObject != null &&
             },
           });
       },
-  
+
       parseJSONResponse : function(response) {
         var parser = onObject.TrackParser;
         var soundcloud = parser.Soundcloud;
@@ -705,7 +705,7 @@ if (onObject != null &&
           parser.log("built track " + JSON.stringify(track));
           return track;
         };
-        
+
         var tracks = [];
         if (typeof(response.tracks) != "undefined") {
 
@@ -748,7 +748,7 @@ if (onObject != null &&
         var selfClosedTagRegex = function(tag) {
           return new RegExp("<\s*" + tag + "[^<>]*\/>", "i");
         }
-        
+
         var unwantedBlocks = ["head", "meta", "script", "noscript"]; // remove these tags and everything that may be in them
         for (var i = 0; i < unwantedBlocks.length; i++) {
           var tag = unwantedBlocks[i];
@@ -772,7 +772,7 @@ if (onObject != null &&
               console.error("no close tag for open tag '" + tag + "'");
               text = text.replace(text.match(openTagRegex(tag))[0], "");
             }
-            
+
           }
         }
 
@@ -802,7 +802,7 @@ if (onObject != null &&
         if (!match) {
           return text;
         }
-        
+
         var inflations = [ ];
         while (match) {
           inflations.push({ id: match[1], url: match[2] });
@@ -824,32 +824,32 @@ if (onObject != null &&
         }
         return text;
       },
-      
+
       trimString : function(str, length) {
         if (str.length > length) {
             str = str.substr(0, length) + '...';
         }
         return str;
       },
-    
+
       cleanHTML : function(html) {
         return $.trim(html.replace(/(<([^>]+)>)/ig,""))
       },
-    
+
       cleanHref : function(href) {
         var str = href.replace("http://", "");
         str = str.replace(/www./, "");
-    
+
         var lastSlash = str.indexOf("/");
         while (lastSlash == 0) {
           str = str.substr(0);
           lastSlash = str.indexOf("/");
         }
-    
+
         if (lastSlash != -1) {
           str = str.substr(0, lastSlash-1);
         }
-        
+
         return str;
       },
 
@@ -867,14 +867,14 @@ if (onObject != null &&
                                    8213, // horizontal bar
                                    58,   // colon
                                    45];  // hyphen-minus
-                                   
+
         var bestSplit = [];
-    
+
         // We define a better split as one for which the difference in
         // length of track and artist name is a minimum
         var isBetterSplit = function(checkPieces) {
           // "And you will know us by the trail of dead." is the
-          // longest band name we support with 9 spaces.  
+          // longest band name we support with 9 spaces.
           // Anything with more is invalid.
           if (checkPieces[0].split(" ").length > 10 ||
               checkPieces[1].split(" ").length > 10) {
@@ -884,25 +884,25 @@ if (onObject != null &&
           if (bestSplit.length == 0) {
             return true;
           }
-    
+
           var checkSplitDiff = Math.abs(checkPieces[0].length - checkPieces[1].length);
           var bestSplitDiff = Math.abs(bestSplit[0].length - bestSplit[1].length);
 
           return (checkSplitDiff < bestSplitDiff);
         }
-    
+
         // Try each common splitter to find which gives the best 2 pieces,
         // if any.  First piece is set to artistName and second to trackName
         // if there is a split, else trackName is set to the param text.
-    
+
         // First we try all of our splitters with spaces on either side,
         // then if we can't find anything we try without spaces.
         for (var i = 0; i < commonSplitUnicodes.length; i++) {
           var unicode = commonSplitUnicodes[i];
-    
+
           // with spaces on either side of the splitter
           var pieces = text.split(" " + String.fromCharCode(unicode) + " ", 2);
-    
+
           if (pieces.length > 1 &&
               isBetterSplit(pieces)) {
             bestSplit = pieces;
@@ -911,17 +911,17 @@ if (onObject != null &&
         if (bestSplit.length < 2) {
           for (var i = 0; i < commonSplitUnicodes.length; i++) {
             var unicode = commonSplitUnicodes[i];
-    
+
             // without spaces around the splitter
             var pieces = text.split(String.fromCharCode(unicode), 2);
-      
+
             if (pieces.length > 1 &&
                 isBetterSplit(pieces)) {
               bestSplit = pieces;
             }
           }
         }
-        
+
         if (bestSplit.length > 1) {
           // things like angled quote marks only seem to work through codes
           var unwantedCharCodes = [8220, 8221, 8242, 8243];
@@ -929,7 +929,7 @@ if (onObject != null &&
           for (var i = 0; i < unwantedCharCodes.length; i++) {
             unwantedStr = unwantedStr + String.fromCharCode(unwantedCharCodes[i]);
           }
-          
+
           track.artistName = $.trim(bestSplit[0]).replace(/[‘’“”'"]/g, "");
           track.artistName = track.artistName.replace(new RegExp("[" + unwantedStr + "]", "g"), "");
 
@@ -941,7 +941,7 @@ if (onObject != null &&
           // that we're considering.  We check that's the case heuristically.
           track.trackName = $.trim(text);
         }
-    
+
         return track;
       },
 
@@ -958,7 +958,7 @@ if (onObject != null &&
         return url;
       },
     },
-    
+
     log: function(str, level) {
       var parser = onObject.TrackParser;
       if (parser.debug == parser.DEBUG_LEVELS.NONE) {
@@ -973,12 +973,12 @@ if (onObject != null &&
       }
     }
   };
-  
+
   if (typeof(TapedeckInjected) != "undefined" &&
       !TapedeckInjected.isTest()) {
 
     // Scraper is the trackparser on a webpage
-    onObject.TrackParser.start({ cassetteName: "Scraper" }); 
+    onObject.TrackParser.start({ cassetteName: "Scraper" });
   }
 
 }

@@ -19,13 +19,13 @@ Tapedeck.Backend.Sequencer = {
               STOP:   "stop",
               LOAD:   "load" },
     currentState: null,
-    
+
     currentTrack: null,
     playerElement: null,
     init: function() {
       this.playerElement = $("#audioplayer").first();
       this.currentState = this.STATES.STOP;
-      
+
       $(this.playerElement).bind("playing", this.handlePlaying.curry(this));
       $(this.playerElement).bind("pause", this.handlePause.curry(this));
       $(this.playerElement).bind("ended", this.handleEnded.curry(this));
@@ -44,11 +44,11 @@ Tapedeck.Backend.Sequencer = {
     stop: function() {
       this.playerElement.get(0).pause();
       $(this.playerElement).removeAttr("src");
-      
+
       this.currentState = this.STATES.STOP;
       Tapedeck.Backend.Sequencer.setQueuePosition(-1);
     },
-    
+
     pause: function() {
       this.playerElement.get(0).pause();
       this.currentState = this.STATES.PAUSE;
@@ -61,7 +61,7 @@ Tapedeck.Backend.Sequencer = {
     setVolume: function(percent) {
       this.playerElement.get(0).volume = percent;
     },
-    
+
     getVolume: function() {
       return this.playerElement.get(0).volume;
     },
@@ -74,7 +74,7 @@ Tapedeck.Backend.Sequencer = {
       try {
         this.playerElement.get(0).currentTime = time;
       } catch (err) {
-        
+
         if (err.name == "INVALID_STATE_ERR") {
           console.error("No resource currently playing to seek");
         } else {
@@ -87,7 +87,7 @@ Tapedeck.Backend.Sequencer = {
       var time = percent * this.playerElement.get(0).duration;
       this.seek(time);
     },
-    
+
     handlePlaying: function(self) {
       self.currentState = self.STATES.PLAY;
       Tapedeck.Backend.MessageHandler.updatePlayer();
@@ -106,7 +106,7 @@ Tapedeck.Backend.Sequencer = {
       self.currentState = self.STATES.LOAD;
       Tapedeck.Backend.MessageHandler.updatePlayer();
     },
-    
+
     handleDurationChange: function(self) {
       var duration = self.playerElement.get(0).duration;
       self.currentTrack.set({ duration : duration },
@@ -119,7 +119,7 @@ Tapedeck.Backend.Sequencer = {
                             { silent      : true       });
       Tapedeck.Backend.MessageHandler.updateSeekSlider();
     },
-    
+
     // Error Codes from http://www.w3.org/TR/html5/video.html#htmlmediaelement
     dumpErrors: function() {
       var err = this.playerElement.get(0).error;
@@ -175,13 +175,13 @@ Tapedeck.Backend.Sequencer = {
   getCurrentTrack: function() {
     return this.Player.currentTrack;
   },
-  
+
   playIndex: function(index) {
     var track = this.getAt(index);
     this.setQueuePosition(index);
     this.Player.play(track);
   },
-  
+
   playNow: function() {
     var state = this.getCurrentState();
     if (state == "pause") {
@@ -241,7 +241,7 @@ Tapedeck.Backend.Sequencer = {
   setQueuePosition: function(pos) {
     this.queuePosition = pos;
     var count = pos + 1; // listenedCount = queuePosition, + 1 playing
-    
+
     this.queue.each(function(track) {
       count--;
       if (count < 0) {
@@ -262,7 +262,7 @@ Tapedeck.Backend.Sequencer = {
     });
     this.queue.trigger("change tracks");
   },
-  
+
   push: function(track, silent) {
     this.insertAt(track, this.queue.length, silent);
   },
@@ -275,7 +275,7 @@ Tapedeck.Backend.Sequencer = {
     if (typeof(silent) == "undefined") {
       silent = false;
     }
-    
+
     for (var i = tracks.length - 1; i >= 0 ; i--) {
       var track = tracks[i];
       if (track instanceof Backbone.Model) {
@@ -300,7 +300,7 @@ Tapedeck.Backend.Sequencer = {
 
   moveSomeTo: function(trackIndexPairs, pos) {
     var sqcr = Tapedeck.Backend.Sequencer;
-    
+
     var tracksToRemove = [];
     var playingIndex = -1;
     _.map(trackIndexPairs, function(pair) {
@@ -309,10 +309,10 @@ Tapedeck.Backend.Sequencer = {
         // we are attempting to move the playing track, record its index
         playingIndex = tracksToRemove.length;
       }
-      
+
       tracksToRemove.push(sqcr.getAt(index));
     });
-    
+
     var tracks = _.pluck(trackIndexPairs, "track");
     this.insertSomeAt(tracks, pos, true);
 
@@ -327,7 +327,7 @@ Tapedeck.Backend.Sequencer = {
   remove: function(trackModel) {
     this.removeSome([trackModel]);
   },
-  
+
   removeAt: function(pos) {
     var toRemove = this.getAt(pos);
     if (toRemove.get("playing")) {
@@ -348,7 +348,7 @@ Tapedeck.Backend.Sequencer = {
     }
     this.queue.remove(trackModels);
     this.saveQueue();
-    
+
     this.setQueuePosition(this.queuePosition - posChange);
   },
 
@@ -365,7 +365,7 @@ Tapedeck.Backend.Sequencer = {
       newOrderPairs.push(originalOrderPairs[this.queuePosition]);
       originalOrderPairs.splice(this.queuePosition, 1);
     }
-    
+
     while(originalOrderPairs.length > 0) {
       // randomly pick an index
       var rand = Math.floor(Math.random() * originalOrderPairs.length);
@@ -382,7 +382,7 @@ Tapedeck.Backend.Sequencer = {
   clear: function() {
     this.queue.reset();
     this.saveQueue();
-    
+
     this.setQueuePosition(-1);
   },
 

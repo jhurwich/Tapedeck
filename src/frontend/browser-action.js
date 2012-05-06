@@ -19,7 +19,7 @@ TapedeckBA = {
         var oldListDOM = document.getElementById("blocklist");
         var newListDOM = document.createElement("div");
         newListDOM.id = oldListDOM.id;
-        
+
         TapedeckBA.blockList = JSON.parse(response.blockList);
         for (var i = 0; i < TapedeckBA.blockList.length; i++) {
           var blockURL = TapedeckBA.blockList[i];
@@ -39,7 +39,7 @@ TapedeckBA = {
     var row = document.createElement('div');
     row.index = index
     row.className = 'blocklist-row';
-    
+
     var entry = document.createElement('div');
     entry.className = 'blocklist-entry';
     entry.innerHTML = url;
@@ -60,7 +60,7 @@ TapedeckBA = {
     }
 
     row.appendChild(buttons);
-    
+
     return row;
   },
 
@@ -79,7 +79,7 @@ TapedeckBA = {
 
   addToBlockList: function(str) {
     TapedeckBA.blockList.push(str);
-    
+
     TapedeckBA.sendBlockListToSave(TapedeckBA.blockList, function() {
       TapedeckBA.loadBlockList();
     });

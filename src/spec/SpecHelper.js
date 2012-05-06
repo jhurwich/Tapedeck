@@ -51,16 +51,16 @@ beforeEach(function() {
       albumArtSrc   : "",
     },
   ]; // End testTracks
-  
+
   this.addMatchers({
-    // A track model must reflect the JSON from which it was created in 
+    // A track model must reflect the JSON from which it was created in
     // order to be considered valid.
     toReflectJSON: function(expectedJSON, exceptions) {
       if (typeof(exceptions) == "undefined") {
         exceptions = [];
       }
       for (var attrName in expectedJSON) {
-        if (!($.inArray(attrName, exceptions)) && 
+        if (!($.inArray(attrName, exceptions)) &&
             expectedJSON[attrName] != this.actual.get(attrName)) {
           console.log("fail on '" + attrName + "' expected:"+ expectedJSON[attrName] + " actual:"+ this.actual.get(attrName));
           return false;
@@ -82,7 +82,7 @@ beforeEach(function() {
     frameLoaded = true;
   });
   tapedeckFrame[0].contentWindow.location.reload(true);
-  
+
   waitsFor(function() {
     return frameLoaded;
   }, "Timedout attaching to frame", 1000);

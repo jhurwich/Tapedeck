@@ -8,5 +8,5 @@ Tapedeck.Backend.Views.BrowseList = Tapedeck.Backend.Views.TrackList.extend({
   },
   eventsName: "browseListEvents",
   rowDblClick: "browseDblClick",
-  
+
 });

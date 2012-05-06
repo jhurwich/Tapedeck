@@ -6,7 +6,7 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     "Frame",
   ],
   template: null,
-  
+
   proxyEvents: {
     "click #queue-save"    : "PlaylistList.saveQueue",
     "click #repeat"        : "toggleRepeat",
@@ -14,7 +14,7 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     "click #queue-clear"   : "clearQueue",
   },
   eventsName: "frameEvents",
-  
+
   initialize: function() {
     this.tabID = this.options.tabID;
     this.template = _.template(Tapedeck.Backend
@@ -29,7 +29,7 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     this.renderQueue();
     this.renderPlaylistList();
     this.renderBrowseRegion();
-    
+
     this.assignPlaybackButtonImgs();
     Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
 
@@ -42,7 +42,7 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
                            .renderView("Player", { });
     var playerID = "player";
     viewData.el.id = playerID;
-    
+
     $(this.el).find("#" + playerID).replaceWith(viewData.el);
     this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
@@ -53,7 +53,7 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
                            .TemplateManager
                            .renderView("Queue",
                                        { trackList : queueTracks });
-    
+
     $(this.el).find("#queue-list").replaceWith(viewData.el);
     this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
@@ -64,11 +64,11 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
                            .TemplateManager
                            .renderView("PlaylistList",
                                        { playlistList : playlistList });
-                                                 
+
     $(this.el).find("#playlist-list").replaceWith(viewData.el);
     this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
-  
+
   renderBrowseRegion: function() {
     var viewData = Tapedeck.Backend
                            .TemplateManager
@@ -78,7 +78,7 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     $(this.el).find("#browse-region").replaceWith(viewData.el);
     this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
-  
+
   assignPlaybackButtonImgs: function() {
     this.assignImg("repeat", "repeat.png");
     this.assignImg("queue-shuffle", "shuffle.png");

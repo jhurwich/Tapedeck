@@ -6,5 +6,5 @@ describe("Track Model", function() {
     expect(track).toReflectJSON(this.trackJSON);
 
   });
-  
+
 });

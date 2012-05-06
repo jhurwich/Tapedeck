@@ -50,7 +50,7 @@ describe("Frontend Frame Logic", function() {
     runs(function() {
       expect(tracksQueued).toEqual(numTracks);
     });
-    
+
   });
 
   it("should play a queued track when it is double-clicked *flaky*", function() {
@@ -66,7 +66,7 @@ describe("Frontend Frame Logic", function() {
     $("#tapedeck-frame").contents()
                         .find("#queue-list")
                         .replaceWith(testTrackView.el);
-                         
+
     var rows = $("#tapedeck-frame").contents()
                                    .find("#queue-list")
                                    .first()
@@ -79,7 +79,7 @@ describe("Frontend Frame Logic", function() {
     }, "Timed out waiting for tracks to be played", 2000);
 
     this.Tapedeck.Frontend.Frame.TrackLists.queueDblClick(rows[0]);
-    
+
     runs(function() {
       expect(spy.callCount).toEqual(1);
     });

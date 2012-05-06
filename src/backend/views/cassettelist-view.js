@@ -14,12 +14,12 @@ Tapedeck.Backend.Views.CassetteList = Backbone.View.extend({
     "mouseleave #add-cassettes-menu"      : "CassetteList.hideCassetteMenu",
     "click .cassettelist .developer-link" : "CassetteList.loadDeveloperLink",
     "click .cassettelist .remove"         : "CassetteList.rowButtonRemove",
-    
+
     "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
     "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
   },
   eventsName: "cassetteListEvents",
-  
+
   initialize: function() {
     this.cassetteList = this.options.cassetteList;
     this.template = _.template(Tapedeck.Backend

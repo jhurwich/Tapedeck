@@ -3,7 +3,7 @@ Tapedeck.Backend.Bank = {
   drawerOpen: false,
   localStorage: null,
 
-  
+
   defaultBlockPatterns : [ "chrome://",
                            "chrome-devtools://",
                            "mail",
@@ -19,7 +19,7 @@ Tapedeck.Backend.Bank = {
   blockKey: /* bankPrefix + */ "block",
   init: function(continueInit) {
     this.localStorage = window.localStorage;
-    
+
     this.trackListPrefix = this.bankPrefix + this.trackListPrefix;
     this.playlistPrefix = this.trackListPrefix + this.playlistPrefix;
     this.currentCassetteKey = this.bankPrefix + this.currentCassetteKey;
@@ -90,7 +90,7 @@ Tapedeck.Backend.Bank = {
         Tapedeck.Backend.Bank.FileSystem.root = e.root;
         continueInit();
       };
-        
+
       window.requestFileSystem(window.TEMPORARY,
                                this.fileSystemSize*1024*1024, // specified in MB
                                successCallback,
@@ -102,7 +102,7 @@ Tapedeck.Backend.Bank = {
 
       fs.root.getDirectory('Cassettes', {create: true}, function(dirEntry) {
         dirEntry.getFile(name, {create: true}, function(fileEntry) {
-          // Create a FileWriter object for our FileEntry 
+          // Create a FileWriter object for our FileEntry
           fileEntry.createWriter(function(fileWriter) {
 
             fileWriter.onwriteend = function(e) {
@@ -111,7 +111,7 @@ Tapedeck.Backend.Bank = {
             fileWriter.onerror = function(e) {
               callback(false);
             };
-  
+
             var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
             bb.append(code);
             fileWriter.write(bb.getBlob('text/plain'));
@@ -122,7 +122,7 @@ Tapedeck.Backend.Bank = {
 
     removeCassette: function(name, callback) {
       var fs = Tapedeck.Backend.Bank.FileSystem;
-      
+
       fs.root.getDirectory('Cassettes', {create: true}, function(dirEntry) {
         dirEntry.getFile(name, {create: true}, function(fileEntry) {
 
@@ -132,25 +132,45 @@ Tapedeck.Backend.Bank = {
 
         }, fs.errorHandler);
       }, fs.errorHandler);
-      
+
       var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix + name;
       var page = Tapedeck.Backend.Bank.localStorage.removeItem(pageKey);
     },
 
-    // Returns cassetteDatas of the form { name: "", code: "" (, page: num) }
-    getCassettes: function(callback) {
-      var fs = Tapedeck.Backend.Bank.FileSystem;
-      var cassetteDatas = [];
+  // Returns cassetteDatas of the form { name: "", contents: "", url: "" (, page: num) }
+    getCassettes: function(aCallback) {
+      var callback = function(datas) {
+        for (var name in datas) {
+          var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix + name;
+          var page = Tapedeck.Backend.Bank.localStorage.getItem(pageKey);
 
-      fs.root.getDirectory('Cassettes', {create: true}, function(dirEntry) {
+          if (page != null) {
+            datas[name].page = page;
+          }
+        }
+        aCallback(datas);
+      };
+
+      this.loadDir("Cassettes", callback)
+    },
+
+    getTemplates: function(callback) {
+      this.loadDir("Templates", callback);
+    },
+
+    loadDir: function(dir, callback) {
+      var fs = Tapedeck.Backend.Bank.FileSystem;
+      var datas = [];
+
+      fs.root.getDirectory(dir, {create: true}, function(dirEntry) {
         var dirReader = dirEntry.createReader();
         dirReader.readEntries(function(entries) {
           var numReads = entries.length;
           if (numReads == 0) {
-            callback(cassetteDatas);
+            callback(datas);
             return;
           }
-          
+
           for (var i = 0; i < entries.length; i++) {
             var entry = entries[i];
 
@@ -159,35 +179,26 @@ Tapedeck.Backend.Bank = {
               if (!currEntry.isFile) {
                 numReads--;
                 if (numReads == 0) {
-                  callback(cassetteDatas);
-                }              
+                  callback(datas);
+                }
                 return;
               }
-  
+
               currEntry.file(function(file) {
                 var reader = new FileReader();
                 reader.onloadend = function(e) {
-                  numReads--;                  
+                  numReads--;
                   var data = { name: name,
-                               code: this.result,
+                               contents: this.result,
                                url : currEntry.toURL() };
 
-                  var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix +
-                                name;
-                  var page = Tapedeck.Backend.Bank.localStorage
-                                                  .getItem(pageKey);
-                  
-                  if (page != null) {
-                    data.page = page;
-                  }
+                  datas.push(data);
 
-                  cassetteDatas.push(data);
-                  
                   if (numReads == 0) {
-                    callback(cassetteDatas);
+                    callback(datas);
                   }
                 };
-                
+
                 reader.readAsText(file);
               });
             }(entry);
@@ -195,9 +206,7 @@ Tapedeck.Backend.Bank = {
 
         });
       }, fs.errorHandler);
-      
     },
-
     download: function(trackID, callback) {
       var fs = Tapedeck.Backend.Bank.FileSystem;
       var track = Tapedeck.Backend.Bank.getTrack(trackID);
@@ -217,15 +226,15 @@ Tapedeck.Backend.Bank = {
       var xhr = new XMLHttpRequest();
       xhr.overrideMimeType("audio/mpeg");
       xhr.open("GET", url, true);
-      
+
       xhr.responseType = "arraybuffer";
       xhr.onreadystatechange = function() {
         if(xhr.readyState == 4 && xhr.status == 200)  {
-          fs.saveResponse(track, xhr.response, callback);    
+          fs.saveResponse(track, xhr.response, callback);
           delete xhr;
         }
       } // end xhr.onreadystatechange
-      
+
       xhr.send();
     }, // end fs.download()
 
@@ -238,14 +247,14 @@ Tapedeck.Backend.Bank = {
       }
       var byteArray = new Uint8Array(res);
       bb.append(byteArray.buffer);
-  
+
       // Create a new file for the track
       var fileName = fs.nameFile(track);
       fs.root.getFile(fileName, {create: true}, function(fileEntry) {
 
-        // Create a FileWriter object for our FileEntry 
+        // Create a FileWriter object for our FileEntry
         fileEntry.createWriter(function(fileWriter) {
-  
+
           // once the file is written, send it's location to the caller
           fileWriter.onwriteend = function(e) {
             callback(fileEntry.toURL());
@@ -259,10 +268,10 @@ Tapedeck.Backend.Bank = {
           fileWriter.onerror = function(e) {
             console.error('Saving file to disk failed: ' + e.toString());
           };
-    
+
           // Write the blob to the file
           fileWriter.write(bb.getBlob("audio/mpeg"));
-          delete bb; 
+          delete bb;
         }, fs.errorHandler); // end fileEntry.createWrite(...)
       }, fs.errorHandler); // end fs.root.getFile(...);
     },
@@ -277,7 +286,7 @@ Tapedeck.Backend.Bank = {
         fileEntry.remove(function() {
           // File removed
         }, fs.errorHandler);
-        
+
       }, fs.errorHandler);
     },
 
@@ -299,7 +308,7 @@ Tapedeck.Backend.Bank = {
       var trim = function(string) {
         return string.replace(/^\s+|\s+$/g, '');
       }
-      
+
       // Attempt to name the file as "<artistName> - <trackName>"
       var fileName = "";
       if (track.has("trackName")) {
@@ -308,7 +317,7 @@ Tapedeck.Backend.Bank = {
         }
         fileName += trim(track.get("trackName"));
       }
-      
+
       // If we couldn't do that, gotta use the url
       if (fileName.length == 0) {
         var urlName = url.replace("http://", "");
@@ -324,19 +333,19 @@ Tapedeck.Backend.Bank = {
         }
         fileName = urlName;
       }
-      
+
       fileName = trim(fileName);
-      
+
       // I would add the file extension here, but if you do chrome will
       // try to play the mp3 rather than download.  So no extension for you!
-      
+
       return fileName;
     },
 
     // Generic error dump for any filesystem errors
     errorHandler: function(e) {
       var msg = '';
-    
+
       switch (e.code) {
         case FileError.NOT_FOUND_ERR:
           msg = 'NOT_FOUND_ERR';
@@ -397,7 +406,7 @@ Tapedeck.Backend.Bank = {
       var mem = Tapedeck.Backend.Bank.Memory;
       url = url.replace("http://", "");
       url = url.replace("www.", "");
-      
+
       var expiry =(new Date()).getTime() + (1000 * 60 * 15); /* in 15 min */
       mem.urlMap[url] = { tracks: tracks, expiry: expiry };
     },
@@ -406,7 +415,7 @@ Tapedeck.Backend.Bank = {
       var mem = Tapedeck.Backend.Bank.Memory;
       url = url.replace("http://", "");
       url = url.replace("www.", "");
-      
+
       var currTracks = mem.urlMap[url].tracks;
       tracks = currTracks.concat(tracks);
 
@@ -444,7 +453,7 @@ Tapedeck.Backend.Bank = {
 
     tracks: { },
     trackLists: { },
-    
+
     rememberTrackList: function(name, trackList) {
       this.trackLists[name] = trackList;
     },
@@ -483,12 +492,12 @@ Tapedeck.Backend.Bank = {
     var mem = Tapedeck.Backend.Bank.Memory;
     return mem.saveMoreTracksForURL(url, tracks);
   },
-  
+
   getTrack: function(trackID) {
     var bank = Tapedeck.Backend.Bank;
     return bank.Memory.getTrack(trackID);
   },
-  
+
   clear: function() {
     if (typeof(this.playlistList) != "undefined" &&
         this.playlistList != null) {
@@ -513,7 +522,7 @@ Tapedeck.Backend.Bank = {
   playlistList: null,
   savePlaylist: function(playlist) {
     var playlistList = this.getPlaylists();
-    var found = playlistList.get(playlist.id); 
+    var found = playlistList.get(playlist.id);
     if (found != null) {
       this.removePlaylist(found);
     }
@@ -535,7 +544,7 @@ Tapedeck.Backend.Bank = {
         var playlist = Tapedeck.Backend.Bank.recoverList(key);
         this.playlistList.add(playlist);
       }
-      
+
       this.playlistList.bind("add", this.addToPlaylistList);
       this.playlistList.bind("remove", this.removeFromPlaylistList);
     }
@@ -558,7 +567,7 @@ Tapedeck.Backend.Bank = {
   removeFromPlaylistList: function(playlist) {
     var key = Tapedeck.Backend.Bank.playlistPrefix + playlist.id;
 
-    try { 
+    try {
       Tapedeck.Backend.Bank.localStorage.removeItem(key);
     }
     catch (error) {
@@ -579,14 +588,14 @@ Tapedeck.Backend.Bank = {
                                              listView.el,
                                              listView.proxyEvents);
   },
-  
+
   saveTrackList: function(name, trackList) {
     Tapedeck.Backend.Bank.Memory.rememberTrackList(name, trackList);
-    
+
     var key = this.trackListPrefix + name;
     var listStr = trackList.serialize();
-    
-    try { 
+
+    try {
       this.localStorage.setItem(key, listStr);
     }
     catch (error) {
@@ -605,9 +614,9 @@ Tapedeck.Backend.Bank = {
 
   clearTrackList: function(name) {
     Tapedeck.Backend.Bank.Memory.forgetList(name);
-    
+
     var key = this.trackListPrefix + name;
-    try { 
+    try {
       this.localStorage.removeItem(key);
     }
     catch (error) {
@@ -624,7 +633,7 @@ Tapedeck.Backend.Bank = {
     catch (error) {
       console.error("Could not recover trackList '" + name + "'");
     }
-    
+
     var list;
     if (key.match(new RegExp("^" + this.playlistPrefix))) {
       list = new Tapedeck.Backend.Collections.Playlist(tracksJSON);
@@ -633,7 +642,7 @@ Tapedeck.Backend.Bank = {
     else {
       list = new Tapedeck.Backend.Collections.TrackList(tracksJSON);
     }
-    
+
     list.removeTempProperties();
     return list;
   },
@@ -644,21 +653,21 @@ Tapedeck.Backend.Bank = {
     bank.saveTrackList(bank.savedQueueName, trackList);
   },
   getQueue: function() {
-    var bank = Tapedeck.Backend.Bank; 
+    var bank = Tapedeck.Backend.Bank;
     return bank.getTrackList(bank.savedQueueName);
   },
   clearQueue: function() {
     var bank = Tapedeck.Backend.Bank;
     bank.clearTrackList(bank.savedQueueName);
   },
-  
+
   savedBrowseListName: "__browseList",
   saveBrowseList: function(trackList) {
     var bank = Tapedeck.Backend.Bank;
     bank.saveTrackList(bank.savedBrowseListName, trackList);
   },
   getBrowseList: function() {
-    var bank = Tapedeck.Backend.Bank; 
+    var bank = Tapedeck.Backend.Bank;
     return bank.getTrackList(bank.savedBrowseListName);
   },
 
@@ -670,7 +679,7 @@ Tapedeck.Backend.Bank = {
   setDrawerOpened: function(open) {
     Tapedeck.Backend.Bank.drawerOpen = open;
   },
-  
+
   getDrawerOpened: function() {
     return Tapedeck.Backend.Bank.drawerOpen;
   },
@@ -682,7 +691,7 @@ Tapedeck.Backend.Bank = {
   saveCurrentCassette: function(currentCassette) {
     this.localStorage.setItem(this.currentCassetteKey, currentCassette);
   },
-  
+
   saveCassettePage: function(cassetteName, page) {
     var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix +
                   cassetteName;

@@ -2,7 +2,7 @@ if (typeof Tapedeck == "undefined") {
   var Tapedeck = { };
   Tapedeck.Frontend = { };
 }
-                          
+
 Tapedeck.Frontend.init = function() {
   Tapedeck.Frontend.Messenger.init();
 
@@ -15,7 +15,7 @@ Tapedeck.Frontend.init = function() {
 
   Tapedeck.Frontend
           .Messenger
-          .getView("Frame", { }, null, callback);                          
+          .getView("Frame", { }, null, callback);
 
 };
 

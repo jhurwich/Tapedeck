@@ -4,7 +4,7 @@
     <script type="text/javascript" src="/vendor/jquery-1.7.js"></script>
     <script type="text/javascript" src="/vendor/underscore.js"></script>
     <script type="text/javascript" src="/vendor/backbone.js"></script>
-  
+
     <!-- Initialize -->
     <script type="text/javascript" src="/util/backend-util.js"></script>
     <script type="text/javascript" src="/frontend/scripts/track-parser.js"></script>
@@ -15,7 +15,7 @@
     <script type="text/javascript" src="injectmanager.js"></script>
     <script type="text/javascript" src="messagehandler.js"></script>
     <script type="text/javascript" src="sequencer.js"></script>
-  
+
     <!-- Models -->
     <script type="text/javascript" src="models/cassette.js"></script>
     <script type="text/javascript" src="models/cassettelist.js"></script>
@@ -43,10 +43,10 @@
       <div id="player">Player Here</div>
       <div id="queue-region" class="region">
         <div id="queue-list" class="tracklist"></div>
-  
+
         <div id="queue-buttons">
           <div id="playlist-list"></div>
-          
+
           <button id="queue-save" type="button">
             Save
           </button>
@@ -71,7 +71,7 @@
         <div id="banner">
           <%
           var bannerStr = "";
-  
+
           if (state != "stop" && typeof(track) != "undefined") {
             if (typeof(track.artistName) != "undefined") {
               bannerStr += track.artistName;
@@ -83,7 +83,7 @@
               bannerStr += track.trackName;
             }
           }
-  
+
           if (state == "load") {
             bannerStr += "<br />(Loading)";
           }
@@ -131,7 +131,7 @@
               <div class="spinner loading"
                    id="loading-spinner"></div>
             </div>
-          </div>            
+          </div>
         <% } else if (trackList.length == 0) { %>
           <div class="row-container">
             <div class="row blank">
@@ -153,7 +153,7 @@
               <div class="cell cassette-col"></div>
             </div>
           </div>
-  
+
           <% for (var i=0; i < trackList.length; i++) {
             var track = trackList[i];
           %>
@@ -170,7 +170,7 @@
                                   } %>'
                    <% if (typeof(track.download) != "undefined") {
                       print("download='" + track.download + "'");
-                   } %> 
+                   } %>
                    draggable="true" >
                 <div class="cell trackName-col" title='<%= track.trackName %>'>
                   <span class="trackName-span" >
@@ -279,7 +279,7 @@
       <div id="blackout"></div>
       <div id='modal' class="modal">
         <div id="close-button"></div>
-        <span id="modal-title"><% if (typeof(params.title) != "undefined") print(params.title);  %></span> 
+        <span id="modal-title"><% if (typeof(params.title) != "undefined") print(params.title);  %></span>
         <form id="modal-form">
           <% for (var i=0; i < params.fields.length; i++) {
             var field = params.fields[i]; %>
@@ -308,12 +308,12 @@
         </form>
       </div>
     </script>
-    
+
   </head>
   <body>
     <audio id="audioplayer" preload="auto">
     </audio>
     <div id="dump"> </div>
   </body>
-  
+
 </html>

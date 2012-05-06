@@ -27,7 +27,7 @@ Tapedeck.Backend.Utils = {
       }
       return true;
     };
-    
+
     if (isContextComplete(context)) {
       return context;
     }
@@ -38,37 +38,37 @@ Tapedeck.Backend.Utils = {
   },
 
   // Adapted from Backbone.js's native method of attaching view events.
-  // Necessary b/c that code normally runs where the View is constructed, 
+  // Necessary b/c that code normally runs where the View is constructed,
   // which would be the backend so events wouldn't be attached.
   proxyEvents: function(view, viewName) {
     var events = view.proxyEvents;
     if ($.isEmptyObject(events)) {
       return;
     }
-    
+
     var el = view.el;
-    
+
     var script = document.createElement('pre');
     $(script).css("display", "none");
     $(script).addClass("delegate-events");
     scriptStr = "$('#tapedeck-content').unbind('.delegateEvents" + viewName + "');\n";
-    
+
     for (var key in events) {
       var methodStr = "Tapedeck.Frontend.Frame";
       var methodPieces = events[key].split(".");
       for(var i = 0; i < methodPieces.length; i++) {
         methodStr += "['" + methodPieces[i] + "']";
       }
-      
+
       scriptStr += "var method = " + methodStr + ";\n"
       scriptStr += "if (!method) console.log('Event " + JSON.stringify(methodPieces) + " does not exist');\n";
 
       var match = key.match(/^(\S+)\s*(.*)$/);
       var eventName = match[1], selector = match[2];
-      
+
       if (eventName != "onreplace") {
         eventName += ".delegateEvents" + viewName;
-  
+
         scriptStr += "if ('" + selector + "' === '') {\n";
         scriptStr +=   "$('#tapedeck-content').bind('" +
                                                     eventName +

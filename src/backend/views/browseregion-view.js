@@ -1,5 +1,5 @@
 Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
-  
+
   tagName: "div",
   className: "region",
   id: "browse-region",
@@ -9,18 +9,18 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
     "CassetteList"
   ],
   template: null,
-  
+
   proxyEvents: { },
   eventsName: "browseRegionEvents",
-  
+
   initialize: function() {
     // In theory the browseRegion is a convenience construct to keep the
     // browseRegion updated with current data without the need to gather
     // all that data.
-    // Therefore, param options besides tabID should not be specified, 
+    // Therefore, param options besides tabID should not be specified,
     // this view should collect its own information.
     this.tabID = this.options.tabID;
-    
+
     this.template = _.template(Tapedeck.Backend
                                        .TemplateManager
                                        .getTemplate("BrowseRegion"));
@@ -34,11 +34,11 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
     var cMgr = Tapedeck.Backend.CassetteManager;
     var cassetteListView = Tapedeck.Backend.TemplateManager.renderView
       ("CassetteList", { cassetteList : cMgr.getCassettes() });
-        
+
     $(el).find("#cassette-list").replaceWith(cassetteListView.el);
     this.proxyEvents = _.extend(this.proxyEvents,
                                 cassetteListView.proxyEvents);
-    
+
     // We'll need  to return before the browse-list can load, so hide it
     // for now.  If there is a currentCassette, we'll start loading the
     // browselist and it will update the view when it is ready.
@@ -71,7 +71,7 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
           }
           var browseTrackList = new Tapedeck.Backend.Collections.TrackList
                                                     (trackJSONs);
-    
+
           Tapedeck.Backend.Bank.saveBrowseList(browseTrackList);
 
           browseView = Tapedeck.Backend
@@ -98,7 +98,7 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
         }
       });
     }
-    
+
     Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
     return el;
   },

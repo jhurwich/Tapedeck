@@ -256,7 +256,7 @@ body {
 .cassettelist .row .row-buttons {
   display: none;
 }
-.tracklist .row:hover .row-buttons, 
+.tracklist .row:hover .row-buttons,
 .cassettelist .row:hover .row-buttons {
   display: inline-block;
 }
@@ -330,7 +330,7 @@ body {
   position: absolute;
   top: 22px;
   left: 3px;
-  border: solid 2px #424242; 
+  border: solid 2px #424242;
   background-color: #f2f2f2;
   z-index: 50;
 }
@@ -394,7 +394,7 @@ body {
   font-weight: bold;
 }
 .cassettelist .row:last-child .cell{
-  
+
 }
 .cassettelist .cell.cassetteName-col {
   width: 168px;

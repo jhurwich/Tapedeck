@@ -12,7 +12,7 @@ Tapedeck.Backend.MessageHandler = {
     // ports are used for communication with each of our player frames
     chrome.extension.onConnect.addListener(this.portListener);
 
-    // Requests are used for communicating with items outside of the 
+    // Requests are used for communicating with items outside of the
     // frame. In particular, this includes the quick buttons and
     // injected scripts.
     chrome.extension.onRequest.addListener(this.requestListener);
@@ -40,18 +40,18 @@ Tapedeck.Backend.MessageHandler = {
     if (typeof(request.action) == "undefined") {
       return;
     }
-    
+
     var self = Tapedeck.Backend.MessageHandler;
     var str = "Request received: " + request.action;
     str += ((sender.tab == null) ? "from outside tabs"
                                  : "from tab " + sender.tab.id)
     self.log(str);
-    
+
     switch (request.action) {
       case "add_tracks":
         self.addTracksAndPushBrowseList(request.tracks);
         break;
-      
+
       case "play_pause":
         var state = Tapedeck.Backend.Sequencer.getCurrentState();
         if (state == "play") {
@@ -90,7 +90,7 @@ Tapedeck.Backend.MessageHandler = {
         Tapedeck.Backend.Bank.saveBlockListStr(request.blockList);
         sendResponse({ blockList: blockListStr });
         break;
-      
+
       default:
         console.error("Unexpected request action '" + request.action + "'");
         break;
@@ -108,19 +108,19 @@ Tapedeck.Backend.MessageHandler = {
       self.log("(" + currentTime.getTime() + ")Posting response message '" + message.callbackID + "' to tab: " + tabID,
                self.DEBUG_LEVELS.ALL);
     }
-    
+
     if (typeof(ports[tabID]) != "undefined" &&
         ports[tabID] != null) {
       ports[tabID].postMessage(message);
     }
   },
-  
+
   pendingCallbacks: {},
   handleResponse: function(response) {
     if (response.type != "response") {
       return;
     }
-    
+
     var callbacks = Tapedeck.Backend.MessageHandler.pendingCallbacks;
     if (response.callbackID in callbacks) {
       callbacks[response.callbackID](response);
@@ -135,17 +135,17 @@ Tapedeck.Backend.MessageHandler = {
     var self = Tapedeck.Backend.MessageHandler;
     var sqcr = Tapedeck.Backend.Sequencer;
     var bank = Tapedeck.Backend.Bank;
-    
+
     var response = self.newResponse(request);
 
     self.log("Received message: " + request.action + " from tab " + port.tab.id);
-    
+
     switch(request.action)
     {
       case "getView":
         var scriptName = request.viewName;
         var packageName = (request.packageName ? request.packageName : null);
-        
+
         request.options["tabID"] = port.tab.id;
         var rendered = Tapedeck.Backend.TemplateManager.renderView
                                 (scriptName, request.options, packageName);
@@ -153,7 +153,7 @@ Tapedeck.Backend.MessageHandler = {
         var viewString = $('<div>').append($(rendered.el))
                                    .remove()
                                    .html();
-                                   
+
         response.view = viewString;
         response.proxyEvents = rendered.proxyEvents;
         self.postMessage(port.tab.id, response);
@@ -204,14 +204,14 @@ Tapedeck.Backend.MessageHandler = {
           sqcr.insertSomeAt(tracks, endPos);
         }
         break;
-        
+
       case "moveTracks":
         var trackIndexPairs = [];
         if (typeof(request.trackObjs) == "undefined") {
           console.error("Cannot moveTracks using only trackIDs, must have each tracks index");
           return;
         }
-        
+
         $.map(request.trackObjs, function(trackObj, i) {
           var track = bank.getTrack(trackObj.trackID);
           trackIndexPairs.push({ track: track, index: trackObj.index });
@@ -249,14 +249,14 @@ Tapedeck.Backend.MessageHandler = {
         response.repeat = bank.getRepeat();
         self.postMessage(port.tab.id, response);
         break;
-        
+
       case "saveQueue":
         if (sqcr.queue.length == 0) {
           return;
         }
-        
+
         var playlist = sqcr.queue.makePlaylist(request.playlistName);
-        
+
         bank.savePlaylist(playlist);
         break;
 
@@ -316,7 +316,7 @@ Tapedeck.Backend.MessageHandler = {
         sqcr.Player.setVolume(request.percent);
         bank.saveVolume(request.percent);
         break;
-        
+
       case "getVolume":
         response.volume = bank.getVolume();
         self.postMessage(port.tab.id, response);
@@ -325,7 +325,7 @@ Tapedeck.Backend.MessageHandler = {
       case "clear":
         Tapedeck.Backend.Bank.clear();
         break;
-        
+
       default:
         throw new Error("MessageHandler's handleMessage was sent an unknown action");
     }
@@ -368,7 +368,7 @@ Tapedeck.Backend.MessageHandler = {
         cMgr.currentCassette.getBrowseList(context, function(trackJSONs) {
           var browseTrackList = new Tapedeck.Backend.Collections.TrackList
                                                     (trackJSONs);
-  
+
           Tapedeck.Backend
                   .MessageHandler
                   .pushBrowseTrackList(browseTrackList, tab);
@@ -380,7 +380,7 @@ Tapedeck.Backend.MessageHandler = {
                                      function(trackJSONs) {
           var browseTrackList = new Tapedeck.Backend.Collections.TrackList
                                                     (trackJSONs);
-  
+
           Tapedeck.Backend
                   .MessageHandler
                   .pushBrowseTrackList(browseTrackList, tab);
@@ -416,7 +416,7 @@ Tapedeck.Backend.MessageHandler = {
     var existingURLs = browseList.pluck("url");
     for (var i in newTracks) {
       var track = newTracks[i];
-      
+
       if (jQuery.inArray(track.url, existingURLs) == -1) {
         browseList.add(track);
       }
@@ -476,13 +476,13 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
     var track = Tapedeck.Backend.Sequencer.getCurrentTrack();
-    
+
     var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "updateSeekSlider",
       currentTime: track.get("currentTime"),
       duration: track.get("duration"),
     });
-    
+
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
@@ -494,12 +494,12 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
     var volume = Tapedeck.Backend.Bank.getVolume();
-    
+
     var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "updateVolumeSlider",
       volume: volume,
     });
-    
+
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
@@ -513,7 +513,7 @@ Tapedeck.Backend.MessageHandler = {
       });
       return;
     }
-    
+
     var unwrapParams = null;
     if (typeof(callback) != "undefined" && callback != null) {
       unwrapParams = function(response) {
@@ -529,12 +529,12 @@ Tapedeck.Backend.MessageHandler = {
         }
       };
     }
-    
+
     var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "showModal",
       params: params,
     }, unwrapParams);
-    
+
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
@@ -542,14 +542,14 @@ Tapedeck.Backend.MessageHandler = {
     var self = Tapedeck.Backend.MessageHandler;
     if (typeof(tab) == "undefined") {
       self.log("Pushing to undefined tab: " + targetID);
-      
+
       self.getSelectedTab(function(selectedTab) {
         self.pushView(targetID, view, proxyEvents, selectedTab);
       });
       return;
     }
     self.log("Pushing view to '" + targetID + "' in tab " + tab.id + " with events " + JSON.stringify(proxyEvents));
-    
+
     var viewString = $('<div>').append($(view))
                                .remove()
                                .html();
@@ -588,7 +588,7 @@ Tapedeck.Backend.MessageHandler = {
   newResponse: function(request, object) {
     var response = (object ? object : { });
     response.type = "response";
-    
+
     if ("callbackID" in request) {
       response.callbackID = request.callbackID;
     }

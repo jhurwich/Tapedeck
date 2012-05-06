@@ -14,7 +14,7 @@ Tapedeck.Frontend.Messenger = {
     ALL   : 2,
   },
   debug: 0,
-  
+
   port: null,
   init: function(callback) {
     var self = this;
@@ -22,8 +22,8 @@ Tapedeck.Frontend.Messenger = {
 
     self.port = chrome.extension.connect();
     self.port.onMessage.addListener(self.handleRequest);
-    self.port.onMessage.addListener(self.handleResponse);   
-    self.log("Connected port for tab " + self.port.name);  
+    self.port.onMessage.addListener(self.handleResponse);
+    self.log("Connected port for tab " + self.port.name);
   },
 
   pendingCallbacks: {},
@@ -31,7 +31,7 @@ Tapedeck.Frontend.Messenger = {
     if (response.type != "response") {
       return;
     }
-    
+
     var callbacks = Tapedeck.Frontend.Messenger.pendingCallbacks;
     if (response.callbackID in callbacks) {
       callbacks[response.callbackID](response);
@@ -43,10 +43,10 @@ Tapedeck.Frontend.Messenger = {
       return;
     }
     var self = Tapedeck.Frontend.Messenger;
-    
+
     var response = self.newResponse(request);
     self.log("Receving request: " + request.action);
-    
+
     switch(request.action)
     {
       case "executeScriptInTest":
@@ -69,7 +69,7 @@ Tapedeck.Frontend.Messenger = {
           window.parent.TapedeckInjected[scriptName].start();
         }
         break;
-        
+
       case "pushView":
         Tapedeck.Frontend.Frame.replaceView(request.targetID,
                                             request.view,
@@ -85,7 +85,7 @@ Tapedeck.Frontend.Messenger = {
           response.error = true;
           self.sendMessage(response);
         };
-        
+
         Tapedeck.Frontend.Frame.Modal.show(request.params,
                                            wrappedCallback,
                                            cleanupCallback);
@@ -104,7 +104,7 @@ Tapedeck.Frontend.Messenger = {
         Tapedeck.Frontend.Frame.Player.VolumeSlider.updateSlider
                                                    (request.volume);
         break;
-      
+
       default:
         throw new Error("Messenger's handleRequest was sent an unknown action '" + request.action + "'");
     }
@@ -115,17 +115,17 @@ Tapedeck.Frontend.Messenger = {
       action     : "requestUpdate",
       updateType : updateType
     });
-    
+
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
-  
+
   getView: function(viewName, options, packageName, callback) {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action     : "getView",
       viewName   : viewName,
       options    : options,
     }, callback);
-    
+
     if (packageName && packageName.length > 0) {
       request.packageName = packageName;
     }
@@ -184,13 +184,13 @@ Tapedeck.Frontend.Messenger = {
     if (typeof(index) != "undefined") {
       request.index = index;
     };
-    
+
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
-  
+
   moveTracks: function(trackObjs, index) {
     // can only move trackObjs because need each track's current index
-    
+
     var request = Tapedeck.Frontend.Messenger.newTrackBasedRequest({
       action : "moveTracks",
       trackXs : trackObjs
@@ -199,7 +199,7 @@ Tapedeck.Frontend.Messenger = {
     if (typeof(index) != "undefined") {
       request.index = index;
     };
-    
+
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
@@ -262,7 +262,7 @@ Tapedeck.Frontend.Messenger = {
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
-  
+
   clearQueue: function() {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action   : "clearQueue"
@@ -339,7 +339,7 @@ Tapedeck.Frontend.Messenger = {
       action  : "cassettify"
     });
 
-    Tapedeck.Frontend.Messenger.sendMessage(request); 
+    Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   loadLink: function(url) {
@@ -360,7 +360,7 @@ Tapedeck.Frontend.Messenger = {
       self.log("Posting response - callback: " + message.callbackID,
                self.DEBUG_LEVELS.ALL);
     }
-    
+
     self.port.postMessage(message);
   },
 
@@ -397,13 +397,13 @@ Tapedeck.Frontend.Messenger = {
   newResponse: function(request, object) {
     var response = (object ? object : { });
     response.type = "response";
-    
+
     if ("callbackID" in request) {
       response.callbackID = request.callbackID;
     }
     return response;
   },
-  
+
   log: function(str, level) {
     if (this.debug == this.DEBUG_LEVELS.NONE) {
       return;
@@ -412,7 +412,7 @@ Tapedeck.Frontend.Messenger = {
       level = this.DEBUG_LEVELS.BASIC;
     }
     if (this.debug >= level) {
-      
+
       var currentTime = new Date();
       console.log("Msgr (" + currentTime.getTime() + ") - " + str);
     }
@@ -426,4 +426,4 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 };
- 
+

@@ -13,15 +13,15 @@ describe("Cassettification", function() {
 
         // make sure cassettification started and the UI is ready
         if (startSpy.callCount > 0) {
-          
+
           var modal = $("#tapedeck-frame").contents().find("#modal");
-          
+
           var input = $(modal).find("input[callbackparam='pattern']");
           return (input.length > 0);
         }
         return false;
       }, "Waiting for cassettification to start", 500);
-      
+
       this.frame.CassetteList.cassettify(event);
     });
   });
@@ -29,9 +29,9 @@ describe("Cassettification", function() {
   it("should make a new cassette from a pattern input", function() {
     var modal = $("#tapedeck-frame").contents().find("#modal");
     var input = $(modal).find("input[callbackparam='pattern']").first();
-    
+
     $(input).val(this.pattern);
-    
+
     $(modal).find("input[type='button']").first().click();
 
     waitsFor(function() {
@@ -70,7 +70,7 @@ describe("Cassettification", function() {
       }
     }
     expect(foundCassette).not.toBeNull();
-    
+
     var testTab = this.findTestTab();
     var context = this.Tapedeck.Backend.Utils.getContext(testTab);
 

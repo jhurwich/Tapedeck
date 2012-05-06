@@ -118,12 +118,12 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
     '
 /*
       var handleTracks = function(response, sender, sendResponse) {
-        
+
         for (var i in response.tracks) {
           response.tracks[i].cassette = self.get("name");
         }
         callback(response.tracks);
       };
 */
-  
+
 };

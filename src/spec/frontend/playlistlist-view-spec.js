@@ -5,7 +5,7 @@ describe("PlaylistList View", function() {
                            .Backend
                            .Collections
                            .Playlist(this.testTracks);
-    
+
     var viewScript = this.Tapedeck
                          .Backend
                          .TemplateManager
@@ -18,7 +18,7 @@ describe("PlaylistList View", function() {
 
     var view = new viewScript({ playlistList: playlistList });
     var listDOM = view.render();
-    
+
     var rows  = $(listDOM).find(".row");
     expect(rows.length).toEqual(1);
 
@@ -29,7 +29,7 @@ describe("PlaylistList View", function() {
 
     view = new viewScript({ playlistList: playlistList });
     listDOM = view.render();
-    
+
     var rows  = $(listDOM).find(".row");
     expect(rows.length).toEqual(2);
   });
