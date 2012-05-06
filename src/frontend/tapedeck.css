@@ -1,6 +1,9 @@
 *[hidden] {
   display: none !important;
 }
+tapedeck {
+  display: none !important;
+}
 
 body {
   margin: 0;
@@ -11,7 +14,7 @@ body {
   height: 100%;
 }
 
-#tapedeck-content {
+#frame {
   position: relative;
   padding: 4px;
 }
@@ -113,7 +116,7 @@ body {
 #browse-list {
   height: 280px;
 }
-#queue-list {
+#queue {
   max-height: 280px;
 }
 #queue-region {
@@ -152,7 +155,7 @@ body {
 .tracklist .row-container:first-child {
   border-top: solid 2px #424242;
 }
-#queue-list > .tracklist .row-container:last-child {
+#queue > .tracklist .row-container:last-child {
   border-bottom: solid 2px #424242;
 }
 .tracklist .row,
@@ -270,7 +273,7 @@ body {
 #browse-list .row .row-buttons > .button.remove {
   display: none;
 }
-#queue-list .row .row-buttons > .button.queue {
+#queue .row .row-buttons > .button.queue {
   display: none;
 }
 .tracklist .row[download="downloading"] .row-buttons > .button.download {
@@ -499,7 +502,7 @@ body {
   opacity: .4;
   z-index: 100;
 }
-#modal {
+#modal-container {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -512,7 +515,7 @@ body {
   padding: 8px 6px;
   border-radius: 7px;
 }
-#modal #close-button {
+#modal-container #close-button {
   position: absolute;
   top: 0;
   right: 0;
@@ -521,10 +524,10 @@ body {
   margin: 3px;
   cursor: pointer;
 }
-#modal #modal-title {
+#modal-container #modal-title {
   text-decoration: underline;
   font-size: 20px;
 }
-#modal .field-row.info {
+#modal-container .field-row.info {
   margin-top: 5px;
 }

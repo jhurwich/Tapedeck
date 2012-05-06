@@ -7,7 +7,7 @@ Tapedeck.Frontend.init = function() {
   Tapedeck.Frontend.Messenger.init();
 
   var callback = function(response) {
-    Tapedeck.Frontend.Frame.replaceView("tapedeck-content",
+    Tapedeck.Frontend.Frame.replaceView("frame",
                                         response.view,
                                         response.proxyEvents);
     Tapedeck.Frontend.Frame.init();

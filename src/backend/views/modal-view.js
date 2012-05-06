@@ -1,7 +1,7 @@
-Tapedeck.Backend.Views.Modal = Backbone.View.extend({
+Tapedeck.Backend.Views.Modal = Tapedeck.Backend.Views.TapedeckView.extend({
 
   tagName: "div",
-  id: "modal-container",
+  id: "modal",
   requiredTemplates: [
     "Modal"
   ],
@@ -14,19 +14,14 @@ Tapedeck.Backend.Views.Modal = Backbone.View.extend({
   },
   eventsName: "modalEvents",
 
-  initialize: function() {
+  init: function() {
     this.params = this.options;
-    this.template = _.template(Tapedeck.Backend
-                                       .TemplateManager
-                                       .getTemplate("Modal"));
   },
 
   render: function() {
     this.el.innerHTML =  this.template({ params: this.params });
 
     this.assignImg("close-button", "modal-close.png");
-
-    Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
 
     return this.el;
   },

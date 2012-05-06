@@ -1,11 +1,10 @@
-Tapedeck.Backend.Views.Frame = Backbone.View.extend({
+Tapedeck.Backend.Views.Frame = Tapedeck.Backend.Views.TapedeckView.extend({
 
   tagName: "div",
-  id: "tapedeck-content",
+  id: "frame",
   requiredTemplates: [
     "Frame",
   ],
-  template: null,
 
   proxyEvents: {
     "click #queue-save"    : "PlaylistList.saveQueue",
@@ -15,11 +14,8 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
   },
   eventsName: "frameEvents",
 
-  initialize: function() {
+  init: function() {
     this.tabID = this.options.tabID;
-    this.template = _.template(Tapedeck.Backend
-                                       .TemplateManager
-                                       .getTemplate("Frame"));
   },
 
   render: function() {
@@ -31,7 +27,6 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
     this.renderBrowseRegion();
 
     this.assignPlaybackButtonImgs();
-    Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
 
     return this.el
   },
@@ -54,7 +49,7 @@ Tapedeck.Backend.Views.Frame = Backbone.View.extend({
                            .renderView("Queue",
                                        { trackList : queueTracks });
 
-    $(this.el).find("#queue-list").replaceWith(viewData.el);
+    $(this.el).find("#queue").replaceWith(viewData.el);
     this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
 

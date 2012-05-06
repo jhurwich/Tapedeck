@@ -13,6 +13,11 @@ Tapedeck.Backend.TemplateManager = {
 
   init: function() {
     this.packages["default"] = Tapedeck.Backend.Views;
+
+    // will receive [{ name: "", contents: "", url: "" }]
+    Tapedeck.Backend.Bank.FileSystem.getTemplates(function(templateDatas) {
+
+    });
   },
 
   setPackage: function(packageName) {

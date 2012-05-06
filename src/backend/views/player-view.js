@@ -1,4 +1,4 @@
-Tapedeck.Backend.Views.Player = Backbone.View.extend({
+Tapedeck.Backend.Views.Player = Tapedeck.Backend.Views.TapedeckView.extend({
 
   tagName: "div",
   id: "player",
@@ -18,12 +18,6 @@ Tapedeck.Backend.Views.Player = Backbone.View.extend({
     "onreplace": "onFrameRender"
   },
 
-  initialize: function() {
-    this.template = _.template(Tapedeck.Backend
-                                       .TemplateManager
-                                       .getTemplate("Player"));
-  },
-
   render: function() {
     var player = Tapedeck.Backend.Sequencer.Player;
     var currentState = Tapedeck.Backend.Sequencer.getCurrentState();
@@ -38,8 +32,6 @@ Tapedeck.Backend.Views.Player = Backbone.View.extend({
     this.el.innerHTML =  this.template(options);
 
     this.assignSliderImgs();
-
-    Tapedeck.Backend.Utils.proxyEvents(this, "playerEvents");
 
     return this.el;
   },

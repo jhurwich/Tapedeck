@@ -1,4 +1,4 @@
-Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
+Tapedeck.Backend.Views.BrowseRegion = Tapedeck.Backend.Views.TapedeckView.extend({
 
   tagName: "div",
   className: "region",
@@ -13,17 +13,13 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
   proxyEvents: { },
   eventsName: "browseRegionEvents",
 
-  initialize: function() {
+  init: function() {
     // In theory the browseRegion is a convenience construct to keep the
     // browseRegion updated with current data without the need to gather
     // all that data.
     // Therefore, param options besides tabID should not be specified,
     // this view should collect its own information.
     this.tabID = this.options.tabID;
-
-    this.template = _.template(Tapedeck.Backend
-                                       .TemplateManager
-                                       .getTemplate("BrowseRegion"));
   },
 
   render: function() {
@@ -99,7 +95,6 @@ Tapedeck.Backend.Views.BrowseRegion = Backbone.View.extend({
       });
     }
 
-    Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
     return el;
   },
 

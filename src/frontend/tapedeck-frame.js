@@ -58,7 +58,7 @@ Tapedeck.Frontend.Frame = {
         // tell our code to start moving the element with the mouse
         document.onmousemove = slider.moveHandle;
 
-        $("#tapedeck-content").mouseleave(function() {
+        $("#frame").mouseleave(function() {
           // reset the slider if the mouse leaves during drag
           if (slider.dragging) {
             document.onmousemove = null;
@@ -142,7 +142,7 @@ Tapedeck.Frontend.Frame = {
         // tell our code to start moving the element with the mouse
         document.onmousemove = slider.moveHandle;
 
-        $("#tapedeck-content").mouseleave(function() {
+        $("#frame").mouseleave(function() {
           // reset the slider if the mouse leaves during drag
           if (slider.dragging) {
             document.onmousemove = null;
@@ -508,7 +508,7 @@ Tapedeck.Frontend.Frame = {
 
       var row = $(e.target).closest(".row");
 
-      if ($(row).closest(".tracklist-container").attr("id") == "queue-list") {
+      if ($(row).closest(".tracklist-container").attr("id") == "queue") {
         // to play immediately from the queue we can just play the row
         tracklists.playQueueRow(row);
       }
@@ -748,7 +748,7 @@ Tapedeck.Frontend.Frame = {
       var modal = Tapedeck.Frontend.Frame.Modal;
 
       var getViewCallback = function(response) {
-        Tapedeck.Frontend.Frame.replaceView("modal-container",
+        Tapedeck.Frontend.Frame.replaceView("modal",
                                             response.view,
                                             response.proxyEvents);
         var inputs = $("#modal").find("input[type='text']");
@@ -794,7 +794,7 @@ Tapedeck.Frontend.Frame = {
 
       var modal = Tapedeck.Frontend.Frame.Modal;
 
-      $("#modal-container").attr("hidden", true);
+      $("#modal").attr("hidden", true);
       if (doCleanup && modal.cleanup != null) {
         modal.cleanup();
       }
@@ -833,9 +833,9 @@ Tapedeck.Frontend.Frame = {
 
       if (eventName.indexOf("onreplace") == -1) {
         if (selector === '') {
-          // no selector applies to #tapedeck-content
-          $("#tapedeck-content").unbind(eventName);
-          $("#tapedeck-content").bind(eventName, method);
+          // no selector applies to #frame
+          $("#frame").unbind(eventName);
+          $("#frame").bind(eventName, method);
         }
         else {
           $(selector).unbind(eventName);

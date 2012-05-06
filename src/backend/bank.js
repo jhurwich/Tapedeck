@@ -154,10 +154,12 @@ Tapedeck.Backend.Bank = {
       this.loadDir("Cassettes", callback)
     },
 
+    // the contents of a template file should be an HTML doc with <script> templates
     getTemplates: function(callback) {
       this.loadDir("Templates", callback);
     },
 
+    // returns an array of { name: __, contents:<string_contents>, url:<fs_url> }
     loadDir: function(dir, callback) {
       var fs = Tapedeck.Backend.Bank.FileSystem;
       var datas = [];

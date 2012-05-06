@@ -1,14 +1,14 @@
 Tapedeck.Backend.Views.Queue = Tapedeck.Backend.Views.TrackList.extend({
 
   viewName: "Queue",
-  id: "queue-list",
+  id: "queue",
   proxyEvents: {
-    "dragstart #queue-list .row" : "TrackLists.rowDragStart",
-    "dragend #queue-list .row"   : "TrackLists.rowDragEnd",
-    "dragenter #queue-list .row" : "TrackLists.rowDragEnter",
-    "dragleave #queue-list .row" : "TrackLists.rowDragLeave",
-    "dragover #queue-list .row"  : "TrackLists.rowDragOver",
-    "drop #queue-list .row"      : "TrackLists.rowDrop"
+    "dragstart #queue .row" : "TrackLists.rowDragStart",
+    "dragend #queue .row"   : "TrackLists.rowDragEnd",
+    "dragenter #queue .row" : "TrackLists.rowDragEnter",
+    "dragleave #queue .row" : "TrackLists.rowDragLeave",
+    "dragover #queue .row"  : "TrackLists.rowDragOver",
+    "drop #queue .row"      : "TrackLists.rowDrop"
   },
   eventsName: "queueEvents",
   rowDblClick: "queueDblClick",

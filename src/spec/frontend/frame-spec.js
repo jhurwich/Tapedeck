@@ -64,11 +64,11 @@ describe("Frontend Frame Logic", function() {
                                       { trackList   : this.testTrackList });
 
     $("#tapedeck-frame").contents()
-                        .find("#queue-list")
+                        .find("#queue")
                         .replaceWith(testTrackView.el);
 
     var rows = $("#tapedeck-frame").contents()
-                                   .find("#queue-list")
+                                   .find("#queue")
                                    .first()
                                    .children(".row")
                                    .not("#hidden-droprow");

@@ -11,7 +11,7 @@ describe("Frame View", function() {
   });
 
   it("should render the queue TrackList when rendered", function() {
-    expect($("#tapedeck-frame").contents()).toContain("#queue-list");
+    expect($("#tapedeck-frame").contents()).toContain("#queue");
   });
 
   it("should render the browse TrackList when rendered", function() {

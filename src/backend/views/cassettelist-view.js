@@ -1,4 +1,4 @@
-Tapedeck.Backend.Views.CassetteList = Backbone.View.extend({
+Tapedeck.Backend.Views.CassetteList = Tapedeck.Backend.Views.TapedeckView.extend({
 
   tagName: "div",
   className: "cassettelist-container",
@@ -20,11 +20,8 @@ Tapedeck.Backend.Views.CassetteList = Backbone.View.extend({
   },
   eventsName: "cassetteListEvents",
 
-  initialize: function() {
+  init: function() {
     this.cassetteList = this.options.cassetteList;
-    this.template = _.template(Tapedeck.Backend
-                                       .TemplateManager
-                                       .getTemplate("CassetteList"));
   },
 
   assignRowButtonImgs: function() {
@@ -49,8 +46,6 @@ Tapedeck.Backend.Views.CassetteList = Backbone.View.extend({
     this.el.innerHTML =  this.template({ cassetteList: this.cassetteList.toJSON() });
 
     this.assignRowButtonImgs();
-
-    Tapedeck.Backend.Utils.proxyEvents(this, this.eventsName);
 
     return this.el;
   },

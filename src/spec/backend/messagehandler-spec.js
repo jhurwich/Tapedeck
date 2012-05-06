@@ -7,7 +7,7 @@ describe("Message Handler", function() {
   it("should return a rendered view when requested", function() {
     var requestProcessed = false;
     var callback = function(response) {
-      expect($(response.view)).toHaveId("tapedeck-content");
+      expect($(response.view)).toHaveId("frame");
       requestProcessed = true;
     };
 
