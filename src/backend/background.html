@@ -41,238 +41,322 @@
     <script type="text/javascript" src="views/modal-view.js"></script>
 
     <script id="Frame-default-template" type="text/template">
-      <div id="player">Player Here</div>
-      <div id="queue-region" class="region">
-        <div id="queue" class="tracklist"></div>
+      <tapedeck>
+        <events>
+          "click #queue-save"    : "PlaylistList.saveQueue",
+          "click #repeat"        : "toggleRepeat",
+          "click #queue-shuffle" : "shuffleQueue",
+          "click #queue-clear"   : "clearQueue",
+        </events>
+      </tapedeck>
+      <template>
+        <div id="player">Player Here</div>
+        <div id="queue-region" class="region">
+          <div id="queue" class="tracklist"></div>
 
-        <div id="queue-buttons">
-          <div id="playlist-list"></div>
+          <div id="queue-buttons">
+            <div id="playlist-list"></div>
 
-          <button id="queue-save" type="button">
-            Save
-          </button>
-          <div id="playback-button-box">
-            <img id="repeat" class="playback-button"></img>
-            <img id="queue-shuffle" class="playback-button"></img>
-            <img id="queue-clear" class="playback-button"></img>
+            <button id="queue-save" type="button">
+              Save
+            </button>
+            <div id="playback-button-box">
+              <img id="repeat" class="playback-button"></img>
+              <img id="queue-shuffle" class="playback-button"></img>
+              <img id="queue-clear" class="playback-button"></img>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div id="browse-region" class="region"></div>
+        <div id="browse-region" class="region"></div>
+      </template>
     </script>
 
     <script id="BrowseRegion-default-template" type="text/template">
-      <div id="browse-list" class="tracklist"></div>
-      <div id="cassette-list" class="cassettelist"></div>
+      <tapedeck>
+        <events>
+        </events>
+      </tapedeck>
+      <template>
+        <div id="browse-list" class="tracklist"></div>
+        <div id="cassette-list" class="cassettelist"></div>
+      </template>
     </script>
 
     <script id="Player-default-template" type="text/template">
-      <div id="banner-region">
-        <div id="banner">
-          <%
-          var bannerStr = "";
+      <tapedeck>
+        <events>
+          "mouseover #seek-slider #handle": "Player.SeekSlider.mouseoverHandle",
+          "mouseleave #seek-slider #handle": "Player.SeekSlider.mouseleaveHandle",
+          "mousedown #seek-slider #handle": "Player.SeekSlider.downOnHandle",
 
-          if (state != "stop" && typeof(track) != "undefined") {
-            if (typeof(track.artistName) != "undefined") {
-              bannerStr += track.artistName;
-            }
-            if (typeof(track.trackName) != "undefined") {
-              if (bannerStr.length > 0) {
-                bannerStr += " &ndash; ";
+          "mousedown #volume-slider #handle": "Player.VolumeSlider.downOnHandle",
+
+          "mouseup": "Player.mouseUp",
+          "onreplace": "onFrameRender"
+        </events>
+      </tapedeck>
+      <template>
+        <div id="banner-region">
+          <div id="banner">
+            <%
+            var bannerStr = "";
+
+            if (state != "stop" && typeof(track) != "undefined") {
+              if (typeof(track.artistName) != "undefined") {
+                bannerStr += track.artistName;
               }
-              bannerStr += track.trackName;
+              if (typeof(track.trackName) != "undefined") {
+                if (bannerStr.length > 0) {
+                  bannerStr += " &ndash; ";
+                }
+                bannerStr += track.trackName;
+              }
             }
-          }
 
-          if (state == "load") {
-            bannerStr += "<br />(Loading)";
-          }
-          else if (state == "pause") {
-            bannerStr += "<br />(Paused)";
-          }
-          print(bannerStr);
-          %>
+            if (state == "load") {
+              bannerStr += "<br />(Loading)";
+            }
+            else if (state == "pause") {
+              bannerStr += "<br />(Paused)";
+            }
+            print(bannerStr);
+            %>
+          </div>
+          <div id="volume-slider"
+               class="slider
+                      <% if (state != "play" && state != "pause") {
+                        print(" disabled ");
+                      }%>" >
+            <div id="track-top" class="slider-track"></div>
+            <div id="track-bottom" class="slider-track">
+              <div id="handle">
+                <img id="handle-image"></img>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="volume-slider"
+
+        <div id="seek-slider"
              class="slider
                     <% if (state != "play" && state != "pause") {
                       print(" disabled ");
                     }%>" >
-          <div id="track-top" class="slider-track"></div>
-          <div id="track-bottom" class="slider-track">
+          <div id="track-left" class="slider-track"></div>
+          <div id="track-right" class="slider-track">
             <div id="handle">
+              <div id="handle-val"></div>
               <img id="handle-image"></img>
             </div>
           </div>
         </div>
-      </div>
-
-      <div id="seek-slider"
-           class="slider
-                  <% if (state != "play" && state != "pause") {
-                    print(" disabled ");
-                  }%>" >
-        <div id="track-left" class="slider-track"></div>
-        <div id="track-right" class="slider-track">
-          <div id="handle">
-            <div id="handle-val"></div>
-            <img id="handle-image"></img>
-          </div>
-        </div>
-      </div>
-      <div id="duration"></div>
+        <div id="duration"></div>
+      </template>
     </script>
 
     <script id="TrackList-default-template" type="text/template">
-      <div class="tracklist">
-        <% if(typeof(trackList) == "undefined" || trackList == null) { %>
-          <div class="row-container">
-            <div class="row blank">
-              <div class="spinner loading"
-                   id="loading-spinner"></div>
+      <tapedeck>
+        <events>
+        </events>
+      </tapedeck>
+      <template>
+        <div class="tracklist">
+          <% if(typeof(trackList) == "undefined" || trackList == null) { %>
+            <div class="row-container">
+              <div class="row blank">
+                <div class="spinner loading"
+                     id="loading-spinner"></div>
+              </div>
             </div>
-          </div>
-        <% } else if (trackList.length == 0) { %>
-          <div class="row-container">
-            <div class="row blank">
-              <% if (trackList.destination == "Queue") { %>
-                There are no tracks in your queue.
-              <% }
-              else { %>
-                Cassette is blank. (Soundcloud may be loading)
-              <% } %>
+          <% } else if (trackList.length == 0) { %>
+            <div class="row-container">
+              <div class="row blank">
+                <% if (trackList.destination == "Queue") { %>
+                  There are no tracks in your queue.
+                <% }
+                else { %>
+                  Cassette is blank. (Soundcloud may be loading)
+                <% } %>
+              </div>
             </div>
-          </div>
 
-        <% }
-        else { %>
-          <div class="row-container">
-            <div class="row" id="hidden-droprow" index="-1">
-              <div class="cell trackName-col"></div>
-              <div class="cell artistName-col"></div>
-              <div class="cell cassette-col"></div>
+          <% }
+          else { %>
+            <div class="row-container">
+              <div class="row" id="hidden-droprow" index="-1">
+                <div class="cell trackName-col"></div>
+                <div class="cell artistName-col"></div>
+                <div class="cell cassette-col"></div>
+              </div>
+            </div>
+
+            <% for (var i=0; i < trackList.length; i++) {
+              var track = trackList[i];
+            %>
+              <div class="row-container">
+                <div class="row
+                            <% if (track.listened) { print(" listened ") } %>
+                            <% if (track.playing) { print(" playing ") } %>"
+                     index='<%= i %>'
+                     track-id='<%= track.tdID %>'
+                     track-type='<% if(typeof(track.type) == "undefined") {
+                                      print("unknown")
+                                    } else {
+                                      print(track.type)
+                                    } %>'
+                     <% if (typeof(track.download) != "undefined") {
+                        print("download='" + track.download + "'");
+                     } %>
+                     draggable="true" >
+                  <div class="cell trackName-col" title='<%= track.trackName %>'>
+                    <span class="trackName-span" >
+                      <%= track.trackName %>
+                    </span>
+                  </div>
+                  <div class="cell artistName-col" title='<%= track.artistName %>'>
+                    <%= track.artistName %>
+                  </div>
+                  <div class="cell cassette-col" title='<%= track.cassette.replace(/_/g, " ") %>'>
+                    <%= track.cassette.replace(/_/g, " ") %>
+                    <div class="row-buttons">
+                      <div class="button playnow"></div>
+                      <div class="button remove"></div>
+                      <div class="button queue"></div>
+                      <div class="button download"></div>
+                    </div>
+                    <div class="row-indicators">
+                      <div class="spinner download"
+                           id="download-spinner"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+          <% } %>
+        </div>
+        <% if (typeof(currentCassette) != "undefined") { %>
+          <div id="current-cassette-row" class="row">
+            <div class="cell current-cassette-col">
+              <%= currentCassette.get("name").replace(/_/g, " ") %>
+              <div class="row-buttons">
+                <% if (currentCassette.isPageable() && typeof(currentPage) != "undefined") { %>
+                  <div class="button prev-page"></div>
+                  <div id="current-page" class="button current-page">
+                    <%= currentPage %>
+                  </div>
+                  <div class="button next-page"></div>
+                <% } %>
+                <div class="button eject"></div>
+              </div>
             </div>
           </div>
+        <% } %>
+      </template>
+    </script>
 
-          <% for (var i=0; i < trackList.length; i++) {
-            var track = trackList[i];
+    <script id="Queue-default-template" type="text/template">
+      <tapedeck>
+        <events>
+          "dragstart #queue .row" : "TrackLists.rowDragStart",
+          "dragend #queue .row"   : "TrackLists.rowDragEnd",
+          "dragenter #queue .row" : "TrackLists.rowDragEnter",
+          "dragleave #queue .row" : "TrackLists.rowDragLeave",
+          "dragover #queue .row"  : "TrackLists.rowDragOver",
+          "drop #queue .row"      : "TrackLists.rowDrop"
+        </events>
+      </tapedeck>
+      <template ref="TrackList-default-template" />
+    </script>
+
+    <script id="BrowseList-default-template" type="text/template">
+      <tapedeck>
+        <events>
+          "dragstart #browse-list .row" : "TrackLists.rowDragStart",
+          "dragend #browse-list .row"   : "TrackLists.rowDragEnd",
+        </events>
+      </tapedeck>
+      <template ref="TrackList-default-template" />
+    </script>
+
+    <script id="PlaylistList-default-template" type="text/template">
+      <tapedeck>
+        <events>
+          "mouseover #playlist-list-header"   : "PlaylistList.showPlaylistList",
+          "mouseleave #playlist-list"         : "PlaylistList.hidePlaylistList",
+          "click #playlist-list-content .row" : "PlaylistList.playPlaylist",
+          "click #playlist-list-content .removePlaylist" : "PlaylistList.removePlaylist",
+        </events>
+      </tapedeck>
+      <template>
+        <div id="playlist-list-header">Load a playlist</div>
+        <div id="playlist-list-content">
+          <% for (var i=0; i < playlistList.length; i++) {
+            var playlist = playlistList.at(i);
+          %>
+            <div class="row" index='<%= i %>' >
+              <div class="cell playlistName-col"> <%= playlist.id %> </div>
+              <div class="cell row-buttons">
+                <div class="button removePlaylist"></div>
+              </div>
+            </div>
+          <% } %>
+        </div>
+      </template>
+    </script>
+
+    <script id="CassetteList-default-template" type="text/template">
+      <tapedeck>
+        <events>
+          "click .cassettelist .row"            : "CassetteList.rowClick",
+          "mouseover #add-cassettes-button"     : "CassetteList.showCassetteMenu",
+          "mouseleave #add-cassettes-menu"      : "CassetteList.hideCassetteMenu",
+          "click .cassettelist .developer-link" : "CassetteList.loadDeveloperLink",
+          "click .cassettelist .remove"         : "CassetteList.rowButtonRemove",
+
+          "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
+          "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
+        </events>
+      </tapedeck>
+      <template>
+        <div class="cassettelist">
+          <% for (var i=0; i < cassetteList.length; i++) {
+            var cassette = cassetteList[i];
+            var displayName = cassette.name.replace(/_/g, " ");
           %>
             <div class="row-container">
-              <div class="row
-                          <% if (track.listened) { print(" listened ") } %>
-                          <% if (track.playing) { print(" playing ") } %>"
+              <div class="row <% if (cassette.active) { print(" active "); } %>"
                    index='<%= i %>'
-                   track-id='<%= track.tdID %>'
-                   track-type='<% if(typeof(track.type) == "undefined") {
-                                    print("unknown")
-                                  } else {
-                                    print(track.type)
-                                  } %>'
-                   <% if (typeof(track.download) != "undefined") {
-                      print("download='" + track.download + "'");
-                   } %>
-                   draggable="true" >
-                <div class="cell trackName-col" title='<%= track.trackName %>'>
-                  <span class="trackName-span" >
-                    <%= track.trackName %>
+                   cassette-name='<%= cassette.name %>' >
+                <div class="cell cassetteName-col" title='<%= displayName %>'> <%= displayName %> </div>
+                <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
+                  <span class="developer-link"
+                        url='<%= cassette.developerLink %>' >
+                    <%= cassette.developer %>
                   </span>
-                </div>
-                <div class="cell artistName-col" title='<%= track.artistName %>'>
-                  <%= track.artistName %>
-                </div>
-                <div class="cell cassette-col" title='<%= track.cassette.replace(/_/g, " ") %>'>
-                  <%= track.cassette.replace(/_/g, " ") %>
                   <div class="row-buttons">
-                    <div class="button playnow"></div>
                     <div class="button remove"></div>
-                    <div class="button queue"></div>
-                    <div class="button download"></div>
-                  </div>
-                  <div class="row-indicators">
-                    <div class="spinner download"
-                         id="download-spinner"></div>
                   </div>
                 </div>
               </div>
             </div>
           <% } %>
-        <% } %>
-      </div>
-      <% if (typeof(currentCassette) != "undefined") { %>
-        <div id="current-cassette-row" class="row">
-          <div class="cell current-cassette-col">
-            <%= currentCassette.get("name").replace(/_/g, " ") %>
-            <div class="row-buttons">
-              <% if (currentCassette.isPageable() && typeof(currentPage) != "undefined") { %>
-                <div class="button prev-page"></div>
-                <div id="current-page" class="button current-page">
-                  <%= currentPage %>
-                </div>
-                <div class="button next-page"></div>
-              <% } %>
-              <div class="button eject"></div>
+        </div>
+        <div class="row-container" id="cassettelist-button-row">
+          <div class="row-buttons">
+          </div>
+        </div>
+        <div id="add-cassettes-menu">
+          <div id="add-cassettes-button" class="button"></div>
+          <div id="add-cassettes-content">
+            <div class="menu-row coming-soon">
+              Get more cassettes (coming soon)
+            </div>
+            <div class="menu-row cassettify">
+              Cassettify
             </div>
           </div>
         </div>
-      <% } %>
-    </script>
-
-    <script id="PlaylistList-default-template" type="text/template">
-      <div id="playlist-list-header">Load a playlist</div>
-      <div id="playlist-list-content">
-        <% for (var i=0; i < playlistList.length; i++) {
-          var playlist = playlistList.at(i);
-        %>
-          <div class="row" index='<%= i %>' >
-            <div class="cell playlistName-col"> <%= playlist.id %> </div>
-            <div class="cell row-buttons">
-              <div class="button removePlaylist"></div>
-            </div>
-          </div>
-        <% } %>
-      </div>
-    </script>
-
-    <script id="CassetteList-default-template" type="text/template">
-      <div class="cassettelist">
-        <% for (var i=0; i < cassetteList.length; i++) {
-          var cassette = cassetteList[i];
-          var displayName = cassette.name.replace(/_/g, " ");
-        %>
-          <div class="row-container">
-            <div class="row <% if (cassette.active) { print(" active "); } %>"
-                 index='<%= i %>'
-                 cassette-name='<%= cassette.name %>' >
-              <div class="cell cassetteName-col" title='<%= displayName %>'> <%= displayName %> </div>
-              <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
-                <span class="developer-link"
-                      url='<%= cassette.developerLink %>' >
-                  <%= cassette.developer %>
-                </span>
-                <div class="row-buttons">
-                  <div class="button remove"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        <% } %>
-      </div>
-      <div class="row-container" id="cassettelist-button-row">
-        <div class="row-buttons">
-        </div>
-      </div>
-      <div id="add-cassettes-menu">
-        <div id="add-cassettes-button" class="button"></div>
-        <div id="add-cassettes-content">
-          <div class="menu-row coming-soon">
-            Get more cassettes (coming soon)
-          </div>
-          <div class="menu-row cassettify">
-            Cassettify
-          </div>
-        </div>
-      </div>
+      </template>
     </script>
 
     <script id="Modal-default-template" type="text/template">

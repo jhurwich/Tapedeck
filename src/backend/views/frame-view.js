@@ -4,14 +4,14 @@ Tapedeck.Backend.Views.Frame = Tapedeck.Backend.Views.TapedeckView.extend({
   id: "frame",
   requiredTemplates: [
     "Frame",
+    "Player",
+    "PlaylistList",
+    "Queue",
+    "BrowseRegion",
+    "BrowseList",
+    "CassetteList"
   ],
 
-  proxyEvents: {
-    "click #queue-save"    : "PlaylistList.saveQueue",
-    "click #repeat"        : "toggleRepeat",
-    "click #queue-shuffle" : "shuffleQueue",
-    "click #queue-clear"   : "clearQueue",
-  },
   eventsName: "frameEvents",
 
   init: function() {
@@ -39,7 +39,6 @@ Tapedeck.Backend.Views.Frame = Tapedeck.Backend.Views.TapedeckView.extend({
     viewData.el.id = playerID;
 
     $(this.el).find("#" + playerID).replaceWith(viewData.el);
-    this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
 
   renderQueue: function() {
@@ -50,7 +49,6 @@ Tapedeck.Backend.Views.Frame = Tapedeck.Backend.Views.TapedeckView.extend({
                                        { trackList : queueTracks });
 
     $(this.el).find("#queue").replaceWith(viewData.el);
-    this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
 
   renderPlaylistList: function() {
@@ -61,7 +59,6 @@ Tapedeck.Backend.Views.Frame = Tapedeck.Backend.Views.TapedeckView.extend({
                                        { playlistList : playlistList });
 
     $(this.el).find("#playlist-list").replaceWith(viewData.el);
-    this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
 
   renderBrowseRegion: function() {
@@ -71,7 +68,6 @@ Tapedeck.Backend.Views.Frame = Tapedeck.Backend.Views.TapedeckView.extend({
                                        { tabID : this.tabID });
 
     $(this.el).find("#browse-region").replaceWith(viewData.el);
-    this.proxyEvents = _.extend(this.proxyEvents, viewData.proxyEvents);
   },
 
   assignPlaybackButtonImgs: function() {

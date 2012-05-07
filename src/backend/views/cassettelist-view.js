@@ -8,16 +8,6 @@ Tapedeck.Backend.Views.CassetteList = Tapedeck.Backend.Views.TapedeckView.extend
   ],
   template: null,
 
-  proxyEvents: {
-    "click .cassettelist .row"            : "CassetteList.rowClick",
-    "mouseover #add-cassettes-button"     : "CassetteList.showCassetteMenu",
-    "mouseleave #add-cassettes-menu"      : "CassetteList.hideCassetteMenu",
-    "click .cassettelist .developer-link" : "CassetteList.loadDeveloperLink",
-    "click .cassettelist .remove"         : "CassetteList.rowButtonRemove",
-
-    "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
-    "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
-  },
   eventsName: "cassetteListEvents",
 
   init: function() {

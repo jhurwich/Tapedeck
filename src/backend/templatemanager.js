@@ -5,10 +5,12 @@ Tapedeck.Backend.TemplateManager = {
   requiredScripts: [
     "Frame",
     "Player",
+    "PlaylistList",
     "TrackList",
     "Queue",
+    "BrowseRegion",
     "BrowseList",
-    "PlaylistList"
+    "CassetteList"
   ],
 
   init: function() {
@@ -38,7 +40,9 @@ Tapedeck.Backend.TemplateManager = {
     var view = new viewScript(options);
 
     var el = view.render();
-    return { el: el, proxyEvents: view.proxyEvents };
+
+    console.log("getEvents for " + scriptName);
+    return { el: el, proxyEvents: view.getEvents() };
   },
 
   getViewScript: function(scriptName, packageName) {
@@ -54,9 +58,30 @@ Tapedeck.Backend.TemplateManager = {
       packageName = this.currentPackage;
     }
 
-    var templateSelector = "script#" + templateName + "-" + packageName + "-template"
+    // first get the contents of the template
+    var templateSelector = "script#" + templateName + "-" + packageName + "-template";
 
-    return $(templateSelector).html();
+    var html = $(templateSelector).html();
+
+    // now populate it with all reference templates as if they were present
+    var selfClosedTagRegex = function(tag) {
+      return new RegExp("<\s*" + tag + "[^<>]*\/>", "gi");
+    }
+
+    var templateMatch = null;
+    templateTagRegex = selfClosedTagRegex("template");
+    while ((templateMatch = templateTagRegex.exec(html)) != null) {
+      var templateTag = templateMatch[0];
+      var subtemplateSelector = templateTag.match(/ref\s*?=\s*?['"]([^'"]*)['"]/)[1];
+
+      console.log(subtemplateSelector);
+      var includeHTML = $("#" + subtemplateSelector).html()
+      console.log("include: " + includeHTML);
+      html = html.replace(templateTag, includeHTML);
+      console.log(templateName + " - " + html);
+    }
+
+    return html;
   },
 
   isValidPackage: function(packageName) {

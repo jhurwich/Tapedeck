@@ -10,7 +10,6 @@ Tapedeck.Backend.Views.BrowseRegion = Tapedeck.Backend.Views.TapedeckView.extend
   ],
   template: null,
 
-  proxyEvents: { },
   eventsName: "browseRegionEvents",
 
   init: function() {
@@ -32,8 +31,6 @@ Tapedeck.Backend.Views.BrowseRegion = Tapedeck.Backend.Views.TapedeckView.extend
       ("CassetteList", { cassetteList : cMgr.getCassettes() });
 
     $(el).find("#cassette-list").replaceWith(cassetteListView.el);
-    this.proxyEvents = _.extend(this.proxyEvents,
-                                cassetteListView.proxyEvents);
 
     // We'll need  to return before the browse-list can load, so hide it
     // for now.  If there is a currentCassette, we'll start loading the
@@ -47,8 +44,6 @@ Tapedeck.Backend.Views.BrowseRegion = Tapedeck.Backend.Views.TapedeckView.extend
                                              currentPage     : cMgr.currPage });
       $(el).find("#browse-list").replaceWith(browseView.el);
       $(el).find("#cassette-list").hide();
-      this.proxyEvents = _.extend(this.proxyEvents,
-                                  browseView.proxyEvents);
 
       chrome.tabs.get(this.tabID, function(tab) {
         // There is a current cassette, render its browselist

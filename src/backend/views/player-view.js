@@ -7,17 +7,6 @@ Tapedeck.Backend.Views.Player = Tapedeck.Backend.Views.TapedeckView.extend({
   ],
   template: null,
 
-  proxyEvents: {
-    "mouseover #seek-slider #handle": "Player.SeekSlider.mouseoverHandle",
-    "mouseleave #seek-slider #handle": "Player.SeekSlider.mouseleaveHandle",
-    "mousedown #seek-slider #handle": "Player.SeekSlider.downOnHandle",
-
-    "mousedown #volume-slider #handle": "Player.VolumeSlider.downOnHandle",
-
-    "mouseup": "Player.mouseUp",
-    "onreplace": "onFrameRender"
-  },
-
   render: function() {
     var player = Tapedeck.Backend.Sequencer.Player;
     var currentState = Tapedeck.Backend.Sequencer.getCurrentState();

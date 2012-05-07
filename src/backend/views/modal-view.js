@@ -7,11 +7,6 @@ Tapedeck.Backend.Views.Modal = Tapedeck.Backend.Views.TapedeckView.extend({
   ],
   template: null,
 
-  proxyEvents: {
-    "click .modal #close-button"  : "Modal.close",
-    "click .modal #submit-button" : "Modal.submit",
-    "keypress .modal input[type='text']" : "Modal.enterPress",
-  },
   eventsName: "modalEvents",
 
   init: function() {

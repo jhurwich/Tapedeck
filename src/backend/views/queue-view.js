@@ -2,6 +2,9 @@ Tapedeck.Backend.Views.Queue = Tapedeck.Backend.Views.TrackList.extend({
 
   viewName: "Queue",
   id: "queue",
+  requiredTemplates: [
+    "Queue",
+  ],
   proxyEvents: {
     "dragstart #queue .row" : "TrackLists.rowDragStart",
     "dragend #queue .row"   : "TrackLists.rowDragEnd",

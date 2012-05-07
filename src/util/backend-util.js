@@ -37,6 +37,52 @@ Tapedeck.Backend.Utils = {
     }
   },
 
+    // convenience function for turning a el's id into a templateName
+  idToTemplateName: function(id) {
+    var templateName = id;
+
+    var dashIndex = -1;
+    while((dashIndex = templateName.indexOf('-')) != -1) {
+      templateName = templateName.substring(0, dashIndex) +
+                     templateName.charAt(dashIndex + 1).toUpperCase() +
+                     templateName.substring(dashIndex + 2);
+    }
+    return templateName.charAt(0).toUpperCase() + templateName.substring(1);
+  },
+
+  // returns an array of strings representing the contents of all tags of tagName type
+  getTagBodies: function(text, tagName) {
+    var bodies = [];
+
+    var openTagRegex = function(tag) {
+      return new RegExp("<\s*" + tag + "[^<>]*>", "gi");
+    }
+
+    var closeTagRegex = function(tag) {
+      return new RegExp("<\/" + tag + "[^<>]*>", "gi");
+    }
+
+    var openRegex = openTagRegex(tagName);
+    var openMatch = null;
+    var closeRegex = closeTagRegex(tagName);
+    var closeMatch = null;
+    while ((openMatch = openRegex.exec(text)) != null) {
+      if ((closeMatch = closeRegex.exec(text)) != null &&
+          openMatch.index < closeMatch.index ) {
+
+        var body = text.substring(openMatch.index + openMatch[0].length,
+                                  closeMatch.index);
+        bodies.push(body);
+      }
+      else {
+        // extraction failed here
+        console.error("body extraction failed for '" + tagName + "'");
+      }
+
+    }
+    return bodies;
+  },
+
   domToString: function(dom) {
     return $('div').append($(dom)).remove().html();
   }

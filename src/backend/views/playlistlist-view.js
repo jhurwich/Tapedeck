@@ -7,12 +7,6 @@ Tapedeck.Backend.Views.PlaylistList = Tapedeck.Backend.Views.TapedeckView.extend
   ],
   template: null,
 
-  proxyEvents: {
-    "mouseover #playlist-list-header"   : "PlaylistList.showPlaylistList",
-    "mouseleave #playlist-list"         : "PlaylistList.hidePlaylistList",
-    "click #playlist-list-content .row" : "PlaylistList.playPlaylist",
-    "click #playlist-list-content .removePlaylist" : "PlaylistList.removePlaylist",
-  },
   eventsName: "playlistListEvents",
 
   init: function() {

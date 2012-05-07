@@ -1,4 +1,4 @@
-Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
+Tapedeck.Backend.Views.TrackList = Tapedeck.Backend.Views.TapedeckView.extend({
 
   tagName: "div",
   className: "tracklist-container",
@@ -25,7 +25,7 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
   }, // events we'll add to proxyEvents
   eventsName: "XXundefinedEventsNameXX", // populated by concrete class
 
-  initialize: function() {
+  init: function() {
     if (this.options.trackList != null &&
         typeof(this.options.trackList) != "undefined") {
       this.trackList = this.options.trackList;
@@ -41,10 +41,6 @@ Tapedeck.Backend.Views.TrackList = Backbone.View.extend({
     if (typeof(this.options.currentPage) != "undefined") {
       this.currentPage = this.options.currentPage;
     }
-
-    this.template = _.template(Tapedeck.Backend
-                                       .TemplateManager
-                                       .getTemplate("TrackList"));
   },
 
   bindEvents: function(trackList) {
