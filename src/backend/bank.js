@@ -1,6 +1,6 @@
 Tapedeck.Backend.Bank = {
 
-  drawerOpen: false,
+  drawerOpen: true, // TODO change back
   localStorage: null,
 
 
@@ -580,15 +580,11 @@ Tapedeck.Backend.Bank = {
 
   updatePlaylistListView: function() {
     var playlistList = Tapedeck.Backend.Bank.getPlaylists();
-    var listView = Tapedeck.Backend
-                           .TemplateManager
-                           .renderView
-                           ("PlaylistList",
-                            { playlistList : playlistList });
-
-    Tapedeck.Backend.MessageHandler.pushView("playlist-list",
-                                             listView.el,
-                                             listView.proxyEvents);
+    Tapedeck.Backend.TemplateManager.renderView("PlaylistList", function(listView) {
+      Tapedeck.Backend.MessageHandler.pushView("playlist-list",
+                                               listView.el,
+                                               listView.proxyEvents);
+    });
   },
 
   saveTrackList: function(name, trackList) {

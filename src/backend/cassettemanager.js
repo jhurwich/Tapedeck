@@ -80,14 +80,11 @@ Tapedeck.Backend.CassetteManager = {
   refreshCassetteListView: function() {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.readInCassettes(function() {
-      var cassetteListView =
-        Tapedeck.Backend.TemplateManager.renderView
-                ("CassetteList",
-                 { cassetteList : cMgr.getCassettes() });
-
-      Tapedeck.Backend.MessageHandler.pushView("cassette-list",
-                                               cassetteListView.el,
-                                               cassetteListView.proxyEvents);
+      Tapedeck.Backend.TemplateManager.renderView("CassetteList", function(cassetteListView) {
+        Tapedeck.Backend.MessageHandler.pushView("cassette-list",
+                                                 cassetteListView.el,
+                                                 cassetteListView.proxyEvents);
+      });
     });
   },
 
@@ -134,14 +131,11 @@ Tapedeck.Backend.CassetteManager = {
 
       // Push the new view
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        var browseRegionView = Tapedeck.Backend
-                                       .TemplateManager
-                                       .renderView("BrowseRegion",
-                                                   { tabID : selectedTab.id });
-
-        Tapedeck.Backend.MessageHandler.pushView("browse-region",
-                                                 browseRegionView.el,
-                                                 browseRegionView.proxyEvents);
+        Tapedeck.Backend.TemplateManager.renderView("BrowseRegion", function(browseRegionView) {
+          Tapedeck.Backend.MessageHandler.pushView("browse-region",
+                                                   browseRegionView.el,
+                                                   browseRegionView.proxyEvents);
+        });
       });
     }
   },

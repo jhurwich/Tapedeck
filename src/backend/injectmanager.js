@@ -88,18 +88,17 @@ Tapedeck.Backend.InjectManager = {
           injectMgr.isTest(tab.url)) {
         return;
       }
-      var rendered = Tapedeck.Backend.TemplateManager
-                                     .renderView("Frame",
-                                                 { tabID: tabID });
+      Tapedeck.Backend.TemplateManager.renderView("Frame", function(rendered) {
 
-      var viewString = $('<div>').append($(rendered.el))
-                                 .remove()
-                                 .html();
+        var viewString = $('<div>').append($(rendered.el))
+                                   .remove()
+                                   .html();
 
-      Tapedeck.Backend.MessageHandler.pushView("frame",
-                                               viewString,
-                                               rendered.proxyEvents,
-                                               tab);
+        Tapedeck.Backend.MessageHandler.pushView("frame",
+                                                 viewString,
+                                                 rendered.proxyEvents,
+                                                 tab);
+      });
     });
   },
 

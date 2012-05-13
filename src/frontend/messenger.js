@@ -71,6 +71,7 @@ Tapedeck.Frontend.Messenger = {
         break;
 
       case "pushView":
+        console.log("recevied view for " + request.targetID);
         Tapedeck.Frontend.Frame.replaceView(request.targetID,
                                             request.view,
                                             request.proxyEvents);
@@ -123,11 +124,13 @@ Tapedeck.Frontend.Messenger = {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action     : "getView",
       viewName   : viewName,
-      options    : options,
     }, callback);
 
     if (packageName && packageName.length > 0) {
       request.packageName = packageName;
+    }
+    if (typeof(options) != "undefined" && options != null && !$.isEmptyObject(options)) {
+      request.options = options;
     }
 
     Tapedeck.Frontend.Messenger.sendMessage(request);

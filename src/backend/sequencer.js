@@ -8,6 +8,10 @@ Tapedeck.Backend.Sequencer = {
     }
     var bank = Tapedeck.Backend.Bank
     this.queue = bank.getQueue();
+    this.queue.bind('add', Tapedeck.Backend.MessageHandler.updateQueue);
+    this.queue.bind('remove', Tapedeck.Backend.MessageHandler.updateQueue);
+    this.queue.bind('reset', Tapedeck.Backend.MessageHandler.updateQueue);
+    this.queue.bind('change tracks', Tapedeck.Backend.MessageHandler.updateQueue);
 
     var volume = bank.getVolume();
     this.Player.setVolume(volume);

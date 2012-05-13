@@ -83,6 +83,22 @@ Tapedeck.Backend.Utils = {
     return bodies;
   },
 
+  extractTagAsObject: function(text, tagName) {
+    var map = {};
+
+    var targetTags = Tapedeck.Backend.Utils.getTagBodies(text, tagName);
+    var targetRegex = /"([^"]+)["]\s*?:\s*?["]([^"]+)["]/g;
+
+    for (var i = 0; i < targetTags.length; i ++) {
+      while ((targetMatch = targetRegex.exec(targetTags[i])) != null) {
+        var key = targetMatch[1];
+        var value = targetMatch[2];
+        map[key] = value;
+      }
+    }
+    return map;
+  },
+
   domToString: function(dom) {
     return $('div').append($(dom)).remove().html();
   }

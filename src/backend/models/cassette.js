@@ -29,4 +29,12 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
   isPageable: function() {
     return (typeof(this.getPage) != "undefined");
   },
+
+  // override the toJSON so that isPageable is sent as bool
+  toJSON: function() {
+    var json = Backbone.Model.prototype.toJSON.call(this);
+
+    json['isPageable'] = this.isPageable();
+    return json;
+  },
 });

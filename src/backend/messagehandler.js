@@ -146,17 +146,26 @@ Tapedeck.Backend.MessageHandler = {
         var scriptName = request.viewName;
         var packageName = (request.packageName ? request.packageName : null);
 
-        request.options["tabID"] = port.tab.id;
-        var rendered = Tapedeck.Backend.TemplateManager.renderView
-                                (scriptName, request.options, packageName);
 
-        var viewString = $('<div>').append($(rendered.el))
-                                   .remove()
-                                   .html();
+        var handleRendered = function(rendered) {
 
-        response.view = viewString;
-        response.proxyEvents = rendered.proxyEvents;
-        self.postMessage(port.tab.id, response);
+          var viewString = $('<div>').append($(rendered.el))
+                                     .remove()
+                                     .html();
+
+          response.view = viewString;
+          response.proxyEvents = rendered.proxyEvents;
+          self.postMessage(port.tab.id, response);
+        };
+
+        // getView can specify forced options, if provided use them
+        if (typeof(request.options) != "undefined" && request.options != null && !$.isEmptyObject(request.options)) {
+          request.options["tabID"] = port.tab.id;
+          Tapedeck.Backend.TemplateManager.renderViewWithOptions(scriptName, packageName, request.options, handleRendered);
+        }
+        else {
+          Tapedeck.Backend.TemplateManager.renderView(scriptName, packageName, handleRendered);
+        }
         break;
 
       case "requestUpdate":
@@ -347,9 +356,22 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
 
-    var playerView = Tapedeck.Backend.TemplateManager
-                                     .renderView("Player", { });
-    this.pushView("player", playerView.el, playerView.proxyEvents, tab);
+    Tapedeck.Backend.TemplateManager.renderView("Player", function(playerView) {
+      Tapedeck.Backend.MessageHandler.pushView("player", playerView.el, playerView.proxyEvents, tab);
+    });
+  },
+
+  updateQueue: function(tab) {
+    if (typeof(tab) == "undefined" || typeof(tab.id) == "undefined") {
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.updateQueue(selectedTab);
+      });
+      return;
+    }
+
+    Tapedeck.Backend.TemplateManager.renderView("Queue", function(queueView) {
+      Tapedeck.Backend.MessageHandler.pushView("queue", queueView.el, queueView.proxyEvents, tab);
+    });
   },
 
   updateBrowseList: function(tab) {
@@ -455,17 +477,12 @@ Tapedeck.Backend.MessageHandler = {
     }
     msgHandler.addTrackAvailable = true;
 
-    var browseView = Tapedeck.Backend
-                             .TemplateManager
-                             .renderView("BrowseList",
-                                         { trackList       : browseTrackList,
-                                           currentCassette : cMgr.currentCassette,
-                                           currentPage     : cMgr.currPage });
-
-    Tapedeck.Backend.MessageHandler.pushView("browse-list",
-                                             browseView.el,
-                                             browseView.proxyEvents,
-                                             tab);
+    Tapedeck.Backend.TemplateManager.renderView("BrowseList", function(browseView) {
+      Tapedeck.Backend.MessageHandler.pushView("browse-list",
+                                               browseView.el,
+                                               browseView.proxyEvents,
+                                               tab);
+    });
   },
 
   updateSeekSlider: function(tab) {

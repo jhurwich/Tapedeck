@@ -748,6 +748,7 @@ Tapedeck.Frontend.Frame = {
       var modal = Tapedeck.Frontend.Frame.Modal;
 
       var getViewCallback = function(response) {
+
         Tapedeck.Frontend.Frame.replaceView("modal",
                                             response.view,
                                             response.proxyEvents);

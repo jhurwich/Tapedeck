@@ -48,14 +48,29 @@
           "click #queue-shuffle" : "shuffleQueue",
           "click #queue-clear"   : "clearQueue",
         </events>
+        <options>
+          <!-- "tabID" : "tabID" -->
+        </options>
+        <images>
+          "#repeat"        : "repeat.png",
+          "#queue-shuffle" : "shuffle.png",
+          "#queue-clear"   : "trash.png"
+        </images>
       </tapedeck>
+
       <template>
-        <div id="player">Player Here</div>
+        <div id="player">
+          <template ref="Player-default-template" />
+        </div>
         <div id="queue-region" class="region">
-          <div id="queue" class="tracklist"></div>
+          <div id="queue" class="tracklist">
+            <template ref="Queue-default-template" />
+          </div>
 
           <div id="queue-buttons">
-            <div id="playlist-list"></div>
+            <div id="playlist-list">
+              <template ref="PlaylistList-default-template" />
+            </div>
 
             <button id="queue-save" type="button">
               Save
@@ -68,7 +83,7 @@
           </div>
         </div>
 
-        <div id="browse-region" class="region"></div>
+        <template ref="BrowseRegion-default-template" />
       </template>
     </script>
 
@@ -76,10 +91,20 @@
       <tapedeck>
         <events>
         </events>
+        <options>
+          "currentCassette" : "currentCassette",
+        </options>
       </tapedeck>
+
       <template>
-        <div id="browse-list" class="tracklist"></div>
-        <div id="cassette-list" class="cassettelist"></div>
+        <div id="browse-region" class="region">
+          <% if(typeof(params.currentCassette) != "undefined" && params.currentCassette != null) { %>
+            <template ref="BrowseList-default-template" />
+          <% }
+          else { %>
+            <template ref="CassetteList-default-template" />
+          <% } %>
+        </div>
       </template>
     </script>
 
@@ -95,29 +120,47 @@
           "mouseup": "Player.mouseUp",
           "onreplace": "onFrameRender"
         </events>
+        <options>
+          "playerState" : "state",
+          "currentTrack" : "track"
+        </options>
+        <images>
+          "#seek-slider #track-left"     : "seekslider-track-left.png",
+          "#seek-slider #track-right"    : "seekslider-track-right.png",
+          "#seek-slider #handle-image"   : "seekslider-handle.png",
+
+          "#volume-slider #track-top"    : "volumeslider-track-top.png",
+          "#volume-slider #track-bottom" : "volumeslider-track-bottom.png",
+          "#volume-slider #handle-image" : "volumeslider-handle.png"
+        </images>
       </tapedeck>
+
       <template>
         <div id="banner-region">
           <div id="banner">
             <%
+            if (typeof(params.state) == "undefined" || !params.state) {
+              params.state = 'stop';
+            }
+
             var bannerStr = "";
 
-            if (state != "stop" && typeof(track) != "undefined") {
-              if (typeof(track.artistName) != "undefined") {
-                bannerStr += track.artistName;
+            if (params.state != "stop" && typeof(params.track) != "undefined") {
+              if (typeof(params.track.artistName) != "undefined") {
+                bannerStr += params.track.artistName;
               }
-              if (typeof(track.trackName) != "undefined") {
+              if (typeof(params.track.trackName) != "undefined") {
                 if (bannerStr.length > 0) {
                   bannerStr += " &ndash; ";
                 }
-                bannerStr += track.trackName;
+                bannerStr += params.track.trackName;
               }
             }
 
-            if (state == "load") {
+            if (params.state == "load") {
               bannerStr += "<br />(Loading)";
             }
-            else if (state == "pause") {
+            else if (params.state == "pause") {
               bannerStr += "<br />(Paused)";
             }
             print(bannerStr);
@@ -125,7 +168,7 @@
           </div>
           <div id="volume-slider"
                class="slider
-                      <% if (state != "play" && state != "pause") {
+                      <% if (params.state != "play" && params.state != "pause") {
                         print(" disabled ");
                       }%>" >
             <div id="track-top" class="slider-track"></div>
@@ -139,7 +182,7 @@
 
         <div id="seek-slider"
              class="slider
-                    <% if (state != "play" && state != "pause") {
+                    <% if (params.state != "play" && params.state != "pause") {
                       print(" disabled ");
                     }%>" >
           <div id="track-left" class="slider-track"></div>
@@ -157,21 +200,48 @@
     <script id="TrackList-default-template" type="text/template">
       <tapedeck>
         <events>
+          "click .tracklist .row"                 : "TrackLists.rowClick",
+          "click .tracklist .trackName-span"      : "TrackLists.rowDblClick",
+          "click .tracklist .button.playnow"      : "TrackLists.rowButtonPlaynow",
+          "click .tracklist .button.remove"       : "TrackLists.rowButtonRemove",
+          "click .tracklist .button.queue"        : "TrackLists.rowButtonQueue",
+          "click .tracklist .button.download"     : "TrackLists.rowButtonDownload",
+
+          "click #current-cassette-row .button.prev-page"    : "TrackLists.prevPage",
+          "click #current-cassette-row .button.current-page" : "TrackLists.setCurrentPage",
+          "click #current-cassette-row .button.next-page"    : "TrackLists.nextPage",
+          "click #current-cassette-row .button.eject"        : "TrackLists.eject"
         </events>
+        <options>
+        </options>
+        <images>
+          ".button.playnow" : "rowbutton-playnow.png",
+          ".button.remove" : "rowbutton-remove.png",
+          ".button.queue" : "rowbutton-queue.png",
+          ".button.download" : "rowbutton-download.png",
+          ".spinner.download" : "download-spinner.gif",
+
+          ".button.prev-page" : "prev-page.png",
+          ".button.next-page" : "next-page.png",
+          ".button.eject" : "cassettebutton-eject.png",
+
+          ".spinner.loading" : "tracklist-loading.gif",
+        </images>
       </tapedeck>
+
       <template>
         <div class="tracklist">
-          <% if(typeof(trackList) == "undefined" || trackList == null) { %>
+          <% if(typeof(params.trackList) == "undefined" || params.trackList == null) { %>
             <div class="row-container">
               <div class="row blank">
                 <div class="spinner loading"
                      id="loading-spinner"></div>
               </div>
             </div>
-          <% } else if (trackList.length == 0) { %>
+          <% } else if (params.trackList.length == 0) { %>
             <div class="row-container">
               <div class="row blank">
-                <% if (trackList.destination == "Queue") { %>
+                <% if (params.trackList.destination == "Queue") { %>
                   There are no tracks in your queue.
                 <% }
                 else { %>
@@ -190,8 +260,8 @@
               </div>
             </div>
 
-            <% for (var i=0; i < trackList.length; i++) {
-              var track = trackList[i];
+            <% for (var i=0; i < params.trackList.length; i++) {
+              var track = params.trackList[i];
             %>
               <div class="row-container">
                 <div class="row
@@ -234,15 +304,15 @@
             <% } %>
           <% } %>
         </div>
-        <% if (typeof(currentCassette) != "undefined") { %>
+        <% if (typeof(params.currentCassette) != "undefined" && params.currentCassette) { %>
           <div id="current-cassette-row" class="row">
             <div class="cell current-cassette-col">
-              <%= currentCassette.get("name").replace(/_/g, " ") %>
+              <%= params.currentCassette.name.replace(/_/g, " ") %>
               <div class="row-buttons">
-                <% if (currentCassette.isPageable() && typeof(currentPage) != "undefined") { %>
+                <% if (params.currentCassette.isPageable && typeof(params.currentPage) != "undefined") { %>
                   <div class="button prev-page"></div>
                   <div id="current-page" class="button current-page">
-                    <%= currentPage %>
+                    <%= params.currentPage %>
                   </div>
                   <div class="button next-page"></div>
                 <% } %>
@@ -264,8 +334,17 @@
           "dragover #queue .row"  : "TrackLists.rowDragOver",
           "drop #queue .row"      : "TrackLists.rowDrop"
         </events>
+        <options>
+          "queue" : "queue"
+        </options>
       </tapedeck>
-      <template ref="TrackList-default-template" />
+
+      <template>
+        <div id="queue" class="tracklist-container" rowdblclick="queueDblClick">
+          <!-- we do not want the currentCassette, so make sure the trackList can not find it -->
+          <template ref="TrackList-default-template" remap="params.trackList:params.queue,params.currentCassette:params.__doesNotExist__"/>
+        </div>
+      </template>
     </script>
 
     <script id="BrowseList-default-template" type="text/template">
@@ -274,8 +353,18 @@
           "dragstart #browse-list .row" : "TrackLists.rowDragStart",
           "dragend #browse-list .row"   : "TrackLists.rowDragEnd",
         </events>
+        <options>
+          "currentCassette" : "currentCassette",
+          "currentPage" : "currentPage",
+          "browseList" : "browseList"
+        </options>
       </tapedeck>
-      <template ref="TrackList-default-template" />
+
+      <template>
+        <div id="browse-list" class="tracklist-container" rowdblclick="browseDblClick">
+          <template ref="TrackList-default-template" remap="params.trackList:params.browseList" />
+        </div>
+      </template>
     </script>
 
     <script id="PlaylistList-default-template" type="text/template">
@@ -286,19 +375,33 @@
           "click #playlist-list-content .row" : "PlaylistList.playPlaylist",
           "click #playlist-list-content .removePlaylist" : "PlaylistList.removePlaylist",
         </events>
+        <options>
+          "playlistList" : "playlistList",
+        </options>
+        <images>
+          ".button.removePlaylist" : "rowbutton-remove.png",
+        </images>
       </tapedeck>
+
       <template>
         <div id="playlist-list-header">Load a playlist</div>
         <div id="playlist-list-content">
-          <% for (var i=0; i < playlistList.length; i++) {
-            var playlist = playlistList.at(i);
-          %>
-            <div class="row" index='<%= i %>' >
-              <div class="cell playlistName-col"> <%= playlist.id %> </div>
-              <div class="cell row-buttons">
-                <div class="button removePlaylist"></div>
+          <% if (typeof(params.playlistList) == "undefined" || !params.playlistList || params.playlistList.length == 0) { %>
+              <div class="row blank">
+                You do not have any saved playlists.
               </div>
-            </div>
+          <% }
+          else { %>
+            <% for (var i=0; i < params.playlistList.length; i++) {
+              var playlist = params.playlistList[i];
+            %>
+              <div class="row" index='<%= i %>' >
+                <div class="cell playlistName-col"> <%= playlist.id %> </div>
+                <div class="cell row-buttons">
+                  <div class="button removePlaylist"></div>
+                </div>
+              </div>
+            <% } %>
           <% } %>
         </div>
       </template>
@@ -316,45 +419,62 @@
           "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
           "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
         </events>
+        <options>
+          "cassetteList" : "cassetteList",
+        </options>
+        <images>
+          "#add-cassettes-button" : "plusbutton.png",
+          ".button.remove"        : "cassetteremove.png"
+        </images>
       </tapedeck>
+
       <template>
-        <div class="cassettelist">
-          <% for (var i=0; i < cassetteList.length; i++) {
-            var cassette = cassetteList[i];
-            var displayName = cassette.name.replace(/_/g, " ");
-          %>
+        <div id="cassette-list" class="cassettelist">
+          <% if(typeof(params.cassetteList) == "undefined" || params.cassetteList == null) { %>
             <div class="row-container">
-              <div class="row <% if (cassette.active) { print(" active "); } %>"
-                   index='<%= i %>'
-                   cassette-name='<%= cassette.name %>' >
-                <div class="cell cassetteName-col" title='<%= displayName %>'> <%= displayName %> </div>
-                <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
-                  <span class="developer-link"
-                        url='<%= cassette.developerLink %>' >
-                    <%= cassette.developer %>
-                  </span>
-                  <div class="row-buttons">
-                    <div class="button remove"></div>
+              <div class="row blank">
+                You do not have any cassettes.
+              </div>
+            </div>
+          <% }
+          else { %>
+            <% for (var i=0; i < params.cassetteList.length; i++) {
+              var cassette = params.cassetteList[i];
+              var displayName = cassette.name.replace(/_/g, " ");
+            %>
+              <div class="row-container">
+                <div class="row <% if (cassette.active) { print(" active "); } %>"
+                     index='<%= i %>'
+                     cassette-name='<%= cassette.name %>' >
+                  <div class="cell cassetteName-col" title='<%= displayName %>'> <%= displayName %> </div>
+                  <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
+                    <span class="developer-link"
+                          url='<%= cassette.developerLink %>' >
+                      <%= cassette.developer %>
+                    </span>
+                    <div class="row-buttons">
+                      <div class="button remove"></div>
+                    </div>
                   </div>
                 </div>
               </div>
+            <% } %>
+          </div>
+          <div class="row-container" id="cassettelist-button-row">
+            <div class="row-buttons">
+            </div>
+          </div>
+          <div id="add-cassettes-menu">
+            <div id="add-cassettes-button" class="button"></div>
+            <div id="add-cassettes-content">
+              <div class="menu-row coming-soon">
+                Get more cassettes (coming soon)
+              </div>
+              <div class="menu-row cassettify">
+                Cassettify
+              </div>
             </div>
           <% } %>
-        </div>
-        <div class="row-container" id="cassettelist-button-row">
-          <div class="row-buttons">
-          </div>
-        </div>
-        <div id="add-cassettes-menu">
-          <div id="add-cassettes-button" class="button"></div>
-          <div id="add-cassettes-content">
-            <div class="menu-row coming-soon">
-              Get more cassettes (coming soon)
-            </div>
-            <div class="menu-row cassettify">
-              Cassettify
-            </div>
-          </div>
         </div>
       </template>
     </script>
@@ -366,10 +486,13 @@
             "click .modal #submit-button" : "Modal.submit",
             "keypress .modal input[type='text']" : "Modal.enterPress",
         </events>
+        <options>
+        </options>
         <images>
-          "close-button": "modal-close.png",
+          "#close-button": "modal-close.png",
         </images>
       </tapedeck>
+
       <template>
         <!-- Note options are params.X here -->
         <div id="blackout"></div>
