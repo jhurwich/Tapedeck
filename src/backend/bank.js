@@ -563,7 +563,7 @@ Tapedeck.Backend.Bank = {
     catch (error) {
       console.error("Could not save playlist '" + playlist.id + "'");
     }
-    Tapedeck.Backend.Bank.updatePlaylistListView();
+    Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
   },
 
   removeFromPlaylistList: function(playlist) {
@@ -575,16 +575,7 @@ Tapedeck.Backend.Bank = {
     catch (error) {
       console.error("Could not remove playlist '" + playlist.id + "'");
     }
-    Tapedeck.Backend.Bank.updatePlaylistListView();
-  },
-
-  updatePlaylistListView: function() {
-    var playlistList = Tapedeck.Backend.Bank.getPlaylists();
-    Tapedeck.Backend.TemplateManager.renderView("PlaylistList", function(listView) {
-      Tapedeck.Backend.MessageHandler.pushView("playlist-list",
-                                               listView.el,
-                                               listView.proxyEvents);
-    });
+    Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
   },
 
   saveTrackList: function(name, trackList) {
@@ -660,18 +651,39 @@ Tapedeck.Backend.Bank = {
   },
 
   savedBrowseListName: "__browseList",
+  currBrowseList: null,
   saveBrowseList: function(trackList) {
     var bank = Tapedeck.Backend.Bank;
+    if (bank.currBrowseList) {
+      bank.currBrowseList.unbind('change tracks'); // unbind old change event
+    }
+
     bank.saveTrackList(bank.savedBrowseListName, trackList);
+    bank.currBrowseList = trackList;
+
+    bank.currBrowseList.unbind('change tracks'); // make sure the new one doesn't have a change event and add one
+    bank.currBrowseList.bind('change tracks', function() {
+      Tapedeck.Backend.MessageHandler.pushBrowseTrackList(this);
+    });
   },
   getBrowseList: function() {
     var bank = Tapedeck.Backend.Bank;
-    return bank.getTrackList(bank.savedBrowseListName);
+    if (bank.currBrowseList == null) {
+      bank.currBrowseList = bank.getTrackList(bank.savedBrowseListName);
+    }
+    return bank.currBrowseList;
+  },
+  attachBrowseListEvents: function(browseList) {
+
   },
 
   clearBrowseList: function() {
     var bank = Tapedeck.Backend.Bank;
     bank.clearTrackList(bank.savedBrowseListName);
+    if (bank.currBrowseList) {
+      bank.currBrowseList.unbind('change tracks');
+      bank.currBrowseList = null;
+    }
   },
 
   setDrawerOpened: function(open) {

@@ -8,10 +8,10 @@ Tapedeck.Backend.Sequencer = {
     }
     var bank = Tapedeck.Backend.Bank
     this.queue = bank.getQueue();
-    this.queue.bind('add', Tapedeck.Backend.MessageHandler.updateQueue);
-    this.queue.bind('remove', Tapedeck.Backend.MessageHandler.updateQueue);
-    this.queue.bind('reset', Tapedeck.Backend.MessageHandler.updateQueue);
-    this.queue.bind('change tracks', Tapedeck.Backend.MessageHandler.updateQueue);
+    this.queue.bind('add', Tapedeck.Backend.MessageHandler.updateView.curry("Queue"));
+    this.queue.bind('remove', Tapedeck.Backend.MessageHandler.updateView.curry("Queue"));
+    this.queue.bind('reset', Tapedeck.Backend.MessageHandler.updateView.curry("Queue"));
+    this.queue.bind('change tracks', Tapedeck.Backend.MessageHandler.updateView.curry("Queue"));
 
     var volume = bank.getVolume();
     this.Player.setVolume(volume);
@@ -94,21 +94,21 @@ Tapedeck.Backend.Sequencer = {
 
     handlePlaying: function(self) {
       self.currentState = self.STATES.PLAY;
-      Tapedeck.Backend.MessageHandler.updatePlayer();
+      Tapedeck.Backend.MessageHandler.updateView("Player");
     },
 
     handlePause: function(self) {
-      Tapedeck.Backend.MessageHandler.updatePlayer();
+      Tapedeck.Backend.MessageHandler.updateView("Player");
     },
 
     handleEnded: function(self) {
       Tapedeck.Backend.Sequencer.next();
-      Tapedeck.Backend.MessageHandler.updatePlayer();
+      Tapedeck.Backend.MessageHandler.updateView("Player");
     },
 
     handleLoadStart: function(self) {
       self.currentState = self.STATES.LOAD;
-      Tapedeck.Backend.MessageHandler.updatePlayer();
+      Tapedeck.Backend.MessageHandler.updateView("Player");
     },
 
     handleDurationChange: function(self) {

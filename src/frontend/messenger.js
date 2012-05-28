@@ -32,9 +32,15 @@ Tapedeck.Frontend.Messenger = {
       return;
     }
 
-    var callbacks = Tapedeck.Frontend.Messenger.pendingCallbacks;
-    if (response.callbackID in callbacks) {
-      callbacks[response.callbackID](response);
+    if (response.callbackID in Tapedeck.Frontend.Messenger.pendingCallbacks) {
+      Tapedeck.Frontend.Messenger.pendingCallbacks[response.callbackID](response);
+
+      if (typeof(response.dontClear) == "undefined" || !response.dontClear) {
+        delete Tapedeck.Frontend.Messenger.pendingCallbacks[response.callbackID];
+      }
+    }
+    else {
+      console.error("Could not find callback '" + response.callbackID + "' for response.");
     }
   },
 
@@ -71,9 +77,7 @@ Tapedeck.Frontend.Messenger = {
         break;
 
       case "pushView":
-        console.log("recevied view for " + request.targetID);
-        Tapedeck.Frontend.Frame.replaceView(request.targetID,
-                                            request.view,
+        Tapedeck.Frontend.Frame.replaceView(request.view,
                                             request.proxyEvents);
         break;
 
@@ -120,16 +124,23 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
-  getView: function(viewName, options, packageName, callback) {
+  // options should be null if view should self-populate, an empty object will force
+  // no options to the view
+  getView: function(viewName, options, packageName, callback, postPopulate) {
+    if(typeof(postPopulate) == "undefined") {
+      postPopulate = false;
+    }
+
     var request = Tapedeck.Frontend.Messenger.newRequest({
-      action     : "getView",
-      viewName   : viewName,
+      action        : "getView",
+      viewName      : viewName,
+      postPopulate  : postPopulate
     }, callback);
 
     if (packageName && packageName.length > 0) {
       request.packageName = packageName;
     }
-    if (typeof(options) != "undefined" && options != null && !$.isEmptyObject(options)) {
+    if (typeof(options) != "undefined" && options != null) {
       request.options = options;
     }
 
@@ -372,7 +383,12 @@ Tapedeck.Frontend.Messenger = {
     request.type = "request";
 
     if (typeof(callback) != "undefined") {
+      // the time should be unique enough to prevent most collisions
       var cbID = new Date().getTime();
+      while (cbID in Tapedeck.Frontend.Messenger.pendingCallbacks) {
+        // increment until we're out of collisions
+        cbID = cbID + 1;
+      }
       Tapedeck.Frontend.Messenger.pendingCallbacks[cbID] = callback;
       request.callbackID = cbID;
     }

@@ -479,7 +479,6 @@ if (onObject != null &&
             // Looks like flashplayers of this style are wordpress,
             // a <p> with class="audioplayer_container is the root
             // of the player, but the trackName could be before or after
-            var trackName = "";
             var audioContainer = $(player).parents
                                           (".audioplayer_container")
                                           .first();
@@ -515,7 +514,7 @@ if (onObject != null &&
             }
 
             // As a last resort, use the filename
-            if (track.trackName.length == 0) {
+            if (typeof(track.trackName) == "undefined" || track.trackName.length == 0) {
               var lastSlash = fileURL.lastIndexOf('/');
               track.trackName = fileURL.substring(lastSlash + 1);
             }

@@ -68,9 +68,6 @@ body {
   height: 9px;
   margin-left: 2px;
 }
-#volume-slider.disabled #handle {
-  display: none;
-}
 #seek-slider {
   clear: both;
   width: 305px;
@@ -166,7 +163,7 @@ body {
   height: 16px;
   z-index: 3;
 }
-.tracklist .row:hover {
+.tracklist .row:not(.blank):hover {
   background-color: #d0d0d0;
   cursor: pointer;
 }
@@ -188,13 +185,15 @@ body {
 .tracklist .row.blank {
   padding: 3px;
 }
-.tracklist .spinner.loading {
-  height: 9px;
+.tracklist .spinner.loading,
+.cassettelist .spinner.loading {
+  height: 12px;
   width: 16px;
   position: absolute;
   left: 50%;
-  top: 6px;
+  top: 3px;
   margin-left: -8px;
+  background-repeat: no-repeat;
 }
 .tracklist-container .cell,
 .cassettelist .cell {
@@ -374,7 +373,7 @@ body {
   background-color: #515151;
   height: 20px;
 }
-.cassettelist .row:not(.button-row):hover {
+.cassettelist .row:not(.blank):hover {
   background-color: #2f2f2f;
   cursor: pointer;
 }

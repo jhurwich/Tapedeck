@@ -94,8 +94,7 @@ Tapedeck.Backend.InjectManager = {
                                    .remove()
                                    .html();
 
-        Tapedeck.Backend.MessageHandler.pushView("frame",
-                                                 viewString,
+        Tapedeck.Backend.MessageHandler.pushView(viewString,
                                                  rendered.proxyEvents,
                                                  tab);
       });

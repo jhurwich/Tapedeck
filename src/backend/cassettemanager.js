@@ -81,8 +81,7 @@ Tapedeck.Backend.CassetteManager = {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.readInCassettes(function() {
       Tapedeck.Backend.TemplateManager.renderView("CassetteList", function(cassetteListView) {
-        Tapedeck.Backend.MessageHandler.pushView("cassette-list",
-                                                 cassetteListView.el,
+        Tapedeck.Backend.MessageHandler.pushView(cassetteListView.el,
                                                  cassetteListView.proxyEvents);
       });
     });
@@ -132,8 +131,7 @@ Tapedeck.Backend.CassetteManager = {
       // Push the new view
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
         Tapedeck.Backend.TemplateManager.renderView("BrowseRegion", function(browseRegionView) {
-          Tapedeck.Backend.MessageHandler.pushView("browse-region",
-                                                   browseRegionView.el,
+          Tapedeck.Backend.MessageHandler.pushView(browseRegionView.el,
                                                    browseRegionView.proxyEvents);
         });
       });
@@ -186,9 +184,6 @@ Tapedeck.Backend.CassetteManager = {
       cMgr.currPage = 1;
     }
 
-    // this triggers the loading browseList state
-    Tapedeck.Backend.MessageHandler.pushBrowseTrackList(null);
-
     // update the page in memory
     for (var i = 0; i < cMgr.cassettes.length; i++) {
       var cassette = cMgr.cassettes[i].cassette;
@@ -197,8 +192,8 @@ Tapedeck.Backend.CassetteManager = {
       }
     }
 
-    // change to the new page in the frontend
-    Tapedeck.Backend.MessageHandler.updateBrowseList();
+    // change to the new page in the frontend, in the selected tab, with postPopulate
+    Tapedeck.Backend.MessageHandler.updateView("BrowseList", null, true);
 
     // save the page to persist
     Tapedeck.Backend.Bank.saveCassettePage(cMgr.currentCassette.get("name"),
@@ -255,7 +250,6 @@ Tapedeck.Backend.CassetteManager = {
       self.postLoadCleanup();
 
       var pattern = params.pattern;
-
       var index = pattern.indexOf("$#");
       if (index == -1) {
         // couldn't find the pattern
@@ -278,7 +272,6 @@ Tapedeck.Backend.CassetteManager = {
       }
 
       var template = _.template(cMgr.CassettifyTemplate.template);
-
       pattern = pattern.replace("http://", "");
       pattern = pattern.replace("www.", "");
       var domain;
@@ -320,7 +313,6 @@ Tapedeck.Backend.CassetteManager = {
         code = code.replace(/CassetteFromTemplate/g,
                             saveableName);
         code = code.replace(/Unnamed/g, saveableName);
-
         Tapedeck.Backend.Bank.FileSystem.saveCassette(code,
                                                       saveableName,
                                                       cMgr.Cassettify.finish);

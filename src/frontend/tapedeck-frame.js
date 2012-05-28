@@ -711,9 +711,7 @@ Tapedeck.Frontend.Frame = {
   },
 
   forceVolumeSliderUpdate: function() {
-    if (!($("#volume-slider").hasClass("disabled"))) {
-      Tapedeck.Frontend.Messenger.requestUpdate("VolumeSlider");
-    }
+    Tapedeck.Frontend.Messenger.requestUpdate("VolumeSlider");
   },
 
   checkRepeat: function() {
@@ -749,8 +747,7 @@ Tapedeck.Frontend.Frame = {
 
       var getViewCallback = function(response) {
 
-        Tapedeck.Frontend.Frame.replaceView("modal",
-                                            response.view,
+        Tapedeck.Frontend.Frame.replaceView(response.view,
                                             response.proxyEvents);
         var inputs = $("#modal").find("input[type='text']");
         if (inputs.length > 0) {
@@ -809,10 +806,11 @@ Tapedeck.Frontend.Frame = {
     },
   },
 
-  replaceView: function(id, viewStr, proxyEvents) {
+  replaceView: function(viewStr, proxyEvents) {
     var view = $(viewStr);
-    $("#" + id).replaceWith(view);
-    this.attachEvents(id, proxyEvents);
+    var targetID = $(view).first().attr("id");
+    $("#" + targetID).replaceWith(view);
+    this.attachEvents(targetID, proxyEvents);
   },
 
   attachEvents: function(id, events) {

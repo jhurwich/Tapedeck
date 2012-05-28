@@ -32,17 +32,26 @@ Tapedeck.Backend.TemplateManager = {
   },
 
   // packageName is optional
-  renderView: function(scriptName, packageName, callback) {
+  // if postPopulate then view will be rendered and pushed without options and a
+  // following push with options will be made when ready
+  renderView: function(scriptName, packageName, callback, postPopulate) {
     var tMgr = Tapedeck.Backend.TemplateManager;
     if (typeof(packageName) == "function") {
+      postPopulate = callback;
       callback = packageName;
       packageName = null;
+    }
+    if (typeof(postPopulate) == "undefined") {
+      postPopulate = false;
     }
 
     // generate the view with no options to know what it needs
     var viewScript = tMgr.getViewScript(scriptName, packageName);
     var hollowView = new viewScript({ });
 
+    if (postPopulate) {
+      tMgr.renderViewWithOptions(scriptName, packageName, { }, callback);
+    }
     tMgr.fillOptions(hollowView.getOptions(), function(filledOptions) {
       tMgr.renderViewWithOptions(scriptName, packageName, filledOptions, callback);
     });
@@ -51,8 +60,8 @@ Tapedeck.Backend.TemplateManager = {
   renderViewWithOptions: function(scriptName, packageName, options, callback) {
     var tMgr = Tapedeck.Backend.TemplateManager;
     if (packageName && typeof(packageName) != "string") {
-      options = packageName;
       callback = options;
+      options = packageName;
       packageName = null;
     }
     var viewScript = tMgr.getViewScript(scriptName, packageName);
@@ -183,6 +192,10 @@ Tapedeck.Backend.TemplateManager = {
     callback(Tapedeck.Backend.Sequencer.queue);
   },
   getPlaylistList: function(callback) {
+    var playlists = Tapedeck.Backend.Bank.getPlaylists();
+    for (var i = 0; i < playlists.length; i++) {
+      var playlist = playlists.at(i);
+    }
     callback(Tapedeck.Backend.Bank.getPlaylists());
   },
   getPlayerState: function(callback) {

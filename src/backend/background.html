@@ -166,11 +166,7 @@
             print(bannerStr);
             %>
           </div>
-          <div id="volume-slider"
-               class="slider
-                      <% if (params.state != "play" && params.state != "pause") {
-                        print(" disabled ");
-                      }%>" >
+          <div id="volume-slider" class="slider">
             <div id="track-top" class="slider-track"></div>
             <div id="track-bottom" class="slider-track">
               <div id="handle">
@@ -225,7 +221,7 @@
           ".button.next-page" : "next-page.png",
           ".button.eject" : "cassettebutton-eject.png",
 
-          ".spinner.loading" : "tracklist-loading.gif",
+          ".tracklist .spinner.loading" : "blue-on-light-loader.gif",
         </images>
       </tapedeck>
 
@@ -424,45 +420,46 @@
         </options>
         <images>
           "#add-cassettes-button" : "plusbutton.png",
-          ".button.remove"        : "cassetteremove.png"
+          ".button.remove"        : "cassetteremove.png",
+
+          ".cassettelist .spinner.loading" : "blue-on-dark-loader.gif",
         </images>
       </tapedeck>
 
       <template>
-        <div id="cassette-list" class="cassettelist">
-          <% if(typeof(params.cassetteList) == "undefined" || params.cassetteList == null) { %>
-            <div class="row-container">
-              <div class="row blank">
-                You do not have any cassettes.
-              </div>
-            </div>
-          <% }
-          else { %>
-            <% for (var i=0; i < params.cassetteList.length; i++) {
-              var cassette = params.cassetteList[i];
-              var displayName = cassette.name.replace(/_/g, " ");
-            %>
+        <div id="cassette-list">
+          <div class="cassettelist">
+            <% if(typeof(params.cassetteList) == "undefined" || params.cassetteList == null) { %>
               <div class="row-container">
-                <div class="row <% if (cassette.active) { print(" active "); } %>"
-                     index='<%= i %>'
-                     cassette-name='<%= cassette.name %>' >
-                  <div class="cell cassetteName-col" title='<%= displayName %>'> <%= displayName %> </div>
-                  <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
-                    <span class="developer-link"
-                          url='<%= cassette.developerLink %>' >
-                      <%= cassette.developer %>
-                    </span>
-                    <div class="row-buttons">
-                      <div class="button remove"></div>
+                <div class="row blank">
+                  <div class="spinner loading"
+                       id="loading-spinner"></div>
+                </div>
+              </div>
+            <% }
+            else { %>
+              <% for (var i=0; i < params.cassetteList.length; i++) {
+                var cassette = params.cassetteList[i];
+                var displayName = cassette.name.replace(/_/g, " ");
+              %>
+                <div class="row-container">
+                  <div class="row <% if (cassette.active) { print(" active "); } %>"
+                       index='<%= i %>'
+                       cassette-name='<%= cassette.name %>' >
+                    <div class="cell cassetteName-col" title='<%= displayName %>'> <%= displayName %> </div>
+                    <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
+                      <span class="developer-link"
+                            url='<%= cassette.developerLink %>' >
+                        <%= cassette.developer %>
+                      </span>
+                      <div class="row-buttons">
+                        <div class="button remove"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              <% } %>
             <% } %>
-          </div>
-          <div class="row-container" id="cassettelist-button-row">
-            <div class="row-buttons">
-            </div>
           </div>
           <div id="add-cassettes-menu">
             <div id="add-cassettes-button" class="button"></div>
@@ -474,7 +471,7 @@
                 Cassettify
               </div>
             </div>
-          <% } %>
+          </div>
         </div>
       </template>
     </script>

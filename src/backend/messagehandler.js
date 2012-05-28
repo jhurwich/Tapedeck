@@ -146,6 +146,12 @@ Tapedeck.Backend.MessageHandler = {
         var scriptName = request.viewName;
         var packageName = (request.packageName ? request.packageName : null);
 
+        // if request.postPopulate than this will be called twice, the first one should
+        // not clear the callback from the frontend messenger
+        var callbacksExpected = 1;
+        if (typeof(request.postPopulate) != "undefined" && request.postPopulate) {
+          callbacksExpected = callbacksExpected + 1;
+        }
 
         var handleRendered = function(rendered) {
 
@@ -155,24 +161,45 @@ Tapedeck.Backend.MessageHandler = {
 
           response.view = viewString;
           response.proxyEvents = rendered.proxyEvents;
+
+          // if there are outstanding callbacks, don't clear the callback from the frontend
+          callbacksExpected = callbacksExpected - 1;
+          if (callbacksExpected != 0) {
+            response.dontClear = true;
+          }
+          else {
+            response.dontClear = false;
+          }
           self.postMessage(port.tab.id, response);
         };
 
-        // getView can specify forced options, if provided use them
-        if (typeof(request.options) != "undefined" && request.options != null && !$.isEmptyObject(request.options)) {
+        // getView can specify forced options, if provided use them (an empty object would force no options)
+        if (typeof(request.options) != "undefined" && request.options != null) {
+          if (request.postPopulate) {
+            console.error("Doesn't make sense to force options and postPopulate - postPopulate ignored.");
+          }
           request.options["tabID"] = port.tab.id;
           Tapedeck.Backend.TemplateManager.renderViewWithOptions(scriptName, packageName, request.options, handleRendered);
         }
         else {
-          Tapedeck.Backend.TemplateManager.renderView(scriptName, packageName, handleRendered);
+          Tapedeck.Backend.TemplateManager.renderView(scriptName, packageName, handleRendered, request.postPopulate);
         }
         break;
 
       case "requestUpdate":
         var updateType = request.updateType.charAt(0).toUpperCase() +
                          request.updateType.slice(1);
-        var updateFnName = "update" + updateType;
-        self[updateFnName](port.tab);
+
+        // Sliders aren't views, but can be updated specially
+        if (updateType.indexOf("Slider") == -1) {
+          Tapedeck.Backend.MessageHandler.updateView(updateType, port.tab);
+        }
+        else if (updateType == "SeekSlider") {
+          Tapedeck.Backend.MessageHandler.updateSeekSlider(port.tab);
+        }
+        else if (updateType == "VolumeSlider") {
+          Tapedeck.Backend.MessageHandler.updateVolumeSlider(port.tab);
+        }
         break;
 
       case "download":
@@ -348,69 +375,6 @@ Tapedeck.Backend.MessageHandler = {
     });
   },
 
-  updatePlayer: function(tab) {
-    if (typeof(tab) == "undefined") {
-      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Tapedeck.Backend.MessageHandler.updatePlayer(selectedTab);
-      });
-      return;
-    }
-
-    Tapedeck.Backend.TemplateManager.renderView("Player", function(playerView) {
-      Tapedeck.Backend.MessageHandler.pushView("player", playerView.el, playerView.proxyEvents, tab);
-    });
-  },
-
-  updateQueue: function(tab) {
-    if (typeof(tab) == "undefined" || typeof(tab.id) == "undefined") {
-      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Tapedeck.Backend.MessageHandler.updateQueue(selectedTab);
-      });
-      return;
-    }
-
-    Tapedeck.Backend.TemplateManager.renderView("Queue", function(queueView) {
-      Tapedeck.Backend.MessageHandler.pushView("queue", queueView.el, queueView.proxyEvents, tab);
-    });
-  },
-
-  updateBrowseList: function(tab) {
-    if (typeof(tab) == "undefined") {
-      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Tapedeck.Backend.MessageHandler.updateBrowseList(selectedTab);
-      });
-      return;
-    }
-    var cMgr = Tapedeck.Backend.CassetteManager;
-
-    if (cMgr.currentCassette != null) {
-      var context = Tapedeck.Backend.Utils.getContext(tab);
-
-      if (!cMgr.currentCassette.isPageable() || cMgr.currPage <= 1) {
-        cMgr.currentCassette.getBrowseList(context, function(trackJSONs) {
-          var browseTrackList = new Tapedeck.Backend.Collections.TrackList
-                                                    (trackJSONs);
-
-          Tapedeck.Backend
-                  .MessageHandler
-                  .pushBrowseTrackList(browseTrackList, tab);
-        });
-      }
-      else {
-        cMgr.currentCassette.getPage(cMgr.currPage,
-                                     context,
-                                     function(trackJSONs) {
-          var browseTrackList = new Tapedeck.Backend.Collections.TrackList
-                                                    (trackJSONs);
-
-          Tapedeck.Backend
-                  .MessageHandler
-                  .pushBrowseTrackList(browseTrackList, tab);
-        });
-      }
-    }
-  },
-
   // Basic mutex.  Push tracks to queue if lock is held.
   addTrackAvailable: true,
   addTracksQueued: [ ],
@@ -433,6 +397,7 @@ Tapedeck.Backend.MessageHandler = {
     }
     msgHandler.addTrackAvailable = false;
     var browseList = Tapedeck.Backend.Bank.getBrowseList();
+    var origLen = browseList.length;
 
     // make sure there isn't already this track in the list
     var existingURLs = browseList.pluck("url");
@@ -444,6 +409,9 @@ Tapedeck.Backend.MessageHandler = {
       }
     }
 
+    if (browseList.length > origLen) {
+      Tapedeck.Backend.Bank.saveBrowseList(browseList);
+    }
     Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
   },
 
@@ -465,24 +433,41 @@ Tapedeck.Backend.MessageHandler = {
       msgHandler.addTrackAvailable = true;
       return;
     }
-    if (browseTrackList != null) {
-      Tapedeck.Backend.Bank.saveBrowseList(browseTrackList);
+    if (browseTrackList != null &&
+        browseTrackList.length > 0 &&
+        browseTrackList.at(0).get("cassette") != cMgr.currentCassette.get("name")) {
 
-      // Confirm that the tracks are for the current cassette
-      if (browseTrackList.length > 0 &&
-          browseTrackList.at(0).get("cassette") != cMgr.currentCassette.get("name")) {
-        msgHandler.addTrackAvailable = true;
-        return;
-      }
+      msgHandler.addTrackAvailable = true;
+      return;
     }
+
     msgHandler.addTrackAvailable = true;
 
-    Tapedeck.Backend.TemplateManager.renderView("BrowseList", function(browseView) {
-      Tapedeck.Backend.MessageHandler.pushView("browse-list",
-                                               browseView.el,
+    var options = {
+      currentCassette : cMgr.currentCassette,
+      currentPage : cMgr.currPage,
+      browseList : browseTrackList
+    }
+
+    Tapedeck.Backend.TemplateManager.renderViewWithOptions("BrowseList", options, function(browseView) {
+      Tapedeck.Backend.MessageHandler.pushView(browseView.el,
                                                browseView.proxyEvents,
                                                tab);
     });
+  },
+
+  updateView: function(viewName, tab, postPopulate) {
+    var self = Tapedeck.Backend.MessageHandler;
+    if (typeof(tab) == "undefined" || !tab || typeof(tab.id) == "undefined") {
+      self.getSelectedTab(function(selectedTab) {
+        self.updateView(viewName, selectedTab, postPopulate);
+      });
+      return;
+    }
+
+    Tapedeck.Backend.TemplateManager.renderView(viewName, function(viewData) {
+      self.pushView(viewData.el, viewData.proxyEvents, tab);
+    }, postPopulate);
   },
 
   updateSeekSlider: function(tab) {
@@ -555,17 +540,14 @@ Tapedeck.Backend.MessageHandler = {
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
-  pushView: function(targetID, view, proxyEvents, tab) {
+  pushView: function(view, proxyEvents, tab) {
     var self = Tapedeck.Backend.MessageHandler;
     if (typeof(tab) == "undefined") {
-      self.log("Pushing to undefined tab: " + targetID);
-
       self.getSelectedTab(function(selectedTab) {
-        self.pushView(targetID, view, proxyEvents, selectedTab);
+        self.pushView(view, proxyEvents, selectedTab);
       });
       return;
     }
-    self.log("Pushing view to '" + targetID + "' in tab " + tab.id + " with events " + JSON.stringify(proxyEvents));
 
     var viewString = $('<div>').append($(view))
                                .remove()
@@ -574,8 +556,7 @@ Tapedeck.Backend.MessageHandler = {
     var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "pushView",
       view: viewString,
-      proxyEvents : proxyEvents,
-      targetID: targetID,
+      proxyEvents : proxyEvents
     });
 
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);

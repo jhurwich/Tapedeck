@@ -20,9 +20,6 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
       if (this.options[paramName] && typeof(this.options[paramName].toJSON) != "undefined") {
         this.params[paramName] = this.options[paramName].toJSON();
       }
-      if (paramName == "playlistList") {
-        console.log(JSON.stringify(this.params[paramName]));
-      }
     }
   },
 
