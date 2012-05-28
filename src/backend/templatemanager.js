@@ -2,6 +2,7 @@ Tapedeck.Backend.TemplateManager = {
 
   packages: {},
   currentPackage: "default",
+  cssForPackages: { },
   requiredScripts: [
     "Frame",
     "Player",
@@ -16,9 +17,57 @@ Tapedeck.Backend.TemplateManager = {
   init: function() {
     this.packages["default"] = Tapedeck.Backend.Views;
 
-    // will receive [{ name: "", contents: "", url: "" }]
+    // will receive [{ name: "", contents: "", url: "", cssURL: "", cssContents: "" }]
     Tapedeck.Backend.Bank.FileSystem.getTemplates(function(templateDatas) {
+      var setupTemplates = function(datas) {
+        for (var i = 0; i < datas.length; i++) {
+          var data = datas[i];
 
+          // save the template to the background page except for default which
+          // should already be there
+          if (data.name != "default") {
+            // TODO put templateCode somewhere accessible after reading in
+          }
+
+          // save the cssURLs so the frame can retrieve them
+          Tapedeck.Backend.TemplateManager.cssForPackages[data.name] = data.cssURL;
+        }
+      };
+
+      // if there are no templates in the filesystem, read in the default
+      if (templateDatas.length == 0) {
+        console.log("no template data, reading in the default package");
+
+        // div needed to preserve script tags of template
+        var div = $('div');
+        $("script[type='text/template']").each(function(index, script) {
+          $(div).append(script);
+        })
+        var templateCode = $(div).remove().html();
+
+        // read in tapedeck.css through XHR
+        var url = chrome.extension.getURL("frontend/tapedeck.css");
+        $.ajax({
+          type: "GET",
+          url: url,
+          dataType: "text",
+          success : function(cssCode) {
+            Tapedeck.Backend.Bank.FileSystem.saveTemplate(templateCode,
+                                                          cssCode,
+                                                          "default",
+                                                          function() {
+              Tapedeck.Backend.Bank.FileSystem.getTemplates(setupTemplates);
+            })
+          },
+          error : function(xhr, status) {
+            console.error("Error getting tapedeck.css: " + status);
+          }
+        });
+      }
+      else {
+        // templates found, set them up
+        setupTemplates(templateDatas);
+      }
     });
   },
 
@@ -108,12 +157,14 @@ Tapedeck.Backend.TemplateManager = {
     var filledCount = 0;
     for (var optionName in requestedOptions) {
       if (optionName in fillMap) {
+
         // attempt to the fill the requested option
         optionCount = optionCount + 1;
         var paramName = requestedOptions[optionName];
         var fillFn = fillMap[optionName];
 
         var scoped = function(param, filler) {
+
           // call the filler
           filler(function(filling) {
             options[param] = filling;
@@ -121,13 +172,21 @@ Tapedeck.Backend.TemplateManager = {
             if (filledCount >= optionCount) {
               callback(options);
             }
+          }, function(error) {
+            // failed to fill
+            optionCount = optionCount - 1;
+            options[param] = "error";
+            console.error("Fill map error on param '" + param + "': "+ error.message);
+            if (filledCount >= optionCount) {
+              callback(options);
+            }
           });
 
-        }(paramName, fillFn)
+        }(paramName, fillFn); // end scoped
 
       }
       else {
-        console.log(optionName + " not in the fillMap");
+        console.error(optionName + " not in the fillMap");
       }
     }
   },
@@ -142,10 +201,10 @@ Tapedeck.Backend.TemplateManager = {
   getCassettes: function(callback) {
     callback(Tapedeck.Backend.CassetteManager.getCassettes());
   },
-  getBrowseList: function(callback, tab) {
+  getBrowseList: function(callback, errCallback, tab) {
     if (typeof(tab) == "undefined") {
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Tapedeck.Backend.TemplateManager.getBrowseList(callback, selectedTab);
+        Tapedeck.Backend.TemplateManager.getBrowseList(callback, errCallback, selectedTab);
       });
       return;
     }
@@ -179,23 +238,25 @@ Tapedeck.Backend.TemplateManager = {
       callback(browseTrackList);
     };
 
-    if (cMgr.currentCassette.isPageable()) {
-      cMgr.currentCassette.getPage(cMgr.currPage,
-                                   context,
-                                   handleTrackJSONs);
+    try {
+      if (cMgr.currentCassette.isPageable()) {
+        cMgr.currentCassette.getPage(cMgr.currPage,
+                                     context,
+                                     handleTrackJSONs,
+                                     errCallback);
+      }
+      else {
+        cMgr.currentCassette.getBrowseList(context, handleTrackJSONs, errCallback);
+      }
     }
-    else {
-      cMgr.currentCassette.getBrowseList(context, handleTrackJSONs);
+    catch (e) {
+      console.error("GOT ERROR IN BROWSE LIST: " + e.message);
     }
   },
   getQueue: function(callback) {
     callback(Tapedeck.Backend.Sequencer.queue);
   },
   getPlaylistList: function(callback) {
-    var playlists = Tapedeck.Backend.Bank.getPlaylists();
-    for (var i = 0; i < playlists.length; i++) {
-      var playlist = playlists.at(i);
-    }
     callback(Tapedeck.Backend.Bank.getPlaylists());
   },
   getPlayerState: function(callback) {
@@ -298,6 +359,14 @@ Tapedeck.Backend.TemplateManager = {
     }
 
     return html;
+  },
+
+  getCSSURL: function(packageName) {
+    if (!this.isValidPackage(packageName)) {
+      packageName = this.currentPackage;
+    }
+
+    return Tapedeck.Backend.TemplateManager.cssForPackages[packageName];
   },
 
   isValidPackage: function(packageName) {

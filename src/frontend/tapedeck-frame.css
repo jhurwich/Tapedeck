@@ -1,0 +1,9 @@
+*[hidden] {
+  display: none !important;
+}
+tapedeck {
+  display: none !important;
+}
+body {
+  display: none;
+}

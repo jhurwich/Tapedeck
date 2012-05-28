@@ -8,10 +8,15 @@ Tapedeck.Backend.Sequencer = {
     }
     var bank = Tapedeck.Backend.Bank
     this.queue = bank.getQueue();
-    this.queue.bind('add', Tapedeck.Backend.MessageHandler.updateView.curry("Queue"));
-    this.queue.bind('remove', Tapedeck.Backend.MessageHandler.updateView.curry("Queue"));
-    this.queue.bind('reset', Tapedeck.Backend.MessageHandler.updateView.curry("Queue"));
-    this.queue.bind('change tracks', Tapedeck.Backend.MessageHandler.updateView.curry("Queue"));
+
+    var updateQueue = function() {
+      Tapedeck.Backend.MessageHandler.updateView("Queue");
+    }
+    this.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
+    this.queue.bind('add', updateQueue);
+    this.queue.bind('remove', updateQueue);
+    this.queue.bind('reset', updateQueue);
+    this.queue.bind('change tracks', updateQueue);
 
     var volume = bank.getVolume();
     this.Player.setVolume(volume);
@@ -128,7 +133,7 @@ Tapedeck.Backend.Sequencer = {
     dumpErrors: function() {
       var err = this.playerElement.get(0).error;
       if (!err) {
-        console.log("Player has reported no errors");
+        console.error("Player has reported no errors in dumpErrors.");
         return;
       }
       var lastError = "";
@@ -168,8 +173,8 @@ Tapedeck.Backend.Sequencer = {
           networkState = "Unrecognized Network State";
           break;
       }
-      console.log("Player reported last error as '" + lastError +
-                  "' and the network state as '" + networkState + "'");
+      console.error("Player reported last error as '" + lastError +
+                    "' and the network state as '" + networkState + "'");
     },
   }, // End Tapedeck.Sequencer.Player
 

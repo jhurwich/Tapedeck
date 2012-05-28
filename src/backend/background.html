@@ -234,6 +234,12 @@
                      id="loading-spinner"></div>
               </div>
             </div>
+          <% } else if (typeof(params.trackList) == "string" && params.trackList == "error" ) { %>
+            <div class="row-container">
+              <div class="row blank">
+                <span class="error-msg">Could not retrieve list</span>
+              </div>
+            </div>
           <% } else if (params.trackList.length == 0) { %>
             <div class="row-container">
               <div class="row blank">
@@ -245,7 +251,6 @@
                 <% } %>
               </div>
             </div>
-
           <% }
           else { %>
             <div class="row-container">

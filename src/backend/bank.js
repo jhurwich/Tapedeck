@@ -140,12 +140,14 @@ Tapedeck.Backend.Bank = {
   // Returns cassetteDatas of the form { name: "", contents: "", url: "" (, page: num) }
     getCassettes: function(aCallback) {
       var callback = function(datas) {
-        for (var name in datas) {
+        for (var i = 0; i < datas.length; i++) {
+          var name = datas[i].name;
+
           var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix + name;
           var page = Tapedeck.Backend.Bank.localStorage.getItem(pageKey);
 
           if (page != null) {
-            datas[name].page = page;
+            datas[i].page = page;
           }
         }
         aCallback(datas);
@@ -154,9 +156,90 @@ Tapedeck.Backend.Bank = {
       this.loadDir("Cassettes", callback)
     },
 
+    // cssCode is optional
+    saveTemplate: function(templateCode, cssCode, name, aCallback) {
+      // if only 3 arguments then cssCode wasn't specified
+      if (arguments.length == 3) {
+        aCallback = name;
+        name = cssCode;
+        cssCode = null;
+      }
+      var fs = Tapedeck.Backend.Bank.FileSystem;
+
+      // expect 2 callbacks if we are saving CSS as well, otherwise only 1
+      var remainingCallbacks = 1;
+      if (cssCode != null) {
+        remainingCallbacks = remainingCallbacks + 1;
+      }
+
+      var combinedSuccess = true;
+      var callback = function(success) {
+        remainingCallbacks = remainingCallbacks - 1;
+        combinedSuccess = combinedSuccess && success;
+
+        if (remainingCallbacks <= 0) {
+          aCallback(combinedSuccess);
+        }
+      };
+
+      fs.saveCode("Templates", templateCode, name, callback);
+      if (cssCode != null ) {
+        fs.saveCode("CSS", cssCode, name, callback);
+      }
+
+    },
+
     // the contents of a template file should be an HTML doc with <script> templates
-    getTemplates: function(callback) {
-      this.loadDir("Templates", callback);
+    // will return [{ name: "", contents: "", url: "" (, cssURL: "", cssContents: "") }]
+    getTemplates: function(aCallback) {
+      var fs = Tapedeck.Backend.Bank.FileSystem;
+
+      var callback = function(templateDatas, cssDatas) {
+        var cssMap = { };
+        for (var i = 0; i < cssDatas.length; i++) {
+          cssMap[cssDatas[i].name] = cssDatas[i];
+        }
+
+        var datas = templateDatas;
+        for (var i = 0; i < datas.length; i++) {
+          var data = datas[i];
+          if (data.name in cssMap) {
+            data.cssURL = cssMap[data.name].url;
+            data.cssContents = cssMap[data.name].contents;
+          }
+        }
+
+        aCallback(datas);
+      }
+
+      fs.loadDir("Templates", function(aTemplateDatas) {
+        fs.loadDir("CSS", function(aCSSDatas) {
+          callback(aTemplateDatas, aCSSDatas);
+        })
+      });
+    },
+
+    saveCode: function(dir, code, name, callback) {
+      var fs = Tapedeck.Backend.Bank.FileSystem;
+
+      fs.root.getDirectory(dir, {create: true}, function(dirEntry) {
+        dirEntry.getFile(name, {create: true}, function(fileEntry) {
+          // Create a FileWriter object for our FileEntry
+          fileEntry.createWriter(function(fileWriter) {
+
+            fileWriter.onwriteend = function(e) {
+              callback(true);
+            };
+            fileWriter.onerror = function(e) {
+              callback(false);
+            };
+
+            var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
+            bb.append(code);
+            fileWriter.write(bb.getBlob('text/plain'));
+          }, fs.errorHandler);
+        }, fs.errorHandler);
+      }, fs.errorHandler);
     },
 
     // returns an array of { name: __, contents:<string_contents>, url:<fs_url> }
@@ -672,9 +755,6 @@ Tapedeck.Backend.Bank = {
       bank.currBrowseList = bank.getTrackList(bank.savedBrowseListName);
     }
     return bank.currBrowseList;
-  },
-  attachBrowseListEvents: function(browseList) {
-
   },
 
   clearBrowseList: function() {

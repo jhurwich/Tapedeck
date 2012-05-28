@@ -25,4 +25,11 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
     return playlist;
   },
 
+  // override the toJSON so that the destination is preserved
+  toJSON: function() {
+    var json = Backbone.Collection.prototype.toJSON.call(this);
+
+    json['destination'] = this.destination;
+    return json;
+  },
 });

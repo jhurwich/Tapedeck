@@ -11,14 +11,20 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
       do     : "reload" }
   ],
 
-  getBrowseList: function(context, callback) {
+  getBrowseList: function(context, callback, errCallback) {
     var self = this;
     var handleTracks = function(response, sender, sendResponse) {
 
-      for (var i in response.tracks) {
-        response.tracks[i].cassette = self.get("name");
+      if (typeof(response.error) != "undefined") {
+        console.error("ERROR IN SCRAPER CASSETTE's PARSING");
+        errCallback(response.error);
       }
-      callback(response.tracks);
+      else {
+        for (var i in response.tracks) {
+          response.tracks[i].cassette = self.get("name");
+        }
+        callback(response.tracks);
+      }
     };
 
     Tapedeck.Backend.InjectManager

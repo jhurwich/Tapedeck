@@ -63,7 +63,7 @@ Tapedeck.Backend.InjectManager = {
     var scripts = this.postInjectMap[tabID];
     if (typeof(scripts) == "undefined" ||
         scripts.length == 0) {
-      console.log("nothing to remove for " + tabID);
+      console.error("No postinject script to remove for " + tabID);
       return;
     }
 
@@ -101,6 +101,7 @@ Tapedeck.Backend.InjectManager = {
     });
   },
 
+  // responseCallback should prepare for response.error to be present in the event of error
   executeScript: function(tab, options, responseCallback, testParams) {
     var injectMgr = Tapedeck.Backend.InjectManager;
     if (injectMgr.isURLBlocked(tab.url)) {

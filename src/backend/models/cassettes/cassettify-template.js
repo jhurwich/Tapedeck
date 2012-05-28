@@ -13,12 +13,12 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
     /* No events, although probably want interval */ \
     events: [], \
    \
-    getBrowseList: function(context, callback) { \
+    getBrowseList: function(context, callback, errCallback) { \
       var self = this; \
-      self.getPage(1, context, callback); \
+      self.getPage(1, context, callback, errCallback); \
     }, /* end getBrowseList */ \
  \
-    getPage: function(pageNum, context, callback) { \
+    getPage: function(pageNum, context, callback, errCallback) { \
       var self = this; \
       var pageURL = self.pattern.replace(/\\$#/g, pageNum); \
  \
@@ -37,11 +37,17 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
  \
       /* Modify the callback slightly so that the tracks are saved */ \
       var saveClearAndCallback = function(tracks) { \
-        Tapedeck.Backend.Bank.saveTracksForURL(pageURL, tracks); \
-        var ourDump = $("#dump").find("#CassetteFromTemplate"); \
-        var pageDump = $(ourDump).find("#page" + pageNum); \
-        pageDump.remove(); \
-        callback(tracks); \
+        if (typeof(tracks.error) != "undefined") { \
+          console.error("Error parsing tracks for " + self.domain + ", page " + pageNum); \
+          errCallback(tracks.error); \
+        } \
+        else { \
+          Tapedeck.Backend.Bank.saveTracksForURL(pageURL, tracks); \
+          var ourDump = $("#dump").find("#CassetteFromTemplate"); \
+          var pageDump = $(ourDump).find("#page" + pageNum); \
+          pageDump.remove(); \
+          callback(tracks); \
+        } \
       }; \
  \
       if (!self.isDumpCached(pageNum)) { \
@@ -55,6 +61,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
    \
           error: function (response) { \
             console.error("Ajax error retrieving " + self.domain + ", page " + pageNum); \
+            errCallback({ message: "CassetteError" }); \
           }, \
         }); \
       } \
@@ -116,14 +123,4 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
     }, \
   }); \
     '
-/*
-      var handleTracks = function(response, sender, sendResponse) {
-
-        for (var i in response.tracks) {
-          response.tracks[i].cassette = self.get("name");
-        }
-        callback(response.tracks);
-      };
-*/
-
 };

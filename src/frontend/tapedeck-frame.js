@@ -309,6 +309,11 @@ Tapedeck.Frontend.Frame = {
 
       var row = $(e.target).closest(".row");
 
+      // make sure it's not supposed to be a blank row
+      if ($(row).hasClass("blank")) {
+        return;
+      }
+
       // make sure this isn't actually a double click
       if (tracklists.clickTimer != null) {
 
@@ -704,6 +709,28 @@ Tapedeck.Frontend.Frame = {
     Tapedeck.Frontend.Messenger.clearQueue();
   },
 
+  getCSS: function() {
+    Tapedeck.Frontend.Messenger.getCSS(function(response) {
+
+      // remove all but tapedeck-frame.css, the basic stylesheet
+      var oldStyles = $('head').find('link');
+      if (oldStyles.length > 0) {
+        oldStyles.each(function(index, oldStyle) {
+          if ($(oldStyle).attr("href") == response.cssURL) {
+            // the css we want is already present, abort
+            return;
+          }
+
+          if ($(oldStyle).attr("href").indexOf("tapedeck-frame.css") == -1) {
+            // remove anything that's not the basic stylesheet
+            $(oldStyle).remove();
+          }
+        })
+      }
+      $('head').append('<link rel="stylesheet" href="' + response.cssURL + '" type="text/css" />');
+    });
+  },
+
   forceSeekSliderUpdate: function() {
     if (!($("#seek-slider").hasClass("disabled"))) {
       Tapedeck.Frontend.Messenger.requestUpdate("SeekSlider");
@@ -851,6 +878,7 @@ Tapedeck.Frontend.Frame = {
   onFrameRender: function() {
     var frame = Tapedeck.Frontend.Frame;
 
+    frame.getCSS();
     frame.forceSeekSliderUpdate();
     frame.forceVolumeSliderUpdate();
     frame.checkRepeat();

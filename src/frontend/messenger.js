@@ -244,6 +244,14 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
+  getCSS: function(callback) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action       : "getCSS",
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
   getRepeat: function(callback) {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action       : "getRepeat",

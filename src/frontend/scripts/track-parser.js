@@ -69,22 +69,37 @@ if (onObject != null &&
       parser.isParsing = true;
       parser.log("starting parsing", parser.DEBUG_LEVELS.BASIC);
 
-      var tracks = parser.findSongs();
+      // try to get songs, catch any parser fails
+      try {
+        var tracks = parser.findSongs();
+        parser.log("ending parsing - got tracks: " + JSON.stringify(tracks), parser.DEBUG_LEVELS.BASIC);
+        parser.isParsing = false;
 
-      parser.log("ending parsing - got tracks: " + JSON.stringify(tracks),
-               parser.DEBUG_LEVELS.BASIC);
-      parser.isParsing = false;
+        if (!parser.onBackgroundPage) {
+          var response = {
+            type: "response",
+            tracks: tracks
+          };
+          chrome.extension.sendRequest(response);
+        }
+        else {
+          params.callback(tracks);
+        }
+      }
+      catch (e) {
 
-      if (!parser.onBackgroundPage) {
-        var response = {
-          type: "response",
-          tracks: tracks
-        };
-        chrome.extension.sendRequest(response);
+        if (!parser.onBackgroundPage) {
+          var response = {
+            type: "response",
+            error: { message: "ParserError" },
+          };
+          chrome.extension.sendRequest(response);
+        }
+        else {
+          params.callback({ error: "ParserError" });
+        }
       }
-      else {
-        params.callback(tracks);
-      }
+
     },
 
     findSongs : function() {

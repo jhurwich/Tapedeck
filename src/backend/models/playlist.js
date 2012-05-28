@@ -8,7 +8,7 @@ Tapedeck.Backend.Collections.Playlist =
     }
   },
 
-    // override the toJSON so that the id is preserved
+  // override the toJSON so that the id is preserved
   toJSON: function() {
     var json = Backbone.Collection.prototype.toJSON.call(this);
 

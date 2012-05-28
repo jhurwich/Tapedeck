@@ -281,6 +281,11 @@ Tapedeck.Backend.MessageHandler = {
         bank.toggleRepeat();
         break;
 
+      case "getCSS":
+        response.cssURL = Tapedeck.Backend.TemplateManager.getCSSURL();
+        self.postMessage(port.tab.id, response);
+        break;
+
       case "getRepeat":
         response.repeat = bank.getRepeat();
         self.postMessage(port.tab.id, response);
