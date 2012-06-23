@@ -44,6 +44,7 @@
       <tapedeck>
         <events>
           "click #queue-save"    : "PlaylistList.saveQueue",
+          "click #sync"          : "toggleSync",
           "click #repeat"        : "toggleRepeat",
           "click #queue-shuffle" : "shuffleQueue",
           "click #queue-clear"   : "clearQueue",
@@ -52,6 +53,7 @@
           <!-- "tabID" : "tabID" -->
         </options>
         <images>
+          "#sync"          : "shuffle.png"
           "#repeat"        : "repeat.png",
           "#queue-shuffle" : "shuffle.png",
           "#queue-clear"   : "trash.png"
@@ -76,6 +78,7 @@
               Save
             </button>
             <div id="playback-button-box">
+              <img id="sync" class="playback-button"></img>
               <img id="repeat" class="playback-button"></img>
               <img id="queue-shuffle" class="playback-button"></img>
               <img id="queue-clear" class="playback-button"></img>

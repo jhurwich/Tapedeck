@@ -259,12 +259,24 @@ Tapedeck.Frontend.Messenger = {
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
+  getSync: function(callback) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action       : "getSync",
+    }, callback);
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
 
   toggleRepeat: function() {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action       : "toggleRepeat",
     });
 
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+  toggleSync: function() {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action       : "toggleSync",
+    });
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 

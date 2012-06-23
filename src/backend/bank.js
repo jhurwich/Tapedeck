@@ -15,6 +15,7 @@ Tapedeck.Backend.Bank = {
   currentCassetteKey: /* bankPrefix + */ "currentCassette",
   cassettePagePrefix: /* bankPrefix + */ "cassettePages",
   repeatKey: /* bankPrefix + */ "repeat",
+  syncKey: /* bankPrefix + */ "sync",
   volumeKey: /* bankPrefix + */ "volume",
   blockKey: /* bankPrefix + */ "block",
   init: function(continueInit) {
@@ -25,9 +26,13 @@ Tapedeck.Backend.Bank = {
     this.currentCassetteKey = this.bankPrefix + this.currentCassetteKey;
     this.cassettePagePrefix = this.bankPrefix + this.cassettePagePrefix;
     this.repeatKey = this.bankPrefix + this.repeatKey;
+    this.syncKey = this.bankPrefix + this.syncKey;
     this.blockKey = this.bankPrefix + this.blockKey;
     if (this.localStorage.getItem(this.repeatKey) == null) {
       this.localStorage.setItem(this.repeatKey, "true");
+    }
+    if (this.localStorage.getItem(this.syncKey) == null) {
+      this.localStorage.setItem(this.syncKey, "true");
     }
     // initialize the block list if necessary
     if (this.localStorage.getItem(this.blockKey) == null) {
@@ -623,15 +628,22 @@ Tapedeck.Backend.Bank = {
     if (this.playlistList == null) {
       this.playlistList = new Tapedeck.Backend.Collections.PlaylistList();
 
-      var playlistKeys = this.findKeys("^" + this.playlistPrefix + ".*");
-      for (var i = 0; i < playlistKeys.length; i++) {
-        var key = playlistKeys[i];
-        var playlist = Tapedeck.Backend.Bank.recoverList(key);
-        this.playlistList.add(playlist);
+      if (this.getSync()) {
+        // Sync is active
+        console.log("can storage? " + typeof(chrome.storage));
       }
+      else {
+        // Local mode
+        var playlistKeys = this.findKeys("^" + this.playlistPrefix + ".*");
+        for (var i = 0; i < playlistKeys.length; i++) {
+          var key = playlistKeys[i];
+          var playlist = Tapedeck.Backend.Bank.recoverList(key);
+          this.playlistList.add(playlist);
+        }
 
-      this.playlistList.bind("add", this.addToPlaylistList);
-      this.playlistList.bind("remove", this.removeFromPlaylistList);
+        this.playlistList.bind("add", this.addToPlaylistList);
+        this.playlistList.bind("remove", this.removeFromPlaylistList);
+      }
     }
     return this.playlistList;
   },
@@ -796,8 +808,19 @@ Tapedeck.Backend.Bank = {
                               (oldVal ? "false" : "true"));
   },
 
+  toggleSync: function() {
+    var oldVal = (this.localStorage.getItem(this.syncKey) == "true");
+
+    this.localStorage.setItem(this.syncKey,
+                              (oldVal ? "false" : "true"));
+  },
+
   getRepeat: function() {
     return this.localStorage.getItem(this.repeatKey) == "true";
+  },
+
+  getSync: function() {
+    return this.localStorage.getItem(this.syncKey) == "true";
   },
 
   saveVolume: function(volume) {

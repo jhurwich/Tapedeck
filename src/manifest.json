@@ -21,6 +21,7 @@
   "permissions": ["http://*/*",
                   "https://*/*",
                   "tabs",
+                  "storage",
                   "unlimitedStorage"],
 
   "update_url": "http://www.tape-deck.com/update"

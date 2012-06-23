@@ -701,6 +701,11 @@ Tapedeck.Frontend.Frame = {
     Tapedeck.Frontend.Frame.checkRepeat();
   },
 
+  toggleSync: function() {
+    Tapedeck.Frontend.Messenger.toggleSync();
+    Tapedeck.Frontend.Frame.checkSync();
+  },
+
   shuffleQueue: function() {
     Tapedeck.Frontend.Messenger.shuffleQueue();
   },
@@ -748,6 +753,17 @@ Tapedeck.Frontend.Frame = {
       }
       else {
         $("#repeat").attr("src", chrome.extension.getURL("images/repeat.png"))
+      }
+    });
+  },
+  checkSync: function() {
+    Tapedeck.Frontend.Messenger.getSync(function(response) {
+      console.log("check " + (response.sync ? " true" : "false"));
+      if (response.sync) {
+        $("#sync").attr("src", chrome.extension.getURL("images/repeat-active.png"));
+      }
+      else {
+        $("#sync").attr("src", chrome.extension.getURL("images/shuffle.png"))
       }
     });
   },
