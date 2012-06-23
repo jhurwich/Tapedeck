@@ -49,21 +49,19 @@ describe("Message Handler", function() {
 */
 
   it("should update the correct view with MessageHandler.pushView *flaky*" , function() {
-    expect($("#tapedeck-frame").contents()).toContain("#browse-list");
+    expect($("#tapedeck-frame").contents()).toContain("#cassette-list");
     expect($("#tapedeck-frame").contents()).not.toContain("#testdiv");
 
-    var testDiv = "<div id='testdiv'></div>";
+    var testDiv = "<div id='cassette-list'><div id='testdiv'></div></div>";
     var testTab = this.findTestTab();
     expect(testTab).not.toBeNull();
 
-    this.Tapedeck.Backend.MessageHandler.pushView("browse-list",
-                                                  testDiv,
-                                                  testTab);
+    this.Tapedeck.Backend.MessageHandler.pushView(testDiv, { }, testTab);
 
     waitsForElement("#testdiv");
 
     runs(function() {
-      expect($("#tapedeck-frame").contents()).not.toContain("#browse-list");
+      expect($("#tapedeck-frame").contents()).toContain("#cassette-list");
       expect($("#tapedeck-frame").contents()).toContain("#testdiv");
     });
   });

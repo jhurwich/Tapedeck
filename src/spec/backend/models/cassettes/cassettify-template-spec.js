@@ -47,13 +47,12 @@ describe("Cassettification", function() {
 
       var origCassetteNum = this.cMgr.cassettes.length;
 
-      var readInSpy = spyOn(this.Tapedeck.Backend.CassetteManager,
-                          "readInCassettes").andCallThrough();
-
       // Begin the Cassette save
       $(modal).find("input[type='button']").first().click();
 
-      waitsForElement(".row[cassette-name='" + this.cassetteName + "']");
+      waitsFor(function() { return this.cMgr.cassettes.length == (origCassetteNum + 1); },
+               "Waiting for cassettes to be read-in",
+               2000);
       runs(function() {
         // The Cassette was saved make sure it's in the cassettelist
         expect(this.cMgr.cassettes.length).toEqual(origCassetteNum + 1);

@@ -837,7 +837,12 @@ Tapedeck.Frontend.Frame = {
     var view = $(viewStr);
     var targetID = $(view).first().attr("id");
     $("#" + targetID).replaceWith(view);
-    this.attachEvents(targetID, proxyEvents);
+    if (typeof(proxyEvents) != 'undefined' && !jQuery.isEmptyObject(proxyEvents)) {
+      this.attachEvents(targetID, proxyEvents);
+    }
+    else {
+      console.error("Replacing view '" + targetID + "' without attaching events")
+    }
   },
 
   attachEvents: function(id, events) {

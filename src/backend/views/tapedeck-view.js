@@ -11,7 +11,7 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
     // the template name is the id, each word separated by dashes capitalized and concated
     var templateName = Tapedeck.Backend.Utils.idToTemplateName(this.id);
 
-    this.textTemplate = Tapedeck.Backend.TemplateManager.getTemplate(templateName)
+    this.textTemplate = Tapedeck.Backend.TemplateManager.getTemplate(templateName);
     this.template = _.template(this.textTemplate);
 
     // pass the options to the view, and toJSON anything we can

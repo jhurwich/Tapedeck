@@ -23,10 +23,10 @@ Tapedeck.Backend.TemplateManager = {
         for (var i = 0; i < datas.length; i++) {
           var data = datas[i];
 
-          // save the template to the background page except for default which
-          // should already be there
-          if (data.name != "default") {
-            // TODO put templateCode somewhere accessible after reading in
+          // save the template to the background page except for those that are
+          // already there
+          if ($("script#Frame-" + data.name + "-template").length == 0) {
+            $("head").first().append(data.contents);
           }
 
           // save the cssURLs so the frame can retrieve them
@@ -36,7 +36,6 @@ Tapedeck.Backend.TemplateManager = {
 
       // if there are no templates in the filesystem, read in the default
       if (templateDatas.length == 0) {
-        console.log("no template data, reading in the default package");
 
         // div needed to preserve script tags of template
         var div = $('div');
@@ -289,9 +288,11 @@ Tapedeck.Backend.TemplateManager = {
 
     var html = $(templateSelector).html();
 
-    // now populate it with all reference templates as if they were present
+    /* Now populate it with all reference templates as if they were present.
+     * We accomodate selfclosed template ref tags and immediately closed ones
+     * (somewhere they are getting converted from self closed to immediately). */
     var selfClosedTagRegex = function(tag) {
-      return new RegExp("<\s*" + tag + "[^<>]*\/>", "gi");
+      return new RegExp("<\s*" + tag + "[^<>]*(><\/" + tag + ">|\/>)", "gi");
     }
 
     var templateMatch = null;

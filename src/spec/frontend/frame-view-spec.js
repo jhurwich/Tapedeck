@@ -14,11 +14,8 @@ describe("Frame View", function() {
     expect($("#tapedeck-frame").contents()).toContain("#queue");
   });
 
-  it("should render the browse TrackList when rendered", function() {
-    expect($("#tapedeck-frame").contents()).toContain("#browse-list");
+  it("should render the CassetteList when rendered", function() {
+    expect($("#tapedeck-frame").contents()).toContain("#cassette-list");
   });
 
-  it ("should render properly through the TemplateManager", function() {
-
-  });
 });

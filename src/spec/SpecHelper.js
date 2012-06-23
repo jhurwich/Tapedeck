@@ -101,6 +101,13 @@ beforeEach(function() {
       }
     }
   };
+
+  this.waitForSwitchToBrowseList = function() {
+    this.Tapedeck.Frontend.Messenger.setCassette("Scraper");
+    waitsFor(function() {
+      return ($("#tapedeck-frame").contents().find("#browse-list").length > 0);
+    }, "Waiting for switch to BrowseList mode", 200);
+  };
 }); // end beforeEach
 
 afterEach(function() {

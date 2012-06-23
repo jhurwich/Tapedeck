@@ -22,8 +22,8 @@ describe("Sequencer", function() {
     expect(this.sqcr.queue.length).toEqual(origLen + 1);
   });
 
-  it("should call pushView when a track is added", function() {
-    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "pushView")
+  it("should call updateView when a track is added", function() {
+    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "updateView")
                    .andCallThrough();
 
     this.sqcr.push(this.testTracks[0]);
@@ -87,8 +87,8 @@ describe("Sequencer", function() {
     expect(secondTrack).toReflectJSON(this.testTracks[2]);
   });
 
-  it("should call pushView when a track is removed", function() {
-    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "pushView")
+  it("should call updateView when a track is removed", function() {
+    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "updateView")
                    .andCallThrough();
 
     this.sqcr.push(this.testTracks[0]);
@@ -109,9 +109,9 @@ describe("Sequencer", function() {
     expect(this.sqcr.queue.length).toEqual(0);
   });
 
-  it("should call pushView when tracks are cleared", function() {
+  it("should call updateView when tracks are cleared", function() {
     var origLen = this.sqcr.queue.length;
-    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "pushView")
+    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "updateView")
                    .andCallThrough();
 
     this.sqcr.insertSomeAt(this.testTracks, origLen);

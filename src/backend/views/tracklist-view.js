@@ -1,6 +1,7 @@
 Tapedeck.Backend.Views.TrackList = Tapedeck.Backend.Views.TapedeckView.extend({
 
   tagName: "div",
+  id: "trackList",
   className: "tracklist-container",
   requiredTemplates: [
     "TrackList"
