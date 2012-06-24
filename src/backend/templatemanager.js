@@ -15,24 +15,10 @@ Tapedeck.Backend.TemplateManager = {
   ],
 
   init: function() {
-    this.packages["default"] = Tapedeck.Backend.Views;
+    var tMgr = Tapedeck.Backend.TemplateManager;
 
     // will receive [{ name: "", contents: "", url: "", cssURL: "", cssContents: "" }]
     Tapedeck.Backend.Bank.FileSystem.getTemplates(function(templateDatas) {
-      var setupTemplates = function(datas) {
-        for (var i = 0; i < datas.length; i++) {
-          var data = datas[i];
-
-          // save the template to the background page except for those that are
-          // already there
-          if ($("script#Frame-" + data.name + "-template").length == 0) {
-            $("head").first().append(data.contents);
-          }
-
-          // save the cssURLs so the frame can retrieve them
-          Tapedeck.Backend.TemplateManager.cssForPackages[data.name] = data.cssURL;
-        }
-      };
 
       // if there are no templates in the filesystem, read in the default
       if (templateDatas.length == 0) {
@@ -51,12 +37,7 @@ Tapedeck.Backend.TemplateManager = {
           url: url,
           dataType: "text",
           success : function(cssCode) {
-            Tapedeck.Backend.Bank.FileSystem.saveTemplate(templateCode,
-                                                          cssCode,
-                                                          "default",
-                                                          function() {
-              Tapedeck.Backend.Bank.FileSystem.getTemplates(setupTemplates);
-            })
+            tMgr.addTemplate(templateCode, cssCode, "default", function() { })
           },
           error : function(xhr, status) {
             console.error("Error getting tapedeck.css: " + status);
@@ -65,9 +46,46 @@ Tapedeck.Backend.TemplateManager = {
       }
       else {
         // templates found, set them up
-        setupTemplates(templateDatas);
+        tMgr.loadTemplates(templateDatas);
       }
     });
+  },
+
+  addTemplate: function(templateCode, cssCode, packageName, callback) {
+
+    // save the new template
+    Tapedeck.Backend.Bank.FileSystem.saveTemplate(templateCode,
+                                                  cssCode,
+                                                  packageName,
+                                                  function() {
+
+      // get all saved templates and load them
+      Tapedeck.Backend.Bank.FileSystem.getTemplates(function(templateDatas){
+        Tapedeck.Backend.TemplateManager.loadTemplates(templateDatas);
+        callback();
+      });
+    });
+  },
+
+  loadTemplates: function(templates) {
+    var tMgr = Tapedeck.Backend.TemplateManager;
+
+    for (var i = 0; i < templates.length; i++) {
+      var template = templates[i];
+      tMgr.packages[template.name] = true;
+
+      // save the template to the background page except for those that are
+      // already there
+      if ($("script#Frame-" + template.name + "-template").length == 0) {
+        var scripts = Tapedeck.Backend.Utils.removeTags(template.contents,
+                                                       ["html", "head", "body"],
+                                                       false);
+        $("head").first().append(scripts);
+      }
+
+      // save the cssURLs so the frame can retrieve them
+      tMgr.cssForPackages[template.name] = template.cssURL;
+    }
   },
 
   setPackage: function(packageName) {
@@ -94,7 +112,7 @@ Tapedeck.Backend.TemplateManager = {
     }
 
     // generate the view with no options to know what it needs
-    var viewScript = tMgr.getViewScript(scriptName, packageName);
+    var viewScript = tMgr.getViewScript(scriptName);
     var hollowView = new viewScript({ });
 
     if (postPopulate) {
@@ -112,7 +130,7 @@ Tapedeck.Backend.TemplateManager = {
       options = packageName;
       packageName = null;
     }
-    var viewScript = tMgr.getViewScript(scriptName, packageName);
+    var viewScript = tMgr.getViewScript(scriptName);
     var view = new viewScript(options);
 
     var el = view.render();
@@ -136,7 +154,6 @@ Tapedeck.Backend.TemplateManager = {
     }
   },
 
-  // TODO make this more fault tolerant (try/catch and timeouts for any call)
   fillOptions: function(requestedOptions, callback) {
     var tMgr = Tapedeck.Backend.TemplateManager;
     var fillMap = {
@@ -270,12 +287,8 @@ Tapedeck.Backend.TemplateManager = {
     });
   },
 
-  getViewScript: function(scriptName, packageName) {
-    if (!this.isValidPackage(packageName)) {
-      packageName = this.currentPackage;
-    }
-
-    return this.packages[packageName][scriptName];
+  getViewScript: function(scriptName) {
+    return Tapedeck.Backend.Views[scriptName];
   },
 
   getTemplate: function(templateName, packageName) {
@@ -285,7 +298,6 @@ Tapedeck.Backend.TemplateManager = {
 
     // first get the contents of the template
     var templateSelector = "script#" + templateName + "-" + packageName + "-template";
-
     var html = $(templateSelector).html();
 
     /* Now populate it with all reference templates as if they were present.

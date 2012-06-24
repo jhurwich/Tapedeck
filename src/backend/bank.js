@@ -94,7 +94,7 @@ Tapedeck.Backend.Bank = {
       window.requestFileSystem(window.TEMPORARY,
                                this.fileSystemSize*1024*1024, // specified in MB
                                successCallback,
-                               this.errorHandler)
+                               this.errorHandler.curry("requestFileSystem"));
     },
 
     saveCassette: function(code, name, callback) {
@@ -115,9 +115,9 @@ Tapedeck.Backend.Bank = {
             var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
             bb.append(code);
             fileWriter.write(bb.getBlob('text/plain'));
-          }, fs.errorHandler);
-        }, fs.errorHandler);
-      }, fs.errorHandler);
+          }, fs.errorHandler.curry("saveCassette3"));
+        }, fs.errorHandler.curry("saveCassette2"));
+      }, fs.errorHandler.curry("saveCassette1"));
     },
 
     removeCassette: function(name, callback) {
@@ -128,10 +128,10 @@ Tapedeck.Backend.Bank = {
 
           fileEntry.remove(function() {
             callback();
-          }, fs.errorHandler);
+          }, fs.errorHandler.curry("removeCassette3"));
 
-        }, fs.errorHandler);
-      }, fs.errorHandler);
+        }, fs.errorHandler.curry("removeCassette2"));
+      }, fs.errorHandler.curry("removeCassette1"));
 
       var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix + name;
       var page = Tapedeck.Backend.Bank.localStorage.removeItem(pageKey);
@@ -237,9 +237,9 @@ Tapedeck.Backend.Bank = {
             var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
             bb.append(code);
             fileWriter.write(bb.getBlob('text/plain'));
-          }, fs.errorHandler);
-        }, fs.errorHandler);
-      }, fs.errorHandler);
+          }, fs.errorHandler.curry("saveCode3"));
+        }, fs.errorHandler.curry("saveCode2"));
+      }, fs.errorHandler.curry("saveCode1"));
     },
 
     // returns an array of { name: __, contents:<string_contents>, url:<fs_url> }
@@ -248,49 +248,60 @@ Tapedeck.Backend.Bank = {
       var datas = [];
 
       fs.root.getDirectory(dir, {create: true}, function(dirEntry) {
-        var dirReader = dirEntry.createReader();
-        dirReader.readEntries(function(entries) {
-          var numReads = entries.length;
-          if (numReads == 0) {
-            callback(datas);
-            return;
-          }
 
-          for (var i = 0; i < entries.length; i++) {
-            var entry = entries[i];
+        /* We check for metadata to know if there are any entries.
+         * This call will error if the directory is new/empty so we can
+         * callback properly */
+        dirEntry.getMetadata(function(metadata) {
+          // got metadata, there must be entries
+          var dirReader = dirEntry.createReader();
+          dirReader.readEntries(function(entries) {
+            var numReads = entries.length;
+            if (numReads == 0) {
+              callback(datas);
+              return;
+            }
 
-            var scoped = function(currEntry) {
-              var name = currEntry.name;
-              if (!currEntry.isFile) {
-                numReads--;
-                if (numReads == 0) {
-                  callback(datas);
-                }
-                return;
-              }
+            for (var i = 0; i < entries.length; i++) {
+              var entry = entries[i];
 
-              currEntry.file(function(file) {
-                var reader = new FileReader();
-                reader.onloadend = function(e) {
+              var scoped = function(currEntry) {
+                var name = currEntry.name;
+                if (!currEntry.isFile) {
                   numReads--;
-                  var data = { name: name,
-                               contents: this.result,
-                               url : currEntry.toURL() };
-
-                  datas.push(data);
-
                   if (numReads == 0) {
                     callback(datas);
                   }
-                };
+                  return;
+                }
 
-                reader.readAsText(file);
-              });
-            }(entry);
-          }
+                currEntry.file(function(file) {
+                  var reader = new FileReader();
+                  reader.onloadend = function(e) {
+                    numReads--;
+                    var data = { name: name,
+                                 contents: this.result,
+                                 url : currEntry.toURL() };
 
+                    datas.push(data);
+
+                    if (numReads == 0) {
+                      callback(datas);
+                    }
+                  };
+
+                  reader.readAsText(file);
+                });
+              }(entry);
+            }
+
+          });
+        }, function(error) {
+          // no metadata available, must be empty directory
+          callback([]);
         });
-      }, fs.errorHandler);
+
+      }, fs.errorHandler.curry("loadDir1"));
     },
     download: function(trackID, callback) {
       var fs = Tapedeck.Backend.Bank.FileSystem;
@@ -357,8 +368,8 @@ Tapedeck.Backend.Bank = {
           // Write the blob to the file
           fileWriter.write(bb.getBlob("audio/mpeg"));
           delete bb;
-        }, fs.errorHandler); // end fileEntry.createWrite(...)
-      }, fs.errorHandler); // end fs.root.getFile(...);
+        }, fs.errorHandler.curry("saveResponse2")); // end fileEntry.createWrite(...)
+      }, fs.errorHandler.curry("saveResponse1")); // end fs.root.getFile(...);
     },
 
     removeTrack: function(trackID) {
@@ -370,9 +381,9 @@ Tapedeck.Backend.Bank = {
 
         fileEntry.remove(function() {
           // File removed
-        }, fs.errorHandler);
+        }, fs.errorHandler.curry("removeTrack2"));
 
-      }, fs.errorHandler);
+      }, fs.errorHandler,curry("removeTrack1"));
     },
 
     clear: function() {
@@ -381,12 +392,15 @@ Tapedeck.Backend.Bank = {
       dirReader.readEntries(function(entries) {
         for (var i = 0, entry; entry = entries[i]; ++i) {
           if (entry.isDirectory) {
-            entry.removeRecursively(function() {}, fs.errorHandler);
+            entry.removeRecursively(function() {}, fs.errorHandler.curry("clear2A"));
           } else {
-            entry.remove(function() {}, fs.errorHandler);
+            entry.remove(function() {}, fs.errorHandler.curry("clear2B"));
           }
         }
-      }, fs.errorHandler);
+      }, fs.errorHandler.curry("clear1"));
+
+      // a bank clear invalidates the packages in the template manager
+      Tapedeck.Backend.TemplateManager.packages = { };
     },
 
     nameFile: function(track) {
@@ -428,7 +442,11 @@ Tapedeck.Backend.Bank = {
     },
 
     // Generic error dump for any filesystem errors
-    errorHandler: function(e) {
+    errorHandler: function(functionName, e) {
+      if (typeof(functionName) != "string") {
+        e = functionName;
+        functionName = "unknown location"
+      }
       var msg = '';
 
       switch (e.code) {
@@ -472,7 +490,7 @@ Tapedeck.Backend.Bank = {
           msg = 'Unknown Error';
           break;
       };
-      console.error('File System Error: ' + msg);
+      console.error('File System Error in "' + functionName + '": ' + msg);
     },
   },
 
