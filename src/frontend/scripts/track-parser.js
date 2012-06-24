@@ -639,6 +639,9 @@ if (onObject != null &&
       parseWithAPI: function(url) {
         var parser = onObject.TrackParser;
         var soundcloud = parser.Soundcloud;
+        url = url.replace("http://", "");
+        url = url.replace("https://", "");
+        url = url.replace("www.", "");
 
         parser.log("defering to Soundcloud API: " + url);
 
