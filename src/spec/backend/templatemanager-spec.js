@@ -62,7 +62,6 @@ describe("Template Manager", function() {
     }, "Waiting for TemplateManager.init()", 3000);
   });
 
-
   it("should get Backbone view constructors from getViewScript", function() {
     var Backbone = chrome.extension.getBackgroundPage().Backbone;
 
@@ -148,6 +147,7 @@ describe("Template Manager", function() {
          2000);
     runs(function() {
       expect(testComplete).toBeTruthy();
+      self.Tapedeck.Backend.TemplateManager.setPackage("default");
     });
   });
 

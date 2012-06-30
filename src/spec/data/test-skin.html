@@ -439,4 +439,54 @@
       </div>
     </template>
   </script>
+
+  <script id="Modal-test-template" type="text/template">
+    <tapedeck>
+      <events>
+          "click .modal #close-button"  : "Modal.close",
+          "click .modal #submit-button" : "Modal.submit",
+          "keypress .modal input[type='text']" : "Modal.enterPress",
+      </events>
+      <options>
+      </options>
+      <images>
+        "#close-button": "modal-close.png",
+      </images>
+    </tapedeck>
+
+    <template>
+      <!-- Note options are params.X here -->
+      <div id="blackout"></div>
+      <div id='modal-container' class="modal">
+        <div id="close-button"></div>
+        <span id="modal-title"><% if (typeof(params.title) != "undefined") print(params.title);  %></span>
+        <form id="modal-form">
+          <% for (var i=0; i < params.fields.length; i++) {
+            var field = params.fields[i]; %>
+            <div class="field-row row <%= field.type %>">
+              <% if (field.type == "info") { %>
+                <span class="info"><%= field.text %></span>
+              <% } else if (field.type == "input") { %>
+                <span class="input"><%= field.text %></span>
+                <input callbackParam="<%= field.callbackParam %>"
+                       type="text"
+                       <% if (typeof(field.width) != "undefined") print("style='width: " + field.width + "px;'"); %> >
+              <% } %>
+            </div>
+          <% } %>
+          <% if (typeof(params.submitButtons) == "undefined") { %>
+            <input type="button" id="submit-button" value="Ok" />
+          <% } else {
+            for (var i=0; i < params.submitButtons.length; i++) {
+              var button = params.submitButtons[i]; %>
+              <input type="button"
+                     class="submit-button"
+                     callbackParam="<%= button.callbackParam %>"
+                     value="<%= button.text %>" />
+            <% }
+          } %>
+        </form>
+      </div>
+    </template>
+  </script>
 </html>

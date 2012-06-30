@@ -769,27 +769,21 @@ Tapedeck.Frontend.Frame = {
      */
     callback: null,
     cleanup: null,
-    show: function(params, aCallback, aCleanup) {
+    show: function(viewString, proxyEvents, aCallback, aCleanup) {
       var modal = Tapedeck.Frontend.Frame.Modal;
 
-      var getViewCallback = function(response) {
+      Tapedeck.Frontend.Frame.replaceView(viewString,
+                                          proxyEvents);
 
-        Tapedeck.Frontend.Frame.replaceView(response.view,
-                                            response.proxyEvents);
-        var inputs = $("#modal").find("input[type='text']");
-        if (inputs.length > 0) {
-          inputs.first().select();
-        }
-      };
+      var inputs = $("#modal").find("input[type='text']");
+      if (inputs.length > 0) {
+        inputs.first().select();
+      }
 
       modal.callback = aCallback;
       if (typeof(aCleanup) != "undefined") {
         modal.cleanup = aCleanup;
       }
-
-      Tapedeck.Frontend
-              .Messenger
-              .getView("Modal", params, null, getViewCallback);
     },
 
     submit: function(event) {
