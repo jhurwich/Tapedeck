@@ -153,10 +153,11 @@ Tapedeck.Backend.TemplateManager = {
     var viewScript = tMgr.getViewScript(scriptName);
     var view = new viewScript(options);
 
-    var el = view.render();
-    tMgr.assignImages(el, view.getImages());
+    view.render(function(el) {
+      tMgr.assignImages(el, view.getImages());
 
-    callback({ el : el, proxyEvents : view.getEvents() });
+      callback({ el : el, proxyEvents : view.getEvents() });
+    });
   },
 
   assignImages: function(el, images) {

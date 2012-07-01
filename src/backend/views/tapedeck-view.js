@@ -1,21 +1,17 @@
 Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
 
+  templateName: null,
+  packageName: null,
   textTemplate: null,
-  template: null,
   initialize: function() {
     var tMgr = Tapedeck.Backend.TemplateManager;
     if (typeof(this.init) != "undefined") {
       this.init();
     }
+    this.templateName = Tapedeck.Backend.Utils.idToTemplateName(this.id);
+    this.packageName = tMgr.currentPackage;
 
-    // the template name is the id, each word separated by dashes capitalized and concated
-    var templateName = Tapedeck.Backend.Utils.idToTemplateName(this.id);
-    this.log("Initializing view for '" + templateName + "'", tMgr.DEBUG_LEVELS.ALL);
-
-    this.textTemplate = tMgr.getTemplate(templateName);
-
-    this.log("Compiling template '" + templateName + "'", tMgr.DEBUG_LEVELS.ALL);
-    this.template = _.template(this.textTemplate);
+    this.textTemplate = tMgr.getTemplate(this.templateName, this.packageName);
 
     // pass the options to the view, and toJSON anything we can
     this.params = this.options;
@@ -26,13 +22,25 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
     }
   },
 
-  render: function() {
-    var logStr = "Rendering view '" + Tapedeck.Backend.Utils.idToTemplateName(this.id) +
-                 "' with params '" + JSON.stringify(this.params) + "'";
-    this.log(logStr, Tapedeck.Backend.TemplateManager.DEBUG_LEVELS.ALL);
+  render: function(callback) {
+    var self = this;
+    var tMgr = Tapedeck.Backend.TemplateManager;
 
-    this.el.innerHTML =  this.template({ params: this.params });
-    return this.el;
+    var logStr = "Rendering view '" + self.templateName + "' with params '" +
+                 JSON.stringify(self.params) + "'";
+    self.log(logStr, tMgr.DEBUG_LEVELS.ALL);
+
+    var message = {
+      action: "render",
+      templateName: self.templateName,
+      packageName: self.packageName,
+      params: self.params,
+      textTemplate: self.textTemplate
+    };
+    Tapedeck.Backend.MessageHandler.messageSandbox(message, function(rendered) {
+      self.el.innerHTML = rendered.el;
+      callback(self.el);
+    });
   },
 
   getEvents: function() {

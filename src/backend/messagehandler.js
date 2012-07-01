@@ -16,6 +16,9 @@ Tapedeck.Backend.MessageHandler = {
     // frame. In particular, this includes the quick buttons and
     // injected scripts.
     chrome.extension.onRequest.addListener(this.requestListener);
+
+    // A listener to communicate with the sandbox
+    window.addEventListener('message', this.sandboxListener);
   },
 
   portListener: function(port) {
@@ -608,6 +611,10 @@ Tapedeck.Backend.MessageHandler = {
     if (typeof(callback) != "undefined" &&
         callback != null) {
       var cbID = new Date().getTime();
+      while (cbID in Tapedeck.Backend.MessageHandler.pendingCallbacks) {
+        cbID = cbID + 1;
+      }
+
       Tapedeck.Backend.MessageHandler.pendingCallbacks[cbID] = callback;
       request.callbackID = cbID;
     }
@@ -622,6 +629,26 @@ Tapedeck.Backend.MessageHandler = {
       response.callbackID = request.callbackID;
     }
     return response;
+  },
+
+  sandboxCallbacks: {},
+  messageSandbox: function(message, callback) {
+    if (typeof(callback) != "undefined" && callback != null) {
+      var cbID = new Date().getTime();
+      while (cbID in Tapedeck.Backend.MessageHandler.sandboxCallbacks) {
+        cbID = cbID + 1;
+      }
+
+      Tapedeck.Backend.MessageHandler.sandboxCallbacks[cbID] = callback;
+      message.callbackID = cbID;
+    }
+    $("#sandbox").get(0).contentWindow.postMessage(message, "*");
+  },
+
+  sandboxListener: function(event) {
+    if (event.data.type == "response") {
+      Tapedeck.Backend.MessageHandler.sandboxCallbacks[event.data.callbackID](event.data);
+    }
   },
 
   log: function(str, level) {

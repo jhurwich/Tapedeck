@@ -7,6 +7,10 @@
     "page" : "backend/background.html"
   },
 
+  "sandbox" : {
+    "pages" : ["backend/sandbox.html"]
+  },
+
   "browser_action": {
     "default_icon": "images/browseraction-cassette.png",
     "default_title": "Tapedeck",
@@ -21,7 +25,6 @@
   "permissions": ["http://*/*",
                   "https://*/*",
                   "tabs",
-                  "storage",
                   "unlimitedStorage"],
 
   "update_url": "http://www.tape-deck.com/update"
