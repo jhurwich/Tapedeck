@@ -139,7 +139,7 @@ Tapedeck.Backend.InjectManager = {
   },
 
   isTest: function(url) {
-    var match = url.match(/chrome-extension.*SpecRunner.html$/);
+    var match = url.match(/chrome-extension.*SpecRunner.html/);
     return (match != null);
   },
 

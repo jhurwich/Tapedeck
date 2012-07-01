@@ -1,6 +1,7 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Frontend Frame Logic"
+  "Template Manager",
+  "Cassettification"
 ];
 
 beforeEach(function() {
@@ -100,6 +101,13 @@ beforeEach(function() {
         return tab;
       }
     }
+  };
+
+  this.waitForSwitchToBrowseList = function() {
+    this.Tapedeck.Frontend.Messenger.setCassette("Scraper");
+    waitsFor(function() {
+      return ($("#tapedeck-frame").contents().find("#browse-list").length > 0);
+    }, "Waiting for switch to BrowseList mode", 200);
   };
 }); // end beforeEach
 

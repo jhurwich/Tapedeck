@@ -99,6 +99,70 @@ Tapedeck.Backend.Utils = {
     return map;
   },
 
+  // text is the text to be altered
+  // tags is an array of tagNames
+  // removeContentToo is a bool indicating if everything between tags should be removed as well
+  removeTags: function(text, tags, removeContentToo) {
+    var openTagRegex = function(tag) {
+      return new RegExp("<\s*" + tag + "[^<>]*>");
+    }
+
+    var closeTagRegex = function(tag) {
+      return new RegExp("<\/" + tag + "[^<>]*>", "i");
+    }
+
+    var selfClosedTagRegex = function(tag) {
+      return new RegExp("<\s*" + tag + "[^<>]*\/>", "i");
+    }
+
+    if (removeContentToo) {
+      // remove the tags and their contents
+      for (var i = 0; i < tags.length; i++) {
+        var tag = tags[i];
+
+        // we don't want the tags as blocks or as self closed tags
+        var selfCloseMatch = null;
+        while ((selfCloseMatch = text.match(selfClosedTagRegex(tag))) != null) {
+          text = text.replace(selfCloseMatch[0], "");
+        }
+
+        var openPos = -1;
+        var closeMatch = null;
+        while ((openPos = text.search(openTagRegex(tag))) != -1) {
+          if ((closeMatch = text.match(closeTagRegex(tag))) != null) {
+            var closeLen = closeMatch[0].length;
+            var toRemove = text.substring(openPos, closeMatch.index + closeLen);
+            text = text.replace(toRemove, "");
+          }
+          else {
+            // couldn't find a close tag, just remove the open tag
+            console.error("no close tag for open tag '" + tag + "'");
+            text = text.replace(text.match(openTagRegex(tag))[0], "");
+          }
+
+        }
+      }
+    }
+    else {
+      // we only want to remove the tags themselves
+      for (var i = 0; i < tags.length; i++) {
+        var tag = tags[i];
+
+        var match = null;
+        while ((match = text.match(openTagRegex(tag))) != null) {
+          text = text.replace(match[0], "");
+        }
+        while ((match = text.match(closeTagRegex(tag))) != null) {
+          text = text.replace(match[0], "");
+        }
+        while ((match = text.match(selfClosedTagRegex(tag))) != null) {
+          text = text.replace(match[0], "");
+        }
+      }
+    }
+    return text;
+  },
+
   domToString: function(dom) {
     return $('div').append($(dom)).remove().html();
   }

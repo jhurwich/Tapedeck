@@ -1,36 +1,26 @@
 describe("TrackList View", function() {
 
-  it ("should have rows for each track when rendered", function() {
+  it ("should render propely through the TemplateManager", function() {
+    var self = this;
+    var tMgr = self.Tapedeck.Backend.TemplateManager;
     var trackList = new this.Tapedeck
                             .Backend
                             .Collections
                             .TrackList(this.testTracks);
 
-    var viewScript = this.Tapedeck
-                         .Backend
-                         .TemplateManager
-                         .getViewScript("TrackList");
+    var testComplete = false;
+    var options = { trackList: trackList,
+                    currentCassette: null };
 
-    var view = new viewScript({ trackList: trackList });
+    tMgr.renderViewWithOptions("TrackList", "default", options, function(rendered) {
+      testComplete = true;
+      var rows  = $(rendered.el).find(".row").not("#hidden-droprow");
+      expect(rows.length).toEqual(self.testTracks.length);
+    });
 
-    var listDOM = view.render();
-
-    var rows  = $(listDOM).find(".row").not("#hidden-droprow");
-
-    expect(rows.length).toEqual(this.testTracks.length);
-  });
-
-  it ("should render properly through the TemplateManager", function() {
-    var trackList = new this.Tapedeck
-                            .Backend
-                            .Collections
-                            .TrackList(this.testTracks);
-
-    var viewData = this.Tapedeck.Backend.TemplateManager.renderView
-                       ("TrackList", { trackList: trackList }, null);
-
-    var rows  = $(viewData.el).find(".row").not("#hidden-droprow");
-
-    expect(rows.length).toEqual(this.testTracks.length);
+    waitsFor(function() { return testComplete; }, "Waiting for rendering", 200);
+    runs(function() {
+      expect(testComplete).toBeTruthy();
+    });
   });
 });

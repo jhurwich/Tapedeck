@@ -4,6 +4,14 @@ describe("Cassette Manager", function() {
     this.cassetteMgr = this.Tapedeck
                            .Backend
                            .CassetteManager;
+
+    var initComplete = false;
+    this.Tapedeck.Backend.CassetteManager.init(function() {
+      initComplete = true;
+    });
+    waitsFor(function() {
+      return initComplete;
+    }, "Waiting for CassetteManager.init()", 3000);
   });
 
   it("should return all installed cassettes", function() {
@@ -45,6 +53,7 @@ describe("Cassette Manager", function() {
         break;
       }
     }
+
     this.cassetteMgr.setCassette(cassette.get("name"));
     expect(this.cassetteMgr.currentCassette.get("name")).toEqual("Scraper");
   });

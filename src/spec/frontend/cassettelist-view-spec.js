@@ -27,16 +27,25 @@ describe("CassetteList View", function() {
   });
 
   it ("should render properly through the TemplateManager", function() {
+    var self = this;
+    var tMgr = self.Tapedeck.Backend.TemplateManager;
     var cassetteList = new this.Tapedeck
                                .Backend
                                .Collections
                                .CassetteList(this.cassettes);
 
-    var viewData = this.Tapedeck.Backend.TemplateManager.renderView
-                       ("CassetteList", { cassetteList: cassetteList }, null);
+    var testComplete = false;
+    var options = { cassetteList: cassetteList };
 
-    var rows  = $(viewData.el).find(".row");
+    tMgr.renderViewWithOptions("CassetteList", "default", options, function(rendered) {
+      testComplete = true;
+      var rows  = $(rendered.el).find(".row");
+      expect(rows.length).toEqual(self.cassettes.length);
+    });
 
-    expect(rows.length).toEqual(this.cassettes.length);
+    waitsFor(function() { return testComplete; }, "Waiting for rendering", 200);
+    runs(function() {
+      expect(testComplete).toBeTruthy();
+    });
   });
 });

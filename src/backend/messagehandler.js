@@ -530,9 +530,11 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
 
-    var unwrapParams = null;
+    // If we have a callback and/or cleanup prepare the finishing function.
+    // NOTE: cleanup is not used anywhere yet, so this likely needs to be tweaked
+    var finishUp = null;
     if (typeof(callback) != "undefined" && callback != null) {
-      unwrapParams = function(response) {
+      finishUp = function(response) {
         if (typeof(response.params) != "undefined") {
           // success callback
           callback(response.params);
@@ -546,12 +548,27 @@ Tapedeck.Backend.MessageHandler = {
       };
     }
 
-    var request = Tapedeck.Backend.MessageHandler.newRequest({
-      action: "showModal",
-      params: params,
-    }, unwrapParams);
+    // The render callback will send the viewString to the frontend
+    var handleRendered = function(rendered) {
 
-    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+      var viewString = $('<div>').append($(rendered.el))
+                                 .remove()
+                                 .html();
+
+      // if there's a callback specified, finishUp will not be null
+      var request = Tapedeck.Backend.MessageHandler.newRequest({
+        action: "showModal",
+        view: viewString,
+        proxyEvents: rendered.proxyEvents,
+      }, finishUp);
+
+      Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+    };
+
+    // render the modal
+    Tapedeck.Backend.TemplateManager.renderViewWithOptions("Modal",
+                                                           params,
+                                                           handleRendered);
   },
 
   pushView: function(view, proxyEvents, tab) {

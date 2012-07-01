@@ -1,4 +1,4 @@
-if (typeof Tapedeck == "undefined") {
+if (typeof(Tapedeck) == "undefined") {
   var Tapedeck = { };
   Tapedeck.Frontend = { };
 }
@@ -19,5 +19,7 @@ Tapedeck.Frontend.init = function() {
 
 };
 
-$(function() { Tapedeck.Frontend.init() });
+$(document).ready(function() {
+  Tapedeck.Frontend.init()
+});
 

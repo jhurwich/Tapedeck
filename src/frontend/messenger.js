@@ -91,7 +91,8 @@ Tapedeck.Frontend.Messenger = {
           self.sendMessage(response);
         };
 
-        Tapedeck.Frontend.Frame.Modal.show(request.params,
+        Tapedeck.Frontend.Frame.Modal.show(request.view,
+                                           request.proxyEvents,
                                            wrappedCallback,
                                            cleanupCallback);
         break;

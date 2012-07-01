@@ -14,29 +14,23 @@ Tapedeck.Backend.TemplateManager = {
     "CassetteList"
   ],
 
+  DEBUG_LEVELS: {
+    NONE  : 0,
+    BASIC : 1,
+    ALL   : 2,
+  },
+  debug: 0,
+
   init: function() {
-    this.packages["default"] = Tapedeck.Backend.Views;
+    var tMgr = Tapedeck.Backend.TemplateManager;
+    tMgr.log("TemplateManager.init() starting", tMgr.DEBUG_LEVELS.ALL);
 
     // will receive [{ name: "", contents: "", url: "", cssURL: "", cssContents: "" }]
     Tapedeck.Backend.Bank.FileSystem.getTemplates(function(templateDatas) {
-      var setupTemplates = function(datas) {
-        for (var i = 0; i < datas.length; i++) {
-          var data = datas[i];
-
-          // save the template to the background page except for default which
-          // should already be there
-          if (data.name != "default") {
-            // TODO put templateCode somewhere accessible after reading in
-          }
-
-          // save the cssURLs so the frame can retrieve them
-          Tapedeck.Backend.TemplateManager.cssForPackages[data.name] = data.cssURL;
-        }
-      };
 
       // if there are no templates in the filesystem, read in the default
       if (templateDatas.length == 0) {
-        console.log("no template data, reading in the default package");
+        tMgr.log("No templates received from filesystem", tMgr.DEBUG_LEVELS.ALL);
 
         // div needed to preserve script tags of template
         var div = $('div');
@@ -52,12 +46,7 @@ Tapedeck.Backend.TemplateManager = {
           url: url,
           dataType: "text",
           success : function(cssCode) {
-            Tapedeck.Backend.Bank.FileSystem.saveTemplate(templateCode,
-                                                          cssCode,
-                                                          "default",
-                                                          function() {
-              Tapedeck.Backend.Bank.FileSystem.getTemplates(setupTemplates);
-            })
+            tMgr.addTemplate(templateCode, cssCode, "default", function() { })
           },
           error : function(xhr, status) {
             console.error("Error getting tapedeck.css: " + status);
@@ -66,16 +55,61 @@ Tapedeck.Backend.TemplateManager = {
       }
       else {
         // templates found, set them up
-        setupTemplates(templateDatas);
+        tMgr.log(templateDatas.length + " templates received from filesystem", tMgr.DEBUG_LEVELS.ALL);
+        tMgr.loadTemplates(templateDatas);
       }
     });
   },
 
+  addTemplate: function(templateCode, cssCode, packageName, callback) {
+    var tMgr = Tapedeck.Backend.TemplateManager;
+    tMgr.log("Adding new template for package '" + packageName + "'");
+
+    Tapedeck.Backend.Bank.FileSystem.saveTemplate(templateCode,
+                                                  cssCode,
+                                                  packageName,
+                                                  function() {
+
+      // get all saved templates and load them
+      Tapedeck.Backend.Bank.FileSystem.getTemplates(function(templateDatas){
+        tMgr.loadTemplates(templateDatas);
+        callback();
+      });
+    });
+  },
+
+  loadTemplates: function(templates) {
+    var tMgr = Tapedeck.Backend.TemplateManager;
+
+    for (var i = 0; i < templates.length; i++) {
+      var template = templates[i];
+      tMgr.packages[template.name] = true;
+
+      // save the template to the background page except for those that are already there
+      if ($("script#Frame-" + template.name + "-template").length == 0) {
+        tMgr.log("Loading new template '" + template.name + "' into background DOM");
+        var scripts = Tapedeck.Backend.Utils.removeTags(template.contents,
+                                                       ["html", "head", "body"],
+                                                       false);
+        $("head").first().append(scripts);
+      }
+
+      // save the cssURLs so the frame can retrieve them
+      if (typeof(tMgr.cssForPackages[template.name]) != "string") {
+        tMgr.cssForPackages[template.name] = template.cssURL;
+      }
+    }
+  },
+
   setPackage: function(packageName) {
+    var tMgr = Tapedeck.Backend.TemplateManager;
+    tMgr.log("Setting to package '" + packageName + "'", tMgr.DEBUG_LEVELS.ALL);
+
     if (packageName in this.packages) {
       this.currentPackage = packageName;
     }
     else {
+      tMgr.log("Package not found, setting to default");
       this.currentPackage = "default";
     }
   },
@@ -95,7 +129,7 @@ Tapedeck.Backend.TemplateManager = {
     }
 
     // generate the view with no options to know what it needs
-    var viewScript = tMgr.getViewScript(scriptName, packageName);
+    var viewScript = tMgr.getViewScript(scriptName);
     var hollowView = new viewScript({ });
 
     if (postPopulate) {
@@ -113,7 +147,10 @@ Tapedeck.Backend.TemplateManager = {
       options = packageName;
       packageName = null;
     }
-    var viewScript = tMgr.getViewScript(scriptName, packageName);
+    tMgr.log("Rendering view '" + scriptName + "' from package '" + packageName + "'");
+    tMgr.log("with options: \n" + JSON.stringify(options), tMgr.DEBUG_LEVELS.ALL);
+
+    var viewScript = tMgr.getViewScript(scriptName);
     var view = new viewScript(options);
 
     var el = view.render();
@@ -137,7 +174,6 @@ Tapedeck.Backend.TemplateManager = {
     }
   },
 
-  // TODO make this more fault tolerant (try/catch and timeouts for any call)
   fillOptions: function(requestedOptions, callback) {
     var tMgr = Tapedeck.Backend.TemplateManager;
     var fillMap = {
@@ -151,6 +187,7 @@ Tapedeck.Backend.TemplateManager = {
       "currentTrack" : tMgr.getCurrentTrack,
       "tabID" : tMgr.getTabID,
     };
+    tMgr.log("Filling options: " + JSON.stringify(requestedOptions), tMgr.DEBUG_LEVELS.ALL);
 
     var options = {};
     var optionCount = 0;
@@ -271,27 +308,27 @@ Tapedeck.Backend.TemplateManager = {
     });
   },
 
-  getViewScript: function(scriptName, packageName) {
-    if (!this.isValidPackage(packageName)) {
-      packageName = this.currentPackage;
-    }
-
-    return this.packages[packageName][scriptName];
+  getViewScript: function(scriptName) {
+    return Tapedeck.Backend.Views[scriptName];
   },
 
   getTemplate: function(templateName, packageName) {
+    var tMgr = Tapedeck.Backend.TemplateManager;
     if (!this.isValidPackage(packageName)) {
       packageName = this.currentPackage;
     }
+    tMgr.log("Requesting template '" + templateName + "' for package '" + packageName + "'");
 
     // first get the contents of the template
     var templateSelector = "script#" + templateName + "-" + packageName + "-template";
-
     var html = $(templateSelector).html();
+    tMgr.log("found in DOM template '" + templateName + "' : " + html, tMgr.DEBUG_LEVELS.ALL);
 
-    // now populate it with all reference templates as if they were present
+    /* Now populate it with all reference templates as if they were present.
+     * We accomodate selfclosed template ref tags and immediately closed ones
+     * (somewhere they are getting converted from self closed to immediately). */
     var selfClosedTagRegex = function(tag) {
-      return new RegExp("<\s*" + tag + "[^<>]*\/>", "gi");
+      return new RegExp("<\s*" + tag + "[^<>]*(><\/" + tag + ">|\/>)", "gi");
     }
 
     var templateMatch = null;
@@ -304,6 +341,7 @@ Tapedeck.Backend.TemplateManager = {
 
       var subtemplateName = subtemplateMatch[1];
       var subtemplatePackage = subtemplateMatch[2];
+      tMgr.log("Subtemplate of '" + templateName + "' found, populating '" + subtemplateName + "'", tMgr.DEBUG_LEVELS.ALL);
 
       // got the template, we still need to fold the <tapedeck> portion in
       var subtemplateHTML = this.getTemplate(subtemplateName, subtemplatePackage);
@@ -377,4 +415,18 @@ Tapedeck.Backend.TemplateManager = {
     }
     return (packageName in this.packages) ;
   },
+
+  log: function(str, level) {
+    var self = Tapedeck.Backend.TemplateManager;
+    if (self.debug == self.DEBUG_LEVELS.NONE) {
+      return;
+    }
+    if (typeof(level) == "undefined") {
+      level = self.DEBUG_LEVELS.BASIC;
+    }
+    if (self.debug >= level) {
+      var currentTime = new Date();
+      console.log("TemplateMgr (" + currentTime.getTime() + ") : " + str);
+    }
+  }
 }
