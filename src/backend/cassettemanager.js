@@ -20,27 +20,58 @@ Tapedeck.Backend.CassetteManager = {
 
   readInCassettes: function(callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
+    cMgr.cassettes = [];
 
-    // Read saved cassettes into memory
+    // FileSystem cassettes must be run in the Sandbox and communicated with through
+    // a CassetteAdapter
     Tapedeck.Backend.Bank.FileSystem.getCassettes(function(cassetteDatas) {
       var pageMap = { };
       for (var i = 0; i < cassetteDatas.length; i++) {
         var data = cassetteDatas[i];
 
-        if (typeof(data.page) != "undefined") {
-          pageMap[data.name] = data.page
-        }
+        // Tell the Sandbox to prepare this cassette, in the response is a report
+        // from which a CassetteAdapter can be created.  Map that adapter as the cassette
+        var message = {
+          action: "prepCassette",
+          url: data.url
+        };
+        Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+          var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
+          var cassetteEntry = { cassette: newAdapter };
+          if (typeof(data.page) != "undefined") {
+            cassetteEntry.page = data.page;
+          }
 
-        // writes the cassette to Tapedeck.Backend.Cassettes[CassetteName]
-        var script = document.createElement('script');
-        script.setAttribute('type', 'text/javascript');
-        script.setAttribute('src', data.url);
-        document.getElementsByTagName('head')[0].appendChild(script);
+          cMgr.cassettes.push(cassetteEntry);
+        });
+      } // end handling FileSystem cassettes
+
+      // Cassettes stored in memory can be used directly
+      for (var CassetteModel in Tapedeck.Backend.Cassettes) {
+        var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
+
+        // for the moment no in-memory cassettes have pages, if this changes
+        // this will need to pull a page number and store it here
+        cMgr.cassettes.push({ cassette: cassette });
       }
 
-      // We expect all the preinstalled cassettes plus the saved ones
+      // Confirm that everything was ready to be read in.
+      // We expect all the preinstalled cassettes plus the saved ones.
       var numExpected = cMgr.numPreinstalled + cassetteDatas.length;
-      cMgr.populateCassetteList(numExpected, pageMap, 1, callback);
+      var currTimeout = 0;
+      var delayReturn = function() {
+        if (cMgr.cassettes.length != numExpected) {
+          if (currTimeout <= 0) {
+            currTimeout = 1;
+          }
+          currTimeout = currTimeout * 2;
+          setTimeout(delayReturn, currTimeout);
+        }
+        else {
+          callback();
+        }
+      }
+      delayReturn();
     });
   },
 

@@ -26,8 +26,35 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
   // No menuitems by default
   menuitems: [],
 
+  isBrowseable: function() {
+    return (typeof(this.getBrowseList) != "undefined");
+  },
   isPageable: function() {
     return (typeof(this.getPage) != "undefined");
+  },
+
+  generateReport: function() {
+    /* The report should include
+     *  {
+     *    name: "string",
+     *    isBrowseable: boolean,
+     *    isPageable: boolean,
+     *    tdID: "string",
+     *    developer: "string",
+     *    developerLink: "string"
+     *  }
+     */
+
+     var report = {
+       name: this.get("name"),
+       tdID: this.get("tdID"),
+       developer: this.get("developer"),
+       developerLink: this.get("developerLink"),
+       isBrowseable: this.isBrowseable(),
+       isPageable: this.isPageable(),
+     };
+
+     return report;
   },
 
   // override the toJSON so that isPageable is sent as bool

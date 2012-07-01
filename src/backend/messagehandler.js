@@ -52,7 +52,7 @@ Tapedeck.Backend.MessageHandler = {
 
     switch (request.action) {
       case "add_tracks":
-        self.addTracksAndPushBrowseList(request.tracks);
+        self.addTracks(request.tracks);
         break;
 
       case "play_pause":
@@ -395,12 +395,12 @@ Tapedeck.Backend.MessageHandler = {
   // Basic mutex.  Push tracks to queue if lock is held.
   addTrackAvailable: true,
   addTracksQueued: [ ],
-  addTracksAndPushBrowseList: function(newTracks, tab) {
+  addTracks: function(newTracks, tab) {
     var msgHandler = Tapedeck.Backend.MessageHandler;
     if (!msgHandler.addTrackAvailable) {
       // We shifted the new tracks to the queue, and push empty array
       msgHandler.addTracksQueued = msgHandler.addTracksQueued.concat(newTracks);
-      setTimeout(msgHandler.addTracksAndPushBrowseList.curry([], tab),
+      setTimeout(msgHandler.addTracks.curry([], tab),
                  200);
       return;
     }
@@ -648,6 +648,18 @@ Tapedeck.Backend.MessageHandler = {
   sandboxListener: function(event) {
     if (event.data.type == "response") {
       Tapedeck.Backend.MessageHandler.sandboxCallbacks[event.data.callbackID](event.data);
+    }
+    else {
+      var request = event.data;
+      switch (request.action) {
+        case "addTracks":
+          Tapedeck.Backend.MessageHandler.addTracks(request.tracks, request.tab);
+          break;
+
+        default:
+          throw new Error("MessageHandler's sandboxListener was sent an unknown action");
+          break;
+      }
     }
   },
 

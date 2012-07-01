@@ -23,7 +23,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       var pageURL = self.pattern.replace(/\\$#/g, pageNum); \
  \
       /* Check if we already have the tracks saved for this page */ \
-      var foundTracks = Tapedeck.Backend.Bank.getTracksForURL(pageURL); \
+      var foundTracks = self.getTracksForURL(pageURL); \
       if (foundTracks != null && foundTracks.length > 0) { \
         /* Its possible we appropriated another cassettes page, rebrand */ \
         if (foundTracks[0].cassette != self.get("name")) { \
@@ -42,7 +42,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           errCallback(tracks.error); \
         } \
         else { \
-          Tapedeck.Backend.Bank.saveTracksForURL(pageURL, tracks); \
+          self.saveTracksForURL(pageURL, tracks); \
           var ourDump = $("#dump").find("#CassetteFromTemplate"); \
           var pageDump = $(ourDump).find("#page" + pageNum); \
           pageDump.remove(); \
@@ -72,7 +72,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                              context      : $(pageDump), \
                                              callback     : saveClearAndCallback, \
-                                             moreCallback : self.addMoreCallback.curry(pageURL) }); \
+                                             moreCallback : self.addMoreCallback.curry(self, pageURL) }); \
       } \
     }, \
  \
@@ -98,12 +98,12 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                            context      : $(pageDump), \
                                            callback     : callback, \
-                                           moreCallback : self.addMoreCallback.curry(url) }); \
+                                           moreCallback : self.addMoreCallback.curry(self, url) }); \
     }, \
  \
-    addMoreCallback: function(url, tracks) { \
-      Tapedeck.Backend.Bank.saveMoreTracksForURL(url, tracks); \
-      Tapedeck.Backend.MessageHandler.addTracksAndPushBrowseList(tracks); \
+    addMoreCallback: function(self, url, tracks) { \
+      self.saveMoreTracksForURL(url, tracks); \
+      Tapedeck.Backend.MessageHandler.addTracks(tracks); \
     }, \
  \
     isDumpCached: function(page) { \
@@ -121,6 +121,54 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         return false; \
       } \
     }, \
+ \
+    urlMap: { }, \
+    collectorID: null, \
+    saveTracksForURL: function(url, tracks) { \
+      url = url.replace("http://", ""); \
+      url = url.replace("www.", ""); \
+ \
+      var expiry =(new Date()).getTime() + (1000 * 60 * 15); /* in 15 min */ \
+      this.urlMap[url] = { tracks: tracks, expiry: expiry }; \
+      if (this.collectorID == null) { \
+        this.collectorID = window.setInterval(this.memoryCollector, 1000 * 60 * 5); /* 5 min */ \
+      }; \
+    }, \
+ \
+    saveMoreTracksForURL: function(url, tracks) { \
+      url = url.replace("http://", ""); \
+      url = url.replace("www.", ""); \
+ \
+      var currTracks = this.urlMap[url].tracks; \
+      tracks = currTracks.concat(tracks); \
+ \
+      var expiry =(new Date()).getTime() + (1000 * 60 * 15); /* in 15 min */ \
+      this.urlMap[url] = { tracks: tracks, expiry: expiry }; \
+    }, \
+ \
+    getTracksForURL: function(url) { \
+      if (typeof(this.urlMap[url]) != "undefined") { \
+        if ((this.urlMap[url].expiry - (new Date()).getTime()) < 0) { \
+          delete this.urlMap[url]; \
+          return null; \
+        } \
+        return this.urlMap[url].tracks; \
+      } \
+      else { \
+        return null; \
+      } \
+    }, \
+ \
+    /* Cleanup any expired pages */ \
+    memoryCollector: function() { \
+      for(var url in this.urlMap) { \
+        var expiry = this.urlMap[url].expiry; \
+        if ((expiry - (new Date()).getTime()) < 0) { \
+          delete this.urlMap[url]; \
+        } \
+      } \
+    }, \
+ \
   }); \
     '
 };
