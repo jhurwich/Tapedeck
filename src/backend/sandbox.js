@@ -37,7 +37,6 @@ Tapedeck.Sandbox = {
           response.error = error;
           window.parent.postMessage(response, "*");
         });
-        console.log("getBrowseList for " + cassette.get("name"));
         break;
 
       case "getPage":
@@ -166,3 +165,4 @@ Function.prototype.curry = function() {
 };
 
 window.addEventListener('message', Tapedeck.Sandbox.messageHandler);
+console.log("SANDBOX READY")

@@ -39,8 +39,9 @@ Tapedeck.Backend.InjectManager = {
       }
 
       // Delay loadcomplete just a bit. It seems to be more consistent.
-      setTimeout(Tapedeck.Backend.MessageHandler.signalLoadComplete(tab),
-                 200);
+      setTimeout(function() {
+        Tapedeck.Backend.MessageHandler.signalLoadComplete(tab);
+      }, 200);
     }
   },
 

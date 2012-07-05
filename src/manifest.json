@@ -9,8 +9,7 @@
   },
 
   "sandbox" : {
-    "pages" : ["backend/sandbox.html"],
-    "content_security_policy": "sandbox allow-scripts;"
+    "pages" : ["backend/sandbox.html"]
   },
 
   "browser_action": {
@@ -28,8 +27,6 @@
                   "https://*/*",
                   "tabs",
                   "unlimitedStorage"],
-
-  "content_security_policy": "script-src 'self'; object-src 'self'",
 
   "web_accessible_resources": [
     "backend/sandbox.html",
