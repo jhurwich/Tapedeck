@@ -29,21 +29,31 @@ Tapedeck.Backend.CassetteManager = {
       for (var i = 0; i < cassetteDatas.length; i++) {
         var data = cassetteDatas[i];
 
-        // Tell the Sandbox to prepare this cassette, in the response is a report
-        // from which a CassetteAdapter can be created.  Map that adapter as the cassette
-        var message = {
-          action: "prepCassette",
-          url: data.url
-        };
-        Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
-          var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
-          var cassetteEntry = { cassette: newAdapter };
-          if (typeof(data.page) != "undefined") {
-            cassetteEntry.page = data.page;
-          }
+        // Extract the code in the filesystem cassette and pass to sandbox to execute
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", data.url, true);
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 200) {
 
-          cMgr.cassettes.push(cassetteEntry);
-        });
+            // Tell the Sandbox to prepare this cassette, in the response is a report
+            // from which a CassetteAdapter can be created.  Map that adapter as the cassette
+            var message = {
+              action: "prepCassette",
+              code: xhr.responseText
+            };
+            Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+              var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
+              var cassetteEntry = { cassette: newAdapter };
+              if (typeof(data.page) != "undefined") {
+                cassetteEntry.page = data.page;
+              }
+
+              cMgr.cassettes.push(cassetteEntry);
+            });
+          }
+        }; // end xhr.onreadystatechange
+        xhr.send();
+
       } // end handling FileSystem cassettes
 
       // Cassettes stored in memory can be used directly
@@ -302,7 +312,7 @@ Tapedeck.Backend.CassetteManager = {
         return;
       }
 
-      var template = _.template(cMgr.CassettifyTemplate.template);
+      // Collect params to generate our Cassette's source
       pattern = pattern.replace("http://", "");
       pattern = pattern.replace("www.", "");
       var domain;
@@ -313,10 +323,21 @@ Tapedeck.Backend.CassetteManager = {
         domain = pattern;
       }
 
-      var modelLoader = template({ domain  : domain,
-                                   pattern : pattern });
+      // Use Sandbox to generate the Cassette's source
+      var message = {
+        action: "template",
+        params: { domain: domain, pattern: pattern },
+        textTemplate: cMgr.CassettifyTemplate.template
+      };
+      try {
+        Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+          cMgr.Cassettify.nameCassette(response.rendered);
+        });
 
-      cMgr.Cassettify.nameCassette(modelLoader);
+      } catch(error) {
+        console.error("ERROR in generating Cassette source -" + JSON.stringify(error));
+      }
+
     },
 
     nameCassette: function(code, msg) {

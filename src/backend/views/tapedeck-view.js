@@ -39,9 +39,9 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
     };
 
     try {
-      Tapedeck.Backend.MessageHandler.messageSandbox(message, function(rendered) {
-        self.el.innerHTML = rendered.el;
-        self.log("Received genrated HTML from Sandbox");
+      Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+        self.el.innerHTML = response.rendered;
+        self.log("Received generated HTML from Sandbox");
         callback(self.el);
       });
 

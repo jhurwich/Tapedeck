@@ -2,13 +2,13 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
 
   template: ' \
   Tapedeck.Backend.Cassettes.CassetteFromTemplate = Tapedeck.Backend.Models.Cassette.extend({\
-    domain : "<%= domain %>", \
+    domain : "<%= params.domain %>", \
     defaults : { \
       "name" : "Unnamed", \
-      "developer" : "<%= domain %>", \
-      "developerLink" : "<%= domain %>", \
+      "developer" : "<%= params.domain %>", \
+      "developerLink" : "<%= params.domain %>", \
     }, \
-    pattern : "<%= pattern %>", \
+    pattern : "<%= params.pattern %>", \
    \
     /* No events, although probably want interval */ \
     events: [], \
@@ -52,7 +52,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
  \
       if (!self.isDumpCached(pageNum)) { \
         /* First hit the domain itself, usually the first page */ \
-        $.ajax({ \
+        Tapedeck.ajax({ \
           type: "GET", \
           url: "http://www." + pageURL, \
           dataType: "html", \
@@ -76,7 +76,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       } \
     }, \
  \
-    parseResponse: function(callback, url, page, self, data, status, xhr) { \
+    parseResponse: function(callback, url, page, self, responseText) { \
       var ourDump = $("#dump").find("#CassetteFromTemplate"); \
       if (ourDump.length == 0) { \
         ourDump = $("<div id=\'CassetteFromTemplate\'>"); \
@@ -88,7 +88,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         pageDump = $("<div id=\'page" + page + "\' url=\'" + url + "\'>"); \
         $(pageDump).appendTo($(ourDump)); \
       } \
-      var responseText = xhr.responseText; \
+ \
       responseText = Tapedeck.Backend.TrackParser.Util.inflateWPFlashObjects(responseText); \
       cleanedText = Tapedeck.Backend.TrackParser.Util.removeUnwantedTags(responseText); \
       $(pageDump).html(""); \

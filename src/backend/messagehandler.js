@@ -633,7 +633,6 @@ Tapedeck.Backend.MessageHandler = {
 
   sandboxCallbacks: {},
   messageSandbox: function(message, callback) {
-    console.log("going to sandbox");
     if (typeof(callback) != "undefined" && callback != null) {
       var cbID = new Date().getTime();
       while (cbID in Tapedeck.Backend.MessageHandler.sandboxCallbacks) {
@@ -655,6 +654,23 @@ Tapedeck.Backend.MessageHandler = {
       switch (request.action) {
         case "addTracks":
           Tapedeck.Backend.MessageHandler.addTracks(request.tracks, request.tab);
+          break;
+
+        case "ajax":
+          request.params.success = function(data, textStatus, xhr) {
+            var response = Tapedeck.Backend.MessageHandler.newResponse(request,
+                                                                       { action: 'response',
+                                                                         responseText: xhr.responseText });
+            $("#sandbox").get(0).contentWindow.postMessage(response, "*");
+          };
+
+          request.params.error = function(data, textStatus, jqXHR) {
+            console.error("Error performing ajax on behalf of Sandbox");
+            var response = Tapedeck.Backend.MessageHandler.newResponse(request,
+                                                                       { action: 'response',
+                                                                         error : "Ajax error" });
+          };
+          $.ajax(request.params)
           break;
 
         default:
