@@ -23,15 +23,15 @@ Tapedeck.Backend.MessageHandler = {
 
   portListener: function(port) {
     var self = Tapedeck.Backend.MessageHandler;
-    self.log("Port connecting: " + port.sender.id);
-    self.ports[port.sender.id] = port;
+    self.log("Port connecting: " + port.sender.tab.id);
+    self.ports[port.sender.tab.id] = port;
 
     port.onMessage.addListener(self.handleMessage.curry(port));
     port.onMessage.addListener(self.handleResponse);
 
     port.onDisconnect.addListener(function() {
-      self.log("Port disconnecting: " + port.sender.id);
-      self.ports[port.sender.id] = null;
+      self.log("Port disconnecting: " + port.sender.tab.id);
+      self.ports[port.sender.tab.id] = null;
     });
   },
 
@@ -141,7 +141,7 @@ Tapedeck.Backend.MessageHandler = {
 
     var response = self.newResponse(request);
 
-    self.log("Received message: " + request.action + " from tab " + port.sender.id);
+    self.log("Received message: " + request.action + " from tab " + port.sender.tab.id);
 
     switch(request.action)
     {
@@ -173,7 +173,7 @@ Tapedeck.Backend.MessageHandler = {
           else {
             response.dontClear = false;
           }
-          self.postMessage(port.sender.id, response);
+          self.postMessage(port.sender.tab.id, response);
         };
 
         // getView can specify forced options, if provided use them (an empty object would force no options)
@@ -181,7 +181,7 @@ Tapedeck.Backend.MessageHandler = {
           if (request.postPopulate) {
             console.error("Doesn't make sense to force options and postPopulate - postPopulate ignored.");
           }
-          request.options["tabID"] = port.sender.id;
+          request.options["tabID"] = port.sender.tab.id;
           Tapedeck.Backend.TemplateManager.renderViewWithOptions(scriptName, packageName, request.options, handleRendered);
         }
         else {
@@ -195,20 +195,20 @@ Tapedeck.Backend.MessageHandler = {
 
         // Sliders aren't views, but can be updated specially
         if (updateType.indexOf("Slider") == -1) {
-          Tapedeck.Backend.MessageHandler.updateView(updateType, port.sender);
+          Tapedeck.Backend.MessageHandler.updateView(updateType, port.sender.tab);
         }
         else if (updateType == "SeekSlider") {
-          Tapedeck.Backend.MessageHandler.updateSeekSlider(port.sender);
+          Tapedeck.Backend.MessageHandler.updateSeekSlider(port.sender.tab);
         }
         else if (updateType == "VolumeSlider") {
-          Tapedeck.Backend.MessageHandler.updateVolumeSlider(port.sender);
+          Tapedeck.Backend.MessageHandler.updateVolumeSlider(port.sender.tab);
         }
         break;
 
       case "download":
         var callback = function(url) {
           response.url = url;
-          self.postMessage(port.sender.id, response);
+          self.postMessage(port.sender.tab.id, response);
         }
         bank.FileSystem.download(request.trackID, callback);
         break;
@@ -290,17 +290,17 @@ Tapedeck.Backend.MessageHandler = {
 
       case "getCSS":
         response.cssURL = Tapedeck.Backend.TemplateManager.getCSSURL();
-        self.postMessage(port.sender.id, response);
+        self.postMessage(port.sender.tab.id, response);
         break;
 
       case "getRepeat":
         response.repeat = bank.getRepeat();
-        self.postMessage(port.sender.id, response);
+        self.postMessage(port.sender.tab.id, response);
         break;
 
       case "getSync":
         response.sync = bank.getSync();
-        self.postMessage(port.sender.id, response);
+        self.postMessage(port.sender.tab.id, response);
         break;
 
       case "saveQueue":
@@ -372,7 +372,7 @@ Tapedeck.Backend.MessageHandler = {
 
       case "getVolume":
         response.volume = bank.getVolume();
-        self.postMessage(port.sender.id, response);
+        self.postMessage(port.sender.tab.id, response);
         break;
 
       case "clear":

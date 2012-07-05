@@ -28,7 +28,7 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
 
     var logStr = "Rendering view '" + self.templateName + "' with params '" +
                  JSON.stringify(self.params) + "'";
-    self.log(logStr, tMgr.DEBUG_LEVELS.ALL);
+    self.log(logStr);
 
     var message = {
       action: "render",
@@ -41,6 +41,7 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
     try {
       Tapedeck.Backend.MessageHandler.messageSandbox(message, function(rendered) {
         self.el.innerHTML = rendered.el;
+        self.log("Received genrated HTML from Sandbox");
         callback(self.el);
       });
 
