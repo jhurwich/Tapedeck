@@ -51,7 +51,7 @@ Tapedeck.Frontend.Messenger = {
     var self = Tapedeck.Frontend.Messenger;
 
     var response = self.newResponse(request);
-    self.log("Receving request: " + request.action);
+    self.log("Receiving request: " + request.action);
 
     switch(request.action)
     {

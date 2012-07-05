@@ -633,6 +633,7 @@ Tapedeck.Backend.MessageHandler = {
 
   sandboxCallbacks: {},
   messageSandbox: function(message, callback) {
+    console.log("going to sandbox");
     if (typeof(callback) != "undefined" && callback != null) {
       var cbID = new Date().getTime();
       while (cbID in Tapedeck.Backend.MessageHandler.sandboxCallbacks) {

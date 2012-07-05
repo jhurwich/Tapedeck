@@ -37,10 +37,16 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
       params: self.params,
       textTemplate: self.textTemplate
     };
-    Tapedeck.Backend.MessageHandler.messageSandbox(message, function(rendered) {
-      self.el.innerHTML = rendered.el;
-      callback(self.el);
-    });
+
+    try {
+      Tapedeck.Backend.MessageHandler.messageSandbox(message, function(rendered) {
+        self.el.innerHTML = rendered.el;
+        callback(self.el);
+      });
+
+    } catch(error) {
+      console.error("ERROR in view rendering -" + JSON.stringify(error));
+    }
   },
 
   getEvents: function() {

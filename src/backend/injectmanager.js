@@ -102,40 +102,69 @@ Tapedeck.Backend.InjectManager = {
   },
 
   // responseCallback should prepare for response.error to be present in the event of error
+  currInjectors: 0,
   executeScript: function(tab, options, responseCallback, testParams) {
     var injectMgr = Tapedeck.Backend.InjectManager;
     if (injectMgr.isURLBlocked(tab.url)) {
       return;
     }
 
-    // We'll need to wrap the callback so we can make it's
-    // request listener self-destruct when it's called.
-    if (typeof(responseCallback) != "undefined") {
+    // we rate-limit the number of injectors
+    var currTimeout = 1;
+    var setupAndInject = function() {
+      currTimeout = currTimeout + 100;
+      var maxTimeout = injectMgr.currInjectors * 300;
+      if (currTimeout < maxTimeout) {
+        setTimeout(setupAndInject, currTimeout);
+        return;
+      };
+      injectMgr.currInjectors++;
 
-      var wrappedCallback = function(response, sender, sendResponse) {
-        responseCallback(response, sender, sendResponse);
+      // We'll need to wrap the callback so we can make it's
+      // request listener self-destruct when it's called.
+      // Also, if the inject fails we'll need to clean everything up
+      var wrappedCallback = null;
+      var cleanupTimer = setTimeout(function() {
+        // if the callback never gets called we need to clean it up
+        injectMgr.currInjectors = injectMgr.currInjectors - 1;
+        if (wrappedCallback != null) {
+          chrome.extension.onRequest.removeListener(wrappedCallback);
+        }
 
-        chrome.extension.onRequest.removeListener(arguments.callee);
+        var message = { error: "Timedout waiting for injection to return" };
+        responseCallback(message);
+      }, 2000);
+
+      if (typeof(responseCallback) != "undefined") {
+        wrappedCallback = function(response, sender, sendResponse) {
+          injectMgr.currInjectors = injectMgr.currInjectors - 1;
+          clearTimeout(cleanupTimer);
+
+          responseCallback(response, sender, sendResponse);
+          chrome.extension.onRequest.removeListener(arguments.callee);
+        }
+        chrome.extension.onRequest.addListener(wrappedCallback);
       }
-      chrome.extension.onRequest.addListener(wrappedCallback);
-    }
 
-    if (!injectMgr.isTest(tab.url)) {
-      chrome.tabs.executeScript(tab.id, options);
-    }
-    else {
-      // If it's the test tab, fake the injection
-      var request = Tapedeck.Backend.MessageHandler.newRequest({
-        action: "executeScriptInTest",
-        script: options.file,
-      });
-      if (typeof(options.params) != "undefined") {
-        /* Special means of sending params to start() for test setup */
-        request.params = testParams;
+      // Now actually do the injection
+      if (!injectMgr.isTest(tab.url)) {
+        chrome.tabs.executeScript(tab.id, options);
       }
+      else {
+        // If it's the test tab, fake the injection
+        var request = Tapedeck.Backend.MessageHandler.newRequest({
+          action: "executeScriptInTest",
+          script: options.file,
+        });
+        if (typeof(options.params) != "undefined") {
+          /* Special means of sending params to start() for test setup */
+          request.params = testParams;
+        }
 
-      Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
-    }
+        Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+      }
+    };
+    setupAndInject();
   },
 
   isTest: function(url) {

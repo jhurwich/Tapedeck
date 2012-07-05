@@ -1,6 +1,7 @@
 describe("PlaylistList View", function() {
 
   it ("should have rows for each playlist when rendered", function() {
+    var testComplete = false;
     var playlist = new this.Tapedeck
                            .Backend
                            .Collections
@@ -17,20 +18,29 @@ describe("PlaylistList View", function() {
                                .PlaylistList([playlist]);
 
     var view = new viewScript({ playlistList: playlistList });
-    var listDOM = view.render();
+    view.render(function(listDOM) {
+      var rows  = $(listDOM).find(".row");
+      expect(rows.length).toEqual(1);
 
-    var rows  = $(listDOM).find(".row");
-    expect(rows.length).toEqual(1);
+      playlistList = new this.Tapedeck
+                             .Backend
+                             .Collections
+                             .PlaylistList([playlist, playlist]);
 
-    playlistList = new this.Tapedeck
-                           .Backend
-                           .Collections
-                           .PlaylistList([playlist, playlist]);
+      view = new viewScript({ playlistList: playlistList });
+      view.render(function(doubleListDOM) {
 
-    view = new viewScript({ playlistList: playlistList });
-    listDOM = view.render();
+        var rows  = $(doubleListDOM).find(".row");
+        expect(rows.length).toEqual(2);
+        testComplete = true;
+      });
 
-    var rows  = $(listDOM).find(".row");
-    expect(rows.length).toEqual(2);
+    });
+
+    waitsFor(function() { return testComplete }, "Waiting for PlaylistLists to be built", 2000);
+    runs(function() {
+      expect(testComplete).toBeTruthy();
+    })
+
   });
 });
