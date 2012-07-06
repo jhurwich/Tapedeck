@@ -53,12 +53,13 @@ describe("Template Manager", function() {
                2000);
     };
 
-    var spy = spyOn(self.Tapedeck.Backend.Bank.FileSystem, "getTemplates")
-                   .andCallThrough();
-    self.Tapedeck.Backend.TemplateManager.init();
+    var initComplete = false
+    self.Tapedeck.Backend.TemplateManager.init(function() {
+      initComplete = true;
+    });
 
     waitsFor(function() {
-      return spy.callCount >= 2;
+      return initComplete;
     }, "Waiting for TemplateManager.init()", 3000);
   });
 

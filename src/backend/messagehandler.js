@@ -206,8 +206,9 @@ Tapedeck.Backend.MessageHandler = {
         break;
 
       case "download":
-        var callback = function(url) {
-          response.url = url;
+        var callback = function(fileData) {
+          response.url = fileData.url;
+          response.fileName = fileData.fileName;
           self.postMessage(port.sender.tab.id, response);
         }
         bank.FileSystem.download(request.trackID, callback);

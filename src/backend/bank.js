@@ -117,9 +117,8 @@ Tapedeck.Backend.Bank = {
               callback(false);
             };
 
-            var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
-            bb.append(code);
-            fileWriter.write(bb.getBlob('text/plain'));
+            var blob = new Blob([code], { 'type': 'text/plain' });
+            fileWriter.write(blob);
           }, fs.errorHandler.curry("saveCassette3"));
         }, fs.errorHandler.curry("saveCassette2"));
       }, fs.errorHandler.curry("saveCassette1"));
@@ -239,9 +238,8 @@ Tapedeck.Backend.Bank = {
               callback(false);
             };
 
-            var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
-            bb.append(code);
-            fileWriter.write(bb.getBlob('text/plain'));
+            var blob = new Blob([code], { type:'text/plain' });
+            fileWriter.write(blob);
           }, fs.errorHandler.curry("saveCode3"));
         }, fs.errorHandler.curry("saveCode2"));
       }, fs.errorHandler.curry("saveCode1"));
@@ -341,13 +339,11 @@ Tapedeck.Backend.Bank = {
 
     saveResponse: function(track, res, callback) {
       var fs = Tapedeck.Backend.Bank.FileSystem;
-      // Fill a Blob with the response
-      var bb = new (window.BlobBuilder || window.WebKitBlobBuilder)();
       if (!res) {
         return;
       }
       var byteArray = new Uint8Array(res);
-      bb.append(byteArray.buffer);
+      var blob = new Blob([byteArray], { type: 'audio/mpeg' });
 
       // Create a new file for the track
       var fileName = fs.nameFile(track);
@@ -355,10 +351,9 @@ Tapedeck.Backend.Bank = {
 
         // Create a FileWriter object for our FileEntry
         fileEntry.createWriter(function(fileWriter) {
-
           // once the file is written, send it's location to the caller
           fileWriter.onwriteend = function(e) {
-            callback(fileEntry.toURL());
+            callback({ url: fileEntry.toURL(), fileName: fileName });
             track.unset("download");
             var queued = Tapedeck.Backend.Sequencer.getQueuedTrack
                                                    (track.get("tdID"));
@@ -371,8 +366,8 @@ Tapedeck.Backend.Bank = {
           };
 
           // Write the blob to the file
-          fileWriter.write(bb.getBlob("audio/mpeg"));
-          delete bb;
+          fileWriter.write(blob);
+          delete blob;
         }, fs.errorHandler.curry("saveResponse2")); // end fileEntry.createWrite(...)
       }, fs.errorHandler.curry("saveResponse1")); // end fs.root.getFile(...);
     },
@@ -388,7 +383,7 @@ Tapedeck.Backend.Bank = {
           // File removed
         }, fs.errorHandler.curry("removeTrack2"));
 
-      }, fs.errorHandler,curry("removeTrack1"));
+      }, fs.errorHandler.curry("removeTrack1"));
     },
 
     clear: function() {
@@ -442,7 +437,6 @@ Tapedeck.Backend.Bank = {
 
       // I would add the file extension here, but if you do chrome will
       // try to play the mp3 rather than download.  So no extension for you!
-
       return fileName;
     },
 

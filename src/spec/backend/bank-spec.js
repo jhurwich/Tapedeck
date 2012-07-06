@@ -81,7 +81,7 @@ describe("Bank", function() {
     var testTrack = trackList.at(0);
     var spy = spyOn(this.bank.FileSystem, "saveResponse").andCallThrough();
 
-    var callback = function(url) {
+    var callback = function(fileData) {
       testComplete = true;
       var fileName = testTrack.get("artistName") +
                      " - " +
@@ -89,7 +89,7 @@ describe("Bank", function() {
 
       var fileURI = new RegExp("^filesystem:chrome-extension://(.*)" +
                                fileName);
-      url = decodeURIComponent(url);
+      var url = decodeURIComponent(fileData.url);
       expect(url).toMatch(fileURI);
     };
 

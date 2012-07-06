@@ -555,18 +555,17 @@ Tapedeck.Frontend.Frame = {
 
     download: function(trackID) {
       // Download will send us a filesystem:// url when it's done and
-      // we can trigger the download then by setting location.href.
-      // We do it to a sub-iframe, however, so if something goes wrong
-      // we're not sending someone into an abyss.
+      // we can trigger the download with a 'download' <a>.
+      // We then simulate a click on that element.
       var callback = function(response) {
-
-        var iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = response.url;
-
-        $("body").first().append(iframe);
-
-        Tapedeck.Frontend.Messenger.finishDownload(trackID);
+        var downloadLink = document.createElement("a");
+        downloadLink.setAttribute("href", response.url);
+        downloadLink.setAttribute("download", response.fileName);
+        
+        var evt = document.createEvent("HTMLEvents");
+        evt.initEvent("click", true, true);
+        downloadLink.dispatchEvent(evt);
+        return;
       }
 
       Tapedeck.Frontend.Messenger.download(trackID, callback);
