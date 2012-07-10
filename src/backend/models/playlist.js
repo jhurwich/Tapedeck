@@ -3,7 +3,7 @@ Tapedeck.Backend.Collections.Playlist =
 
 
   initialize: function(options) {
-    if (!("name" in options)) {
+    if (typeof(options) != "undefined" && options && !("name" in options)) {
       options.name = "Unnamed Playlist";
     }
   },

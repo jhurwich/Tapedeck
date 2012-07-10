@@ -5,6 +5,13 @@ Tapedeck.Backend.CassetteManager = {
   currPage: 1,
   numPreinstalled: 1, // Scraper is preinstalled
 
+  DEBUG_LEVELS: {
+    NONE  : 0,
+    BASIC : 1,
+    ALL   : 2,
+  },
+  debug: 0,
+
   init: function(continueInit) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.cassettes = []; // array of { cassette : __, (page: __) }
@@ -20,45 +27,51 @@ Tapedeck.Backend.CassetteManager = {
 
   readInCassettes: function(callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
+    cMgr.log("Discarding and reading in cassettes.");
     cMgr.cassettes = [];
 
     // FileSystem cassettes must be run in the Sandbox and communicated with through
     // a CassetteAdapter
     Tapedeck.Backend.Bank.FileSystem.getCassettes(function(cassetteDatas) {
-      var pageMap = { };
-      for (var i = 0; i < cassetteDatas.length; i++) {
-        var data = cassetteDatas[i];
+      Tapedeck.Backend.MessageHandler.messageSandbox({ action: 'clearCassettes' }, function() {
 
-        // Extract the code in the filesystem cassette and pass to sandbox to execute
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", data.url, true);
-        xhr.onreadystatechange = function() {
-          if (xhr.readyState == 4 && xhr.status == 200) {
+        var pageMap = { };
+        for (var i = 0; i < cassetteDatas.length; i++) {
+          var scoped = function(data) {
+            // Extract the code in the filesystem cassette and pass to sandbox to execute
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", data.url, true);
+            xhr.onreadystatechange = function() {
+              if (xhr.readyState == 4 && xhr.status == 200) {
+                cMgr.log("Sending '" + data.name + "' to sandbox to be prepared.");
 
-            // Tell the Sandbox to prepare this cassette, in the response is a report
-            // from which a CassetteAdapter can be created.  Map that adapter as the cassette
-            var message = {
-              action: "prepCassette",
-              code: xhr.responseText
-            };
-            Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
-              var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
-              var cassetteEntry = { cassette: newAdapter };
-              if (typeof(data.page) != "undefined") {
-                cassetteEntry.page = data.page;
+                // Tell the Sandbox to prepare this cassette, in the response is a report
+                // from which a CassetteAdapter can be created.  Map that adapter as the cassette
+                var message = {
+                  action: "prepCassette",
+                  code: xhr.responseText
+                };
+                Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+                  var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
+                  var cassetteEntry = { cassette: newAdapter };
+                  if (typeof(data.page) != "undefined") {
+                    cassetteEntry.page = data.page;
+                  }
+
+                  cMgr.cassettes.push(cassetteEntry);
+                });
               }
-
-              cMgr.cassettes.push(cassetteEntry);
-            });
-          }
-        }; // end xhr.onreadystatechange
-        xhr.send();
-
-      } // end handling FileSystem cassettes
+            }; // end xhr.onreadystatechange
+            xhr.send();
+          }; // end scoped
+          scoped(cassetteDatas[i]);
+        } // end handling FileSystem cassettes
+      }); // end messageSandbox({ action: 'clearCassettes' ...
 
       // Cassettes stored in memory can be used directly
       for (var CassetteModel in Tapedeck.Backend.Cassettes) {
         var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
+        cMgr.log("Loading '" + CassetteModel + "' from memory.");
 
         // for the moment no in-memory cassettes have pages, if this changes
         // this will need to pull a page number and store it here
@@ -69,53 +82,30 @@ Tapedeck.Backend.CassetteManager = {
       // We expect all the preinstalled cassettes plus the saved ones.
       var numExpected = cMgr.numPreinstalled + cassetteDatas.length;
       var currTimeout = 0;
+      var maxTimeout = 10000;
       var delayReturn = function() {
         if (cMgr.cassettes.length != numExpected) {
           if (currTimeout <= 0) {
             currTimeout = 1;
           }
+          cMgr.log("Read-in not complete [" + currTimeout + "ms]- " + cMgr.cassettes.length + "/" + numExpected);
           currTimeout = currTimeout * 2;
+
+          if (currTimeout > maxTimeout) {
+            console.error("Exceeded maxTimeout for reading in cassettes: " +
+                          cMgr.cassettes.length + "/" + numExpected + " loaded.");
+            callback();
+            return;
+          }
           setTimeout(delayReturn, currTimeout);
         }
         else {
+          cMgr.log("Reading in complete - " + cMgr.cassettes.length + " cassettes loaded.");
           callback();
         }
       }
       delayReturn();
     });
-  },
-
-  // The call to populate will likely beat the new script, so this
-  // method needs to be told what to expect and back off if we don't
-  // get that number of cassettes.
-  populateCassetteList: function(numExpected, pageMap, currTimeout, callback) {
-    var cMgr = Tapedeck.Backend.CassetteManager;
-    cMgr.cassettes = [];
-
-    for (var CassetteModel in Tapedeck.Backend.Cassettes) {
-      var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
-      if (typeof(pageMap) != "undefined" &&
-          typeof(pageMap[CassetteModel]) != "undefined") {
-        cMgr.cassettes.push({ cassette : cassette,
-                              page     : parseInt(pageMap[CassetteModel]) });
-      }
-      else {
-        cMgr.cassettes.push({ cassette: cassette });
-      }
-    }
-
-    // confirm that everything was ready to be read in
-    if (cMgr.cassettes.length != numExpected) {
-      if (currTimeout == 0) {
-        currTimeout = 1;
-      }
-      currTimeout = currTimeout * 2;
-      setTimeout(function() { cMgr.populateCassetteList(numExpected, pageMap, currTimeout, callback); },
-                 currTimeout);
-    }
-    else {
-      callback();
-    }
   },
 
   refreshCassetteListView: function() {
@@ -166,8 +156,7 @@ Tapedeck.Backend.CassetteManager = {
       }
       Tapedeck.Backend.Bank.saveCurrentCassette(cassetteName);
 
-      // Clear the old cassette's tracks
-      Tapedeck.Backend.Bank.clearBrowseList();
+      this.log("Switching to cassette: '" + cassetteName + "'");
 
       // Push the new view
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
@@ -252,6 +241,7 @@ Tapedeck.Backend.CassetteManager = {
       var self = this;
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var injectMgr = Tapedeck.Backend.InjectManager;
+      Tapedeck.Backend.CassetteManager.log("Begin Cassettification");
 
       msgHandler.getSelectedTab(function(tab) {
         self.origURL = tab.url;
@@ -291,6 +281,8 @@ Tapedeck.Backend.CassetteManager = {
       self.postLoadCleanup();
 
       var pattern = params.pattern;
+      cMgr.log("Received cassettification pattern '" + pattern + "'");
+
       var index = pattern.indexOf("$#");
       if (index == -1) {
         // couldn't find the pattern
@@ -343,6 +335,7 @@ Tapedeck.Backend.CassetteManager = {
     nameCassette: function(code, msg) {
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var cMgr = Tapedeck.Backend.CassetteManager;
+      cMgr.log("Cassette prepared, naming now")
 
       var nameAndSaveCassette = function(params) {
         if (params.cassetteName.length == 0) {
@@ -361,6 +354,8 @@ Tapedeck.Backend.CassetteManager = {
           cMgr.Cassettify.nameCassette(code, "The name you enterred is in use");
           return;
         }
+
+        cMgr.log("Saving cassette with name '" + saveableName + "'");
 
         code = code.replace(/CassetteFromTemplate/g,
                             saveableName);
@@ -442,4 +437,18 @@ Tapedeck.Backend.CassetteManager = {
       }
     });
   },
+
+  log: function(str, level) {
+    var self = Tapedeck.Backend.CassetteManager;
+    if (self.debug == self.DEBUG_LEVELS.NONE) {
+      return;
+    }
+    if (typeof(level) == "undefined") {
+      level = self.DEBUG_LEVELS.BASIC;
+    }
+    if (self.debug >= level) {
+      var currentTime = new Date();
+      console.log("CMgr (" + currentTime.getTime() + ") : " + str);
+    }
+  }
 };

@@ -1,8 +1,29 @@
 Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
   model: Tapedeck.Backend.Models.Track,
 
-  serialize: function() {
-    return JSON.stringify(this.toJSON());
+  serialize: function(numSerialize) {
+    if (typeof(numSerialize) == "undefined") {
+      numSerialize = 1;
+    }
+    
+    // based on numSerialize we need to split up this collection
+    var result = [];
+    var resultIndex = 0;
+    var splitSize = Math.floor(this.length / numSerialize); // the final size of each group (potentially + 1)
+    var currArray = [];
+    for (var i = 0; i < this.length; i++) {
+      var model = this.at(i);
+      currArray.push(model.serialize());
+      
+      if (((i + 1) % splitSize == 0) &&
+          result.length < numSerialize - 1) {
+        result.push(JSON.stringify(currArray));
+        currArray = [];
+      }
+    }
+    result.push(JSON.stringify(currArray));
+    
+    return result;
   },
 
   TEMP_PROPS: [

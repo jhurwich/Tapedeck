@@ -1,6 +1,6 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Message Handler",
+  "Bank",
 ];
 
 beforeEach(function() {
@@ -95,7 +95,7 @@ beforeEach(function() {
   this.findTestTab = function() {
     var ports = this.Tapedeck.Backend.MessageHandler.ports;
     for (var id in ports) {
-      var tab = ports[id].tab;
+      var tab = ports[id].sender.tab;
       if (tab.url.match(/chrome-extension.*SpecRunner.html$/)) {
         return tab;
       }

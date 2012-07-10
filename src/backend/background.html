@@ -54,7 +54,7 @@
           <!-- "tabID" : "tabID" -->
         </options>
         <images>
-          "#sync"          : "shuffle.png"
+          "#sync"          : "sync-disabled.png"
           "#repeat"        : "repeat.png",
           "#queue-shuffle" : "shuffle.png",
           "#queue-clear"   : "trash.png"
@@ -392,7 +392,7 @@
         <div id="playlist-list-header">Load a playlist</div>
         <div id="playlist-list-content">
           <% if (typeof(params.playlistList) == "undefined" || !params.playlistList || params.playlistList.length == 0) { %>
-              <div class="row blank">
+              <div class="blank-row">
                 You do not have any saved playlists.
               </div>
           <% }

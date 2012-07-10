@@ -173,8 +173,10 @@ Tapedeck.Backend.InjectManager = {
     return (match != null);
   },
 
+  alwaysBlocked: ["chrome://", "chrome-extension://", "chrome-devtools://"],
   isURLBlocked: function(url) {
-    var blockList = Tapedeck.Backend.Bank.getBlockList();
+    var blockList = Tapedeck.Backend.InjectManager.alwaysBlocked;
+    blockList = blockList.concat(Tapedeck.Backend.Bank.getBlockList());
     for (var i = 0; i < blockList.length; i++) {
       var pattern = blockList[i];
       if (url.match(pattern) != null) {

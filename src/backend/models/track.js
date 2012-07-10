@@ -17,5 +17,14 @@ Tapedeck.Backend.Models.Track = Backbone.Model.extend({
       console.error("Can't update a collection that doesn't exist");
     }
   },
-
+  
+  DONT_SERIALIZE_PROPERTIES: ['description', 'location'],
+  serialize: function() {
+    var serialized = this.toJSON();
+    for (var i = 0; i < this.DONT_SERIALIZE_PROPERTIES.length; i++) {
+      var dontInclude = this.DONT_SERIALIZE_PROPERTIES[i];
+      delete serialized[dontInclude];
+    }
+    return serialized;
+  },
 });

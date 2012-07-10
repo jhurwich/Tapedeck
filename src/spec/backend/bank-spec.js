@@ -24,6 +24,7 @@ describe("Bank", function() {
   });
 
   it("should save and retrieve tracklists", function() {
+    var testComplete = false;
     var trackList = new this.Tapedeck
                             .Backend
                             .Collections
@@ -32,13 +33,19 @@ describe("Bank", function() {
     var listName = "testtracks123";
     this.bank.saveTrackList(listName, trackList);
 
-    var bankedList = this.bank.getTrackList(listName);
+    this.bank.getTrackList(listName, function(bankedList) {
+      for (var i = 0; i < trackList.length; i++) {
+        var expectedTrack = trackList.at(i);
+        var bankedTrack = bankedList.at(i);
+        expect(bankedTrack).toReflectJSON(expectedTrack.toJSON());
+      };
+      testComplete = true;
+    });
 
-    for (var i = 0; i < trackList.length; i++) {
-      var expectedTrack = trackList.at(i);
-      var bankedTrack = bankedList.at(i);
-      expect(bankedTrack).toReflectJSON(expectedTrack.toJSON());
-    };
+    waitsFor(function() { return testComplete }, "Waiting for tracklist from bank", 1000);
+    runs(function() {
+      expect(testComplete).toBeTruthy();
+    })
   });
 
   it("should save and retrieve playlists", function() {
@@ -81,7 +88,7 @@ describe("Bank", function() {
     var testTrack = trackList.at(0);
     var spy = spyOn(this.bank.FileSystem, "saveResponse").andCallThrough();
 
-    var callback = function(url) {
+    var callback = function(fileData) {
       testComplete = true;
       var fileName = testTrack.get("artistName") +
                      " - " +
@@ -89,7 +96,7 @@ describe("Bank", function() {
 
       var fileURI = new RegExp("^filesystem:chrome-extension://(.*)" +
                                fileName);
-      url = decodeURIComponent(url);
+      var url = decodeURIComponent(fileData.url);
       expect(url).toMatch(fileURI);
     };
 
@@ -104,4 +111,93 @@ describe("Bank", function() {
     });
   });
 
+  it("should get rid of local playlists when switching to sync", function() {
+    // make sure sync is not on to start
+    if (this.bank.isSyncOn()) {
+      this.bank.toggleSync();
+    }
+    expect(this.bank.isSyncOn()).not.toBeTruthy();
+
+    // save a local playlist to see if we can find it after the switch
+    var localPlaylist = new this.Tapedeck
+                                .Backend
+                                .Collections
+                                .Playlist(this.testTracks);
+    localPlaylist.id = "localTestPlaylist123";
+    this.bank.savePlaylist(localPlaylist);
+
+    var localPlaylistNum = this.bank.getPlaylists().length;
+
+    // toggle sync, should hide the playlist we just added
+    this.bank.toggleSync();
+    expect(this.bank.isSyncOn()).toBeTruthy();
+
+    var syncPlaylists = this.bank.getPlaylists();
+
+    // if the playlistLists are the same size, make sure they're not the same
+    if (syncPlaylists.length == localPlaylistNum) {
+      for (var i = 0; i < syncPlaylists.length; i++) {
+        expect(syncPlaylists.at(i).id).not.toBe(localPlaylist.id);
+      };
+    }
+
+    // At this point we know the sync playlists and local playlists aren't the same.
+    // Save a sync playlist to see if we can find it after the switch back.
+    var syncPlaylist = new this.Tapedeck
+                               .Backend
+                               .Collections
+                               .Playlist(this.testTracks);
+    syncPlaylist.id = "syncTestPlaylist123";
+    this.bank.savePlaylist(syncPlaylist);
+
+    var syncPlaylistNum = this.bank.getPlaylists().length;
+
+    // toggle sync, should hide the playlist we just added
+    this.bank.toggleSync();
+    expect(this.bank.isSyncOn()).not.toBeTruthy();
+
+    var localPlaylists = this.bank.getPlaylists();
+
+    // Make sure we can't see the sync playlist now,
+    // and that we can find the original local playlist.
+    var foundLocal = false;
+    for (var i = 0; i < localPlaylists.length; i++) {
+      expect(localPlaylists.at(i).id).not.toBe(syncPlaylist.id);
+      if (localPlaylists.at(i).id == localPlaylist.id) {
+        foundLocal = true;
+      }
+    };
+    expect(foundLocal).toBeTruthy();
+  });
+
+  it("should set and retrieve playlists from synced storage", function() {
+    var playlist = new this.Tapedeck
+                           .Backend
+                           .Collections
+                           .Playlist(this.testTracks);
+
+    var playlistID = "testPlaylist123";
+    playlist.id = playlistID;
+
+    if (!this.bank.isSyncOn()) {
+      this.bank.toggleSync();
+    }
+    expect(this.bank.isSyncOn()).toBeTruthy();
+
+    var origPlaylistNum = this.bank.getPlaylists().length;
+    this.bank.savePlaylist(playlist);
+
+    var bankedPlaylists = this.bank.getPlaylists();
+    expect(bankedPlaylists.length).toEqual(origPlaylistNum + 1);
+
+    var foundPlaylist = false;
+    for (var i = 0; i < bankedPlaylists.length; i++) {
+      var bankedPlaylist = bankedPlaylists.at(i);
+      if (bankedPlaylist.id == playlistID) {
+        foundPlaylist = true;
+      }
+    };
+
+    expect(foundPlaylist).toBeTruthy();
+  });
 });

@@ -21,7 +21,7 @@ Tapedeck.Backend.TemplateManager = {
   },
   debug: 0,
 
-  init: function() {
+  init: function(continueInit) {
     var tMgr = Tapedeck.Backend.TemplateManager;
     tMgr.log("TemplateManager.init() starting", tMgr.DEBUG_LEVELS.ALL);
 
@@ -46,10 +46,13 @@ Tapedeck.Backend.TemplateManager = {
           url: url,
           dataType: "text",
           success : function(cssCode) {
-            tMgr.addTemplate(templateCode, cssCode, "default", function() { })
+            tMgr.addTemplate(templateCode, cssCode, "default", function() {
+              continueInit();
+            })
           },
           error : function(xhr, status) {
             console.error("Error getting tapedeck.css: " + status);
+            continueInit();
           }
         });
       }
@@ -57,6 +60,7 @@ Tapedeck.Backend.TemplateManager = {
         // templates found, set them up
         tMgr.log(templateDatas.length + " templates received from filesystem", tMgr.DEBUG_LEVELS.ALL);
         tMgr.loadTemplates(templateDatas);
+        continueInit();
       }
     });
   },
@@ -253,7 +257,6 @@ Tapedeck.Backend.TemplateManager = {
       callback(null);
       return;
     }
-
 
     var context = Tapedeck.Backend.Utils.getContext(tab);
 

@@ -111,6 +111,10 @@ Tapedeck.Frontend.Messenger = {
                                                    (request.volume);
         break;
 
+      case "forceCheckSync":
+        Tapedeck.Frontend.Frame.checkSync();
+        break;
+
       default:
         throw new Error("Messenger's handleRequest was sent an unknown action '" + request.action + "'");
     }

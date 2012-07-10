@@ -338,7 +338,8 @@ body {
   background-color: #d0d0d0;
   cursor: pointer;
 }
-#playlist-list .row {
+#playlist-list .row,
+#playlist-list .blank-row {
   display: table-row;
   -khtml-user-select: none;
   min-height: 16px;

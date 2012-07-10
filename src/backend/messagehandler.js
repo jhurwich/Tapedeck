@@ -206,8 +206,9 @@ Tapedeck.Backend.MessageHandler = {
         break;
 
       case "download":
-        var callback = function(url) {
-          response.url = url;
+        var callback = function(fileData) {
+          response.url = fileData.url;
+          response.fileName = fileData.fileName;
           self.postMessage(port.sender.tab.id, response);
         }
         bank.FileSystem.download(request.trackID, callback);
@@ -413,23 +414,24 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
     msgHandler.addTrackAvailable = false;
-    var browseList = Tapedeck.Backend.Bank.getBrowseList();
-    var origLen = browseList.length;
+    Tapedeck.Backend.Bank.getBrowseList(function(browseList){
+      var origLen = browseList.length;
 
-    // make sure there isn't already this track in the list
-    var existingURLs = browseList.pluck("url");
-    for (var i in newTracks) {
-      var track = newTracks[i];
+      // make sure there isn't already this track in the list
+      var existingURLs = browseList.pluck("url");
+      for (var i in newTracks) {
+        var track = newTracks[i];
 
-      if (jQuery.inArray(track.url, existingURLs) == -1) {
-        browseList.add(track);
+        if (jQuery.inArray(track.url, existingURLs) == -1) {
+          browseList.add(track);
+        }
       }
-    }
 
-    if (browseList.length > origLen) {
-      Tapedeck.Backend.Bank.saveBrowseList(browseList);
-    }
-    Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
+      if (browseList.length > origLen) {
+        Tapedeck.Backend.Bank.saveBrowseList(browseList);
+      }
+      Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
+    });
   },
 
   // browseTrackList == null means push the loading state
@@ -517,6 +519,21 @@ Tapedeck.Backend.MessageHandler = {
     var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "updateVolumeSlider",
       volume: volume,
+    });
+
+    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+  },
+
+  forceCheckSync: function(tab) {
+    if (typeof(tab) == "undefined") {
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.forceCheckSync(selectedTab);
+      });
+      return;
+    }
+
+    var request = Tapedeck.Backend.MessageHandler.newRequest({
+      action: "forceCheckSync",
     });
 
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);

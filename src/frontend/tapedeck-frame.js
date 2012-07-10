@@ -555,18 +555,17 @@ Tapedeck.Frontend.Frame = {
 
     download: function(trackID) {
       // Download will send us a filesystem:// url when it's done and
-      // we can trigger the download then by setting location.href.
-      // We do it to a sub-iframe, however, so if something goes wrong
-      // we're not sending someone into an abyss.
+      // we can trigger the download with a 'download' <a>.
+      // We then simulate a click on that element.
       var callback = function(response) {
+        var downloadLink = document.createElement("a");
+        downloadLink.setAttribute("href", response.url);
+        downloadLink.setAttribute("download", response.fileName);
 
-        var iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = response.url;
-
-        $("body").first().append(iframe);
-
-        Tapedeck.Frontend.Messenger.finishDownload(trackID);
+        var evt = document.createEvent("HTMLEvents");
+        evt.initEvent("click", true, true);
+        downloadLink.dispatchEvent(evt);
+        return;
       }
 
       Tapedeck.Frontend.Messenger.download(trackID, callback);
@@ -758,12 +757,14 @@ Tapedeck.Frontend.Frame = {
   },
   checkSync: function() {
     Tapedeck.Frontend.Messenger.getSync(function(response) {
-      console.log("check " + (response.sync ? " true" : "false"));
-      if (response.sync) {
-        $("#sync").attr("src", chrome.extension.getURL("images/repeat-active.png"));
+      if (response.sync == "on") {
+        $("#sync").attr("src", chrome.extension.getURL("images/sync-active.png"));
+      }
+      else if (response.sync == "warn") {
+        $("#sync").attr("src", chrome.extension.getURL("images/sync-warning.png"))
       }
       else {
-        $("#sync").attr("src", chrome.extension.getURL("images/shuffle.png"))
+        $("#sync").attr("src", chrome.extension.getURL("images/sync-disabled.png"))
       }
     });
   },
@@ -897,6 +898,7 @@ Tapedeck.Frontend.Frame = {
     frame.forceSeekSliderUpdate();
     frame.forceVolumeSliderUpdate();
     frame.checkRepeat();
+    frame.checkSync();
   },
 
   onLoadComplete: function() {

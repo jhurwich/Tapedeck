@@ -26,7 +26,7 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
     var self = this;
     var tMgr = Tapedeck.Backend.TemplateManager;
 
-    var logStr = "Rendering view '" + self.templateName + "' with params '" +
+    var logStr = "Rendering TapedeckView '" + self.templateName + "' with params '" +
                  JSON.stringify(self.params) + "'";
     self.log(logStr);
 

@@ -3,23 +3,33 @@ Tapedeck.Backend.Sequencer = {
   queue: null,
   queuePosition: -1, // nothing playing
   init: function() {
-    if (!this.Player.playerElement) {
-      this.Player.init();
+    var sqcr = Tapedeck.Backend.Sequencer;
+    if (!sqcr.Player.playerElement) {
+      sqcr.Player.init();
     }
-    var bank = Tapedeck.Backend.Bank
-    this.queue = bank.getQueue();
 
-    var updateQueue = function() {
-      Tapedeck.Backend.MessageHandler.updateView("Queue");
-    }
-    this.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
-    this.queue.bind('add', updateQueue);
-    this.queue.bind('remove', updateQueue);
-    this.queue.bind('reset', updateQueue);
-    this.queue.bind('change tracks', updateQueue);
+    sqcr.prepareQueue(function() {
+      var volume = Tapedeck.Backend.Bank.getVolume();
+      sqcr.Player.setVolume(volume);
+    });
+  },
 
-    var volume = bank.getVolume();
-    this.Player.setVolume(volume);
+  prepareQueue: function(callback) {
+    var sqcr = Tapedeck.Backend.Sequencer;
+    Tapedeck.Backend.Bank.getQueue(function(queue) {
+      sqcr.queue = queue
+      sqcr.setQueuePosition(-1);
+
+      var updateQueue = function() {
+        Tapedeck.Backend.MessageHandler.updateView("Queue");
+      }
+      sqcr.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
+      sqcr.queue.bind('add', updateQueue);
+      sqcr.queue.bind('remove', updateQueue);
+      sqcr.queue.bind('reset', updateQueue);
+      sqcr.queue.bind('change tracks', updateQueue);
+      callback();
+    });
   },
 
   Player: {
@@ -292,11 +302,13 @@ Tapedeck.Backend.Sequencer = {
       }
 
       var options = { at : pos,
-                      silent: silent };
+                      silent: true };
 
       this.queue.add(track, options);
     }
-    this.saveQueue();
+    if (!silent) {
+      this.queue.trigger("add");
+    }
 
     if (pos <= this.queuePosition) {
       this.setQueuePosition(this.queuePosition + tracks.length);
@@ -330,7 +342,6 @@ Tapedeck.Backend.Sequencer = {
     }
 
     this.removeSome(tracksToRemove);
-    this.saveQueue();
   },
 
   remove: function(trackModel) {
@@ -343,7 +354,6 @@ Tapedeck.Backend.Sequencer = {
       this.next();
     }
     this.remove(toRemove);
-    this.saveQueue();
     return toRemove;
   },
 
@@ -356,7 +366,6 @@ Tapedeck.Backend.Sequencer = {
        }
     }
     this.queue.remove(trackModels);
-    this.saveQueue();
 
     this.setQueuePosition(this.queuePosition - posChange);
   },
@@ -390,7 +399,6 @@ Tapedeck.Backend.Sequencer = {
 
   clear: function() {
     this.queue.reset();
-    this.saveQueue();
 
     this.setQueuePosition(-1);
   },
@@ -400,8 +408,4 @@ Tapedeck.Backend.Sequencer = {
     this.insertSomeAt(playlist.models, 0);
   },
 
-  saveQueue: function() {
-    var sqcr = Tapedeck.Backend.Sequencer;
-    Tapedeck.Backend.Bank.saveQueue(sqcr.queue);
-  }
 };

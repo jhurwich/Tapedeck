@@ -4,6 +4,13 @@ if (typeof Tapedeck == "undefined") {
 
 Tapedeck.Sandbox = {
 
+  DEBUG_LEVELS: {
+    NONE  : 0,
+    BASIC : 1,
+    ALL   : 2,
+  },
+  debug: 0,
+
   cassettes: {},
 
   messageHandler: function(e) {
@@ -12,7 +19,9 @@ Tapedeck.Sandbox = {
       Tapedeck.Sandbox.responseHandler(message);
       return;
     }
+
     var response = Tapedeck.Sandbox.newResponse(message);
+    Tapedeck.Sandbox.log("Sandbox received message: " + message.action);
 
     switch(message.action)
     {
@@ -27,6 +36,11 @@ Tapedeck.Sandbox = {
           response.report = report;
           window.parent.postMessage(response, "*");
         });
+        break;
+
+      case "clearCassettes":
+        Tapedeck.Sandbox.clearCassettes();
+        window.parent.postMessage(response, "*");
         break;
 
       case "getBrowseList":
@@ -66,11 +80,14 @@ Tapedeck.Sandbox = {
   },
 
   render: function(textTemplate, params) {
+    Tapedeck.Sandbox.log("Rendering: \n" + textTemplate + "\n with " + JSON.stringify(params),
+                         Tapedeck.Sandbox.DEBUG_LEVELS.ALL);
     var template = _.template(textTemplate);
     return template({ params: params });
   },
 
   prepCassette: function(code, callback) {
+    Tapedeck.Sandbox.log("Preparing a new cassette");
 
     // register the names of the cassettes that we currently have, so we can detect the new one
     var existingCassettes = { };
@@ -93,15 +110,18 @@ Tapedeck.Sandbox = {
       // Cassette has loaded.  Get a handle on it and return its report
       var newCassette = new Tapedeck.Sandbox.Cassettes[newCassetteName]();
       Tapedeck.Sandbox.cassettes[newCassette.get("tdID")] = newCassette;
-      callback(newCassette.generateReport());      }
-    else {
-      // not loaded yet
-      if (currTimeout <= 0) {
-        currTimeout = 1;
-      }
-      currTimeout = currTimeout * 2;
-      setTimeout(continueLoad, currTimeout);
+
+      Tapedeck.Sandbox.log("The new cassette '" + newCassetteName + "' is ready.");
+      callback(newCassette.generateReport());
     }
+    else {
+      Tapedeck.Sandbox.log("THE CASSETTE WAS NOT PREPARED PROPERLY");
+    }
+  },
+
+  clearCassettes: function() {
+    Tapedeck.Sandbox.log("Clearing all cassettes");
+    Tapedeck.Sandbox.Cassettes = { };
   },
 
   pendingCallbacks: { },
@@ -141,6 +161,8 @@ Tapedeck.Sandbox = {
 
   // Tapedeck.ajax cannot be performed from the Sandbox, relay to background
   ajax : function(params) {
+    Tapedeck.Sandbox.log("Sandbox is calling out for AJAX: " + JSON.stringify(params),
+                         Tapedeck.Sandbox.DEBUG_LEVELS.ALL);
 
     var successFn = params.success;
     var errorFn = params.error;
@@ -166,6 +188,20 @@ Tapedeck.Sandbox = {
 
     window.parent.postMessage(message, "*");
   },
+
+  log: function(str, level) {
+    var self = Tapedeck.Sandbox;
+    if (self.debug == self.DEBUG_LEVELS.NONE) {
+      return;
+    }
+    if (typeof(level) == "undefined") {
+      level = self.DEBUG_LEVELS.BASIC;
+    }
+    if (self.debug >= level) {
+      var currentTime = new Date();
+      console.log("Sandbox (" + currentTime.getTime() + ") : " + str);
+    }
+  }
 };
 
 // Cassettes will expect Backend to exist, map it to the Sandbox
@@ -177,6 +213,8 @@ if (typeof Tapedeck.Backend == "undefined") {
   // we capture and simulate Tapedeck.Backend.MessageHandler.addTracks
   Tapedeck.Backend.MessageHandler = {
     addTracks: function(tracks, tab) {
+      Tapedeck.Sandbox.log("Sandbox is adding tracks: " + JSON.stringify(tracks),
+                           Tapedeck.Sandbox.DEBUG_LEVELS.ALL);
 
       var message = {
         action : "addTracks",
