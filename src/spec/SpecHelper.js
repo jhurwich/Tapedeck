@@ -1,6 +1,6 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Bank",
+  "Template Manager",
 ];
 
 beforeEach(function() {

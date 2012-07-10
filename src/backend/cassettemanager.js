@@ -158,6 +158,8 @@ Tapedeck.Backend.CassetteManager = {
 
       this.log("Switching to cassette: '" + cassetteName + "'");
 
+      this.log("Switching to cassette: '" + cassetteName + "'");
+
       // Push the new view
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
         Tapedeck.Backend.TemplateManager.renderView("BrowseRegion", function(browseRegionView) {
