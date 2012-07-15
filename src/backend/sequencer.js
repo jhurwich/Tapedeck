@@ -20,14 +20,14 @@ Tapedeck.Backend.Sequencer = {
       sqcr.queue = queue
       sqcr.setQueuePosition(-1);
 
-      var updateQueue = function() {
-        Tapedeck.Backend.MessageHandler.updateView("Queue");
+      var updateQueue = function(eventName) {
+        // we only care about the greater 'change' event.  The "change:__" events are ignored.
+        if (eventName.indexOf("change:") == -1) {
+          Tapedeck.Backend.MessageHandler.updateView("Queue");
+        }
       }
       sqcr.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
-      sqcr.queue.bind('add', updateQueue);
-      sqcr.queue.bind('remove', updateQueue);
-      sqcr.queue.bind('reset', updateQueue);
-      sqcr.queue.bind('change tracks', updateQueue);
+      sqcr.queue.bind('all', updateQueue);
       callback();
     });
   },
@@ -398,6 +398,8 @@ Tapedeck.Backend.Sequencer = {
   },
 
   clear: function() {
+    var bank = Tapedeck.Backend.Bank;
+    Tapedeck.Backend.Bank.clearList(bank.trackListPrefix, bank.savedQueueName)
     this.queue.reset();
 
     this.setQueuePosition(-1);

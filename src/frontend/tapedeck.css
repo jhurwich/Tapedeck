@@ -178,6 +178,7 @@ body {
 }
 .tracklist .row.blank {
   padding: 3px;
+  border-bottom: solid 2px #424242;
 }
 .tracklist .spinner.loading,
 .cassettelist .spinner.loading {
@@ -389,6 +390,9 @@ body {
 }
 .cassettelist .row-container:first-child .row {
   border-top: 2px solid #424242;
+}
+.cassettelist .row.blank {
+  border-bottom: 2px solid #424242;
 }
 .cassettelist .cell:first-child,
 .tracklist-container #current-cassette-row .cell:first-child {

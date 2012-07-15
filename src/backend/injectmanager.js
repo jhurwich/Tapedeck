@@ -46,9 +46,13 @@ Tapedeck.Backend.InjectManager = {
   },
 
   injectInto: function(tabID) {
-    chrome.tabs.insertCSS(tabID, {file: "frontend/tapedeck-inject-all.css"});
-    chrome.tabs.executeScript(tabID, {file: "vendor/jquery-1.7.js"});
-    chrome.tabs.executeScript(tabID, {file: "frontend/tapedeck-inject-all.js"});
+    var runAt = "document_start";
+    chrome.tabs.insertCSS(tabID, { file: "frontend/tapedeck-inject-all.css",
+                                   runAt: runAt });
+    chrome.tabs.executeScript(tabID, { file: "vendor/jquery-1.7.js",
+                                       runAt: runAt });
+    chrome.tabs.executeScript(tabID, { file: "frontend/tapedeck-inject-all.js",
+                                       runAt: runAt });
   },
 
   // Post inject scripts are provided context as their only param

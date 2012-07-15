@@ -43,6 +43,8 @@ Tapedeck.Backend.Bank = {
       this.saveBlockList(this.defaultBlockPatterns);
     }
 
+    chrome.storage.onChanged.addListener(this.storageChangeListener);
+
     this.Memory.init();
     this.FileSystem.init(function() {
       Tapedeck.Backend.Bank.preparePlaylistList(function() {
@@ -516,14 +518,17 @@ Tapedeck.Backend.Bank = {
     tracks: { },
     trackLists: { },
 
-    rememberTrackList: function(name, trackList) {
+    // if onChanged is not specified, we default to saving the list whenever it changes
+    rememberTrackList: function(name, trackList, onChanged) {
+      if (typeof(onChanged) == "undefined") {
+        onChanged = function(eventName) {
+          bank.saveList(bank.trackListPrefix, name, trackList, function() { });
+        }
+      }
       var bank = Tapedeck.Backend.Bank
       this.trackLists[name] = trackList;
 
-      var trackListChanged = function(eventName) {
-        bank.saveList(bank.trackListPrefix, name, trackList, function() { });
-      }
-      trackList.bind("all", trackListChanged);
+      trackList.bind("all", onChanged);
     },
 
     getTrackList: function(name) {
@@ -686,8 +691,7 @@ Tapedeck.Backend.Bank = {
     }
   },
 
-  /* 2048 bytes is actual limit, ~30 bytes of overhead seems common so ~100 bytes of headroom */
-  MAX_SYNC_STRING_SIZE: 1900,
+  MAX_SYNC_STRING_SIZE: 2000,   /* 2048 bytes is actual limit */
   MAX_NUMBER_SPLITS: 25,
   saveList: function(prefix, id, list, callback) {
     var bank = Tapedeck.Backend.Bank;
@@ -703,7 +707,16 @@ Tapedeck.Backend.Bank = {
           // Don't do splits this large, just give up
           console.error("Won't split playlist into " + numSerialize + " parts for saving.  Playlist is too large.")
 
-          //TODO handle this case
+          Tapedeck.Backend.MessageHandler.showModal({
+            fields: [
+              { type          : "info",
+                text          : "One of your playlists is too long to save and sync."},
+              { type          : "info",
+                text          : "Consider turning off syncing." },
+            ],
+            title: "Cassettify Wizard",
+          });
+          return;
         }
 
         // return numSerialize number of strings to save for this one playlist
@@ -739,9 +752,12 @@ Tapedeck.Backend.Bank = {
                 for (var j = 0; j < savedKeys.length; j++){
                   deleteObject.push(savedKeys[j]);
                 }
-                chrome.storage.sync.remove(deleteObject, function() {
-                  attemptSave(numSerialize + 1);
-                })
+
+                if (!$.isEmptyObject(deleteObject)) {
+                  chrome.storage.sync.remove(deleteObject, function() {
+                    attemptSave(numSerialize + 1);
+                  })
+                }
               }
             }
             else {
@@ -771,39 +787,57 @@ Tapedeck.Backend.Bank = {
     }
   },
 
+  clearList: function(prefix, id, callback) {
+    var bank = Tapedeck.Backend.Bank;
+
+    if (bank.isSyncOn()) {
+      var key = prefix + id;
+      var nextCount = 0;
+      chrome.storage.sync.get(null, function(allKeys) {
+
+        var removePiece = function(removeKey) {
+          console.log("removing " + removeKey + " in clearList");
+          chrome.storage.sync.remove(removeKey, function() {
+            // see if another piece exists
+            var nextKey = bank.splitListContinuePrefix + id + "@" + nextCount;
+            nextCount++;
+            if (nextKey in allKeys && typeof(chrome.extension.lastError) == "undefined") {
+              removePiece(nextKey);
+            }
+            else {
+              // got some error, likely we ran out of keys
+              if (typeof(callback) != "undefined") {
+                callback();
+              }
+            }
+          });
+        }
+
+        if (key in allKeys) {
+          removePiece(key);
+        }
+      }); // end chrome.storage.get(null, ...
+    }
+    else {
+      // TODO decide if we need to do anything here for the non-Sync case
+    }
+  },
+
   addToPlaylistList: function(playlist) {
     var bank = Tapedeck.Backend.Bank;
 
-    bank.saveList(bank.playlistPrefix, playlist.id, playlist, function(){
-      Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
-    });
+    bank.saveList(bank.playlistPrefix, playlist.id, playlist, function(){ });
   },
 
   removeFromPlaylistList: function(playlist) {
     var bank = Tapedeck.Backend.Bank;
-    var key = bank.playlistPrefix + playlist.id;
 
     if (bank.isSyncOn()) {
-      var nextCount = 0;
-      var removePlaylistPiece = function(removeKey) {
-
-        chrome.storage.sync.remove(removeKey, function() {
-          if (typeof(chrome.extension.lastError) == "undefined") {
-            // see if another piece exists
-            var nextKey = bank.splitListContinuePrefix + playlist.id + "@" + nextCount;
-            nextCount++;
-            removePlaylistPiece(nextKey);
-          }
-          else {
-            // got some error, likely we ran out of keys
-            console.log("Can't remove more - " + JSON.stringify(chrome.extension.lastError));
-          }
-        });
-      }
-      removePlaylistPiece(key);
+      bank.clearList(bank.playlistPrefix, playlist.id)
     }
     else {
       try {
+        var key = bank.playlistPrefix + playlist.id;
         bank.localStorage.removeItem(key);
       }
       catch (error) {
@@ -937,7 +971,16 @@ Tapedeck.Backend.Bank = {
   saveBrowseList: function(trackList) {
     // we only memoize the browseList, we don't persist it in storage
     var bank = Tapedeck.Backend.Bank;
-    bank.Memory.rememberTrackList(bank.savedBrowseListName, trackList);
+    var browseListChanged = function (eventName) {
+      // we only care about the greater 'change' event.  The "change:__" events are ignored.
+      if (eventName.indexOf("change:") == -1) {
+
+        // Force the browselist to be updated outside of the normal self-populated path.
+        // That path will generate a new browselist, blowing away this change before we can show it.
+        Tapedeck.Backend.MessageHandler.pushBrowseTrackList(trackList);
+      }
+    }
+    bank.Memory.rememberTrackList(bank.savedBrowseListName, trackList, browseListChanged);
   },
   getBrowseList: function(callback) {
     var bank = Tapedeck.Backend.Bank;
@@ -1083,4 +1126,21 @@ Tapedeck.Backend.Bank = {
       }
     });
   },
+
+ storageChangeListener: function(changes, namespace) {
+   var bank = Tapedeck.Backend.Bank;
+
+   for (var changedKey in changes) {
+     if (changedKey.indexOf(bank.playlistPrefix) != -1) {
+       // playlists were changed somewhere
+       Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
+     }
+     else if (changedKey.indexOf(bank.trackListPrefix) != -1) {
+       // a tracklist (likely queue) was changed somewhere
+       if (changedKey.indexOf(bank.savedQueueName) != -1) {
+         Tapedeck.Backend.Sequencer.queue.trigger("change tracks");
+       }
+     }
+   }
+ },
 }

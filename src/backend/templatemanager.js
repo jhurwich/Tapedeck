@@ -195,13 +195,12 @@ Tapedeck.Backend.TemplateManager = {
     tMgr.log("Filling options: " + JSON.stringify(requestedOptions), tMgr.DEBUG_LEVELS.ALL);
 
     var options = {};
-    var optionCount = 0;
+    var optionCount = Object.keys(requestedOptions).length;
     var filledCount = 0;
     for (var optionName in requestedOptions) {
       if (optionName in fillMap) {
 
         // attempt to the fill the requested option
-        optionCount = optionCount + 1;
         var paramName = requestedOptions[optionName];
         var fillFn = fillMap[optionName];
 
@@ -218,7 +217,7 @@ Tapedeck.Backend.TemplateManager = {
             // failed to fill
             optionCount = optionCount - 1;
             options[param] = "error";
-            console.error("Fill map error on param '" + param + "': "+ error.message);
+            console.error("Fill map error on param '" + param + "': "+ JSON.stringify(error));
             if (filledCount >= optionCount) {
               callback(options);
             }

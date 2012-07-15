@@ -423,7 +423,7 @@ Tapedeck.Backend.MessageHandler = {
         var track = newTracks[i];
 
         if (jQuery.inArray(track.url, existingURLs) == -1) {
-          browseList.add(track);
+          browseList.add(track, { silent: true });
         }
       }
 

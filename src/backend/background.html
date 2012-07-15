@@ -420,6 +420,7 @@
           "mouseleave #add-cassettes-menu"      : "CassetteList.hideCassetteMenu",
           "click .cassettelist .developer-link" : "CassetteList.loadDeveloperLink",
           "click .cassettelist .remove"         : "CassetteList.rowButtonRemove",
+          "click #current-cassette-row .button.eject"        : "TrackLists.eject"
 
           "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
           "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
@@ -430,6 +431,7 @@
         <images>
           "#add-cassettes-button" : "plusbutton.png",
           ".button.remove"        : "cassetteremove.png",
+          ".button.eject"         : "cassettebutton-eject.png",
 
           ".cassettelist .spinner.loading" : "blue-on-dark-loader.gif",
         </images>
@@ -443,6 +445,9 @@
                 <div class="row blank">
                   <div class="spinner loading"
                        id="loading-spinner"></div>
+                  <div class="row-buttons">
+                    <div class="button eject"></div>
+                  </div>
                 </div>
               </div>
             <% }
