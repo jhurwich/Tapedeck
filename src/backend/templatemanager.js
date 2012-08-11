@@ -273,7 +273,7 @@ Tapedeck.Backend.TemplateManager = {
       }
       var browseTrackList = new Tapedeck.Backend.Collections.TrackList(trackJSONs);
 
-      Tapedeck.Backend.Bank.saveBrowseList(browseTrackList);
+      Tapedeck.Backend.Bank.saveCurrentBrowseList(browseTrackList);
 
       callback(browseTrackList);
     };

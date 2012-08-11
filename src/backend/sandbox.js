@@ -83,6 +83,39 @@ Tapedeck.Sandbox = {
     Tapedeck.Sandbox.log("Rendering: \n" + textTemplate + "\n with " + JSON.stringify(params),
                          Tapedeck.Sandbox.DEBUG_LEVELS.ALL);
     var template = _.template(textTemplate);
+
+    if (Tapedeck.Sandbox.debug > 0) {
+      var debugMethods = {
+        paramSanity: function(paramName, necessary, checkValue) {
+          var str = ">>>==============> ";
+          str += paramName + " is " + (necessary ? "necessary" : "optional");
+
+          var checkHasValue = true;
+          if (typeof(checkValue) == "undefined") {
+            checkValue = "undefined";
+            checkHasValue = false;
+          }
+          else if (checkValue == null) {
+            checkValue = "Null";
+            checkHasValue = false
+          }
+          str += " and we got " + JSON.stringify(checkValue);
+
+          if (necessary && !checkHasValue) {
+            console.error(str);
+          }
+          else {
+            console.log(str);
+          }
+        },
+      }
+
+      params.debug = Tapedeck.Sandbox.debug;
+      _.extend(params, debugMethods);
+    }
+    else {
+      params.debug = 0;
+    }
     return template({ params: params });
   },
 

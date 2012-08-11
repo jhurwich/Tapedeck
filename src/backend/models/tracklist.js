@@ -5,7 +5,7 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
     if (typeof(numSerialize) == "undefined") {
       numSerialize = 1;
     }
-    
+
     // based on numSerialize we need to split up this collection
     var result = [];
     var resultIndex = 0;
@@ -14,7 +14,7 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
     for (var i = 0; i < this.length; i++) {
       var model = this.at(i);
       currArray.push(model.serialize());
-      
+
       if (((i + 1) % splitSize == 0) &&
           result.length < numSerialize - 1) {
         result.push(JSON.stringify(currArray));
@@ -22,7 +22,7 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
       }
     }
     result.push(JSON.stringify(currArray));
-    
+
     return result;
   },
 
@@ -39,10 +39,10 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
     });
   },
 
-  makePlaylist: function(playlistID) {
-    var playlist = new Tapedeck.Backend.Collections.Playlist(this.models);
-    playlist.removeTempProperties();
-    playlist.id = playlistID;
+  makePlaylist: function(id) {
+    var playlist = new Tapedeck.Backend.Collections.Playlist(this.models, { id: id });
+    playlist.removeTempProperties(); // TODO do we need this
+
     return playlist;
   },
 

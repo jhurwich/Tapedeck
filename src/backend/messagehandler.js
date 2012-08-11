@@ -86,12 +86,12 @@ Tapedeck.Backend.MessageHandler = {
         break;
 
       case "getBlockList":
-        var blockListStr = Tapedeck.Backend.Bank.getBlockListStr();
+        var blockListStr = JSON.stringify(Tapedeck.Backend.Bank.getBlockList());
         sendResponse({ blockList: blockListStr });
         break;
       case "saveBlockList":
-        Tapedeck.Backend.Bank.saveBlockListStr(request.blockList);
-        sendResponse({ blockList: blockListStr });
+        Tapedeck.Backend.Bank.saveBlockList(JSON.parse(request.blockList));
+        sendResponse({ });
         break;
 
       default:
@@ -304,14 +304,12 @@ Tapedeck.Backend.MessageHandler = {
         self.postMessage(port.sender.tab.id, response);
         break;
 
-      case "saveQueue":
+      case "makePlaylist":
         if (sqcr.queue.length == 0) {
           return;
         }
 
         var playlist = sqcr.queue.makePlaylist(request.playlistName);
-
-        bank.savePlaylist(playlist);
         break;
 
       case "shuffleQueue":
@@ -354,6 +352,10 @@ Tapedeck.Backend.MessageHandler = {
 
       case "cassettify":
         Tapedeck.Backend.CassetteManager.Cassettify.start();
+        break;
+
+      case "tbeCassettify":
+        Tapedeck.Backend.CassetteManager.Cassettify.quickCreate();
         break;
 
       case "loadLink":
@@ -414,7 +416,7 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
     msgHandler.addTrackAvailable = false;
-    Tapedeck.Backend.Bank.getBrowseList(function(browseList){
+    Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList){
       var origLen = browseList.length;
 
       // make sure there isn't already this track in the list
@@ -428,7 +430,7 @@ Tapedeck.Backend.MessageHandler = {
       }
 
       if (browseList.length > origLen) {
-        Tapedeck.Backend.Bank.saveBrowseList(browseList);
+        Tapedeck.Backend.Bank.saveCurrentBrowseList(browseList);
       }
       Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
     });

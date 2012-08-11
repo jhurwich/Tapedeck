@@ -1,56 +1,68 @@
 Tapedeck.Backend.Bank = {
 
-  drawerOpen: false,
+  drawerOpen: true, // TODO set to false
   localStorage: null,
 
+  MAX_SYNC_STRING_SIZE: 2000,   /* 2048 bytes is actual limit */
+  MAX_NUMBER_SPLITS: 25,
 
   defaultBlockPatterns : [ "chrome://",
                            "chrome-devtools://",
                            "mail",
                            "maps.google.com" ],
 
-  bankPrefix: "_tapedeckbank_",
-  trackListPrefix: /* bankPrefix + */ "trackList-",
-  playlistPrefix: /* trackListPrefix + */ "playlist-",
-  splitListContinuePrefix: /* bankPrefix + */ "listContinue",
-  currentCassetteKey: /* bankPrefix + */ "currentCassette",
-  cassettePagePrefix: /* bankPrefix + */ "cassettePages",
+  bankPrefix: "_tdbank_",
   repeatKey: /* bankPrefix + */ "repeat",
   syncKey: /* bankPrefix + */ "sync",
   volumeKey: /* bankPrefix + */ "volume",
   blockKey: /* bankPrefix + */ "block",
   lastSyncWarningKey: /* bankPrefix + */ "lastSyncWarning",
+  currentCassetteKey: /* bankPrefix + */ "currentCassette",
+  cassettePagePrefix: /* bankPrefix + */ "cassettePages",
+  trackListPrefix: /* bankPrefix + */ "trackList-sync-" /* + [on|off]- */,
+  playlistPrefix: /* trackListPrefix + */ "playlist-",
+  splitListContinuePrefix: /* bankPrefix + */ "listContinue",
+  savedQueueName: "__queue",
   init: function(continueInit) {
-    this.localStorage = window.localStorage;
+    var bank = this;
+    bank.localStorage = window.localStorage;
 
-    this.trackListPrefix = this.bankPrefix + this.trackListPrefix;
-    this.playlistPrefix = this.trackListPrefix + this.playlistPrefix;
-    this.splitListContinuePrefix = this.bankPrefix + this.splitListContinuePrefix;
-    this.currentCassetteKey = this.bankPrefix + this.currentCassetteKey;
-    this.cassettePagePrefix = this.bankPrefix + this.cassettePagePrefix;
-    this.repeatKey = this.bankPrefix + this.repeatKey;
-    this.syncKey = this.bankPrefix + this.syncKey;
-    this.blockKey = this.bankPrefix + this.blockKey;
-    this.lastSyncWarningKey = this.bankPrefix + this.lastSyncWarningKey;
-    if (this.localStorage.getItem(this.repeatKey) == null) {
-      this.localStorage.setItem(this.repeatKey, "true");
+    bank.repeatKey = bank.bankPrefix + bank.repeatKey;
+    bank.syncKey = bank.bankPrefix + bank.syncKey;
+    bank.blockKey = bank.bankPrefix + bank.blockKey;
+    bank.lastSyncWarningKey = bank.bankPrefix + bank.lastSyncWarningKey;
+
+    bank.currentCassetteKey = bank.bankPrefix + bank.currentCassetteKey;
+    bank.cassettePagePrefix = bank.bankPrefix + bank.cassettePagePrefix;
+
+    // pick the namespace for local (off) or synced (on) tracklists
+    var syncVal = bank.localStorage.getItem(bank.syncKey);
+    if (typeof(syncVal) == "undefined" || syncVal != "on") {
+      syncVal = "off";
     }
-    if (this.localStorage.getItem(this.syncKey) == null) {
-      this.localStorage.setItem(this.syncKey, "off");
+    bank.generateTrackListPrefixes(syncVal);
+
+    if (bank.localStorage.getItem(bank.repeatKey) == null) {
+      bank.localStorage.setItem(bank.repeatKey, "true");
+    }
+    if (bank.localStorage.getItem(bank.syncKey) == null) {
+      bank.localStorage.setItem(bank.syncKey, "off");
     }
     // initialize the block list if necessary
-    if (this.localStorage.getItem(this.blockKey) == null) {
-      this.saveBlockList(this.defaultBlockPatterns);
+    if (bank.localStorage.getItem(bank.blockKey) == null) {
+      bank.saveBlockList(bank.defaultBlockPatterns);
     }
 
-    chrome.storage.onChanged.addListener(this.storageChangeListener);
+    chrome.storage.onChanged.addListener(bank.storageChangeListener);
 
-    this.Memory.init();
-    this.FileSystem.init(function() {
-      Tapedeck.Backend.Bank.preparePlaylistList(function() {
+    // initialize each subsystem
+    bank.Memory.init();
+    bank.FileSystem.init(function() {
+      bank.PlaylistList = new Tapedeck.Backend.Collections.PlaylistList();
+      bank.PlaylistList.init(function() {
         // Attach events to ensure the browseList is updated and saved properly.
         // Kind of wish there was a better place to do this.
-        Tapedeck.Backend.Bank.getBrowseList(function(browseList) {
+        Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList) {
           browseList.bind("change tracks", function() {
             Tapedeck.Backend.MessageHandler.pushBrowseTrackList(this);
           })
@@ -61,6 +73,14 @@ Tapedeck.Backend.Bank = {
     });
   },
 
+  generateTrackListPrefixes: function(syncVal) {
+    var bank = Tapedeck.Backend.Bank;
+
+    bank.trackListPrefix = bank.bankPrefix + bank.trackListPrefix + syncVal + "-";
+    bank.playlistPrefix = bank.trackListPrefix + bank.playlistPrefix;
+    bank.splitListContinuePrefix = bank.bankPrefix + bank.splitListContinuePrefix;
+  },
+
   // We expect this to be the most commonly used function so it is
   // memoized.
   blockList : null,
@@ -69,7 +89,7 @@ Tapedeck.Backend.Bank = {
 
     // Load the blocklist if we have not already
     if (bank.blockList == null) {
-      var blockStr = bank.getBlockListStr();
+      var blockStr = bank.localStorage.getItem(bank.blockKey);
       bank.blockList = JSON.parse(blockStr);
     }
     return bank.blockList;
@@ -88,16 +108,6 @@ Tapedeck.Backend.Bank = {
     bank.blockList = blockArr;
     bank.localStorage.setItem(bank.blockKey,
                               JSON.stringify(bank.blockList));
-  },
-  getBlockListStr: function() {
-    var bank = Tapedeck.Backend.Bank;
-    var blockStr = bank.localStorage.getItem(bank.blockKey);
-
-    return blockStr;
-  },
-  saveBlockListStr: function(blockListStr) {
-    var bank = Tapedeck.Backend.Bank;
-    bank.saveBlockList(JSON.parse(blockListStr));
   },
 
   FileSystem : {
@@ -157,7 +167,7 @@ Tapedeck.Backend.Bank = {
       var page = Tapedeck.Backend.Bank.localStorage.removeItem(pageKey);
     },
 
-  // Returns cassetteDatas of the form { name: "", contents: "", url: "" (, page: num) }
+    // Returns cassetteDatas of the form - name: "", contents: "", url: "" (, page: num)
     getCassettes: function(aCallback) {
       var callback = function(datas) {
         for (var i = 0; i < datas.length; i++) {
@@ -519,16 +529,9 @@ Tapedeck.Backend.Bank = {
     trackLists: { },
 
     // if onChanged is not specified, we default to saving the list whenever it changes
-    rememberTrackList: function(name, trackList, onChanged) {
-      if (typeof(onChanged) == "undefined") {
-        onChanged = function(eventName) {
-          bank.saveList(bank.trackListPrefix, name, trackList, function() { });
-        }
-      }
+    rememberTrackList: function(name, trackList) {
       var bank = Tapedeck.Backend.Bank
       this.trackLists[name] = trackList;
-
-      trackList.bind("all", onChanged);
     },
 
     getTrackList: function(name) {
@@ -565,226 +568,60 @@ Tapedeck.Backend.Bank = {
   },
 
   clear: function() {
-    if (typeof(this.playlistList) != "undefined" &&
-        this.playlistList != null) {
-      this.playlistList.reset();
+    if (typeof(this.PlaylistList) != "undefined" &&
+        this.PlaylistList != null) {
+      this.PlaylistList.reset();
     }
     this.localStorage.clear();
     this.FileSystem.clear();
   },
 
-  findKeys: function(pattern) {
+  findKeys: function(pattern, callback) {
     var found = [];
     var regex = new RegExp(pattern, '');
-    for (var i = 0; i < this.localStorage.length; i++) {
-      var key = this.localStorage.key(i);
-      if (key.match(regex)) {
-        found.push(key);
-      }
-    }
-    return found;
-  },
 
-  playlistList: null,
-  savePlaylist: function(playlist) {
-    var playlistList = this.getPlaylists();
-    var found = playlistList.get(playlist.id);
-    if (found != null) {
-      this.removePlaylist(found);
-    }
-    playlistList.add(playlist);
-  },
-
-  removePlaylist: function(playlist) {
-    var playlistList = this.getPlaylists();
-    playlistList.remove(playlist);
-  },
-
-  getPlaylists: function() {
-    if (this.playlistList == null) {
-      console.error("PlaylistList is not ready.")
-    }
-    return this.playlistList;
-  },
-
-  preparePlaylistList: function(callback) {
-    var bank = Tapedeck.Backend.Bank;
-    bank.playlistList = new Tapedeck.Backend.Collections.PlaylistList();
-
-    if (bank.isSyncOn()) {
-      // Sync is active, get everything that's in storage
-      chrome.storage.sync.get(null, function(allStored) {
-
-        // select only those that represent playlists
-        var playlistKeys = [];
-        for (var key in allStored) {
-          if(key.match(new RegExp("^" + bank.playlistPrefix)) != null ||
-             key.match(new RegExp("^" + bank.splitListContinuePrefix)) != null) {
-            // key represents a playlist (or piece of one)
-            playlistKeys.push(key);
+    // search the Sync keys or the local keys
+    if (Tapedeck.Backend.Bank.isSyncOn()) {
+      chrome.storage.sync.get(null, function(allKeys) {
+        for (var key in allKeys) {
+          if (key.match(regex)) {
+            found.push(key);
           }
         }
-
-        // now query storage for all the playlists represented and rebuild them
-        chrome.storage.sync.get(playlistKeys, function(playlistsObject) {
-          for (var playlistKey in playlistsObject) {
-            if (playlistKey.match(new RegExp("^" + bank.playlistPrefix)) == null) {
-              // this doesn't represent the start of a playlist
-              continue;
-            }
-
-            // build the start of this new playlist
-            var playlistID = playlistKey.replace(bank.playlistPrefix, "");
-            var playlistData = null;
-            try {
-              playlistData = $.parseJSON(playlistsObject[playlistKey]);
-            }
-            catch (error) {
-              console.error("Could not recover playlist '" + playlistID + "'");
-              continue;
-            }
-
-            // we need to see if there are any other pieces to this playlist
-            var nextCount = 0;
-            var nextKey = bank.splitListContinuePrefix + playlistID + "@" + nextCount;
-            while(nextKey in playlistsObject) {
-              var nextData = null;
-              try {
-                nextData = $.parseJSON(playlistsObject[nextKey]);
-              }
-              catch (error) {
-                console.error("Could not recover the " + (nextCount + 1) + " piece of playlist '" + playlistID + "'");
-                break;
-              }
-
-              // if we find a new piece, add it to the playlist
-              playlistData = playlistData.concat(nextData);
-              nextCount++;
-              var nextKey = bank.splitListContinuePrefix + playlistID + "@" + nextCount;
-            }
-
-            // turn the playlistData into a real playlist
-            var playlist = new Tapedeck.Backend.Collections.Playlist(playlistData);
-            playlist.id = playlistID;
-            bank.playlistList.add(playlist);
-          } // end for (playlistKey in playlistsObject)
-
-          bank.playlistList.bind("add", bank.addToPlaylistList);
-          bank.playlistList.bind("remove", bank.removeFromPlaylistList);
-
-          bank.checkQuota();
-          callback();
-        }) // end chrome.storage.sync.get(playlistKeys...
+        callback(found);
       });
     }
     else {
-      // Local mode
-      var playlistKeys = bank.findKeys("^" + bank.playlistPrefix + ".*");
-      for (var i = 0; i < playlistKeys.length; i++) {
-        var key = playlistKeys[i];
-        var playlist = Tapedeck.Backend.Bank.recoverLocalList(key);
-        bank.playlistList.add(playlist);
+      for (var i = 0; i < this.localStorage.length; i++) {
+        var key = this.localStorage.key(i);
+        if (key.match(regex)) {
+          found.push(key);
+        }
       }
-      bank.playlistList.bind("add", bank.addToPlaylistList);
-      bank.playlistList.bind("remove", bank.removeFromPlaylistList);
-      callback();
+      callback(found);
     }
   },
 
-  MAX_SYNC_STRING_SIZE: 2000,   /* 2048 bytes is actual limit */
-  MAX_NUMBER_SPLITS: 25,
-  saveList: function(prefix, id, list, callback) {
+  PlaylistList: null, // PlaylistList is its own subsystem
+  savePlaylist: function(playlist) {
     var bank = Tapedeck.Backend.Bank;
-    // first determine if we are saving locally or to the cloud.
 
-    if (bank.isSyncOn()) {
-      // we may have to split the list up, attempt to split into up to 25 pieces
-      var attemptSave = function(numSerialize) {
-        if (typeof(numSerialize) == "undefined") {
-          numSerialize = 1;
-        }
-        if (numSerialize > bank.MAX_NUMBER_SPLITS) {
-          // Don't do splits this large, just give up
-          console.error("Won't split playlist into " + numSerialize + " parts for saving.  Playlist is too large.")
-
-          Tapedeck.Backend.MessageHandler.showModal({
-            fields: [
-              { type          : "info",
-                text          : "One of your playlists is too long to save and sync."},
-              { type          : "info",
-                text          : "Consider turning off syncing." },
-            ],
-            title: "Cassettify Wizard",
-          });
-          return;
-        }
-
-        // return numSerialize number of strings to save for this one playlist
-        var savedKeys = [];
-        var serialized = list.serialize(numSerialize);
-
-        // loop through once quickly to see if any of the serialized pieces will be too big
-        for (var i = 0; i < serialized.length; i++) {
-          if (serialized[i].length > bank.MAX_SYNC_STRING_SIZE) {
-            attemptSave(numSerialize + 1);
-            return;
-          }
-        }
-
-        for (var i = 0; i < serialized.length; i++) {
-          // the first entry will have the original key, each entry then points to the next
-          var splitKey;
-          if (i == 0) {
-            splitKey = prefix + id;
-          }
-          else {
-            splitKey = bank.splitListContinuePrefix + id + "@" + (i-1);
-          }
-
-          var save = {}
-          save[splitKey] = serialized[i];
-          chrome.storage.sync.set(save, function() {
-            if(typeof(chrome.extension.lastError) != 'undefined') {
-              // there was an error in saving
-              if (chrome.extension.lastError.message == "Quota exceeded") {
-                // got a quota exceeded error, delete any saves in progress and try again
-                var deleteObject = [];
-                for (var j = 0; j < savedKeys.length; j++){
-                  deleteObject.push(savedKeys[j]);
-                }
-
-                if (!$.isEmptyObject(deleteObject)) {
-                  chrome.storage.sync.remove(deleteObject, function() {
-                    attemptSave(numSerialize + 1);
-                  })
-                }
-              }
-            }
-            else {
-              // success in saving
-              savedKeys.push(splitKey);
-              if (savedKeys.length == numSerialize) {
-                // we're done here
-                bank.checkQuota();
-                callback();
-              }
-            }
-          })
-        }
-      }; // end attemptSave
-      attemptSave();
+    var found = bank.PlaylistList.get(playlist.id);
+    if (found != null) {
+      bank.removePlaylist(found);
     }
-    else {
-      try {
-        var key = prefix + id;
-        var listStr = list.serialize()[0];
-        bank.localStorage.setItem(key, listStr);
-        callback();
-      }
-      catch (error) {
-        console.error("Could not save playlist '" + list.id + "'");
-      }
+    bank.PlaylistList.add(playlist);
+  },
+
+  removePlaylist: function(playlist) {
+    Tapedeck.Backend.Bank.PlaylistList.remove(playlist);
+  },
+
+  getPlaylists: function() {
+    if (this.PlaylistList == null) {
+      console.error("PlaylistList is not ready.")
     }
+    return this.PlaylistList;
   },
 
   clearList: function(prefix, id, callback) {
@@ -796,7 +633,6 @@ Tapedeck.Backend.Bank = {
       chrome.storage.sync.get(null, function(allKeys) {
 
         var removePiece = function(removeKey) {
-          console.log("removing " + removeKey + " in clearList");
           chrome.storage.sync.remove(removeKey, function() {
             // see if another piece exists
             var nextKey = bank.splitListContinuePrefix + id + "@" + nextCount;
@@ -823,37 +659,7 @@ Tapedeck.Backend.Bank = {
     }
   },
 
-  addToPlaylistList: function(playlist) {
-    var bank = Tapedeck.Backend.Bank;
-
-    bank.saveList(bank.playlistPrefix, playlist.id, playlist, function(){ });
-  },
-
-  removeFromPlaylistList: function(playlist) {
-    var bank = Tapedeck.Backend.Bank;
-
-    if (bank.isSyncOn()) {
-      bank.clearList(bank.playlistPrefix, playlist.id)
-    }
-    else {
-      try {
-        var key = bank.playlistPrefix + playlist.id;
-        bank.localStorage.removeItem(key);
-      }
-      catch (error) {
-        console.error("Could not remove playlist '" + playlist.id + "'");
-      }
-    }
-    Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
-  },
-
-  saveTrackList: function(name, trackList) {
-    Tapedeck.Backend.Bank.Memory.rememberTrackList(name, trackList);
-
-    Tapedeck.Backend.Bank.saveList(this.trackListPrefix, name, trackList, function() { });
-  },
-
-  getTrackList: function(name, callback) {
+  getSavedTrackList: function(name, callback) {
     var bank = Tapedeck.Backend.Bank;
 
     // see if the tracklist is remembered, if so return it
@@ -863,10 +669,43 @@ Tapedeck.Backend.Bank = {
       return;
     }
 
-    // tracklist is not remembered, attempt to recover from sync or local filesystem if needed
+    // tracklist is not remembered, attempt to recover
     var key = bank.trackListPrefix + name;
+
+    // this will create the tracklist if it doesn't exist
+    this.recoverSavedTrackList(key, function(savedTracks) {
+
+      // save tracks in memory so that they're ready for use in the future
+      Tapedeck.Backend.Bank.Memory.rememberTrackList(name, savedTracks);
+      callback(savedTracks);
+    });
+  },
+
+  recoverSavedTrackList: function(key, callback) {
+    var bank = Tapedeck.Backend.Bank;
+    var id;
+    if (key.match(new RegExp("^" + this.playlistPrefix))) {
+      id = key.replace(this.playlistPrefix, "");
+    }
+    else {
+      id = key.replace(this.trackListPrefix, "");
+    }
+
+    var makeListAndReturn = function(json) {
+      var list;
+      if (key.match(new RegExp("^" + bank.playlistPrefix))) {
+        list = new Tapedeck.Backend.Collections.Playlist(json, { id: id, save: false });
+      }
+      else {
+        list = new Tapedeck.Backend.Collections.SavedTrackList(json, { id: id, save: false });
+      }
+
+      list.removeTempProperties(); // TODO do we need this?
+      callback(list);
+    };
+
     if (bank.isSyncOn()) {
-      // set to sync mode, get from there
+      // recover from sync
 
       chrome.storage.sync.get(key, function(storedData) {
         if (typeof(chrome.extension.lastError) != 'undefined') {
@@ -878,29 +717,27 @@ Tapedeck.Backend.Bank = {
         var trackListData = null;
         try {
           trackListData = $.parseJSON(storedData[key]);
+          console.log("Sync recovered  for  " + key + ":\n" + storedData[key]);
         }
         catch (error) {
-          console.error("Could not recover tracklist '" + name + "'");
+          console.error("Could not recover tracklist '" + id + "'");
         }
 
-        // there can be more pieces to the trackList, look for them and return the trackList when we run out
+        /* There can be more pieces to the trackList, look for them by
+         * recursively looking for the next piece's key until we run out */
         var nextCount = 0;
         var foldInContinues = function() {
 
           // see if another piece exists
-          var nextKey = bank.splitListContinuePrefix + name + "@" + nextCount;
+          var nextKey = bank.splitListContinuePrefix + id + "@" + nextCount;
           chrome.storage.sync.get(nextKey, function(nextData) {
             if (typeof(chrome.extension.lastError) != 'undefined' ||
                 $.isEmptyObject(nextData)) {
-
               // we're out of pieces, build the trackList and return
-              var trackList = new Tapedeck.Backend.Collections.TrackList(trackListData);
-              Tapedeck.Backend.Bank.Memory.rememberTrackList(name, trackList);
 
-              callback(trackList);
+              makeListAndReturn(trackListData);
               return;
             }
-
 
             // found another piece, build it and add it to what we have
             var nextPiece = null;
@@ -908,9 +745,9 @@ Tapedeck.Backend.Bank = {
               nextPiece = $.parseJSON(nextData[nextKey]);
             }
             catch (error) {
-              console.error("Could not recover the " + (nextCount + 1) + " piece of tracklist '" + name + "'");
-              var trackList = new Tapedeck.Backend.Collections.TrackList(trackListData);
-              callback(trackList);
+              console.error("Could not recover the " + (nextCount + 1) + " piece of tracklist '" + id + "'");
+
+              makeListAndReturn(trackListData);
               return;
             }
             trackListData = trackListData.concat(nextPiece);
@@ -925,52 +762,32 @@ Tapedeck.Backend.Bank = {
       }); // end chrome.storage.sync.get(key, ...
     }
     else {
-      tracks = this.recoverLocalList(key);
-
-      // save tracks in memory so that they're ready for use in the future
-      Tapedeck.Backend.Bank.Memory.rememberTrackList(name, tracks);
-
-      callback(tracks);
+      // recover locally
+      try {
+        var listStr = this.localStorage.getItem(key);
+        var tracksJSON = false;
+        if (listStr != null) {
+          tracksJSON = $.parseJSON(listStr);
+        }
+        makeListAndReturn(tracksJSON);
+      }
+      catch (error) {
+        console.log("Could not recover trackList '" + key + "'");
+      }
     }
   },
 
-  recoverLocalList: function(key) {
-    var tracksJSON = { };
-    try {
-      var listStr = this.localStorage.getItem(key);
-      tracksJSON = $.parseJSON(listStr);
-    }
-    catch (error) {
-      console.error("Could not recover trackList '" + key + "'");
-    }
-
-    var list;
-    if (key.match(new RegExp("^" + this.playlistPrefix))) {
-      list = new Tapedeck.Backend.Collections.Playlist(tracksJSON);
-      list.id = key.replace(this.playlistPrefix, "");
-    }
-    else {
-      list = new Tapedeck.Backend.Collections.TrackList(tracksJSON);
-    }
-
-    list.removeTempProperties();
-    return list;
-  },
-
-  savedQueueName: "__queue",
-  saveQueue: function(trackList) {
-    var bank = Tapedeck.Backend.Bank;
-    bank.saveTrackList(bank.savedQueueName, trackList);
-  },
   getQueue: function(callback) {
     var bank = Tapedeck.Backend.Bank;
-    bank.getTrackList(bank.savedQueueName, callback);
+    bank.getSavedTrackList(bank.savedQueueName, callback);
   },
 
+  // NOTE, the browselist is only memoized by the Bank, it is not SavedTrackList
   savedBrowseListName: "__browseList",
-  saveBrowseList: function(trackList) {
+  saveCurrentBrowseList: function(trackList) {
     // we only memoize the browseList, we don't persist it in storage
     var bank = Tapedeck.Backend.Bank;
+
     var browseListChanged = function (eventName) {
       // we only care about the greater 'change' event.  The "change:__" events are ignored.
       if (eventName.indexOf("change:") == -1) {
@@ -980,9 +797,11 @@ Tapedeck.Backend.Bank = {
         Tapedeck.Backend.MessageHandler.pushBrowseTrackList(trackList);
       }
     }
-    bank.Memory.rememberTrackList(bank.savedBrowseListName, trackList, browseListChanged);
+    trackList.bind("all", browseListChanged);
+
+    bank.Memory.rememberTrackList(bank.savedBrowseListName, trackList);
   },
-  getBrowseList: function(callback) {
+  getCurrentBrowseList: function(callback) {
     var bank = Tapedeck.Backend.Bank;
     var tracks = bank.Memory.getTrackList(bank.savedBrowseListName);
     if (typeof(tracks) == "undefined" || tracks == null) {
@@ -1033,12 +852,13 @@ Tapedeck.Backend.Bank = {
     bank.checkQuota();
 
     // sync changed so we need to discard the current playlists and get the requested
-    bank.preparePlaylistList(function() {
+
+    bank.PlaylistList = new Tapedeck.Backend.Collections.PlaylistList();
+    bank.PlaylistList.init(function() {
       Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
     });
 
-    // clear the queue from memory so that it gets repopulated
-    bank.Memory.clearList(bank.savedQueueName);
+    bank.generateTrackListPrefixes(newVal);
 
     // sync changed so we need to discard the current queue and get the synced one
     Tapedeck.Backend.Sequencer.prepareQueue(function() {
@@ -1070,6 +890,8 @@ Tapedeck.Backend.Bank = {
   },
 
   checkQuota: function() {
+    console.log("checkQuota bypassed");
+    return;
     var bank = Tapedeck.Backend.Bank;
 
     // no-op if sync is off
@@ -1125,6 +947,110 @@ Tapedeck.Backend.Bank = {
         console.log("No warning only using " + inUse + "/" + chrome.storage.sync.QUOTA_BYTES + " bytes of synced storage");
       }
     });
+  },
+
+  // we provide a 20s sliding window for new changes, new changes reset the timer
+  collector: null,
+  sync: function() {
+    var bank = Tapedeck.Backend.Bank;
+    if (bank.collector != null) {
+      window.clearTimeout(bank.collector);
+    }
+    bank.collector = window.setTimeout(bank.syncCollector, 20 * 1000 /* 20s */);
+  },
+
+  syncTrackLists: {},
+  syncCollector: function() {
+    var bank = Tapedeck.Backend.Bank;
+    for (id in bank.syncTrackLists) {
+      var trackList = bank.syncTrackLists[id];
+
+      if (trackList.dirty) {
+        // trackList is dirty, upload to sync
+        // we may have to split the list up, attempt to split into up to 25 pieces
+        var attemptSave = function(numSerialize) {
+          if (typeof(numSerialize) == "undefined") {
+            numSerialize = 1;
+          }
+          if (numSerialize > bank.MAX_NUMBER_SPLITS) {
+            // Don't do splits this large, just give up
+            console.error("Won't split playlist into " + numSerialize + " parts for saving.  Playlist is too large.")
+
+            Tapedeck.Backend.MessageHandler.showModal({
+              fields: [
+                { type          : "info",
+                  text          : "One of your playlists is too long to save and sync."},
+                { type          : "info",
+                  text          : "Consider turning off syncing." },
+              ],
+              title: "Cassettify Wizard",
+            });
+            return;
+          }
+
+          // return numSerialize number of strings to save for this one playlist
+          var savedKeys = [];
+          var serialized = trackList.serialize(numSerialize);
+
+          // loop through once quickly to see if any of the serialized pieces will be too big
+          for (var i = 0; i < serialized.length; i++) {
+            if (serialized[i].length > bank.MAX_SYNC_STRING_SIZE) {
+              attemptSave(numSerialize + 1);
+              return;
+            }
+          }
+
+          for (var i = 0; i < serialized.length; i++) {
+            // the first entry will have the original key, each entry then points to the next
+            var splitKey;
+            if (i == 0) {
+              splitKey = trackList.getPrefix() + trackList.id;
+            }
+            else {
+              splitKey = bank.splitListContinuePrefix + trackList.id + "@" + (i-1);
+            }
+            console.log("attempting splitKey: " + splitKey);
+
+            var save = {}
+            save[splitKey] = serialized[i];
+            chrome.storage.sync.set(save, function() {
+              if(typeof(chrome.extension.lastError) != 'undefined') {
+                // there was an error in saving
+                if (chrome.extension.lastError.message == "Quota exceeded") {
+                  console.log("failed on splitKey: " + splitKey);
+
+                  // got a quota exceeded error, delete any saves in progress and try again
+                  var deleteObject = [];
+                  for (var j = 0; j < savedKeys.length; j++){
+                    deleteObject.push(savedKeys[j]);
+                  }
+
+                  if (!$.isEmptyObject(deleteObject)) {
+                    chrome.storage.sync.remove(deleteObject, function() {
+                      attemptSave(numSerialize + 1);
+                    })
+                  }
+                }
+              }
+              else {
+                // success in saving
+                savedKeys.push(splitKey);
+                console.log("saved to splitKey: " + splitKey);
+                if (savedKeys.length == numSerialize) {
+                  // we're done here
+                  bank.checkQuota();
+                }
+              }
+            })
+          }
+        }; // end attemptSave
+        attemptSave();
+
+        trackList.dirty = false;
+      }
+    }
+
+    bank.collector = null;
   },
 
  storageChangeListener: function(changes, namespace) {

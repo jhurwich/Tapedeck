@@ -22,6 +22,7 @@
     <script type="text/javascript" src="models/cassetteadapter.js"></script>
     <script type="text/javascript" src="models/track.js"></script>
     <script type="text/javascript" src="models/tracklist.js"></script>
+    <script type="text/javascript" src="models/savedtracklist.js"></script>
     <script type="text/javascript" src="models/playlist.js"></script>
     <script type="text/javascript" src="models/playlistlist.js"></script>
 
@@ -44,7 +45,7 @@
     <script id="Frame-default-template" type="text/template">
       <tapedeck>
         <events>
-          "click #queue-save"    : "PlaylistList.saveQueue",
+          "click #queue-save"    : "PlaylistList.makePlaylist",
           "click #sync"          : "toggleSync",
           "click #repeat"        : "toggleRepeat",
           "click #queue-shuffle" : "shuffleQueue",
@@ -62,6 +63,9 @@
       </tapedeck>
 
       <template>
+        <% if(params.debug > 0) {
+          /* nothing to check */
+        } %>
         <div id="player">
           <template ref="Player-default-template" />
         </div>
@@ -101,6 +105,9 @@
       </tapedeck>
 
       <template>
+        <% if(params.debug > 0) {
+          params.paramSanity("currentCassette", false, params.currentCassette);
+        } %>
         <div id="browse-region" class="region">
           <% if(typeof(params.currentCassette) != "undefined" && params.currentCassette != null) { %>
             <template ref="BrowseList-default-template" />
@@ -140,6 +147,10 @@
       </tapedeck>
 
       <template>
+        <% if(params.debug > 0) {
+          params.paramSanity("playerState", false, params.state);
+          params.paramSanity("currentTrack", false, params.track);
+        } %>
         <div id="banner-region">
           <div id="banner">
             <%
@@ -230,6 +241,9 @@
       </tapedeck>
 
       <template>
+        <% if(params.debug > 0) {
+          /* nothing to check */
+        } %>
         <div class="tracklist">
           <% if(typeof(params.trackList) == "undefined" || params.trackList == null) { %>
             <div class="row-container">
@@ -345,6 +359,9 @@
       </tapedeck>
 
       <template>
+        <% if(params.debug > 0) {
+          params.paramSanity("queue", true, params.queue);
+        } %>
         <div id="queue" class="tracklist-container" rowdblclick="queueDblClick">
           <!-- we do not want the currentCassette, so make sure the trackList can not find it -->
           <template ref="TrackList-default-template" remap="params.trackList:params.queue,params.currentCassette:params.__doesNotExist__"/>
@@ -366,6 +383,11 @@
       </tapedeck>
 
       <template>
+        <% if(params.debug > 0) {
+          params.paramSanity("currentCassette", false, params.currentCassette);
+          params.paramSanity("currentPage", false, params.currentPage);
+          params.paramSanity("browseList", true, params.browseList);
+        } %>
         <div id="browse-list" class="tracklist-container" rowdblclick="browseDblClick">
           <template ref="TrackList-default-template" remap="params.trackList:params.browseList" />
         </div>
@@ -389,6 +411,9 @@
       </tapedeck>
 
       <template>
+        <% if(params.debug > 0) {
+          params.paramSanity("playlistList", false, params.playlistList);
+        } %>
         <div id="playlist-list-header">Load a playlist</div>
         <div id="playlist-list-content">
           <% if (typeof(params.playlistList) == "undefined" || !params.playlistList || params.playlistList.length == 0) { %>
@@ -424,6 +449,7 @@
 
           "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
           "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
+          "click #add-cassettes-menu .menu-row.tbe"         : "CassetteList.tbeCassettify",
         </events>
         <options>
           "cassetteList" : "cassetteList",
@@ -438,6 +464,9 @@
       </tapedeck>
 
       <template>
+        <% if(params.debug > 0) {
+          params.paramSanity("cassetteList", false, params.cassetteList);
+        } %>
         <div id="cassette-list">
           <div class="cassettelist">
             <% if(typeof(params.cassetteList) == "undefined" || params.cassetteList == null) { %>
@@ -484,6 +513,9 @@
               <div class="menu-row cassettify">
                 Cassettify
               </div>
+              <!-- DEBUG quick-cassette maker -->
+              <div class="menu-row tbe"> Quick-create TBE </div>
+              <!-- END_DEBUG -->
             </div>
           </div>
         </div>

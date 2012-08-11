@@ -654,6 +654,11 @@ Tapedeck.Frontend.Frame = {
     cassettify: function(e) {
       Tapedeck.Frontend.Messenger.cassettify();
     },
+
+    // for debugging, quick cassette maker
+    tbeCassettify: function(e) {
+      Tapedeck.Frontend.Messenger.tbeCassettify();
+    },
   },
 
   PlaylistList: {
@@ -676,13 +681,13 @@ Tapedeck.Frontend.Frame = {
       $(content).css("display", "none");
     },
 
-    saveQueue: function() {
+    makePlaylist: function() {
       var playlistName = prompt("Please enter a playlist name");
       if (playlistName == null) {
         return;
       }
 
-      Tapedeck.Frontend.Messenger.saveQueue(playlistName);
+      Tapedeck.Frontend.Messenger.makePlaylist(playlistName);
     },
 
     removePlaylist: function(e) {

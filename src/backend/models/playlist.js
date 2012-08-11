@@ -1,11 +1,18 @@
 Tapedeck.Backend.Collections.Playlist =
-  Tapedeck.Backend.Collections.TrackList.extend({
+  Tapedeck.Backend.Collections.SavedTrackList.extend({
 
+  getPrefix: function() {
+    return Tapedeck.Backend.Bank.playlistPrefix;
+  },
 
-  initialize: function(options) {
-    if (typeof(options) != "undefined" && options && !("name" in options)) {
-      options.name = "Unnamed Playlist";
+  initialize: function(models, options) {
+    Tapedeck.Backend.Collections.SavedTrackList.prototype.initialize.call(this, models, options);
+
+    var found = Tapedeck.Backend.Bank.PlaylistList.get(this.id);
+    if (found != null) {
+      bank.removePlaylist(found);
     }
+    Tapedeck.Backend.Bank.PlaylistList.add(this);
   },
 
   // override the toJSON so that the id is preserved

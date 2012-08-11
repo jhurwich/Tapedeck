@@ -293,9 +293,9 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
-  saveQueue: function(playlistName) {
+  makePlaylist: function(playlistName) {
     var request = Tapedeck.Frontend.Messenger.newRequest({
-      action       : "saveQueue",
+      action       : "makePlaylist",
       playlistName : playlistName,
     });
 
@@ -376,6 +376,14 @@ Tapedeck.Frontend.Messenger = {
   cassettify: function() {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action  : "cassettify"
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  tbeCassettify: function() {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "tbeCassettify"
     });
 
     Tapedeck.Frontend.Messenger.sendMessage(request);

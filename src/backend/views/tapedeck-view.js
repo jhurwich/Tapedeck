@@ -35,7 +35,7 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
       templateName: self.templateName,
       packageName: self.packageName,
       params: self.params,
-      textTemplate: self.textTemplate
+      textTemplate: self.textTemplate,
     };
 
     try {

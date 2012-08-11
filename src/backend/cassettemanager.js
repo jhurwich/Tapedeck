@@ -323,7 +323,11 @@ Tapedeck.Backend.CassetteManager = {
       };
       try {
         Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
-          cMgr.Cassettify.nameCassette(response.rendered);
+          var options = { };
+          if (params.cassetteName != "undefined") {
+            options.cassetteName = params.cassetteName;
+          }
+          cMgr.Cassettify.nameCassette(response.rendered, options);
         });
 
       } catch(error) {
@@ -332,26 +336,26 @@ Tapedeck.Backend.CassetteManager = {
 
     },
 
-    nameCassette: function(code, msg) {
+    nameCassette: function(code, options) {
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var cMgr = Tapedeck.Backend.CassetteManager;
       cMgr.log("Cassette prepared, naming now")
 
       var nameAndSaveCassette = function(params) {
         if (params.cassetteName.length == 0) {
-          cMgr.Cassettify.nameCassette(code, "You must enter a name");
+          cMgr.Cassettify.nameCassette(code, { msg: "You must enter a name" });
           return;
         }
 
         // any non-a-Z,0-9, or space
         if ((/[^a-zA-Z0-9\s]/).test(params.cassetteName)) {
-          cMgr.Cassettify.nameCassette(code, "Only a-Z, 0-9, and spaces are allowed.");
+          cMgr.Cassettify.nameCassette(code, { msg: "Only a-Z, 0-9, and spaces are allowed." });
           return;
         }
         var saveableName = params.cassetteName.replace(/\s/g, "_");
 
         if (typeof(Tapedeck.Backend.Cassettes[saveableName]) != "undefined") {
-          cMgr.Cassettify.nameCassette(code, "The name you enterred is in use");
+          cMgr.Cassettify.nameCassette(code, { msg: "The name you enterred is in use" });
           return;
         }
 
@@ -365,21 +369,26 @@ Tapedeck.Backend.CassetteManager = {
                                                       cMgr.Cassettify.finish);
       };
 
-      var modalFields = [];
-      if (typeof(msg) != "undefined") {
-        modalFields.push({ type : "info",
-                           text : msg });
+      if (typeof(options.cassetteName) != "undefined"){
+        nameAndSaveCassette(options);
       }
-      modalFields.push({ type          : "info",
-                         text          : "Name your new cassette",});
-      modalFields.push({ type          : "input",
-                         text          : "",
-                         callbackParam : "cassetteName"  });
+      else {
+        var modalFields = [];
+        if (typeof(options.msg) != "undefined") {
+          modalFields.push({ type : "info",
+                             text : options.msg });
+        }
+        modalFields.push({ type          : "info",
+                           text          : "Name your new cassette",});
+        modalFields.push({ type          : "input",
+                           text          : "",
+                           callbackParam : "cassetteName"  });
 
-      msgHandler.showModal({
-        fields: modalFields,
-        title: "Cassettify Wizard",
-      }, nameAndSaveCassette);
+        msgHandler.showModal({
+          fields: modalFields,
+          title: "Cassettify Wizard",
+        }, nameAndSaveCassette);
+      }
     },
 
     finish: function(success) {
@@ -390,6 +399,13 @@ Tapedeck.Backend.CassetteManager = {
       else {
         console.error("Cassette could not be properly saved");
       }
+    },
+
+    quickCreate: function() {
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var name = "TBE " + Math.floor(Math.random() * 100000);
+      cMgr.Cassettify.handlePatternInput({ pattern : "theburningear.com/page/$#",
+                                           cassetteName : name });
     },
 
 
