@@ -15,8 +15,10 @@ Tapedeck.Backend.Sequencer = {
   },
 
   prepareQueue: function(callback) {
+    console.log("Preparing queue!");
     var sqcr = Tapedeck.Backend.Sequencer;
     Tapedeck.Backend.Bank.getQueue(function(queue) {
+      console.log("retrieved queue " + queue.length);
       sqcr.queue = queue
       sqcr.setQueuePosition(-1);
 

@@ -17,7 +17,6 @@ Tapedeck.Backend.Collections.SavedTrackList =
     }
 
     this.dirty = true;
-    Tapedeck.Backend.Bank.syncTrackLists[this.id] = this;
 
     this.unbind("all");
     this.bind("all", Tapedeck.Backend.Collections.SavedTrackList.prototype.save);
@@ -34,6 +33,8 @@ Tapedeck.Backend.Collections.SavedTrackList =
       var listStr = this.serialize()[0];
 
       bank.localStorage.setItem(key, listStr);
+      bank.Memory.rememberTrackList(key, this);
+
       this.dirty = true;
       if (bank.isSyncOn()) {
         bank.sync();
