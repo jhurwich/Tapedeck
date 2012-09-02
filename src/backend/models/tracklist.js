@@ -1,28 +1,47 @@
 Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
   model: Tapedeck.Backend.Models.Track,
 
-  serialize: function(numSerialize) {
-    if (typeof(numSerialize) == "undefined") {
-      numSerialize = 1;
+  serialize: function(maxSize) {
+    var self = this;
+    var bank = Tapedeck.Backend.Bank;
+    if (typeof(maxSize) == "undefined") {
+      maxSize = -1;
     }
 
     // based on numSerialize we need to split up this collection
     var result = [];
     var resultIndex = 0;
-    var splitSize = Math.floor(this.length / numSerialize); // the final size of each group (potentially + 1)
     var currArray = [];
-    for (var i = 0; i < this.length; i++) {
-      var model = this.at(i);
+
+    var estimateSize = function(serializedArray, splitNum) {
+      var splitKey = null;
+      if (splitNum == 0) {
+        splitKey = self.getPrefix() + self.id;
+      }
+      else {
+        splitKey = bank.splitListContinuePrefix + self.id + "@" + (splitNum-1);
+      }
+
+      // loop through once quickly to see if any of the serialized pieces will be too big
+      var saveEstimate = {};
+      saveEstimate[splitKey] = JSON.stringify(serializedArray);
+
+      var estimateLength = JSON.stringify(saveEstimate).length;
+      return estimateLength;
+    };
+
+    for (var i = 0; i < self.length; i++) {
+      var model = self.at(i);
       currArray.push(model.serialize());
 
-      if (((i + 1) % splitSize == 0) &&
-          result.length < numSerialize - 1) {
+      if (maxSize > 0 && estimateSize(currArray, result.length) > maxSize) {
+        var lastAdded = currArray.pop()
         result.push(JSON.stringify(currArray));
-        currArray = [];
+        currArray = [lastAdded];
       }
     }
-    result.push(JSON.stringify(currArray));
 
+    result.push(JSON.stringify(currArray));
     return result;
   },
 

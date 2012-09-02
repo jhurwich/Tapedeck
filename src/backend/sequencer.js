@@ -15,27 +15,32 @@ Tapedeck.Backend.Sequencer = {
   },
 
   prepareQueue: function(callback) {
-    console.log("Preparing queue!");
+    var bank = Tapedeck.Backend.Bank;
     var sqcr = Tapedeck.Backend.Sequencer;
-    Tapedeck.Backend.Bank.getQueue(function(queue) {
-      console.log("retrieved queue " + queue.length);
-      sqcr.queue = queue
-      sqcr.setQueuePosition(-1);
 
-      var updateQueue = function(eventName) {
-        // we only care about the greater 'change' event.  The "change:__" events are ignored.
-        if (eventName.indexOf("change:") == -1) {
-          Tapedeck.Backend.MessageHandler.updateView("Queue");
+    bank.getQueue(function(queue) {
+      sqcr.queue = queue;
+
+      // recover metadata like the queuePosition
+      bank.recoverMetadata(function() {
+
+        var updateQueue = function(eventName) {
+          // we only care about the greater 'change' event.  The "change:__" events are ignored.
+          if (eventName.indexOf("change:") == -1) {
+            Tapedeck.Backend.MessageHandler.updateView("Queue");
+          }
         }
-      }
-      sqcr.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
-      sqcr.queue.bind('all', updateQueue);
-      callback();
+        sqcr.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
+        sqcr.queue.bind('all', updateQueue);
+        sqcr.queue.bind('set position', bank.sync)
+        callback();
+      });
     });
   },
 
   Player: {
     STATES: { PLAY:   "play",
+              READY:  "ready",
               PAUSE:  "pause",
               STOP:   "stop",
               LOAD:   "load" },
@@ -51,14 +56,12 @@ Tapedeck.Backend.Sequencer = {
       $(this.playerElement).bind("pause", this.handlePause.curry(this));
       $(this.playerElement).bind("ended", this.handleEnded.curry(this));
       $(this.playerElement).bind("loadstart", this.handleLoadStart.curry(this));
+      $(this.playerElement).bind("canplay", this.handleCanPlay.curry(this));
       $(this.playerElement).bind("durationchange", this.handleDurationChange.curry(this));
       $(this.playerElement).bind("timeupdate", this.handleTimeUpdate.curry(this));
     },
 
     play: function(track) {
-      this.currentTrack = track;
-      $(this.playerElement).attr("src", track.get("url"));
-      this.playerElement.get(0).load();
       this.playerElement.get(0).play();
     },
 
@@ -109,6 +112,13 @@ Tapedeck.Backend.Sequencer = {
       this.seek(time);
     },
 
+    loadTrack: function(track) {
+      this.currentTrack = track;
+      this.currentTrack.set({ currentTime: 0 });
+      $(this.playerElement).attr("src", this.currentTrack.get("url"));
+      this.playerElement.get(0).load();
+    },
+
     handlePlaying: function(self) {
       self.currentState = self.STATES.PLAY;
       Tapedeck.Backend.MessageHandler.updateView("Player");
@@ -125,6 +135,11 @@ Tapedeck.Backend.Sequencer = {
 
     handleLoadStart: function(self) {
       self.currentState = self.STATES.LOAD;
+      Tapedeck.Backend.MessageHandler.updateView("Player");
+    },
+
+    handleCanPlay: function(self) {
+      self.currentState = self.STATES.READY;
       Tapedeck.Backend.MessageHandler.updateView("Player");
     },
 
@@ -198,18 +213,20 @@ Tapedeck.Backend.Sequencer = {
   },
 
   playIndex: function(index) {
-    var track = this.getAt(index);
     this.setQueuePosition(index);
-    this.Player.play(track);
+    this.Player.play();
   },
 
   playNow: function() {
     var state = this.getCurrentState();
-    if (state == "pause") {
+    if (state == this.Player.STATES.PAUSE) {
       this.Player.resume();
     }
-    else if (state == "stop") {
+    else if (state == this.Player.STATES.STOP) {
       this.playIndex(this.queuePosition + 1);
+    }
+    else if (state == this.Player.STATES.READY) {
+      this.Player.play();
     }
   },
 
@@ -259,8 +276,24 @@ Tapedeck.Backend.Sequencer = {
     return track;
   },
 
-  setQueuePosition: function(pos) {
+  setQueuePosition: function(pos, noLoad) {
+    if (this.queuePosition == pos) {
+      // no op
+      return;
+    }
+
+    if (typeof(noLoad) == "undefined") {
+      noLoad = false;
+    }
+
     this.queuePosition = pos;
+    if (this.queuePosition != -1  && !noLoad) {
+      var track = this.getAt(this.queuePosition);
+
+      if (track) {
+        this.Player.loadTrack(track);
+      }
+    }
     var count = pos + 1; // listenedCount = queuePosition, + 1 playing
 
     this.queue.each(function(track) {
@@ -281,7 +314,13 @@ Tapedeck.Backend.Sequencer = {
                          {silent  : true });
       }
     });
-    this.queue.trigger("change tracks");
+    Tapedeck.Backend.Bank.dirtyMetadata = true;
+
+    this.queue.trigger("set position");
+  },
+
+  getQueuePosition: function() {
+    return this.queuePosition;
   },
 
   push: function(track, silent) {
@@ -313,7 +352,7 @@ Tapedeck.Backend.Sequencer = {
     }
 
     if (pos <= this.queuePosition) {
-      this.setQueuePosition(this.queuePosition + tracks.length);
+      this.setQueuePosition(this.queuePosition + tracks.length, true);
     }
   },
 
@@ -340,7 +379,7 @@ Tapedeck.Backend.Sequencer = {
     this.insertSomeAt(tracks, pos, true);
 
     if (playingIndex >= 0) {
-      this.setQueuePosition(pos + playingIndex);
+      this.setQueuePosition(pos + playingIndex, true);
     }
 
     this.removeSome(tracksToRemove);
@@ -369,7 +408,7 @@ Tapedeck.Backend.Sequencer = {
     }
     this.queue.remove(trackModels);
 
-    this.setQueuePosition(this.queuePosition - posChange);
+    this.setQueuePosition(this.queuePosition - posChange, true);
   },
 
   shuffle: function() {
@@ -401,7 +440,7 @@ Tapedeck.Backend.Sequencer = {
 
   clear: function() {
     var bank = Tapedeck.Backend.Bank;
-    Tapedeck.Backend.Bank.clearList(bank.trackListPrefix, bank.savedQueueName)
+    Tapedeck.Backend.Bank.clearList(this.queue);
     this.queue.reset();
 
     this.setQueuePosition(-1);

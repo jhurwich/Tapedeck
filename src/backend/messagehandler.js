@@ -5,7 +5,7 @@ Tapedeck.Backend.MessageHandler = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 1,
+  debug: 0,
 
   ports: {},
   init: function() {
@@ -223,7 +223,6 @@ Tapedeck.Backend.MessageHandler = {
         if (typeof(request.trackObjs) != "undefined") {
           // tracks were sent as crude track objs
           $.map(request.trackObjs, function(trackObj, i) {
-            console.log("sending as trackobj " + trackObj.trackID);
             var track = bank.getTrack(trackObj.trackID);
             tracks.push(track);
           });
@@ -231,7 +230,6 @@ Tapedeck.Backend.MessageHandler = {
         else {
           // tracks were sent as trackIDs
           $.map(request.trackIDs, function(trackID, i) {
-            console.log("getting by id " + trackID);
             var track = bank.getTrack(trackID);
             tracks.push(track);
           });
