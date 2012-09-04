@@ -1132,6 +1132,7 @@ Tapedeck.Backend.Bank = {
   },
 
   trackListSplitCounts: {},
+  syncedLists: {},
   syncCollector: function() {
     var bank = Tapedeck.Backend.Bank;
 
@@ -1154,6 +1155,7 @@ Tapedeck.Backend.Bank = {
             // trackList is dirty, upload to sync
             // we may have to split the list up, attempt to split into up to 25 pieces
             var attemptSave = function() {
+              console.log("<< AttemptSave >>")
 
               // serialize the strings such that none is greater than MAX_SYNC_STRING_SIZE
               var serialized = trackList.serialize(bank.MAX_SYNC_STRING_SIZE);
@@ -1174,8 +1176,31 @@ Tapedeck.Backend.Bank = {
                 return;
               }
 
+              // If sync is successful (syncedMap is not a string) then update the syncedLists
+              // so that we can detect changes later
+              var finishSync = function(syncedMap) {
+                if (typeof(syncedMap) == "string") {
+                  // we send the error string if there's an error.  This sync failed
+                  var errorString = syncedMap;
+                  console.error(errorString);
+                  bank.dumpSyncLog();
+                  // TODO handle this case better / warn user?
+                  return;
+                }
+                console.log("Finishing sync of : " + JSON.stringify(Object.keys(syncedMap)));
+                for (var syncedKey in syncedMap) {
+                  if (typeof(bank.syncedLists[trackList.id]) == "undefined") {
+                    bank.syncedLists[trackList.id] = {};
+                  }
+                  bank.syncedLists[trackList.id][syncedKey] = syncedMap[syncedKey];
+                }
+                bank.checkQuota();
+
+              };
+
               // this function will save the serialized list, but we might need to remove some first, see below
               var saveSerialized = function() {
+                console.log("--saveSerialized--")
                 var canSetG2k = false; // check if true here will ever work
                 if (canSetG2k) {
                   var save = {}
@@ -1188,7 +1213,21 @@ Tapedeck.Backend.Bank = {
                     else {
                       splitKey = bank.splitListContinuePrefix + trackList.id + "@" + (i-1);
                     }
+
+                    // we only sync keys that have actually changed
+                    if (typeof(bank.syncedLists[trackList.id]) != "undefined" &&
+                        typeof(bank.syncedLists[trackList.id][splitKey]) != "undefined" &&
+                        bank.syncedLists[trackList.id][splitKey] == serialized[i]) {
+                      console.log("key: " + splitKey + " is unchanged, no sync")
+                      continue;
+                    }
                     save[splitKey] = serialized[i];
+                  }
+
+                  // nothing actually needed to be updated
+                  if ($.isEmptyObject(save)) {
+                    finishSync(save);
+                    return;
                   }
 
                   bank.logSync(save);
@@ -1203,15 +1242,16 @@ Tapedeck.Backend.Bank = {
                       }
                     }
                     else {
-
                       // success in saving
-                      bank.checkQuota();
+                      finishSync(save);
+                      return;
                     }
                   });
                 }
                 else {
                   // canSetG2k == false
-                  var savedKeys = [];
+                  var savedKeys = {};
+                  var numToSync = serialized.length;
                   for (var i = 0; i < serialized.length; i++) {
                     // the first entry will have the original key, each entry then points to the next
                     var splitKey;
@@ -1221,60 +1261,84 @@ Tapedeck.Backend.Bank = {
                     else {
                       splitKey = bank.splitListContinuePrefix + trackList.id + "@" + (i-1);
                     }
+                    console.log("Generated splitKey: " + splitKey);
+                    if (typeof(bank.syncedLists[trackList.id]) != "undefined" &&
+                        typeof(bank.syncedLists[trackList.id][splitKey]) != "undefined" &&
+                        bank.syncedLists[trackList.id][splitKey] == serialized[i]) {
+                      console.log("key: " + splitKey + " is unchanged, no sync")
+                      numToSync--;
+                      if (Object.keys(savedKeys).length == numToSync) {
+                        // we're done here
+                        finishSync(savedKeys);
+                        return;
+                      }
+                      continue;
+                    }
 
-                    var save = {};
-                    save[splitKey] = serialized[i];
+                    var scoped = function(splitKey) {
+                      // we only sync keys that have actually changed
 
-                    bank.logSync(save);
-                    chrome.storage.sync.set(save, function() {
-                      if(typeof(chrome.extension.lastError) != 'undefined') {
-                        // there was an error in saving
-                        if (chrome.extension.lastError.message == "Quota exceeded") {
+                      var save = {};
+                      save[splitKey] = serialized[i];
 
-                          // got a quota exceeded error, delete any saves in progress and try again
-                          var deleteObject = [];
-                          for (var j = 0; j < savedKeys.length; j++){
-                            deleteObject.push(savedKeys[j]);
-                          }
+                      bank.logSync(save);
+                      chrome.storage.sync.set(save, function() {
+                        if(typeof(chrome.extension.lastError) != 'undefined') {
+                          // there was an error in saving
+                          if (chrome.extension.lastError.message == "Quota exceeded") {
 
-                          if (!$.isEmptyObject(deleteObject)) {
-                            chrome.storage.sync.remove(deleteObject, function() {
-                              // TODO handle this better / warn user?
-                              console.error(chrome.extension.lastError.message);
-                              bank.dumpSyncLog();
-                            })
+                            // got a quota exceeded error, delete any saves in progress and try again
+                            var deleteObject = [];
+                            for (var savedKey in savedKeys){
+                              deleteObject.push(savedKey);
+                            }
+
+                            if (!$.isEmptyObject(deleteObject)) {
+                              chrome.storage.sync.remove(deleteObject, function() {
+                                // TODO handle this better / warn user?
+                                console.error(chrome.extension.lastError.message);
+                                finishSync(chrome.extension.lastError.message);
+                              })
+                            }
                           }
                         }
-                      }
-                      else {
-                        // success in saving
-                        savedKeys.push(splitKey);
-                        if (savedKeys.length == serialized.length) {
-                          // we're done here
-                          bank.checkQuota();
+                        else {
+                          // success in saving
+                          savedKeys[splitKey] = save[splitKey];
+                          console.log("'" + splitKey + "' saved :: savedKeys.keys.length=" + Object.keys(savedKeys).length + " and numToSync " + numToSync);
+                          if (Object.keys(savedKeys).length == numToSync) {
+                            // we're done here
+                            finishSync(savedKeys);
+                            return;
+                          }
                         }
-                      }
-                    }); // end set()
-                  }
+                      }); // end set()
+                    }; // end scoped
+                    scoped(splitKey);
+                  } // end for... i < serialized.length
                 }
               }; // end saveSerialized
 
               // if we split into more pieces the last time we synced, we need to remove the old continue pieces
-              if (bank.trackListSplitCounts[trackList.id] > serialized.length) {
-                var numToRemove = bank.trackListSplitCounts[trackList.id] - serialized.length;
+              var numLastSynced = 0;
+              if (typeof(bank.syncedLists[trackList.id]) != "undefined") {
+                numLastSynced = Object.keys(bank.syncedLists[trackList.id]).length;
+              }
+              if (numLastSynced > serialized.length) {
+                var numToRemove = numLastSynced - serialized.length;
                 var removeKeys = [];
                 for (var i = 0; i < numToRemove; i++) {
                   // -2 because listContinues start with the second list and at 0 instead of 1
-                  var suffix = bank.trackListSplitCounts[trackList.id] - i - 2;
-                  removeKeys.push(bank.splitListContinuePrefix + trackList.id + "@" + suffix)
+                  var suffix = numLastSynced - i - 2;
+                  var keyToRemove = bank.splitListContinuePrefix + trackList.id + "@" + suffix;
+                  removeKeys.push(keyToRemove);
+                  delete bank.syncedLists[tracklist.id][keyToRemove]; // remove from our memory of synced Lists
                 }
                 chrome.storage.sync.remove(removeKeys, saveSerialized);
               }
               else {
                 saveSerialized();
               }
-
-              bank.trackListSplitCounts[trackList.id] = serialized.length;
             }; // end attemptSave
             attemptSave();
 
