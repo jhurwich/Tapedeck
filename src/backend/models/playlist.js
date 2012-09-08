@@ -6,13 +6,27 @@ Tapedeck.Backend.Collections.Playlist =
   },
 
   initialize: function(models, options) {
+    var bank = Tapedeck.Backend.Bank;
     Tapedeck.Backend.Collections.SavedTrackList.prototype.initialize.call(this, models, options);
 
-    var found = Tapedeck.Backend.Bank.PlaylistList.get(this.id);
+    var found = bank.PlaylistList.get(this.id);
     if (found != null) {
       bank.removePlaylist(found);
     }
-    Tapedeck.Backend.Bank.PlaylistList.add(this);
+
+    // we only support MAX_NUM_SYNC_PLAYLISTS when sync is on to discourage exceeding quota
+    if (!bank.isSyncOn() ||
+        bank.PlaylistList.length < bank.MAX_NUM_SYNC_PLAYLISTS) {
+      bank.PlaylistList.add(this);
+    }
+    else {
+      var message = "Tapedeck only supports " + bank.MAX_NUM_SYNC_PLAYLISTS + " playlists when using cloud storage."
+      Tapedeck.Backend.MessageHandler.showModal({
+        fields: [{ type: "info",
+                   text: message }],
+        title: "Cassettify Wizard",
+      });
+    }
   },
 
   // override the toJSON so that the id is preserved

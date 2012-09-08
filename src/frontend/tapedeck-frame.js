@@ -762,15 +762,18 @@ Tapedeck.Frontend.Frame = {
   },
   checkSync: function() {
     Tapedeck.Frontend.Messenger.getSync(function(response) {
+      var imgPath = "images/sync-disabled.png"
       if (response.sync == "on") {
-        $("#sync").attr("src", chrome.extension.getURL("images/sync-active.png"));
+        imgPath = "images/sync-active.png";
       }
       else if (response.sync == "warn") {
-        $("#sync").attr("src", chrome.extension.getURL("images/sync-warning.png"))
+        imgPath = "images/sync-warning.png";
       }
-      else {
-        $("#sync").attr("src", chrome.extension.getURL("images/sync-disabled.png"))
+      else if (response.sync == "broken") {
+        imgPath = "images/sync-broken.png";
       }
+
+      $("#sync").attr("src", chrome.extension.getURL(imgPath))
     });
   },
 

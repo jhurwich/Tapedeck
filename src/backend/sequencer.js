@@ -22,7 +22,7 @@ Tapedeck.Backend.Sequencer = {
       sqcr.queue = queue;
 
       // recover metadata like the queuePosition
-      bank.recoverMetadata(function() {
+      bank.Sync.recoverMetadata(function() {
 
         var updateQueue = function(eventName) {
           // we only care about the greater 'change' event.  The "change:__" events are ignored.
@@ -314,7 +314,7 @@ Tapedeck.Backend.Sequencer = {
                          {silent  : true });
       }
     });
-    Tapedeck.Backend.Bank.dirtyMetadata = true;
+    Tapedeck.Backend.Bank.Sync.dirtyMetadata = true;
 
     this.queue.trigger("set position");
   },

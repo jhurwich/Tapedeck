@@ -12,11 +12,10 @@ Tapedeck.Backend.Controllers = { };
 Tapedeck.Backend.init = function() {
   if (typeof(chrome.extension) == 'undefined') {
     // we beat the extension APIs to loading, defer for a moment
-    console.log("defering");
+    console.log("defering init");
     setTimeout(Tapedeck.Backend.init, 500);
     return;
   }
-  console.log("initing");
   Tapedeck.Backend.MessageHandler.init(); // other inits, like CassetteMgr, need MsgHandler
   Tapedeck.Backend.Bank.init(function() {
     Tapedeck.Backend.CassetteManager.init(function() {
