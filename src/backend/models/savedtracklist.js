@@ -13,10 +13,9 @@ Tapedeck.Backend.Collections.SavedTrackList =
       this.id = options.id;
     }
     else {
-      console.error(">>>>>>>>>>>>>>>>>>>>>>>>> no SavedTrackList name");
+      console.error("no SavedTrackList name");
     }
 
-    this.dirty = true;
     if ("save" in options) {
       this.ignoreFirstSave = !options.save; // we ignore the first  'add' event, if we just rebuilt the list (it's being added to PlaylistList)
     }
@@ -51,7 +50,7 @@ Tapedeck.Backend.Collections.SavedTrackList =
       bank.localStorage.setItem(key, listStr);
       bank.Memory.rememberTrackList(key, this);
 
-      this.dirty = true;
+
       console.log(">> I '" + this.id + "' am dirty again because of (" + eventName + ")");
 
       if (typeof(this.ignoreFirstSave) != "undefined" && this.ignoreFirstSave) {
@@ -59,6 +58,7 @@ Tapedeck.Backend.Collections.SavedTrackList =
         this.ignoreFirstSave = false;
       }
       else if (bank.isSyncOn()) {
+        this.dirty = true;
         bank.sync();
       }
     }

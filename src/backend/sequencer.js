@@ -14,11 +14,16 @@ Tapedeck.Backend.Sequencer = {
     });
   },
 
-  prepareQueue: function(callback) {
+  // forcedQueue is an optional trackList that will be used instead of the bank's
+  prepareQueue: function(forcedQueue, callback) {
+    if (arguments.length == 1) {
+      callback = forcedQueue;
+      forcedQueue = null;
+    }
     var bank = Tapedeck.Backend.Bank;
     var sqcr = Tapedeck.Backend.Sequencer;
 
-    bank.getQueue(function(queue) {
+    var setQueue = function(queue) {
       sqcr.queue = queue;
 
       // recover metadata like the queuePosition
@@ -35,7 +40,14 @@ Tapedeck.Backend.Sequencer = {
         sqcr.queue.bind('set position', bank.sync)
         callback();
       });
-    });
+    }
+
+    if (forcedQueue != null) {
+      setQueue(forcedQueue);
+    }
+    else {
+      bank.getQueue(setQueue);
+    }
   },
 
   Player: {

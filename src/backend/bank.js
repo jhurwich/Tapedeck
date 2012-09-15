@@ -1001,7 +1001,7 @@ Tapedeck.Backend.Bank = {
   },
 
   Sync: {
-    SYNC_WINDOW: 15, // in seconds
+    SYNC_WINDOW: 10, // in seconds
     STATES: {
       ON: "on",
       OFF: "off",
@@ -1044,7 +1044,7 @@ Tapedeck.Backend.Bank = {
         })
         return;
       }
-      console.log(" = = = = = = = = = = = SYNCCOLLECTOR = = = = = = = = = ");
+      console.log(" = = = SYNC = = = ");
 
       // find all the tracklists for which sync is on
       bank.findKeys(bank.trackListPiece + ".*" + bank.syncOnPostPrefix, true, function(syncKeys) {
@@ -1272,7 +1272,6 @@ Tapedeck.Backend.Bank = {
     },
 
     checkQuota: function() {
-      console.log("checking quota");
       var bank = Tapedeck.Backend.Bank;
       var sync = bank.Sync;
 
@@ -1349,7 +1348,10 @@ Tapedeck.Backend.Bank = {
                             "Tapedeck may become unreliable if you exceed your capacity."];
             sync.showWarning(messages);
           }
-          console.log("Using " + inUse + "/" + chrome.storage.sync.QUOTA_BYTES + " bytes, " + withinTen + " writes in last 10, " + withinSixty + " in last hour.");
+          console.log("Using " + inUse + "/" + chrome.storage.sync.QUOTA_BYTES + " bytes, " +
+                      withinTen + "/" + (10 * chrome.storage.sync.MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE) +
+                      " writes in last 10min, " + withinSixty + "/" + chrome.storage.sync.MAX_WRITE_OPERATIONS_PER_HOUR +
+                      " in last hour.");
         });
       }); // end getSyncLog
     },

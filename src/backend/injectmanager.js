@@ -110,7 +110,7 @@ Tapedeck.Backend.InjectManager = {
   currInjectors: 0,
   executeScript: function(tab, options, responseCallback, testParams) {
     var injectMgr = Tapedeck.Backend.InjectManager;
-    if (injectMgr.isURLBlocked(tab.url)) {
+    if (!injectMgr.isTest(tab.url) && injectMgr.isURLBlocked(tab.url)) {
       return;
     }
 
