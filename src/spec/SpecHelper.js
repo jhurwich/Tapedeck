@@ -1,6 +1,6 @@
-__Jasmine__RUN_ALL_TESTS = true;
+__Jasmine__RUN_ALL_TESTS = false;
 __Jasmine__TESTS_TO_RUN = [
-  "Template Manager",
+  "The Scraper Cassette",
 ];
 
 beforeEach(function() {
@@ -111,8 +111,12 @@ beforeEach(function() {
 }); // end beforeEach
 
 afterEach(function() {
-  this.Tapedeck.Backend.Sequencer.clear();
-  this.Tapedeck.Backend.Bank.clear();
+  var cleanComplete = false;
+  this.Tapedeck.Backend.Sequencer.clear(function() {
+    this.Tapedeck.Backend.Bank.clear(function() { cleanComplete = true });
+  });
+  waitsFor(function() { return cleanComplete }, "Waiting for cleanup", 500);
+  runs(function() { expect(cleanComplete).toBeTruthy() });
 }); // end afterEach
 
 // Convenience method to wait for the frontend's initialization

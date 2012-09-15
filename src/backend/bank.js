@@ -79,8 +79,8 @@ Tapedeck.Backend.Bank = {
 
     // pick the namespace for local (off) or synced (on) tracklists
     var syncVal = bank.localStorage.getItem(bank.syncKey);
-    if (typeof(syncVal) == "undefined" || !syncVal || syncVal == "off") {
-      syncVal = "off";
+    if (typeof(syncVal) == "undefined" || !syncVal || syncVal == bank.Sync.STATES.OFF) {
+      syncVal = bank.Sync.STATES.OFF;
     }
     bank.localStorage.setItem(bank.syncKey, syncVal);
     bank.generateTrackListPrefixes(syncVal);
@@ -116,9 +116,9 @@ Tapedeck.Backend.Bank = {
   generateTrackListPrefixes: function(syncVal) {
     var bank = Tapedeck.Backend.Bank;
     var syncPrefix = "";
-    if (syncVal == "on" ||
-        syncVal == "warn" ||
-        syncVal == "broken") {
+    if (syncVal == bank.Sync.STATES.ON ||
+        syncVal == bank.Sync.STATES.WARN ||
+        syncVal == bank.Sync.STATES.BROKEN) {
       syncPrefix = bank.syncOnPostPrefix;
     }
     else {
@@ -615,13 +615,17 @@ Tapedeck.Backend.Bank = {
     return bank.Memory.getTrack(trackID);
   },
 
-  clear: function() {
+  clear: function(callback) {
     if (typeof(this.PlaylistList) != "undefined" &&
         this.PlaylistList != null) {
       this.PlaylistList.reset();
     }
     this.localStorage.clear();
     this.FileSystem.clear();
+    this.Sync.clear();
+    if (typeof(callback) != "undefined") {
+      callback();
+    }
   },
 
   // checkSync is optional;
@@ -765,10 +769,11 @@ Tapedeck.Backend.Bank = {
     var makeListAndReturn = function(json) {
       var list;
       if (key.match(new RegExp(bank.playlistPiece))) {
+        // we ignore the first save of Playlists because it would reflect the add to the PlaylistList
         list = new Tapedeck.Backend.Collections.Playlist(json, { id: id, save: false });
       }
       else {
-        list = new Tapedeck.Backend.Collections.SavedTrackList(json, { id: id, save: false });
+        list = new Tapedeck.Backend.Collections.SavedTrackList(json, { id: id });
       }
 
       callback(list);
@@ -790,7 +795,6 @@ Tapedeck.Backend.Bank = {
         catch (error) {
           console.error("Could not recover tracklist '" + id + "'");
         }
-        console.log(" RECOVERING: " + key + " " + JSON.stringify(trackListData));
 
         /* There can be more pieces to the trackList, look for them by
          * recursively looking for the next piece's key until we run out */
@@ -923,50 +927,63 @@ Tapedeck.Backend.Bank = {
   },
 
   getSync: function() {
-    var sync = this.localStorage.getItem(this.syncKey)
-    return (sync ? sync : "off");
+    var bank = Tapedeck.Backend.Bank;
+    var sync = bank.localStorage.getItem(this.syncKey)
+    return (sync ? sync : bank.Sync.STATES.OFF);
   },
 
   isSyncOn: function() {
-    var sync = this.getSync();
-    return (sync == "on" || sync == "warn");
+    var bank = Tapedeck.Backend.Bank;
+    var sync = bank.getSync();
+    return (sync == bank.Sync.STATES.ON || sync == bank.Sync.STATES.WARN);
   },
 
   toggleSync: function() {
     var bank = Tapedeck.Backend.Bank;
     var oldVal = bank.localStorage.getItem(bank.syncKey);
 
-    var newVal = "off";
-    if (!oldVal || oldVal == "off") {
-      newVal = "on";
+    var newVal = bank.Sync.STATES.OFF;
+    if (!oldVal || oldVal == bank.Sync.STATES.OFF) {
+      newVal = bank.Sync.STATES.ON;
     }
     bank.localStorage.setItem(bank.syncKey, newVal);
 
-    // if we are going from on to off, sync everything immediately one last time
-    if (newVal == "off") {
-      bank.sync(true);
+
+    var updateViews = function() {
+      // sync changed so we need to discard the current playlists and get the requested
+      bank.generateTrackListPrefixes(newVal);
+
+      bank.PlaylistList = new Tapedeck.Backend.Collections.PlaylistList();
+      bank.PlaylistList.init(function() {
+        Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
+      });
+
+      // sync changed so we need to discard the current queue and get the synced one
+      Tapedeck.Backend.Sequencer.prepareQueue(function() {
+        Tapedeck.Backend.MessageHandler.updateView("Queue");
+      });
+      Tapedeck.Backend.MessageHandler.forceCheckSync();
+    };
+
+
+    if (newVal == bank.Sync.STATES.OFF) {
+      // if we are going from on to off, sync everything immediately one last time
+      bank.sync(true, function() {
+        bank.Sync.checkQuota();
+        updateViews();
+      });
     }
-    bank.Sync.checkQuota();
-
-    // sync changed so we need to discard the current playlists and get the requested
-    bank.generateTrackListPrefixes(newVal);
-
-    bank.PlaylistList = new Tapedeck.Backend.Collections.PlaylistList();
-    bank.PlaylistList.init(function() {
-      Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
-    });
-
-    // sync changed so we need to discard the current queue and get the synced one
-    Tapedeck.Backend.Sequencer.prepareQueue(function() {
-      Tapedeck.Backend.MessageHandler.updateView("Queue");
-    });
-    Tapedeck.Backend.MessageHandler.forceCheckSync();
+    else {
+      // if we are going from off to on, update the views, they'll grab the right data
+      updateViews();
+    }
   },
 
-  // we provide a 15s sliding window for new changes, new changes reset the timer
-  sync: function(now) {
-    if (typeof(now) != "boolean") {
-      now = false;
+  // we provide a sliding window for new changes, new changes reset the timer
+  // callback can only be specified if synchronous == true
+  sync: function(synchronous, callback) {
+    if (typeof(synchronous) != "boolean") {
+      synchronous = false;
     }
     var bank = Tapedeck.Backend.Bank;
     var sync = Tapedeck.Backend.Bank.Sync;
@@ -975,15 +992,23 @@ Tapedeck.Backend.Bank = {
       window.clearTimeout(sync.collector);
     }
 
-    if (!now) {
-      sync.collector = window.setTimeout(sync.syncCollector, 15 * 1000 /* 15s */);
+    if (!synchronous) {
+      sync.collector = window.setTimeout(sync.syncCollector, sync.SYNC_WINDOW * 1000);
     }
     else {
-      sync.syncCollector();
+      sync.syncCollector(callback);
     }
   },
 
   Sync: {
+    SYNC_WINDOW: 15, // in seconds
+    STATES: {
+      ON: "on",
+      OFF: "off",
+      WARN: "warn",
+      BROKEN: "broken"
+    },
+
     collector: null,
     dirtyMetadata: false,
 
@@ -1009,12 +1034,11 @@ Tapedeck.Backend.Bank = {
       }); // end sync.get();
     },
 
-    syncCollector: function() {
+    syncCollector: function(callback) {
       var bank = Tapedeck.Backend.Bank;
       var sync = bank.Sync;
 
       if (sync.dirtyMetadata) {
-        console.log("^^^ metadata is dirty ^^^");
         sync.syncMetadata(function() {
           sync.syncCollector();
         })
@@ -1024,10 +1048,17 @@ Tapedeck.Backend.Bank = {
 
       // find all the tracklists for which sync is on
       bank.findKeys(bank.trackListPiece + ".*" + bank.syncOnPostPrefix, true, function(syncKeys) {
+        sync.numClean = 0;
         for (var i = 0; i < syncKeys.length; i++) {
           bank.getSavedTrackList(syncKeys[i], function(trackList) {
 
             if (!trackList.dirty) {
+              sync.numClean = sync.numClean + 1;
+
+              // if nothing is dirty, we should callback immediately if one was given
+              if (sync.numClean == syncKeys.length && typeof(callback) != "undefined") {
+                callback();
+              }
               return;
             }
             console.log("'" + trackList.id +  "' is dirty, writing to sync");
@@ -1057,7 +1088,7 @@ Tapedeck.Backend.Bank = {
             if (typeof(sync.syncedLists[trackList.id]) != "undefined") {
               numLastSynced = Object.keys(sync.syncedLists[trackList.id]).length;
             }
-            console.log("numLast" + numLastSynced + " leng: " + serialized.length);
+
             if (numLastSynced > serialized.length) {
               var numToRemove = numLastSynced - serialized.length;
               var removeKeys = [];
@@ -1068,10 +1099,10 @@ Tapedeck.Backend.Bank = {
                 removeKeys.push(keyToRemove);
                 delete sync.syncedLists[trackList.id][keyToRemove]; // remove from our memory of synced Lists
               }
-              chrome.storage.sync.remove(removeKeys, sync.save.curry(trackList, serialized));
+              chrome.storage.sync.remove(removeKeys, sync.save.curry(trackList, serialized, callback));
             }
             else {
-              sync.save(trackList, serialized);
+              sync.save(trackList, serialized, callback);
             }
 
             trackList.dirty = false;
@@ -1084,7 +1115,7 @@ Tapedeck.Backend.Bank = {
     },
 
     // this function will save the serialized list, but we might need to remove some first, see below
-    save: function(trackList, serialized) {
+    save: function(trackList, serialized, callback) {
       var bank = Tapedeck.Backend.Bank;
       var sync = bank.Sync;
 
@@ -1104,11 +1135,10 @@ Tapedeck.Backend.Bank = {
         if (typeof(sync.syncedLists[trackList.id]) != "undefined" &&
             typeof(sync.syncedLists[trackList.id][splitKey]) != "undefined" &&
             sync.syncedLists[trackList.id][splitKey] == serialized[i]) {
-          console.log("key: " + splitKey + " is unchanged, no sync")
           numToSync--;
           if (Object.keys(savedKeys).length == numToSync) {
             // we're done here
-            sync.finish(trackList, savedKeys);
+            sync.finish(trackList, savedKeys, callback);
             return;
           }
           continue;
@@ -1117,7 +1147,7 @@ Tapedeck.Backend.Bank = {
         var scopedSave = function(splitKey) {
           var save = {};
           if (splitKey.indexOf("off") != -1) {
-            console.error("SETTING A LOCAL KEY TO THE SYNC SERVER");
+            console.error("SETTING A LOCAL KEY TO THE SYNC SERVER: " + splitKey);
           }
           save[splitKey] = serialized[i];
 
@@ -1138,7 +1168,7 @@ Tapedeck.Backend.Bank = {
                   if (!$.isEmptyObject(deleteObject)) {
                     chrome.storage.sync.remove(deleteObject, function() {
                       // finish in error
-                      sync.finish(trackList, error.message);
+                      sync.finish(trackList, error.message, callback);
                     })
                   }
                 }
@@ -1146,17 +1176,16 @@ Tapedeck.Backend.Bank = {
               else {
                 // success in saving
                 savedKeys[splitKey] = save[splitKey];
-                console.log("'" + splitKey + "' saved :: savedKeys.keys.length=" + Object.keys(savedKeys).length + " and numToSync " + numToSync);
                 if (Object.keys(savedKeys).length == numToSync) {
                   // we're done here
-                  sync.finish(trackList, savedKeys);
+                  sync.finish(trackList, savedKeys, callback);
                   return;
                 }
               }
             }); // end set()
           }
           catch (e) {
-            console.error("EEEEEEEEEEEEEEEEEEEEEEEE " + JSON.stringify(e));
+            console.error("Error! " + JSON.stringify(e));
           }
         }; // end scopedSave
         scopedSave(splitKey);
@@ -1165,7 +1194,7 @@ Tapedeck.Backend.Bank = {
 
     // If sync is successful (syncedMap is not a string) then update the syncedLists
     // so that we can detect changes later
-    finish: function(trackList, syncedMap) {
+    finish: function(trackList, syncedMap, callback) {
       var bank = Tapedeck.Backend.Bank;
       var sync = bank.Sync;
 
@@ -1176,7 +1205,6 @@ Tapedeck.Backend.Bank = {
 
         // if the trackList is a playlist, we should remove it (saved failed)
         if (trackList.getPrefix.indexOf(bank.playlistPiece) != -1) {
-          console.log("XX destroying playlist: " + trackList.id);
           trackList.destroy();
         }
 
@@ -1187,11 +1215,10 @@ Tapedeck.Backend.Bank = {
         return;
       }
       // success, if we were broken we should clear that
-      if (bank.getSync() == "broken") {
-        bank.localStorage.setItem(bank.syncKey, "on");
+      if (bank.getSync() == sync.STATES.BROKEN) {
+        bank.localStorage.setItem(bank.syncKey, sync.STATES.ON);
       }
 
-      console.log("Finishing sync of : " + JSON.stringify(Object.keys(syncedMap)));
       for (var syncedKey in syncedMap) {
         if (typeof(sync.syncedLists[trackList.id]) == "undefined") {
           sync.syncedLists[trackList.id] = {};
@@ -1199,6 +1226,10 @@ Tapedeck.Backend.Bank = {
         sync.syncedLists[trackList.id][syncedKey] = syncedMap[syncedKey];
       }
       sync.checkQuota();
+
+      if (typeof(callback) != "undefined") {
+        callback();
+      }
     },
 
     // Metadata currently includes: queuePosition
@@ -1306,11 +1337,11 @@ Tapedeck.Backend.Bank = {
 
           // If we are showing the warning, figure out if we can clear it, checking each quota's clear marker.
           var syncState = bank.getSync();
-          if (syncState == "warn" &&
+          if (syncState == sync.STATES.WARN &&
               inUse / chrome.storage.sync.QUOTA_BYTES < clearTotalUsePercent &&
               withinSixty < clearWritesPerHour &&
               withinTen < clearWritesPerTenMin) {
-            bank.localStorage.setItem(bank.syncKey, "on");
+            bank.localStorage.setItem(bank.syncKey, sync.STATES.ON);
             Tapedeck.Backend.MessageHandler.forceCheckSync();
           }
           else if (inUse / chrome.storage.sync.QUOTA_BYTES > warnTotalUsePercent) {
@@ -1318,9 +1349,7 @@ Tapedeck.Backend.Bank = {
                             "Tapedeck may become unreliable if you exceed your capacity."];
             sync.showWarning(messages);
           }
-          else {
-            console.log("No warning: Using " + inUse + "/" + chrome.storage.sync.QUOTA_BYTES + " bytes, " + withinTen + " writes in last 10, " + withinSixty + " in last hour.");
-          }
+          console.log("Using " + inUse + "/" + chrome.storage.sync.QUOTA_BYTES + " bytes, " + withinTen + " writes in last 10, " + withinSixty + " in last hour.");
         });
       }); // end getSyncLog
     },
@@ -1330,7 +1359,7 @@ Tapedeck.Backend.Bank = {
       var bank = Tapedeck.Backend.Bank;
 
       // set sync to the warn state
-      bank.localStorage.setItem(bank.syncKey, "broken");
+      bank.localStorage.setItem(bank.syncKey, bank.Sync.STATES.BROKEN);
 
       // show the modal to explain the high sync usage
       var fields = []
@@ -1351,7 +1380,7 @@ Tapedeck.Backend.Bank = {
       var bank = Tapedeck.Backend.Bank;
 
       // set sync to the warn state
-      bank.localStorage.setItem(bank.syncKey, "warn");
+      bank.localStorage.setItem(bank.syncKey, bank.Sync.STATES.WARN);
 
       // we show the modal warning if enough of storage is being used
       var lastWarning = bank.localStorage.getItem(bank.lastSyncWarningKey);
@@ -1375,6 +1404,10 @@ Tapedeck.Backend.Bank = {
 
       // set the sync icon to the syncWarning
       Tapedeck.Backend.MessageHandler.forceCheckSync();
+    },
+
+    clear: function() {
+      chrome.storage.sync.clear();
     },
 
     logSync: function(save) {

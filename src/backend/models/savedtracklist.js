@@ -16,13 +16,17 @@ Tapedeck.Backend.Collections.SavedTrackList =
       console.error(">>>>>>>>>>>>>>>>>>>>>>>>> no SavedTrackList name");
     }
 
-    console.log(">> I '" + this.id + "' now exist and am dirty");
     this.dirty = true;
+    if ("save" in options) {
+      this.ignoreFirstSave = !options.save; // we ignore the first  'add' event, if we just rebuilt the list (it's being added to PlaylistList)
+    }
 
     this.unbind("destroy");
     this.unbind("all");
     this.bind("destroy", Tapedeck.Backend.Collections.SavedTrackList.prototype.destroy);
     this.bind("all", Tapedeck.Backend.Collections.SavedTrackList.prototype.save);
+
+    // we don't need to add to localStorage etc. here, because an add event will come in triggering save
   },
 
   save: function(eventName) {
@@ -37,7 +41,6 @@ Tapedeck.Backend.Collections.SavedTrackList =
 
     // make sure we don't re-save removed things
     if (typeof(this.removed) != "undefined" && this.removed) {
-      console.log(this.id + " has been removed, we will not save it");
       return;
     }
 
@@ -50,7 +53,12 @@ Tapedeck.Backend.Collections.SavedTrackList =
 
       this.dirty = true;
       console.log(">> I '" + this.id + "' am dirty again because of (" + eventName + ")");
-      if (bank.isSyncOn()) {
+
+      if (typeof(this.ignoreFirstSave) != "undefined" && this.ignoreFirstSave) {
+        // we ignore the first add for new playlists (not the queue, though)
+        this.ignoreFirstSave = false;
+      }
+      else if (bank.isSyncOn()) {
         bank.sync();
       }
     }

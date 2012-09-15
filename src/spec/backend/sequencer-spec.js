@@ -28,7 +28,6 @@ describe("Sequencer", function() {
 
     this.sqcr.push(this.testTracks[0]);
     expect(spy).toHaveBeenCalled();
-    expect(spy.callCount).toEqual(1);
   });
 
   it("should insert tracks with insertAt", function() {
@@ -88,11 +87,11 @@ describe("Sequencer", function() {
   });
 
   it("should call updateView when a track is removed", function() {
+    this.sqcr.push(this.testTracks[0]);
+
     var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "updateView")
                    .andCallThrough();
-
-    this.sqcr.push(this.testTracks[0]);
-    this.sqcr.remove(0);
+    this.sqcr.removeAt(0);
 
     expect(spy).toHaveBeenCalled();
     expect(spy.callCount).toEqual(2);

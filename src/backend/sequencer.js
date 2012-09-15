@@ -438,12 +438,15 @@ Tapedeck.Backend.Sequencer = {
     this.moveSomeTo(newOrderPairs, 0);
   },
 
-  clear: function() {
+  clear: function(callback) {
     var bank = Tapedeck.Backend.Bank;
     Tapedeck.Backend.Bank.clearList(this.queue);
     this.queue.reset();
 
     this.setQueuePosition(-1);
+    if (typeof(callback) != "undefined") {
+      callback();
+    }
   },
 
   playPlaylist: function(playlist) {

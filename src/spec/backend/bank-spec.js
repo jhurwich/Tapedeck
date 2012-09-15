@@ -4,6 +4,7 @@ describe("Bank", function() {
     this.bank = this.Tapedeck
                     .Backend
                     .Bank;
+    this.testTrackListID = "testtracks123";
   });
 
   afterEach(function() {
@@ -24,54 +25,59 @@ describe("Bank", function() {
   });
 
   it("should save and retrieve tracklists", function() {
+    var self = this;
+    var spy = spyOn(self.bank.Memory, "rememberTrackList").andCallThrough();
+
     var testComplete = false;
-    var trackList = new this.Tapedeck
+    var trackList = new self.Tapedeck
                             .Backend
                             .Collections
-                            .TrackList(this.testTracks);
+                            .SavedTrackList(self.testTracks, { id: self.testTrackListID });
+    trackList.trigger("add"); // we expect an add event for populated playlists or changes to the queue, force it
 
-    var listName = "testtracks123";
-    this.bank.saveTrackList(listName, trackList);
-
-    this.bank.getTrackList(listName, function(bankedList) {
-      for (var i = 0; i < trackList.length; i++) {
-        var expectedTrack = trackList.at(i);
-        var bankedTrack = bankedList.at(i);
-        expect(bankedTrack).toReflectJSON(expectedTrack.toJSON());
-      };
-      testComplete = true;
-    });
-
-    waitsFor(function() { return testComplete }, "Waiting for tracklist from bank", 1000);
+    waitsFor(function() { return spy.callCount > 0 }, "Waiting for trackList to be saved", 1000);
     runs(function() {
-      expect(testComplete).toBeTruthy();
-    })
+      self.bank.getSavedTrackList(self.testTrackListID, function(bankedList) {
+        for (var i = 0; i < trackList.length; i++) {
+          var expectedTrack = trackList.at(i);
+          var bankedTrack = bankedList.at(i);
+          expect(bankedTrack).toReflectJSON(expectedTrack.toJSON());
+        };
+        testComplete = true;
+      });
+
+      waitsFor(function() { return testComplete }, "Waiting for tracklist from bank", 1000);
+      runs(function() {
+        expect(testComplete).toBeTruthy();
+      })
+    });
   });
 
   it("should save and retrieve playlists", function() {
-    var origPlaylistNum = this.bank.getPlaylists().length;
-    var playlist = new this.Tapedeck
+    var self = this;
+    var spy = spyOn(self.bank.Memory, "rememberTrackList").andCallThrough();
+
+    var origPlaylistNum = self.bank.getPlaylists().length;
+    var playlist = new self.Tapedeck
                            .Backend
                            .Collections
-                           .Playlist(this.testTracks);
+                           .Playlist(self.testTracks, { id: self.testTrackListID });
 
-    var playlistID = "testPlaylist123";
-    playlist.id = playlistID;
+    waitsFor(function() { return spy.callCount > 0 }, "Waiting for playlist to be saved", 1000);
+    runs(function() {
+      var bankedPlaylists = self.bank.getPlaylists();
+      expect(bankedPlaylists.length).toEqual(origPlaylistNum + 1);
 
-    this.bank.savePlaylist(playlist);
+      var foundPlaylist = false;
+      for (var i = 0; i < bankedPlaylists.length; i++) {
+        var bankedPlaylist = bankedPlaylists.at(i);
+        if (bankedPlaylist.id == self.testTrackListID) {
+          foundPlaylist = true;
+        }
+      };
 
-    var bankedPlaylists = this.bank.getPlaylists();
-    expect(bankedPlaylists.length).toEqual(origPlaylistNum + 1);
-
-    var foundPlaylist = false;
-    for (var i = 0; i < bankedPlaylists.length; i++) {
-      var bankedPlaylist = bankedPlaylists.at(i);
-      if (bankedPlaylist.id == playlistID) {
-        foundPlaylist = true;
-      }
-    };
-
-    expect(foundPlaylist).toBeTruthy();
+      expect(foundPlaylist).toBeTruthy();
+    });
   });
 
   it("should save and retrieve downloaded tracks", function() {
@@ -112,92 +118,124 @@ describe("Bank", function() {
   });
 
   it("should get rid of local playlists when switching to sync", function() {
+    var self = this;
+
     // make sure sync is not on to start
-    if (this.bank.isSyncOn()) {
-      this.bank.toggleSync();
+    if (self.bank.isSyncOn()) {
+      self.bank.toggleSync();
     }
-    expect(this.bank.isSyncOn()).not.toBeTruthy();
+    expect(self.bank.isSyncOn()).not.toBeTruthy();
 
     // save a local playlist to see if we can find it after the switch
-    var localPlaylist = new this.Tapedeck
+    var localPlaylist = new self.Tapedeck
                                 .Backend
                                 .Collections
-                                .Playlist(this.testTracks);
-    localPlaylist.id = "localTestPlaylist123";
-    this.bank.savePlaylist(localPlaylist);
+                                .Playlist(self.testTracks, { id: "localTestPlaylist123" });
 
-    var localPlaylistNum = this.bank.getPlaylists().length;
+    var localPlaylistNum = self.bank.getPlaylists().length;
 
-    // toggle sync, should hide the playlist we just added
-    this.bank.toggleSync();
-    expect(this.bank.isSyncOn()).toBeTruthy();
-
-    var syncPlaylists = this.bank.getPlaylists();
-
-    // if the playlistLists are the same size, make sure they're not the same
-    if (syncPlaylists.length == localPlaylistNum) {
-      for (var i = 0; i < syncPlaylists.length; i++) {
-        expect(syncPlaylists.at(i).id).not.toBe(localPlaylist.id);
-      };
-    }
-
-    // At this point we know the sync playlists and local playlists aren't the same.
-    // Save a sync playlist to see if we can find it after the switch back.
-    var syncPlaylist = new this.Tapedeck
-                               .Backend
-                               .Collections
-                               .Playlist(this.testTracks);
-    syncPlaylist.id = "syncTestPlaylist123";
-    this.bank.savePlaylist(syncPlaylist);
-
-    var syncPlaylistNum = this.bank.getPlaylists().length;
+    var endToggleSpy = spyOn(self.Tapedeck.Backend.MessageHandler, "forceCheckSync").andCallThrough();
 
     // toggle sync, should hide the playlist we just added
-    this.bank.toggleSync();
-    expect(this.bank.isSyncOn()).not.toBeTruthy();
+    self.bank.toggleSync();
 
-    var localPlaylists = this.bank.getPlaylists();
+    waitsFor(function() { return endToggleSpy.callCount > 0 }, "Waiting for sync to toggle #1.", 1000);
+    runs(function() {
+      expect(self.bank.isSyncOn()).toBeTruthy();
 
-    // Make sure we can't see the sync playlist now,
-    // and that we can find the original local playlist.
-    var foundLocal = false;
-    for (var i = 0; i < localPlaylists.length; i++) {
-      expect(localPlaylists.at(i).id).not.toBe(syncPlaylist.id);
-      if (localPlaylists.at(i).id == localPlaylist.id) {
-        foundLocal = true;
+      var syncPlaylists = self.bank.getPlaylists();
+      var origSyncNum = syncPlaylists.length;
+
+      // if the playlistLists are the same size, make sure they're not the same
+      if (syncPlaylists.length == localPlaylistNum) {
+        for (var i = 0; i < syncPlaylists.length; i++) {
+          expect(syncPlaylists.at(i).id).not.toBe(localPlaylist.id);
+        };
       }
-    };
-    expect(foundLocal).toBeTruthy();
+
+      // adjust the SYNC_WINDOW to 1sec so we don't need to wait
+      self.bank.Sync.SYNC_WINDOW = 1;
+
+      var endSyncSpy = spyOn(self.Tapedeck.Backend.Bank.Sync, "finish").andCallThrough();
+
+      // At this point we know the sync playlists and local playlists aren't the same.
+      // Save a sync playlist to see if we can find it after the switch back.
+      var syncPlaylist = new self.Tapedeck
+                                 .Backend
+                                 .Collections
+                                 .Playlist(self.testTracks, { id: "syncTestPlaylist123" });
+
+      waitsFor(function() { return endSyncSpy.callCount > 0 }, "Waiting for playlist to save to sync", 4000);
+      runs(function() {
+        syncPlaylists = self.bank.getPlaylists();
+        expect(syncPlaylists.length).toEqual(origSyncNum + 1);
+
+        // toggle sync, should hide the playlist we just added
+        endToggleSpy.callCount = 0;
+        self.bank.toggleSync();
+
+        waitsFor(function() { return endToggleSpy.callCount > 0 }, "Waiting for sync to toggle #2.", 1000);
+        runs(function() {
+          expect(self.bank.isSyncOn()).not.toBeTruthy();
+
+          var localPlaylists = self.bank.getPlaylists();
+          expect(localPlaylists.length).toEqual(localPlaylistNum);
+
+          // Make sure we can't see the sync playlist now,
+          // and that we can find the original local playlist.
+          var foundLocal = false;
+          for (var i = 0; i < localPlaylists.length; i++) {
+            expect(localPlaylists.at(i).id).not.toBe(syncPlaylist.id);
+            if (localPlaylists.at(i).id == localPlaylist.id) {
+              foundLocal = true;
+            }
+          };
+          expect(foundLocal).toBeTruthy();
+        }); // ends runs after spyOn(self.Tapedeck.Backend.MessageHandler, "forceCheckSync").callCount > 0 - #2
+      }); // ends runs after spyOn(self.Tapedeck.Backend.Bank.Sync, "finish").callCount > 0
+    }); // ends runs after spyOn(self.Tapedeck.Backend.MessageHandler, "forceCheckSync").callCount > 0 - #1
   });
 
   it("should set and retrieve playlists from synced storage", function() {
-    var playlist = new this.Tapedeck
-                           .Backend
-                           .Collections
-                           .Playlist(this.testTracks);
+    var self = this;
 
-    var playlistID = "testPlaylist123";
-    playlist.id = playlistID;
+    var runTest = function() {
+      expect(self.bank.isSyncOn()).toBeTruthy();
 
-    if (!this.bank.isSyncOn()) {
-      this.bank.toggleSync();
-    }
-    expect(this.bank.isSyncOn()).toBeTruthy();
+      var origPlaylistNum = self.bank.getPlaylists().length;
+      var endSyncSpy = spyOn(self.Tapedeck.Backend.Bank.Sync, "finish").andCallThrough();
 
-    var origPlaylistNum = this.bank.getPlaylists().length;
-    this.bank.savePlaylist(playlist);
+      var playlist = new self.Tapedeck
+                             .Backend
+                             .Collections
+                             .Playlist(self.testTracks, { id: self.testTrackListID });
 
-    var bankedPlaylists = this.bank.getPlaylists();
-    expect(bankedPlaylists.length).toEqual(origPlaylistNum + 1);
+      waitsFor(function() { return endSyncSpy.callCount > 0 }, "Waiting for playlist to save to sync", 4000);
+      runs(function() {
+        var bankedPlaylists = self.bank.getPlaylists();
+        expect(bankedPlaylists.length).toEqual(origPlaylistNum + 1);
 
-    var foundPlaylist = false;
-    for (var i = 0; i < bankedPlaylists.length; i++) {
-      var bankedPlaylist = bankedPlaylists.at(i);
-      if (bankedPlaylist.id == playlistID) {
-        foundPlaylist = true;
-      }
+        var foundPlaylist = false;
+        for (var i = 0; i < bankedPlaylists.length; i++) {
+          var bankedPlaylist = bankedPlaylists.at(i);
+          if (bankedPlaylist.id == this.testTrackListID) {
+            foundPlaylist = true;
+          }
+        };
+
+        expect(foundPlaylist).toBeTruthy();
+      });
     };
 
-    expect(foundPlaylist).toBeTruthy();
+    // we need sync to be on for self test
+    if (!self.bank.isSyncOn()) {
+      var endToggleSpy = spyOn(self.Tapedeck.Backend.MessageHandler, "forceCheckSync").andCallThrough();
+      self.bank.toggleSync();
+      waitsFor(function() { return endToggleSpy.callCount > 0 }, "Waiting for sync to toggle.", 1000);
+      runs(runTest)
+    }
+    else {
+      runTest();
+    }
   });
 });
