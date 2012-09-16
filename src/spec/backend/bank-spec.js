@@ -8,7 +8,12 @@ describe("Bank", function() {
   });
 
   afterEach(function() {
-    this.bank.clear();
+    var clearFinished = false
+    this.bank.clear(function() { clearFinished = true });
+    waitsFor(function() { return clearFinished }, "Waiting for Bank.clear to finish.", 500);
+    runs(function() {
+      expect(clearFinished).toBeTruthy();
+    })
   });
 
   it("should save and retrieve tracks", function() {
@@ -120,6 +125,9 @@ describe("Bank", function() {
   it("should get rid of local playlists when switching to sync", function() {
     var self = this;
 
+    // adjust the SYNC_WINDOW to 1sec so we don't need to wait
+    self.bank.Sync.SYNC_WINDOW = 1;
+
     // make sure sync is not on to start
     if (self.bank.isSyncOn()) {
       self.bank.toggleSync();
@@ -134,12 +142,11 @@ describe("Bank", function() {
 
     var localPlaylistNum = self.bank.getPlaylists().length;
 
-    var endToggleSpy = spyOn(self.Tapedeck.Backend.MessageHandler, "forceCheckSync").andCallThrough();
-
     // toggle sync, should hide the playlist we just added
-    self.bank.toggleSync();
+    var toggleComplete = false;
+    self.bank.toggleSync(function() { toggleComplete = true });
 
-    waitsFor(function() { return endToggleSpy.callCount > 0 }, "Waiting for sync to toggle #1.", 1000);
+    waitsFor(function() { return toggleComplete }, "Waiting for sync to toggle #1.", 1000);
     runs(function() {
       expect(self.bank.isSyncOn()).toBeTruthy();
 
@@ -153,8 +160,6 @@ describe("Bank", function() {
         };
       }
 
-      // adjust the SYNC_WINDOW to 1sec so we don't need to wait
-      self.bank.Sync.SYNC_WINDOW = 1;
 
       var endSyncSpy = spyOn(self.Tapedeck.Backend.Bank.Sync, "finish").andCallThrough();
 
@@ -171,10 +176,10 @@ describe("Bank", function() {
         expect(syncPlaylists.length).toEqual(origSyncNum + 1);
 
         // toggle sync, should hide the playlist we just added
-        endToggleSpy.callCount = 0;
-        self.bank.toggleSync();
+        toggleComplete = false;
+        self.bank.toggleSync(function() { toggleComplete = true });
 
-        waitsFor(function() { return endToggleSpy.callCount > 0 }, "Waiting for sync to toggle #2.", 1000);
+        waitsFor(function() { return toggleComplete }, "Waiting for sync to toggle #2.", 1000);
         runs(function() {
           expect(self.bank.isSyncOn()).not.toBeTruthy();
 
@@ -198,6 +203,9 @@ describe("Bank", function() {
 
   it("should set and retrieve playlists from synced storage", function() {
     var self = this;
+
+    // adjust the SYNC_WINDOW to 1sec so we don't need to wait
+    self.bank.Sync.SYNC_WINDOW = 1;
 
     var runTest = function() {
       expect(self.bank.isSyncOn()).toBeTruthy();
@@ -229,9 +237,9 @@ describe("Bank", function() {
 
     // we need sync to be on for self test
     if (!self.bank.isSyncOn()) {
-      var endToggleSpy = spyOn(self.Tapedeck.Backend.MessageHandler, "forceCheckSync").andCallThrough();
-      self.bank.toggleSync();
-      waitsFor(function() { return endToggleSpy.callCount > 0 }, "Waiting for sync to toggle.", 1000);
+      var toggleComplete = false;
+      self.bank.toggleSync(function() { toggleComplete = true });
+      waitsFor(function() { return toggleComplete }, "Waiting for sync to toggle.", 1000);
       runs(runTest)
     }
     else {

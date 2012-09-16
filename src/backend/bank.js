@@ -608,6 +608,10 @@ Tapedeck.Backend.Bank = {
     clearList: function(name) {
       delete this.trackLists[name];
     },
+
+    clear: function() {
+      this.trackLists = {};
+    },
   },
 
   getTrack: function(trackID) {
@@ -616,13 +620,13 @@ Tapedeck.Backend.Bank = {
   },
 
   clear: function(callback) {
-    if (typeof(this.PlaylistList) != "undefined" &&
-        this.PlaylistList != null) {
-      this.PlaylistList.reset();
-    }
     this.localStorage.clear();
+    this.Memory.clear();
     this.FileSystem.clear();
     this.Sync.clear();
+    if (typeof(this.PlaylistList) != "undefined" && this.PlaylistList != null) {
+      this.PlaylistList.reset();
+    }
     if (typeof(callback) != "undefined") {
       callback();
     }
@@ -938,7 +942,7 @@ Tapedeck.Backend.Bank = {
     return (sync == bank.Sync.STATES.ON || sync == bank.Sync.STATES.WARN);
   },
 
-  toggleSync: function() {
+  toggleSync: function(callback) {
     var bank = Tapedeck.Backend.Bank;
     var oldVal = bank.localStorage.getItem(bank.syncKey);
 
@@ -948,6 +952,13 @@ Tapedeck.Backend.Bank = {
     }
     bank.localStorage.setItem(bank.syncKey, newVal);
 
+    var playlistListUpdated = false;
+    var queueUpdated = false;
+    var finish = function() {
+      if (typeof(callback) != "undefined" && playlistListUpdated && queueUpdated) {
+        callback();
+      }
+    };
 
     var updateViews = function() {
       // sync changed so we need to discard the current playlists and get the requested
@@ -956,11 +967,15 @@ Tapedeck.Backend.Bank = {
       bank.PlaylistList = new Tapedeck.Backend.Collections.PlaylistList();
       bank.PlaylistList.init(function() {
         Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
+        playlistListUpdated = true;
+        finish();
       });
 
       // sync changed so we need to discard the current queue and get the synced one
       Tapedeck.Backend.Sequencer.prepareQueue(function() {
         Tapedeck.Backend.MessageHandler.updateView("Queue");
+        queueUpdated = true;
+        finish();
       });
       Tapedeck.Backend.MessageHandler.forceCheckSync();
     };

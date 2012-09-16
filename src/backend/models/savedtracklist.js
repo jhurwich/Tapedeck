@@ -19,6 +19,7 @@ Tapedeck.Backend.Collections.SavedTrackList =
     if ("save" in options) {
       this.ignoreFirstSave = !options.save; // we ignore the first  'add' event, if we just rebuilt the list (it's being added to PlaylistList)
     }
+    this.dirty = false;
 
     this.unbind("destroy");
     this.unbind("all");
@@ -50,14 +51,12 @@ Tapedeck.Backend.Collections.SavedTrackList =
       bank.localStorage.setItem(key, listStr);
       bank.Memory.rememberTrackList(key, this);
 
-
-      console.log(">> I '" + this.id + "' am dirty again because of (" + eventName + ")");
-
       if (typeof(this.ignoreFirstSave) != "undefined" && this.ignoreFirstSave) {
         // we ignore the first add for new playlists (not the queue, though)
         this.ignoreFirstSave = false;
       }
       else if (bank.isSyncOn()) {
+        console.log(">> I '" + this.id + "' am dirty again because of (" + eventName + ") - was " + this.dirty);
         this.dirty = true;
         bank.sync();
       }

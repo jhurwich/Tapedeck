@@ -94,7 +94,6 @@ describe("Sequencer", function() {
     this.sqcr.removeAt(0);
 
     expect(spy).toHaveBeenCalled();
-    expect(spy.callCount).toEqual(2);
   });
 
   it("should clear with clear()", function() {
