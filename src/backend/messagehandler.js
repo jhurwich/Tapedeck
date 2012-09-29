@@ -688,6 +688,7 @@ Tapedeck.Backend.MessageHandler = {
             var response = Tapedeck.Backend.MessageHandler.newResponse(request,
                                                                        { action: 'response',
                                                                          error : "Ajax error" });
+            $("#sandbox").get(0).contentWindow.postMessage(response, "*");
           };
           $.ajax(request.params)
           break;

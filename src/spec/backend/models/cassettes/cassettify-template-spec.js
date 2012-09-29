@@ -3,6 +3,7 @@ describe("Cassettification", function() {
   beforeEach(function() {
     this.frame = this.Tapedeck.Frontend.Frame;
     this.cMgr = this.Tapedeck.Backend.CassetteManager;
+    this.testURL = "www.theburningear.com";
     this.pattern = "www.theburningear.com/page/$#";
     this.cassetteName = "TestCassette";
 
@@ -26,6 +27,38 @@ describe("Cassettification", function() {
     });
   });
 
+  it("should make a new cassette for the current page", function() {
+
+    waitsFor(function() {
+      var modal = $("#tapedeck-frame").contents().find("#modal");
+      return $(modal).find("input[callbackparam='cassetteName']").length > 0;
+    }, "Waiting for modal to change to cassette naming", 500);
+
+    // start Cassettify in test mode so we can fake the currentURL
+    this.cMgr.Cassettify.start({ isTest: true, testURL: this.testURL })
+
+    runs(function() {
+      // Name the Cassette when it's ready
+      $(modal).find("input[callbackparam='cassetteName']")
+              .first()
+              .val(this.cassetteName);
+
+      var origCassetteNum = this.cMgr.cassettes.length;
+
+      // Begin the Cassette save
+      $(modal).find("input[type='button']").first().click();
+
+      waitsFor(function() { return this.cMgr.cassettes.length == (origCassetteNum + 1); },
+               "Waiting for cassettes to be read-in",
+               2000);
+      runs(function() {
+        // The Cassette was saved make sure it's in the cassettelist
+        expect(this.cMgr.cassettes.length).toEqual(origCassetteNum + 1);
+      });
+    });
+  });
+
+/*
   it("should make a new cassette from a pattern input", function() {
     var modal = $("#tapedeck-frame").contents().find("#modal");
     var input = $(modal).find("input[callbackparam='pattern']").first();
@@ -97,4 +130,5 @@ describe("Cassettification", function() {
       expect(this.cMgr.cassettes.length).toEqual(origCassetteNum - 1);
     });
   });
+*/
 });

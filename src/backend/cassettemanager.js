@@ -233,19 +233,48 @@ Tapedeck.Backend.CassetteManager = {
   // cassettify() is called in a series of phases.
   // The 'start' phase will always begin the cassettify process,
   // potentially cancelling a previous cassettify in progress.
-  origURL: "",
-  secondURL: "",
   Cassettify: {
+    origURL: "",
+    secondURL: "",
 
-    start: function() {
+    // for guessing page url structures, $@ is replaced with domain, $# with page number
+    commonURLPatterns: ["$@/page/$#"],
+
+    // domains that have special handling defined
+    exceptionDomains: { "soundcloud.com"  : "handleSoundcloud",
+                        "bandcamp.com"    : "handleBandcamp" },
+
+    start: function(params) {
       var self = this;
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var injectMgr = Tapedeck.Backend.InjectManager;
+      if (typeof(params) == "undefined") {
+        params = { };
+      }
+
       Tapedeck.Backend.CassetteManager.log("Begin Cassettification");
 
       msgHandler.getSelectedTab(function(tab) {
         self.origURL = tab.url;
         self.tabID = tab.id;
+        if (typeof(params.isTest) != "undefined" && params.isTest) {
+          self.origURL = params.testURL;
+        }
+
+        msgHandler.showModal({
+          fields: [
+            { type          : "info",
+              text          : "Building Cassette, please wait." },
+          ],
+          title: "Cassettify Wizard",
+        });
+
+        // first check if there's a cassette in the store for this url
+        // TODO implement
+
+        // if the store doesn't have anything, try to guess the pattern
+        self.guessPattern(self.origURL, tab);
+        return; // TODO remove
 
         msgHandler.showModal({
           fields: [
@@ -265,6 +294,53 @@ Tapedeck.Backend.CassetteManager = {
       });
     },
 
+    guessPattern: function(url, tab) {
+      var self = this;
+      for (var exceptionDomain in self.exceptionDomains) {
+        if (url.indexOf(exceptionDomain) != -1) {
+          // we've hit an exception domain, defer to exception handling
+          self[self.exceptionDomains[exceptionDomain]](url);
+          return
+        }
+      }
+
+      // not an exception domain, try our guesses
+      url = url.replace("http://", "");
+      url = url.replace("www.", "");
+      var domain = url.substring(0, url.indexOf('/'));
+      for (var i = 0; i < self.commonURLPatterns.length; i++) {
+        var commonURLPattern = self.commonURLPatterns[i];
+        var guessPattern = commonURLPattern.replace("$@", domain);
+        self.testPattern(domain, guessPattern);
+      }
+
+    },
+
+    testPattern: function(domain, pattern, tab) {
+      var cMgr = Tapedeck.Backend.CassetteManager;
+
+      // Use Sandbox to generate the Cassette's source
+      var context = self.Tapedeck.Backend.Utils.getContext(tab);
+      var message = {
+        action: "testPattern",
+        params: { domain: domain, pattern: pattern },
+        textTemplate: cMgr.CassettifyTemplate.template,
+        context: context
+      };
+      try {
+        Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+          if (response.success) {
+            console.log("SUCCESSFULLY TESTED CASSTTE");
+          }
+          else {
+            console.log("FAILED TESTING NEW CASSETTE");
+          }
+        });
+
+      } catch(error) {
+        console.error("ERROR in generating Cassette source -" + JSON.stringify(error));
+      }
+    },
 
     handlePatternInput: function(params) {
       var msgHandler = Tapedeck.Backend.MessageHandler;
@@ -333,6 +409,14 @@ Tapedeck.Backend.CassetteManager = {
       } catch(error) {
         console.error("ERROR in generating Cassette source -" + JSON.stringify(error));
       }
+
+    },
+
+    handleSoundcloud: function(url) {
+
+    },
+
+    handleBandcamp: function(url) {
 
     },
 

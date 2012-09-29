@@ -31,6 +31,42 @@ Tapedeck.Sandbox = {
         window.parent.postMessage(response, "*");
         break;
 
+      case "testPattern":
+        Tapedeck.Sandbox.log("Testing pattern '" + message.params.pattern + "'");
+        var code = Tapedeck.Sandbox.render(message.textTemplate, message.params);
+        var testCassetteName = "TestCassette";
+        code = code.replace(/CassetteFromTemplate/g, testCassetteName);
+        code = code.replace(/Unnamed/g, testCassetteName);
+
+        var cleanup = function() {
+          delete Tapedeck.Sandbox.Cassettes[testCassetteName];
+        }
+
+        Tapedeck.Sandbox.prepCassette(code, function(report) {
+          var cassette = Tapedeck.Sandbox.cassettes[report.tdID];
+          cassette.getBrowseList(message.context, function(tracks) {
+            // success callback
+
+            if (tracks.length == 0) {
+              // actually failed
+              response.success = false;
+            }
+            else {
+              response.success = true;
+            }
+
+            cleanup();
+            window.parent.postMessage(response, "*");
+          }, function(error) {
+            // error callback
+
+            response.success = false;
+            cleanup();
+            window.parent.postMessage(response, "*");
+          });
+        });
+        break;
+
       case "prepCassette":
         Tapedeck.Sandbox.prepCassette(message.code, function(report) {
           response.report = report;
