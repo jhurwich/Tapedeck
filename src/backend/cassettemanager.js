@@ -413,7 +413,67 @@ Tapedeck.Backend.CassetteManager = {
     },
 
     handleSoundcloud: function(url) {
+      this.Soundcloud.cassettify(url);
 
+    },
+
+    Soundcloud : {
+      consumerKey: "46785bdeaee8ea7f992b1bd8333c4445",
+      cassettify: function(url) {
+        var soundcloud = this;
+
+        soundcloud.isGroup = false;
+        if (url.indexof("soundcloud.com/groups") != -1) {
+          soundcloud.isGroup = true;
+        }
+
+        var patternBase = "http://www.soundcloud.com/"
+        if (isGroup) {
+          patternBase = patternBase + "groups/";
+        }
+        var entityRegex = new RegExp(patternBase + "([^/]*)/")
+        soundcloud.entity = url.match(entityRegex)[1];
+        soundcloud.domain = patternBase + entity;
+
+        // now determine the entity's soundcloud id with resolve
+        var resolveURL = "http://api.soundcloud.com/resolve.json?url=" + soundcloud.domain + "&client_id=";
+        resolveURL = resolveURL + soundcloud.consumerKey;
+        $.ajax({
+          type: "GET",
+          url: resolveURL,
+          dataType: "json",
+          success : function(response) {
+            soundcloud.entityID = response.id;
+
+            // Use Sandbox to generate the Cassette's source
+            var message = {
+              action: "template",
+              params: { isGroup : soundcloud.isGroup,
+                        entity  : soundcloud.entity,
+                        entityID: soundcloud.entityID,
+                        domain  : soundcloud.domain },
+              textTemplate: cMgr.SoundcloudTemplate.template
+            };
+            try {
+              Tapedeck.Backend.MessageHandler.messageSandbox(message, soundcloud.finish);
+
+            } catch(error) {
+              console.error("ERROR in generating Cassette source -" + JSON.stringify(error));
+            }
+          },
+          error : function(xhr, status) {
+            console.error("Error getting Soundcloud entity id: " + domain);
+          }
+        });
+      },
+
+      finish: function(response) {
+        var options = { };
+        if (params.cassetteName != "undefined") {
+          options.cassetteName = params.cassetteName;
+        }
+        cMgr.Cassettify.nameCassette(response.rendered, options);
+      }
     },
 
     handleBandcamp: function(url) {
