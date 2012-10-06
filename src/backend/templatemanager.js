@@ -184,6 +184,7 @@ Tapedeck.Backend.TemplateManager = {
     var fillMap = {
       "currentCassette" : tMgr.getCurrentCassette,
       "currentPage" : tMgr.getCurrentPage,
+      "currentFeed" : tMgr.getCurrentFeed,
       "cassetteList" : tMgr.getCassettes,
       "browseList" : tMgr.getBrowseList,
       "queue" : tMgr.getQueue,
@@ -238,6 +239,13 @@ Tapedeck.Backend.TemplateManager = {
   },
   getCurrentPage: function(callback) {
     callback(Tapedeck.Backend.CassetteManager.currPage)
+  },
+  getCurrentFeed: function(callback) {
+    var feed = Tapedeck.Backend.CassetteManager.currFeed;
+    if (typeof(feed) == "undefined" || !feed) {
+      feed = undefined;
+    }
+    callback(feed);
   },
   getCassettes: function(callback) {
     callback(Tapedeck.Backend.CassetteManager.getCassettes());

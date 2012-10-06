@@ -281,6 +281,11 @@ Tapedeck.Backend.MessageHandler = {
         bank.removePlaylist(playlist);
         break;
 
+      case "chooseFeed":
+        var feedName = request.feedName;
+        Tapedeck.Backend.CassetteManager.chooseFeed(feedName);
+        break;
+
       case "toggleRepeat":
         bank.toggleRepeat();
         break;
@@ -477,8 +482,13 @@ Tapedeck.Backend.MessageHandler = {
     });
   },
 
+  // tab is optional
   updateView: function(viewName, tab, postPopulate) {
     var self = Tapedeck.Backend.MessageHandler;
+    if(arguments.length == 2) {
+      postPopulate = tab;
+      tab = null;
+    }
     if (typeof(tab) == "undefined" || !tab || typeof(tab.id) == "undefined") {
       self.getSelectedTab(function(selectedTab) {
         self.updateView(viewName, selectedTab, postPopulate);

@@ -10,6 +10,7 @@ Tapedeck.Backend.Utils = {
 
   getContext: function(tab) {
     var context = { };
+    var cMgr = Tapedeck.Backend.CassetteManager;
     if (typeof(tab) == "undefined") {
       // get context of background page
       context.tab = "background";
@@ -18,6 +19,12 @@ Tapedeck.Backend.Utils = {
       // context in specified tab
       context.tab = tab;
     }
+
+    // feed is an optional value in the context
+    if (typeof(cMgr.currFeed) != "undefined" && cMgr.currFeed != null) {
+      context.feed = cMgr.currFeed;
+    }
+
     var isContextComplete = function(contextCheck) {
       var attrs =  Tapedeck.Backend.Utils.CONTEXT_ATTRIBUTES;
       for (var i = 0; i < attrs.length; i++) {

@@ -249,6 +249,15 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
+  chooseFeed: function(feedName) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action : "chooseFeed",
+      feedName  : feedName,
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
   getCSS: function(callback) {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action       : "getCSS",

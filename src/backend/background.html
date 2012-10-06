@@ -29,6 +29,7 @@
     <!-- Cassettes -->
     <script type="text/javascript" src="models/cassettes/scraper-cassette.js"></script>
     <script type="text/javascript" src="models/cassettes/cassettify-template.js"></script>
+    <script type="text/javascript" src="models/cassettes/soundcloud-template.js"></script>
 
     <!-- Default Views -->
     <script type="text/javascript" src="views/tapedeck-view.js"></script>
@@ -224,6 +225,10 @@
           "click #current-cassette-row .button.current-page" : "TrackLists.setCurrentPage",
           "click #current-cassette-row .button.next-page"    : "TrackLists.nextPage",
           "click #current-cassette-row .button.eject"        : "TrackLists.eject"
+
+          "mouseover #feed-switcher-header"   : "TrackLists.showFeedSwitcher",
+          "mouseleave #feed-switcher"         : "TrackLists.hideFeedSwitcher",
+          "click #feed-switcher-content .row" : "TrackLists.chooseFeed",
         </events>
         <options>
         </options>
@@ -327,18 +332,34 @@
         </div>
         <% if (typeof(params.currentCassette) != "undefined" && params.currentCassette) { %>
           <div id="current-cassette-row" class="row">
-            <div class="cell current-cassette-col">
+            <div class="cell cassetteName-col">
               <%= params.currentCassette.name.replace(/_/g, " ") %>
-              <div class="row-buttons">
-                <% if (params.currentCassette.isPageable && typeof(params.currentPage) != "undefined") { %>
-                  <div class="button prev-page"></div>
-                  <div id="current-page" class="button current-page">
-                    <%= params.currentPage %>
+            </div>
+            <div class="row-buttons">
+              <% if (typeof(params.currentCassette.feeds) != "undefined" &&
+                     Object.keys(params.currentCassette.feeds).length > 0 &&
+                     typeof(params.currentFeed) != "undefined") { %>
+                <div id="feed-switcher">
+                  <div class="cell feed-row" id="feed-switcher-header"><%= params.currentFeed %></div>
+                  <div id="feed-switcher-content">
+                    <% for (var feedName in params.currentCassette.feeds) {
+                      if (feedName != params.currentFeed) { %>
+                        <div class="cell row feed-row" feedName='<%= feedName %>' >
+                          <%= feedName %>
+                        </div>
+                      <% } %>
+                    <% } %>
                   </div>
-                  <div class="button next-page"></div>
-                <% } %>
-                <div class="button eject"></div>
-              </div>
+                </div>
+              <% } %>
+              <% if (params.currentCassette.isPageable && typeof(params.currentPage) != "undefined") { %>
+                <div class="button prev-page"></div>
+                <div id="current-page" class="button current-page">
+                  <%= params.currentPage %>
+                </div>
+                <div class="button next-page"></div>
+              <% } %>
+              <div class="button eject"></div>
             </div>
           </div>
         <% } %>
@@ -380,6 +401,7 @@
         <options>
           "currentCassette" : "currentCassette",
           "currentPage" : "currentPage",
+          "currentFeed" : "currentFeed",
           "browseList" : "browseList"
         </options>
       </tapedeck>
@@ -388,6 +410,7 @@
         <% if(params.debug > 0) {
           params.paramSanity("currentCassette", false, params.currentCassette);
           params.paramSanity("currentPage", false, params.currentPage);
+          params.paramSanity("currentFeed", false, params.currentFeed);
           params.paramSanity("browseList", true, params.browseList);
         } %>
         <div id="browse-list" class="tracklist-container" rowdblclick="browseDblClick">

@@ -10,8 +10,8 @@ if ARGV.length != 2
   exit(1)
 end
 
-nochanges = false
-tapedeckRoot = "/home/jhurwich/Documents/Projects/tapedeck/src/"
+nochanges = true
+tapedeckRoot = "/home/jhurwich/Documents/Projects/Tapedeck/src/"
 
 newVersion = ARGV[0]
 puts "Newversion = " + newVersion
@@ -61,13 +61,13 @@ if (!nochanges)
   manifestOut.close
 
   # pack new version
-  output = %x[chromium-browser --pack-extension=/home/jhurwich/Documents/Projects/tapedeck/src --pack-extension-key=/home/jhurwich/Documents/Projects/tapedeck/tapedeck.pem]
+  output = %x[chromium-browser --pack-extension=/home/jhurwich/Documents/Projects/Tapedeck/src --pack-extension-key=/home/jhurwich/Documents/Projects/Tapedeck/tapedeck.pem]
   puts output.gsub!("\n", " ")
 
   # upload new version
   puts "Uploading new version to AWS. . . "
   new_tapedeck = AWS::S3::S3Object.store('tapedeck.crx',
-                                         open("/home/jhurwich/Documents/Projects/tapedeck/src.crx"),
+                                         open("/home/jhurwich/Documents/Projects/Tapedeck/src.crx"),
                                          'tape-deck',
                                          :content_type => "application/x-chrome-extension")
 
@@ -79,7 +79,7 @@ if (!nochanges)
                           'tape-deck')
 end
 
-# finally update the changes log with the change message  
+# finally update the changes log with the change message
 changes = old_change_log.to_s
 
 changes << "\n" + Time.now().strftime("%m/%d/%Y-%H.%M.%S") + ":"
@@ -92,5 +92,5 @@ AWS::S3::S3Object.store('changes.log',
                         'tape-deck')
 
 # remove the packed extension locally
-%x[rm /home/jhurwich/Documents/Projects/tapedeck/src.crx]
+%x[rm /home/jhurwich/Documents/Projects/Tapedeck/src.crx]
 

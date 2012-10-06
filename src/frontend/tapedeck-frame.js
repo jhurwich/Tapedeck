@@ -571,6 +571,25 @@ Tapedeck.Frontend.Frame = {
       Tapedeck.Frontend.Messenger.download(trackID, callback);
     },
 
+    showFeedSwitcher: function() {
+      var content = $("#feed-switcher-content");
+      $(content).css("display", "block");
+    },
+
+    hideFeedSwitcher: function() {
+      var content = $("#feed-switcher-content");
+      $(content).css("display", "none");
+    },
+
+    chooseFeed: function(e) {
+      if (e.stopPropagation) {
+        e.stopPropagation();
+      }
+      var target = $(e.target).closest(".row");
+      var feedName = $(target).attr("feedName");
+      Tapedeck.Frontend.Messenger.chooseFeed(feedName);
+    },
+
     prevPage: function(e) {
       Tapedeck.Frontend.Messenger.browsePrevPage();
     },

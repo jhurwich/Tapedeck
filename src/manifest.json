@@ -1,15 +1,15 @@
 {
   "name": "Tapedeck",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "manifest_version" : 2,
   "description": "The one player for the web.",
   "update_url": "http://www.tape-deck.com/update",
-  
+
   "icons": {
     "48": "images/cassette-48.png",
     "128": "images/cassette-128.png"
   },
-  
+
   "background" : {
     "page" : "backend/background.html"
   },
@@ -29,7 +29,7 @@
   "sandbox" : {
     "pages" : ["backend/sandbox.html"]
   },
-  
+
   "web_accessible_resources": [
     "backend/sandbox.html",
     "frontend/tapedeck-frame.html",

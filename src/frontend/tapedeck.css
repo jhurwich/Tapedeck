@@ -246,6 +246,7 @@ body {
 .tracklist .row-buttons > .button,
 .tracklist .row-indicators > #download-spinner,
 .cassettelist .row-buttons > .button {
+  display: inline-block;
   height: 12px;
   width: 12px;
   float: left;
@@ -455,11 +456,36 @@ body {
   cursor: pointer;
 }
 
-.tracklist-container #current-cassette-row .row-buttons {
-  margin: 0;
-  right: 0;
+
+.tracklist-container #current-cassette-row .cell {
+  border: none;
+}
+.tracklist-container #current-cassette-row #feed-switcher {
+  width: 80px;
+  font-size: 14px;
+  display: inline-block;
+  float: left;
+  margin: 0 7px 0 0;
+}
+.tracklist-container #current-cassette-row #feed-switcher .feed-row {
+  float: left;
+  position: relative;
+  padding: 2px 0 0 6px;
+  font-size: 14px;
+  background-color: #181818;
+  min-height: 18px;
+  width: 100%;
+  z-index: 50;
+}
+.tracklist-container #current-cassette-row #feed-switcher #feed-switcher-header.feed-row {
+  cursor: default;
+}
+.tracklist-container #current-cassette-row #feed-switcher #feed-switcher-content .feed-row:hover {
+  cursor: pointer;
+  color: #ff9900;
 }
 .tracklist-container #current-cassette-row .row-buttons > .button {
+  display: inline-block;
   margin: 0 1px;
   height: 18px;
   width: 16px;
@@ -485,13 +511,10 @@ body {
   padding-left: 5px;
 }
 .tracklist-container #current-cassette-row {
+  display: table;
+  position: relative;
   width: 326px;
   border: 2px solid #424242;
-}
-.tracklist-container #current-cassette-row .cell {
-  width: 318px;
-  border: 0px;
-  float: none;
 }
 
 #blackout {

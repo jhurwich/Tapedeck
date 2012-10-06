@@ -5,18 +5,18 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
     domain : "<%= params.domain %>", \
     defaults : { \
       "name" : "Unnamed", \
-      "developer" : "<%= params.domain %>", \
+      "developer" : "<%= params.entity %>", \
       "developerLink" : "<%= params.domain %>", \
-      "currentFeed" : "tracks", \
+      "defaultFeed" : "tracks", \
     }, \
-    isGroup : "<%= params.isGroup %>", \
+    isGroup : <%= params.isGroup %>, \
     entity : "<%= params.entity %>", \
     entityID : "<%= params.entityID %>", \
     consumerKey: "46785bdeaee8ea7f992b1bd8333c4445", \
 \
     feeds: { \
       "tracks": "tracks", \
-      <% if (!params.isGroup) { print("\"favorites\": \"favorites\",") } %> \
+      <% if (!params.isGroup) { print("\'favorites\': \'favorites\',") } %> \
     }, \
 \
     /* No events, although probably want interval */ \
@@ -29,15 +29,21 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
 \
     getPage: function(pageNum, context, callback, errCallback) { \
       var self = this; \
-      var queryURL = "http://www.api.soundcloud.com" \
+      var queryURL = "http://api.soundcloud.com"; \
       if (self.isGroup) { \
         queryURL = queryURL + "/groups"; \
       } else { \
         queryURL = queryURL + "/users"; \
       } \
       var perPageLimit = 20; \
-      queryURL = queryURL + "/" + self.entityID + "/" + self.feeds[self.get("currentFeed")]; \
-      queryURL = queryURL + "?format=json&consumer_key=" + soundcloud.consumerKey; \
+\
+      var feed = self.get("defaultFeed"); \
+      if (typeof(context.feed) != "undefined") { \
+        feed = context.feed; \
+      } \
+\
+      queryURL = queryURL + "/" + self.entityID + "/" + feed; \
+      queryURL = queryURL + "?format=json&consumer_key=" + self.consumerKey; \
       queryURL = queryURL + "&limit=" + perPageLimit + "&offset=" + ((pageNum-1) * perPageLimit); \
 \
       /* Check if we already have the tracks saved for this page */ \
@@ -77,6 +83,7 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
           errCallback({ message: "CassetteError" }); \
         }, \
       }); \
+    }, \
 \
     parseResponse: function(callback, url, page, self, response) { \
 \
@@ -103,7 +110,7 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
 \
         track.domain = location.hostname; \
         track.location = location.href; \
-        track.cassette = cassette : self.get("name"); \
+        track.cassette = self.get("name"); \
 \
         if (typeof(track.url) != "undefined") { \
           track.url = track.url + "?consumer_key=" + self.consumerKey; \
@@ -121,6 +128,7 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
         } \
       } \
       else if (typeof(response.length) != "undefined" && response.length > 0) { \
+        var response = JSON.parse(response); \
         /* parsing a response containing an array of tracks */ \
         for (var i = 0; i < response.length; i++) { \
           var rTrack = response[i]; \

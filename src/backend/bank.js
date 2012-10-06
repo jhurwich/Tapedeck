@@ -51,6 +51,7 @@ Tapedeck.Backend.Bank = {
   lastSyncWarningKey: /* bankPrefix + */ "lastSyncWarning",
   currentCassetteKey: /* bankPrefix + */ "currentCassette",
   cassettePagePrefix: /* bankPrefix + */ "cassettePages",
+  cassetteFeedPrefix: /* bankPrefix + */ "cassetteFeeds",
   syncLogPrefix:  /* bankPrefix + */ "syncLog",
   savedQueueName: "__q",
   init: function(continueInit) {
@@ -74,6 +75,7 @@ Tapedeck.Backend.Bank = {
 
     bank.currentCassetteKey = bank.bankPrefix + bank.currentCassetteKey;
     bank.cassettePagePrefix = bank.bankPrefix + bank.cassettePagePrefix;
+    bank.cassetteFeedPrefix = bank.bankPrefix + bank.cassetteFeedPrefix;
 
     bank.syncLogPrefix = bank.bankPrefix + bank.syncLogPrefix;
 
@@ -212,7 +214,10 @@ Tapedeck.Backend.Bank = {
       }, fs.errorHandler.curry("removeCassette1"));
 
       var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix + name;
-      var page = Tapedeck.Backend.Bank.localStorage.removeItem(pageKey);
+      Tapedeck.Backend.Bank.localStorage.removeItem(pageKey);
+
+      var feedKey = Tapedeck.Backend.Bank.cassetteFeedPrefix + name;
+      Tapedeck.Backend.Bank.localStorage.removeItem(feedKey);
     },
 
     // Returns cassetteDatas of the form - name: "", contents: "", url: "" (, page: num)
@@ -223,9 +228,14 @@ Tapedeck.Backend.Bank = {
 
           var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix + name;
           var page = Tapedeck.Backend.Bank.localStorage.getItem(pageKey);
-
           if (page != null) {
             datas[i].page = page;
+          }
+
+          var feedKey = Tapedeck.Backend.Bank.cassetteFeedPrefix + name;
+          var feed = Tapedeck.Backend.Bank.localStorage.getItem(feedKey);
+          if (feed != null) {
+            datas[i].feed = feed;
           }
         }
         aCallback(datas);
@@ -908,6 +918,11 @@ Tapedeck.Backend.Bank = {
                   cassetteName;
     var page = Tapedeck.Backend.Bank.localStorage
                                     .setItem(pageKey, page);
+  },
+  saveCassetteFeed: function(cassetteName, feed) {
+    var feedKey = Tapedeck.Backend.Bank.cassetteFeedPrefix +
+                  cassetteName;
+    Tapedeck.Backend.Bank.localStorage.setItem(feedKey, feed);
   },
 
   toggleRepeat: function() {

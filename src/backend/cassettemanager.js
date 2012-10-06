@@ -57,6 +57,12 @@ Tapedeck.Backend.CassetteManager = {
                   if (typeof(data.page) != "undefined") {
                     cassetteEntry.page = data.page;
                   }
+                  if (typeof(data.feed) != "undefined") {
+                    cassetteEntry.feed = data.feed;
+                  }
+                  else if (typeof(response.report.defaultFeed) != "undefined") {
+                    cassetteEntry.feed = response.report.defaultFeed;
+                  }
 
                   cMgr.cassettes.push(cassetteEntry);
                 });
@@ -121,6 +127,7 @@ Tapedeck.Backend.CassetteManager = {
   setCassette: function(name) {
     var oldCurrent = this.currentCassette;
     this.currPage = 1;
+    this.currFeed = null;
 
     // Find the specified cassette, or if it was null set the cassette
     // to null, 'ejecting' it.
@@ -138,6 +145,9 @@ Tapedeck.Backend.CassetteManager = {
 
           if (typeof(this.cassettes[i].page) != "undefined") {
             this.currPage = parseInt(this.cassettes[i].page);
+          }
+          if (typeof(this.cassettes[i].feed) != "undefined") {
+            this.currFeed = this.cassettes[i].feed;
           }
         }
       }
@@ -194,6 +204,29 @@ Tapedeck.Backend.CassetteManager = {
     return new Tapedeck.Backend.Collections.CassetteList(cassettes);
   },
 
+  chooseFeed: function(feedName) {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    if (typeof(cMgr.currFeed) != "undefined" && cMgr.currFeed != null && cMgr.currFeed == feedName) {
+      return;
+    }
+    cMgr.currFeed = feedName;
+
+    // update the feed in memory
+    for (var i = 0; i < cMgr.cassettes.length; i++) {
+      var cassette = cMgr.cassettes[i].cassette;
+      if (cassette.get("name") == cMgr.currentCassette.get("name")) {
+        cMgr.cassettes[i].feed = cMgr.currFeed;
+      }
+    }
+
+    // change to the new page in the frontend, in the selected tab, with postPopulate
+    Tapedeck.Backend.MessageHandler.updateView("BrowseList", true);
+
+    // save the page to persist
+    Tapedeck.Backend.Bank.saveCassetteFeed(cMgr.currentCassette.get("name"),
+                                           cMgr.currFeed);
+  },
+
   browsePrevPage: function() {
     if (this.currentCassette != null) {
       this.setPage(this.currPage - 1);
@@ -223,7 +256,7 @@ Tapedeck.Backend.CassetteManager = {
     }
 
     // change to the new page in the frontend, in the selected tab, with postPopulate
-    Tapedeck.Backend.MessageHandler.updateView("BrowseList", null, true);
+    Tapedeck.Backend.MessageHandler.updateView("BrowseList", true);
 
     // save the page to persist
     Tapedeck.Backend.Bank.saveCassettePage(cMgr.currentCassette.get("name"),
@@ -421,19 +454,19 @@ Tapedeck.Backend.CassetteManager = {
       consumerKey: "46785bdeaee8ea7f992b1bd8333c4445",
       cassettify: function(url) {
         var soundcloud = this;
+        url = url.replace("http://", "");
+        url = url.replace("www.", "");
 
         soundcloud.isGroup = false;
-        if (url.indexof("soundcloud.com/groups") != -1) {
+        var patternBase = "soundcloud.com/"
+        if (url.indexOf("soundcloud.com/groups") != -1) {
           soundcloud.isGroup = true;
-        }
-
-        var patternBase = "http://www.soundcloud.com/"
-        if (isGroup) {
           patternBase = patternBase + "groups/";
         }
-        var entityRegex = new RegExp(patternBase + "([^/]*)/")
+
+        var entityRegex = new RegExp(patternBase + "([^/]*)")
         soundcloud.entity = url.match(entityRegex)[1];
-        soundcloud.domain = patternBase + entity;
+        soundcloud.domain = "http://www." + patternBase + soundcloud.entity;
 
         // now determine the entity's soundcloud id with resolve
         var resolveURL = "http://api.soundcloud.com/resolve.json?url=" + soundcloud.domain + "&client_id=";
@@ -452,7 +485,7 @@ Tapedeck.Backend.CassetteManager = {
                         entity  : soundcloud.entity,
                         entityID: soundcloud.entityID,
                         domain  : soundcloud.domain },
-              textTemplate: cMgr.SoundcloudTemplate.template
+              textTemplate: Tapedeck.Backend.CassetteManager.SoundcloudTemplate.template
             };
             try {
               Tapedeck.Backend.MessageHandler.messageSandbox(message, soundcloud.finish);
@@ -469,10 +502,10 @@ Tapedeck.Backend.CassetteManager = {
 
       finish: function(response) {
         var options = { };
-        if (params.cassetteName != "undefined") {
-          options.cassetteName = params.cassetteName;
+        if (response.cassetteName != "undefined") {
+          options.cassetteName = response.cassetteName;
         }
-        cMgr.Cassettify.nameCassette(response.rendered, options);
+        Tapedeck.Backend.CassetteManager.Cassettify.nameCassette(response.rendered, options);
       }
     },
 
