@@ -337,7 +337,7 @@
             </div>
             <div class="row-buttons">
               <% if (typeof(params.currentCassette.feeds) != "undefined" &&
-                     Object.keys(params.currentCassette.feeds).length > 0 &&
+                     Object.keys(params.currentCassette.feeds).length > 1 &&
                      typeof(params.currentFeed) != "undefined") { %>
                 <div id="feed-switcher">
                   <div class="cell feed-row" id="feed-switcher-header"><%= params.currentFeed %></div>
@@ -551,7 +551,7 @@
       <tapedeck>
         <events>
             "click .modal #close-button"  : "Modal.close",
-            "click .modal #submit-button" : "Modal.submit",
+            "click .modal .submit-button" : "Modal.submit",
             "keypress .modal input[type='text']" : "Modal.enterPress",
         </events>
         <options>
@@ -582,7 +582,7 @@
               </div>
             <% } %>
             <% if (typeof(params.submitButtons) == "undefined") { %>
-              <input type="button" id="submit-button" value="Ok" />
+              <input type="button" class="submit-button" value="Ok" />
             <% } else {
               for (var i=0; i < params.submitButtons.length; i++) {
                 var button = params.submitButtons[i]; %>

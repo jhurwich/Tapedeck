@@ -22,6 +22,7 @@ if (onObject != null &&
     debug: 0,
 
     moreCallback: null,
+    finalCallback: null,
     context: null,
     isParsing: false,
     onBackgroundPage: false,
@@ -59,6 +60,10 @@ if (onObject != null &&
         };
       }
 
+      if (typeof(params.finalCallback) != "undefined") {
+        parser.finalCallback = params.finalCallback;
+      }
+
       if (typeof(params.context) == "undefined") {
         parser.context = document;
       }
@@ -73,7 +78,6 @@ if (onObject != null &&
       try {
         var tracks = parser.findSongs();
         parser.log("ending parsing - got tracks: " + JSON.stringify(tracks), parser.DEBUG_LEVELS.BASIC);
-        parser.isParsing = false;
 
         if (!parser.onBackgroundPage) {
           var response = {
@@ -85,18 +89,27 @@ if (onObject != null &&
         else {
           params.callback(tracks);
         }
+        if (!parser.isParsing && parser.finalCallback != null) {
+          parser.finalCallback({}); //
+        }
       }
       catch (e) {
-
+        console.err("ParserError")
         if (!parser.onBackgroundPage) {
           var response = {
             type: "response",
             error: { message: "ParserError" },
           };
           chrome.extension.sendRequest(response);
+          if (parser.finalCallback != null) {
+            parser.finalCallback({ error: "ParserError" });
+          }
         }
         else {
           params.callback({ error: "ParserError" });
+          if (parser.finalCallback != null) {
+            parser.finalCallback({ error: "ParserError" });
+          }
         }
       }
 
@@ -134,9 +147,11 @@ if (onObject != null &&
 
       // ================ Async Scrapes ================
       //Scrape Soundcloud
-      parser.Soundcloud.scrape();
+      var parsingSoundcloud = parser.Soundcloud.scrape(); // will be true if special soundcloud parsing is happening
 
       var toReturn = parser.mergeResults(resultObjects);
+
+      parser.isParsing = parsingSoundcloud;
       return toReturn;
     },
 
@@ -543,9 +558,10 @@ if (onObject != null &&
 
 
     Soundcloud : {
-      objectCount : -1,
+      objectCount : 0,
       consumerKey: "46785bdeaee8ea7f992b1bd8333c4445",
 
+      // returns true if soundcloud parsing is necessary, false otherwise
       scrape : function() {
         var parser = onObject.TrackParser;
 
@@ -556,15 +572,19 @@ if (onObject != null &&
         var url = parser.Util.getCurrentURL();
         if (url.indexOf('soundcloud.com') != -1) {
           soundcloud.parseWithAPI(url);
-          return;
+          return true;
         }
 
+        var foundThingsToParse = false;
+        soundcloud.objectCount = 0;
+
         var objects = $('object', parser.context);
+
         objects.each( function(index, object) {
           var params = $(object).children('param');
           var swfValue = "";
 
-          params.each( function(index, param) {
+          params.each(function(index, param) {
             var paramName = $(param).attr("name").toLowerCase();
             if (paramName == "movie" ||
                 paramName == "src" ||
@@ -583,23 +603,30 @@ if (onObject != null &&
 
           if (swfValue.length == 0) {
             parser.log("Couldn't find url param in Soundcloud object");
+            soundcloud.objectCount--;
             return;
           }
+
+          foundThingsToParse = true;
+          soundcloud.objectCount++;
 
           soundcloud.findURLAndQuery(swfValue);
         }); // end objects.each
 
         var iframes = $('iframe', parser.context);
-        iframes.each( function(index, iframe) {
+        iframes.each(function(index, iframe) {
           var src = $(iframe).attr("src");
 
           if (src != null &&
               src.match(/api.soundcloud.com/) != null) {
+            soundcloud.objectCount++;
+            foundThingsToParse = true;
             soundcloud.findURLAndQuery(src);
           }
 
         }); // end iframes.each
 
+        return foundThingsToParse;
       },
 
       findURLAndQuery : function(str) {
@@ -671,17 +698,17 @@ if (onObject != null &&
         queryURL += "?format=json&consumer_key=" + soundcloud.consumerKey;
 
         parser.log("sending request to " + queryURL);
-          $.ajax({
-            type: "GET",
-            url: queryURL,
-            dataType: "json",
+        $.ajax({
+          type: "GET",
+          url: queryURL,
+          dataType: "json",
 
-            success: soundcloud.parseJSONResponse,
+          success: soundcloud.parseJSONResponse,
 
-            error: function (response) {
-              console.error("Ajax error retrieving '" + queryURL + "'");
-            },
-          });
+          error: function (response) {
+            console.error("Ajax error retrieving '" + queryURL + "'");
+          },
+        });
       },
 
       parseJSONResponse : function(response) {
@@ -730,6 +757,7 @@ if (onObject != null &&
             var rTrack = response.tracks[i];
             var newTrack = responseToTrack(rTrack);
             tracks.push(newTrack);
+            soundcloud.objectCount--;
           }
         }
         else if (typeof(response.length) != "undefined" &&
@@ -739,16 +767,22 @@ if (onObject != null &&
             var rTrack = response[i];
             var newTrack = responseToTrack(rTrack);
             tracks.push(newTrack);
+            soundcloud.objectCount--;
           }
         }
         else {
           // parsing a response for one track
           var newTrack = responseToTrack(response);
           tracks.push(newTrack);
+          soundcloud.objectCount--;
         }
 
         parser.log("adding Soundcloud tracks: " + JSON.stringify(tracks));
         parser.moreCallback(tracks);
+
+        if (soundcloud.objectCount == 0 && parser.finalCallback != null) {
+          parser.finalCallback({});
+        }
       },
     }, // end parser.Soundcloud
 

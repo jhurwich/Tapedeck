@@ -10,7 +10,7 @@ Tapedeck.Backend.CassetteManager = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 0,
+  debug: 2,
 
   init: function(continueInit) {
     var cMgr = Tapedeck.Backend.CassetteManager;
@@ -274,8 +274,7 @@ Tapedeck.Backend.CassetteManager = {
     commonURLPatterns: ["$@/page/$#"],
 
     // domains that have special handling defined
-    exceptionDomains: { "soundcloud.com"  : "handleSoundcloud",
-                        "bandcamp.com"    : "handleBandcamp" },
+    exceptionDomains: { "soundcloud.com"  : "handleSoundcloud" },
 
     start: function(params) {
       var self = this;
@@ -295,12 +294,14 @@ Tapedeck.Backend.CassetteManager = {
         }
 
         msgHandler.showModal({
-          fields: [
-            { type          : "info",
-              text          : "Building Cassette, please wait." },
-          ],
+          fields: [{ type : "info",
+                     text : "Building Cassette, please wait." }],
+          submitButtons : [{ text: "Try another site",
+                             callbackParam: "anotherSite" },
+                           { text: "Advanced",
+                             callbackParam: "advanced" }],
           title: "Cassettify Wizard",
-        });
+        }, self.chooseMethod);
 
         // first check if there's a cassette in the store for this url
         // TODO implement
@@ -310,16 +311,22 @@ Tapedeck.Backend.CassetteManager = {
         return; // TODO remove
 
         msgHandler.showModal({
-          fields: [
-            { type          : "info",
-              text          : "Please enter the url for a site with '$#' for the page number." },
-            { type          : "info",
-              text          : "For example: theburningear.com/page/$#" },
-            { type          : "input",
-              text          : "",
-              width         : "300",
-              callbackParam : "pattern" },
-          ],
+          fields: [{ type          : "info",
+                     text          : "Couldn't find '$#' please try again.", },
+                   { type          : "info",
+                     text          : "Please enter the url for a site with '$#' for the page number." },
+                   { type          : "info",
+                     text          : "For example: theburningear.com/page/$#" },
+                   { type          : "input",
+                     text          : "",
+                     width         : "300",
+                     callbackParam : "pattern" }],
+          submitButtons : [{ text: "Submit pattern",
+                             callbackParam: "submit" },
+                           { text: "Try another site",
+                             callbackParam: "anotherSite" },
+                           { text: "Advanced",
+                             callbackParam: "advanced" }],
           title: "Cassettify Wizard",
         }, self.handlePatternInput, self.postLoadCleanup);
 
@@ -327,8 +334,73 @@ Tapedeck.Backend.CassetteManager = {
       });
     },
 
+    byURL: function() {
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
+      var msgHandler = Tapedeck.Backend.MessageHandler;
+      msgHandler.showModal({
+        fields: [{ type          : "info",
+                   text          : "Please enter a site to cassettify." },
+                 { type          : "input",
+                   text          : "",
+                   width         : "300",
+                   callbackParam : "url" }],
+        submitButtons : [{ text: "Submit",
+                           callbackParam: "submit" },
+                         { text: "Advanced",
+                           callbackParam: "advanced" }],
+        title: "Cassettify",
+      }, self.handleURLInput, self.postLoadCleanup);
+    },
+
+    handleURLInput: function(params) {
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
+      var msgHandler = Tapedeck.Backend.MessageHandler;
+      if (typeof(params.submitButton) != "undefined" && params.submitButton != "submit") {
+         if (params.submitButton == "advanced") {
+          cMgr.Cassettify.byPattern();
+          return;
+        }
+      }
+      cMgr.log("Received cassettification url '" + params.url + "'");
+
+      msgHandler.showModal({
+        fields: [{ type : "info",
+                   text : "Building Cassette, please wait." }],
+        submitButtons : [{ text: "Try another site",
+                           callbackParam: "anotherSite" },
+                         { text: "Advanced",
+                           callbackParam: "advanced" }],
+        title: "Cassettify",
+      }, self.chooseMethod);
+
+      self.postLoadCleanup();
+
+      self.guessPattern(params.url, params.tab);
+    },
+
+    byPattern: function() {
+      var msgHandler = Tapedeck.Backend.MessageHandler;
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
+      msgHandler.showModal({
+        fields: [{ type          : "info",
+                   text          : "Please enter the url for a site with '$#' for the page number." },
+                 { type          : "info",
+                   text          : "For example: theburningear.com/page/$#" },
+                 { type          : "input",
+                   text          : "",
+                   width         : "300",
+                   callbackParam : "pattern" }],
+        title: "Advanced Cassettify",
+      }, self.handlePatternInput, self.postLoadCleanup);
+    },
+
     guessPattern: function(url, tab) {
-      var self = this;
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
+
       for (var exceptionDomain in self.exceptionDomains) {
         if (url.indexOf(exceptionDomain) != -1) {
           // we've hit an exception domain, defer to exception handling
@@ -340,20 +412,40 @@ Tapedeck.Backend.CassetteManager = {
       // not an exception domain, try our guesses
       url = url.replace("http://", "");
       url = url.replace("www.", "");
-      var domain = url.substring(0, url.indexOf('/'));
-      for (var i = 0; i < self.commonURLPatterns.length; i++) {
-        var commonURLPattern = self.commonURLPatterns[i];
-        var guessPattern = commonURLPattern.replace("$@", domain);
-        self.testPattern(domain, guessPattern);
+      domain = url;
+      if (url.indexOf('/') != -1) {
+        domain = url.substring(0, url.indexOf('/'));
       }
+      cMgr.log("Attempting to guess pattern for '" + url + "'");
 
+      // recurse through the commonURLPatterns
+      var tryPattern = function(i) {
+        if (i >= self.commonURLPatterns.length) {
+          // we failed to guess the pattern
+          self.fail({ msg: "Could not build a cassette for this site" })
+          return;
+        }
+
+        var commonURLPattern = self.commonURLPatterns[i];
+        var guess = commonURLPattern.replace("$@", domain);
+
+        self.testPattern(domain, guess, tab, function(successResponse) {
+          cMgr.log("Success with guess: '" + guess + "'");
+          self.handlePatternInput(guess);
+        }, function(failResponse) {
+          cMgr.log("Failed with guess: '" + guess + "'");
+          tryPattern(i + 1)
+        });
+      };
+      tryPattern(0);
     },
 
-    testPattern: function(domain, pattern, tab) {
+    testPattern: function(domain, pattern, tab, successFn, failFn) {
       var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
 
       // Use Sandbox to generate the Cassette's source
-      var context = self.Tapedeck.Backend.Utils.getContext(tab);
+      var context = Tapedeck.Backend.Utils.getContext(tab);
       var message = {
         action: "testPattern",
         params: { domain: domain, pattern: pattern },
@@ -363,10 +455,10 @@ Tapedeck.Backend.CassetteManager = {
       try {
         Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
           if (response.success) {
-            console.log("SUCCESSFULLY TESTED CASSTTE");
+            successFn(response);
           }
           else {
-            console.log("FAILED TESTING NEW CASSETTE");
+            failFn(response);
           }
         });
 
@@ -375,39 +467,52 @@ Tapedeck.Backend.CassetteManager = {
       }
     },
 
+    // param can be an object of params (with params.pattern) or the pattern string
     handlePatternInput: function(params) {
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
       var msgHandler = Tapedeck.Backend.MessageHandler;
+
       msgHandler.showModal({
-        fields: [
-          { type          : "info",
-            text          : "Building Cassette, please wait." },
-        ],
+        fields: [{ type : "info",
+                   text : "Building Cassette, please wait." }],
+        submitButtons : [{ text: "Try another site",
+                           callbackParam: "anotherSite" },
+                         { text: "Advanced",
+                           callbackParam: "advanced" }],
         title: "Cassettify Wizard",
-      });
+      }, self.chooseMethod);
 
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
       self.postLoadCleanup();
 
       var pattern = params.pattern;
+      if (typeof(params) == "string") {
+        pattern = params;
+      }
       cMgr.log("Received cassettification pattern '" + pattern + "'");
 
       var index = pattern.indexOf("$#");
       if (index == -1) {
         // couldn't find the pattern
         msgHandler.showModal({
-          fields: [
-            { type          : "info",
-              text          : "Couldn't find '$#' please try again.", },
-            { type          : "info",
-              text          : "Please enter the url for a site with '$#' for the page number." },
-            { type          : "info",
-              text          : "For example: theburningear.com/page/$#" },
-            { type          : "input",
-              text          : "",
-              width         : "300",
-              callbackParam : "pattern" },
-          ],
+          fields: [{ type          : "info",
+                     text          : "Couldn't find '$#' please try again.", },
+                   { type          : "info",
+                     text          : "Please enter the url for a site with '$#' for the page number." },
+                   { type          : "info",
+                     text          : "For example: theburningear.com/page/$#" },
+                   { type          : "input",
+                     text          : "",
+                     width         : "300",
+                     callbackParam : "pattern" }],
+          submitButtons : [{ text: "Submit pattern",
+                             callbackParam: "submit" },
+                           { text: "Try another site",
+                             callbackParam: "anotherSite" },
+                           { text: "Advanced",
+                             callbackParam: "advanced" }],
           title: "Cassettify Wizard",
         }, self.handlePatternInput, self.postLoadCleanup);
         return;
@@ -432,9 +537,9 @@ Tapedeck.Backend.CassetteManager = {
       };
       try {
         Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
-          var options = { };
-          if (params.cassetteName != "undefined") {
-            options.cassetteName = params.cassetteName;
+          var options = { domain: domain };
+          if (response.cassetteName != "undefined") {
+            options.cassetteName = response.cassetteName;
           }
           cMgr.Cassettify.nameCassette(response.rendered, options);
         });
@@ -447,7 +552,6 @@ Tapedeck.Backend.CassetteManager = {
 
     handleSoundcloud: function(url) {
       this.Soundcloud.cassettify(url);
-
     },
 
     Soundcloud : {
@@ -501,16 +605,13 @@ Tapedeck.Backend.CassetteManager = {
       },
 
       finish: function(response) {
-        var options = { };
+        var soundcloud = Tapedeck.Backend.CassetteManager.Cassettify.Soundcloud;
+        var options = { domain: soundcloud.domain };
         if (response.cassetteName != "undefined") {
           options.cassetteName = response.cassetteName;
         }
         Tapedeck.Backend.CassetteManager.Cassettify.nameCassette(response.rendered, options);
       }
-    },
-
-    handleBandcamp: function(url) {
-
     },
 
     nameCassette: function(code, options) {
@@ -519,20 +620,33 @@ Tapedeck.Backend.CassetteManager = {
       cMgr.log("Cassette prepared, naming now")
 
       var nameAndSaveCassette = function(params) {
+        if (typeof(params.submitButton) != "undefined" && params.submitButton != "submit") {
+          if (params.submitButton == "anotherSite") {
+            cMgr.Cassettify.byURL();
+            return;
+          }
+          else if (params.submitButton == "advanced") {
+            cMgr.Cassettify.byPattern();
+            return;
+          }
+        }
         if (params.cassetteName.length == 0) {
-          cMgr.Cassettify.nameCassette(code, { msg: "You must enter a name" });
+          options.msg = "You must enter a name";
+          cMgr.Cassettify.nameCassette(code, options);
           return;
         }
 
         // any non-a-Z,0-9, or space
         if ((/[^a-zA-Z0-9\s]/).test(params.cassetteName)) {
-          cMgr.Cassettify.nameCassette(code, { msg: "Only a-Z, 0-9, and spaces are allowed." });
+          options.msg = "Only a-Z, 0-9, and spaces are allowed.";
+          cMgr.Cassettify.nameCassette(code, options);
           return;
         }
         var saveableName = params.cassetteName.replace(/\s/g, "_");
 
         if (typeof(Tapedeck.Backend.Cassettes[saveableName]) != "undefined") {
-          cMgr.Cassettify.nameCassette(code, { msg: "The name you enterred is in use" });
+          options.msg = "The name you enterred is in use";
+          cMgr.Cassettify.nameCassette(code, options);
           return;
         }
 
@@ -557,15 +671,51 @@ Tapedeck.Backend.CassetteManager = {
         }
         modalFields.push({ type          : "info",
                            text          : "Name your new cassette",});
+        if (typeof(options.domain) != "undefined") {
+          options.domain = options.domain.replace("http://", "");
+          options.domain = options.domain.replace("www.", "");
+
+          modalFields.push({ type: "info",
+                             text: "for " + options.domain })
+        }
         modalFields.push({ type          : "input",
                            text          : "",
                            callbackParam : "cassetteName"  });
 
         msgHandler.showModal({
           fields: modalFields,
+          submitButtons : [{ text: "Submit Name",
+                             callbackParam: "submit" },
+                           { text: "Try another site",
+                             callbackParam: "anotherSite" },
+                           { text: "Advanced",
+                             callbackParam: "advanced" }],
           title: "Cassettify Wizard",
         }, nameAndSaveCassette);
+
       }
+    },
+
+    fail: function(params) {
+      var msgHandler = Tapedeck.Backend.MessageHandler;
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      self = cMgr.Cassettify;
+
+      var fields = [];
+      if ((params.msg) != "undefined") {
+        fields.push({ type : "info",
+                      text : params.msg });
+      }
+      fields.push({ type  : "info", text : "Please try again." })
+
+      msgHandler.showModal({
+        fields: fields,
+        submitButtons : [{ text: "Try another site",
+                           callbackParam: "anotherSite" },
+                         { text: "Advanced",
+                           callbackParam: "advanced" }],
+        title: "Cassettify",
+      }, self.chooseMethod, self.postLoadCleanup);
     },
 
     finish: function(success) {
@@ -575,6 +725,21 @@ Tapedeck.Backend.CassetteManager = {
       }
       else {
         console.error("Cassette could not be properly saved");
+      }
+    },
+
+    chooseMethod: function(params) {
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
+      if (typeof(params.submitButton) != "undefined" && params.submitButton != "submit") {
+        if (params.submitButton == "anotherSite") {
+          cMgr.Cassettify.byURL();
+          return;
+        }
+        else if (params.submitButton == "advanced") {
+          cMgr.Cassettify.byPattern();
+          return;
+        }
       }
     },
 

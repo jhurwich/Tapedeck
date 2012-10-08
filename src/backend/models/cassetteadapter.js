@@ -26,17 +26,17 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
     }
   },
 
-  adaptedGetPage: function(pageNum, context, callback, errCallback) {
+  adaptedGetPage: function(pageNum, context, callback, errCallback, finalCallback) {
     var params = { page: pageNum, context: context };
-    this.proxyMethod("getPage", params, callback, errCallback);
+    this.proxyMethod("getPage", params, callback, errCallback, finalCallback);
   },
 
-  adaptedGetBrowseList: function(context, callback, errCallback) {
+  adaptedGetBrowseList: function(context, callback, errCallback, finalCallback) {
     var params = { context: context };
-    this.proxyMethod("getBrowseList", params, callback, errCallback);
+    this.proxyMethod("getBrowseList", params, callback, errCallback, finalCallback);
   },
 
-  proxyMethod: function(methodName, params, successCallback, errCallback) {
+  proxyMethod: function(methodName, params, successCallback, errCallback, finalCallback) {
     var message = {
       action: methodName,
       params: params,
@@ -47,7 +47,10 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
         // success
         successCallback(response.tracks);
       }
-      else {
+      else if (typeof(response.final) != "undefined" && response.final) {
+        // final callback for this interaction
+        finalCallback(reponse);
+      } else {
         // there was some error
         errCallback(response.error);
       }

@@ -105,14 +105,14 @@ body {
 }
 
 #browse-list {
-  height: 280px;
+  height: 330px;
 }
 #queue {
   max-height: 280px;
 }
 #queue-region {
-   max-height: 330px;
-   height: 330px;
+   max-height: 300px;
+   height: 300px;
 }
 .region-header {
   font: bold 18px arial, sans-serif;
@@ -146,7 +146,7 @@ body {
 .tracklist .row-container:first-child {
   border-top: solid 2px #424242;
 }
-#queue > .tracklist .row-container:last-child {
+.tracklist .row-container:last-child {
   border-bottom: solid 2px #424242;
 }
 .tracklist .row,
@@ -178,7 +178,6 @@ body {
 }
 .tracklist .row.blank {
   padding: 3px;
-  border-bottom: solid 2px #424242;
 }
 .tracklist .spinner.loading,
 .cassettelist .spinner.loading {
@@ -373,6 +372,7 @@ body {
 .tracklist-container #current-cassette-row {
   background-color: #515151;
   height: 20px;
+  position: relative;
 }
 .cassettelist .row:not(.blank):hover {
   background-color: #2f2f2f;
@@ -461,7 +461,7 @@ body {
   border: none;
 }
 .tracklist-container #current-cassette-row #feed-switcher {
-  width: 80px;
+  width: 100px;
   font-size: 14px;
   display: inline-block;
   float: left;
@@ -479,6 +479,9 @@ body {
 }
 .tracklist-container #current-cassette-row #feed-switcher #feed-switcher-header.feed-row {
   cursor: default;
+}
+.tracklist-container #current-cassette-row #feed-switcher #feed-switcher-content {
+  display: none;
 }
 .tracklist-container #current-cassette-row #feed-switcher #feed-switcher-content .feed-row:hover {
   cursor: pointer;
@@ -499,7 +502,8 @@ body {
   display: inline-block;
   font: bold 16px arial, sans-serif;
   text-align: center;
-  max-width: 16px;
+  width: 24px;
+  max-width: 24px;
   padding-right: 1px;
   color: #EEE;
 }
@@ -515,6 +519,7 @@ body {
   position: relative;
   width: 326px;
   border: 2px solid #424242;
+  border-top-width: 0px;
 }
 
 #blackout {

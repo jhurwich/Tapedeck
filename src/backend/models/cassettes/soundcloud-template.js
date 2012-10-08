@@ -7,7 +7,7 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
       "name" : "Unnamed", \
       "developer" : "<%= params.entity %>", \
       "developerLink" : "<%= params.domain %>", \
-      "defaultFeed" : "tracks", \
+      "defaultFeed" : "Tracks", \
     }, \
     isGroup : <%= params.isGroup %>, \
     entity : "<%= params.entity %>", \
@@ -15,8 +15,8 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
     consumerKey: "46785bdeaee8ea7f992b1bd8333c4445", \
 \
     feeds: { \
-      "tracks": "tracks", \
-      <% if (!params.isGroup) { print("\'favorites\': \'favorites\',") } %> \
+      "Tracks": "tracks", \
+      <% if (!params.isGroup) { print("\'Favorites\': \'favorites\',") } %> \
     }, \
 \
     /* No events, although probably want interval */ \
@@ -37,10 +37,11 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
       } \
       var perPageLimit = 20; \
 \
-      var feed = self.get("defaultFeed"); \
+      var feedName = self.get("defaultFeed"); \
       if (typeof(context.feed) != "undefined") { \
-        feed = context.feed; \
+        feedName = context.feed; \
       } \
+      var feed = self.feeds[feedName]; \
 \
       queryURL = queryURL + "/" + self.entityID + "/" + feed; \
       queryURL = queryURL + "?format=json&consumer_key=" + self.consumerKey; \

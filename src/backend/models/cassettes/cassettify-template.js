@@ -13,13 +13,16 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
     /* No events, although probably want interval */ \
     events: [], \
    \
-    getBrowseList: function(context, callback, errCallback) { \
+    getBrowseList: function(context, callback, errCallback, finalCallback) { \
       var self = this; \
-      self.getPage(1, context, callback, errCallback); \
+      self.getPage(1, context, callback, errCallback, finalCallback); \
     }, /* end getBrowseList */ \
  \
-    getPage: function(pageNum, context, callback, errCallback) { \
+    getPage: function(pageNum, context, callback, errCallback, finalCallback) { \
       var self = this; \
+      if (typeof(finalCallback) != "undefined") { \
+        self.finalCallback = finalCallback; \
+      } \
       var pageURL = self.pattern.replace(/\\$#/g, pageNum); \
  \
       /* Check if we already have the tracks saved for this page */ \
@@ -32,6 +35,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           } \
         } \
         callback(foundTracks); \
+        self.finalCallback({}); \
         return; \
       } \
  \
@@ -72,7 +76,8 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                              context      : $(pageDump), \
                                              callback     : saveClearAndCallback, \
-                                             moreCallback : self.addMoreCallback.curry(self, pageURL) }); \
+                                             moreCallback : self.addMoreCallback.curry(self, pageURL), \
+                                             finalCallback: self.finish.curry(self) }); \
       } \
     }, \
  \
@@ -98,12 +103,17 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                            context      : $(pageDump), \
                                            callback     : callback, \
-                                           moreCallback : self.addMoreCallback.curry(self, url) }); \
+                                           moreCallback : self.addMoreCallback.curry(self, url), \
+                                           finalCallback: self.finish.curry(self) }); \
     }, \
  \
     addMoreCallback: function(self, url, tracks) { \
       self.saveMoreTracksForURL(url, tracks); \
       Tapedeck.Backend.MessageHandler.addTracks(tracks); \
+    }, \
+ \
+    finish: function(self, params) { \
+      self.finalCallback(params); \
     }, \
  \
     isDumpCached: function(page) { \

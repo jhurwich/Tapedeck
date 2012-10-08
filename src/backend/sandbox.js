@@ -9,7 +9,7 @@ Tapedeck.Sandbox = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 0,
+  debug: 1,
 
   cassettes: {},
 
@@ -42,25 +42,29 @@ Tapedeck.Sandbox = {
           delete Tapedeck.Sandbox.Cassettes[testCassetteName];
         }
 
+        response.success = false;
         Tapedeck.Sandbox.prepCassette(code, function(report) {
           var cassette = Tapedeck.Sandbox.cassettes[report.tdID];
           cassette.getBrowseList(message.context, function(tracks) {
             // success callback
 
-            if (tracks.length == 0) {
-              // actually failed
-              response.success = false;
-            }
-            else {
+            if (tracks.length > 0) {
+              // no error, but make sure we got tracks.  Wait for Soundcloud tracks if not
               response.success = true;
-            }
+              response.report = report;
 
-            cleanup();
-            window.parent.postMessage(response, "*");
+              cleanup();
+              window.parent.postMessage(response, "*");
+            }
           }, function(error) {
             // error callback
 
             response.success = false;
+            cleanup();
+            window.parent.postMessage(response, "*");
+          }, function(final) {
+            // final callback
+            console.log("FINAL CALLBACK in testPattern in Sandbox: " + response.success)
             cleanup();
             window.parent.postMessage(response, "*");
           });
@@ -91,6 +95,12 @@ Tapedeck.Sandbox = {
           // error callback
           response.error = error;
           window.parent.postMessage(response, "*");
+        }, function(final) {
+
+          // final callback
+          response = final;
+          response.final = true;
+          window.parent.postMessage(response, "*");
         });
         break;
 
@@ -105,6 +115,12 @@ Tapedeck.Sandbox = {
 
           // error callback
           response.error = error;
+          window.parent.postMessage(response, "*");
+        }, function(final) {
+
+          // final callback
+          response = final;
+          response.final = true;
           window.parent.postMessage(response, "*");
         });
         break;

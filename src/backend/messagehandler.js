@@ -412,6 +412,14 @@ Tapedeck.Backend.MessageHandler = {
                  200);
       return;
     }
+    if (typeof(newTracks) == "object") {
+      if (typeof(newTracks.error) != "undefined") {
+        // some error
+      }
+      else if ($.isEmptyObject(newTracks)) {
+        newTracks = [];
+      }
+    }
 
     // pull in the queued tracks and blank the queue
     newTracks = newTracks.concat(msgHandler.addTracksQueued)
@@ -569,6 +577,7 @@ Tapedeck.Backend.MessageHandler = {
       finishUp = function(response) {
         if (typeof(response.params) != "undefined") {
           // success callback
+          response.params.tab = tab;
           callback(response.params);
           return;
         }
