@@ -82,15 +82,18 @@ if (onObject != null &&
         if (!parser.onBackgroundPage) {
           var response = {
             type: "response",
-            tracks: tracks
+            tracks: tracks,
+            finished: (!parser.isParsing)
           };
           chrome.extension.sendRequest(response);
         }
         else {
-          params.callback(tracks);
+          params.callback({ tracks: tracks, finished: (!parser.isParsing) });
         }
+
         if (!parser.isParsing && parser.finalCallback != null) {
-          parser.finalCallback({}); //
+          var success = (tracks.length > 0);
+          parser.finalCallback({ success: success }); //
         }
       }
       catch (e) {
@@ -102,13 +105,13 @@ if (onObject != null &&
           };
           chrome.extension.sendRequest(response);
           if (parser.finalCallback != null) {
-            parser.finalCallback({ error: "ParserError" });
+            parser.finalCallback({ error: "ParserError", success: false });
           }
         }
         else {
-          params.callback({ error: "ParserError" });
+          params.callback({ error: "ParserError", finished: true });
           if (parser.finalCallback != null) {
-            parser.finalCallback({ error: "ParserError" });
+            parser.finalCallback({ error: "ParserError", success: false });
           }
         }
       }
@@ -781,7 +784,7 @@ if (onObject != null &&
         parser.moreCallback(tracks);
 
         if (soundcloud.objectCount == 0 && parser.finalCallback != null) {
-          parser.finalCallback({});
+          parser.finalCallback({ success: true });
         }
       },
     }, // end parser.Soundcloud

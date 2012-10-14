@@ -414,7 +414,7 @@ Tapedeck.Backend.MessageHandler = {
     }
     if (typeof(newTracks) == "object") {
       if (typeof(newTracks.error) != "undefined") {
-        // some error
+        // TODO some error
       }
       else if ($.isEmptyObject(newTracks)) {
         newTracks = [];

@@ -9,7 +9,7 @@ Tapedeck.Sandbox = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 1,
+  debug: 2,
 
   cassettes: {},
 
@@ -27,6 +27,12 @@ Tapedeck.Sandbox = {
     {
       case "render":
       case "template":
+        if (Tapedeck.Sandbox.debug == Tapedeck.Sandbox.DEBUG_LEVELS.BASIC) {
+          Tapedeck.Sandbox.log("Rendering '" + message.templateName + "'");
+        }
+        else {
+          Tapedeck.Sandbox.log("Rendering '" + message.templateName + "' with params: " + JSON.stringify(message.params));
+        }
         response.rendered = Tapedeck.Sandbox.render(message.textTemplate, message.params);
         window.parent.postMessage(response, "*");
         break;
@@ -63,10 +69,13 @@ Tapedeck.Sandbox = {
             cleanup();
             window.parent.postMessage(response, "*");
           }, function(final) {
-            // final callback
-            console.log("FINAL CALLBACK in testPattern in Sandbox: " + response.success)
-            cleanup();
-            window.parent.postMessage(response, "*");
+
+            // final callback, make sure we haven't already succeeded
+            if (!response.success) {
+              response.success = final.success;
+              cleanup();
+              window.parent.postMessage(response, "*");
+            }
           });
         });
         break;
@@ -106,10 +115,11 @@ Tapedeck.Sandbox = {
 
       case "getPage":
         var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
-        cassette.getPage(message.params.page, message.params.context, function(tracks) {
+        cassette.getPage(message.params.page, message.params.context, function(params) {
 
           // success callback
-          response.tracks = tracks;
+          response.tracks = params.tracks;
+          response.finished = params.finished;
           window.parent.postMessage(response, "*");
         }, function(error) {
 

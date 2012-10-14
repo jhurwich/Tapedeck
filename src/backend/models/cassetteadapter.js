@@ -45,11 +45,11 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
     Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
       if (typeof(response.error) == "undefined" || !response.error) {
         // success
-        successCallback(response.tracks);
+        successCallback(response.tracks, response.finished);
       }
       else if (typeof(response.final) != "undefined" && response.final) {
         // final callback for this interaction
-        finalCallback(reponse);
+        finalCallback(response);
       } else {
         // there was some error
         errCallback(response.error);

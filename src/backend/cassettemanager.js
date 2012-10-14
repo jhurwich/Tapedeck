@@ -10,7 +10,7 @@ Tapedeck.Backend.CassetteManager = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 2,
+  debug: 0,
 
   init: function(continueInit) {
     var cMgr = Tapedeck.Backend.CassetteManager;
@@ -293,6 +293,7 @@ Tapedeck.Backend.CassetteManager = {
           self.origURL = params.testURL;
         }
 
+        console.trace();
         msgHandler.showModal({
           fields: [{ type : "info",
                      text : "Building Cassette, please wait." }],
@@ -300,7 +301,7 @@ Tapedeck.Backend.CassetteManager = {
                              callbackParam: "anotherSite" },
                            { text: "Advanced",
                              callbackParam: "advanced" }],
-          title: "Cassettify Wizard",
+          title: "Cassettify",
         }, self.chooseMethod);
 
         // first check if there's a cassette in the store for this url
@@ -308,29 +309,6 @@ Tapedeck.Backend.CassetteManager = {
 
         // if the store doesn't have anything, try to guess the pattern
         self.guessPattern(self.origURL, tab);
-        return; // TODO remove
-
-        msgHandler.showModal({
-          fields: [{ type          : "info",
-                     text          : "Couldn't find '$#' please try again.", },
-                   { type          : "info",
-                     text          : "Please enter the url for a site with '$#' for the page number." },
-                   { type          : "info",
-                     text          : "For example: theburningear.com/page/$#" },
-                   { type          : "input",
-                     text          : "",
-                     width         : "300",
-                     callbackParam : "pattern" }],
-          submitButtons : [{ text: "Submit pattern",
-                             callbackParam: "submit" },
-                           { text: "Try another site",
-                             callbackParam: "anotherSite" },
-                           { text: "Advanced",
-                             callbackParam: "advanced" }],
-          title: "Cassettify Wizard",
-        }, self.handlePatternInput, self.postLoadCleanup);
-
-        // injectMgr.registerPostInjectScript(self.tabID, self.captureNextLoad); SAVE_FOR_CAPTURE_NEXT_LOAD
       });
     },
 
@@ -349,7 +327,7 @@ Tapedeck.Backend.CassetteManager = {
                            callbackParam: "submit" },
                          { text: "Advanced",
                            callbackParam: "advanced" }],
-        title: "Cassettify",
+        title: "Cassettify a Site",
       }, self.handleURLInput, self.postLoadCleanup);
     },
 
@@ -365,6 +343,7 @@ Tapedeck.Backend.CassetteManager = {
       }
       cMgr.log("Received cassettification url '" + params.url + "'");
 
+      console.trace();
       msgHandler.showModal({
         fields: [{ type : "info",
                    text : "Building Cassette, please wait." }],
@@ -441,8 +420,12 @@ Tapedeck.Backend.CassetteManager = {
     },
 
     testPattern: function(domain, pattern, tab, successFn, failFn) {
+      var msgHandler = Tapedeck.Backend.MessageHandler;
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
+
+      // prevent the cassette from adding new tracks, forcing them to be queued
+      msgHandler.addTrackAvailable = false;
 
       // Use Sandbox to generate the Cassette's source
       var context = Tapedeck.Backend.Utils.getContext(tab);
@@ -453,7 +436,14 @@ Tapedeck.Backend.CassetteManager = {
         context: context
       };
       try {
-        Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+        msgHandler.messageSandbox(message, function(response) {
+          // check if tracks were added using msgHandler.addTracks, though getBrowseList may have failed
+          if (msgHandler.addTracksQueued.length > 0) {
+            response.success = true;
+          }
+          msgHandler.addTracksQueueud = [];
+          msgHandler.addTrackAvailable = true;
+
           if (response.success) {
             successFn(response);
           }
@@ -473,6 +463,7 @@ Tapedeck.Backend.CassetteManager = {
       var self = cMgr.Cassettify;
       var msgHandler = Tapedeck.Backend.MessageHandler;
 
+      console.trace();
       msgHandler.showModal({
         fields: [{ type : "info",
                    text : "Building Cassette, please wait." }],
@@ -480,7 +471,7 @@ Tapedeck.Backend.CassetteManager = {
                            callbackParam: "anotherSite" },
                          { text: "Advanced",
                            callbackParam: "advanced" }],
-        title: "Cassettify Wizard",
+        title: "Cassettify",
       }, self.chooseMethod);
 
       var cMgr = Tapedeck.Backend.CassetteManager;
@@ -513,7 +504,7 @@ Tapedeck.Backend.CassetteManager = {
                              callbackParam: "anotherSite" },
                            { text: "Advanced",
                              callbackParam: "advanced" }],
-          title: "Cassettify Wizard",
+          title: "Advanced Cassettify",
         }, self.handlePatternInput, self.postLoadCleanup);
         return;
       }
@@ -684,13 +675,13 @@ Tapedeck.Backend.CassetteManager = {
 
         msgHandler.showModal({
           fields: modalFields,
-          submitButtons : [{ text: "Submit Name",
+          submitButtons : [{ text: "Submit",
                              callbackParam: "submit" },
                            { text: "Try another site",
                              callbackParam: "anotherSite" },
                            { text: "Advanced",
                              callbackParam: "advanced" }],
-          title: "Cassettify Wizard",
+          title: "Name New Cassette",
         }, nameAndSaveCassette);
 
       }
@@ -714,7 +705,7 @@ Tapedeck.Backend.CassetteManager = {
                            callbackParam: "anotherSite" },
                          { text: "Advanced",
                            callbackParam: "advanced" }],
-        title: "Cassettify",
+        title: "Cassettify Failed",
       }, self.chooseMethod, self.postLoadCleanup);
     },
 

@@ -179,6 +179,10 @@ Tapedeck.Backend.TemplateManager = {
     }
   },
 
+  /* Fill each of the requestedOptions, fillings can be objects with object.fillAll = true
+   * to fold multiple values into the options to callback.  Otherwise, all params of options will
+   * be keys in the fillMap
+   */
   fillOptions: function(requestedOptions, callback) {
     var tMgr = Tapedeck.Backend.TemplateManager;
     var fillMap = {
@@ -209,7 +213,21 @@ Tapedeck.Backend.TemplateManager = {
 
           // call the filler
           filler(function(filling) {
-            options[param] = filling;
+            // if filling.fillAll, then fold all params from filling into options
+            if (filling &&
+                typeof(filling) == "object" &&
+                typeof(filling.fillAll) != "undefined" &&
+                filling.fillAll) {
+              for (var aParam in filling) {
+                if (aParam != "fillAll") {
+                  options[aParam] = filling[aParam];
+                }
+              }
+            }
+            else {
+              options[param] = filling;
+            }
+
             filledCount = filledCount + 1;
             if (filledCount >= optionCount) {
               callback(options);
@@ -267,8 +285,13 @@ Tapedeck.Backend.TemplateManager = {
 
     var context = Tapedeck.Backend.Utils.getContext(tab);
 
-    var handleTrackJSONs = function(trackJSONs) {
-
+    var handleTrackJSONs = function(trackJSONs, finished) {
+      if (typeof(finished) == "undefined") {
+        console.log("NO FINISHED");
+      }
+      else {
+        console.log("GOT FINISHED: " + finished);
+      }
       // Only push the browselist if we are still browsing the
       // cassette that these tracks belong to
       if (typeof(cMgr.currentCassette) == "undefined" ||
@@ -280,10 +303,13 @@ Tapedeck.Backend.TemplateManager = {
         return;
       }
       var browseTrackList = new Tapedeck.Backend.Collections.TrackList(trackJSONs);
-
       Tapedeck.Backend.Bank.saveCurrentBrowseList(browseTrackList);
 
       callback(browseTrackList);
+    };
+
+    var finalCallback = function(trackJSONs) {
+
     };
 
     try {
@@ -291,10 +317,11 @@ Tapedeck.Backend.TemplateManager = {
         cMgr.currentCassette.getPage(cMgr.currPage,
                                      context,
                                      handleTrackJSONs,
-                                     errCallback);
+                                     errCallback,
+                                     finalCallback);
       }
       else {
-        cMgr.currentCassette.getBrowseList(context, handleTrackJSONs, errCallback);
+        cMgr.currentCassette.getBrowseList(context, handleTrackJSONs, errCallback, finalCallback);
       }
     }
     catch (e) {

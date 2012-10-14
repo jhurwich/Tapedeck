@@ -34,23 +34,24 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
             foundTracks[i].cassette = self.get("name"); \
           } \
         } \
-        callback(foundTracks); \
+        callback(foundTracks, true); \
         self.finalCallback({}); \
         return; \
       } \
  \
       /* Modify the callback slightly so that the tracks are saved */ \
-      var saveClearAndCallback = function(tracks) { \
-        if (typeof(tracks.error) != "undefined") { \
+      var saveClearAndCallback = function(params) { \
+        if (typeof(params.error) != "undefined") { \
           console.error("Error parsing tracks for " + self.domain + ", page " + pageNum); \
-          errCallback(tracks.error); \
+          errCallback(params.error); \
         } \
         else { \
+          var tracks = params.tracks; \
           self.saveTracksForURL(pageURL, tracks); \
           var ourDump = $("#dump").find("#CassetteFromTemplate"); \
           var pageDump = $(ourDump).find("#page" + pageNum); \
           pageDump.remove(); \
-          callback(tracks); \
+          callback(tracks, params.finished); \
         } \
       }; \
  \
