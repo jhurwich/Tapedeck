@@ -259,74 +259,76 @@
                      id="loading-spinner"></div>
               </div>
             </div>
-          <% } else if (typeof(params.trackList) == "string" && params.trackList == "error" ) { %>
-            <div class="row-container">
-              <div class="row blank">
-                <span class="error-msg">Could not retrieve list</span>
-              </div>
-            </div>
-          <% } else if (params.trackList.length == 0) { %>
-            <div class="row-container">
-              <div class="row blank">
-                <% if (params.trackList.destination == "Queue") { %>
-                  There are no tracks in your queue.
-                <% }
-                else { %>
-                  Cassette is blank. (Soundcloud may be loading)
-                <% } %>
-              </div>
-            </div>
-          <% }
-          else { %>
-            <div class="row-container">
-              <div class="row" id="hidden-droprow" index="-1">
-                <div class="cell trackName-col"></div>
-                <div class="cell artistName-col"></div>
-                <div class="cell cassette-col"></div>
-              </div>
-            </div>
-
-            <% for (var i=0; i < params.trackList.length; i++) {
-              var track = params.trackList[i];
-            %>
+          <% } else {
+            if (typeof(params.errorString) != "undefined" && params.errorString.length > 0) { %>
               <div class="row-container">
-                <div class="row
-                            <% if (track.listened) { print(" listened ") } %>
-                            <% if (track.playing) { print(" playing ") } %>"
-                     index='<%= i %>'
-                     track-id='<%= track.tdID %>'
-                     track-type='<% if(typeof(track.type) == "undefined") {
-                                      print("unknown")
-                                    } else {
-                                      print(track.type)
-                                    } %>'
-                     <% if (typeof(track.download) != "undefined") {
-                        print("download='" + track.download + "'");
-                     } %>
-                     draggable="true" >
-                  <div class="cell trackName-col" title='<%= track.trackName %>'>
-                    <span class="trackName-span" >
-                      <%= track.trackName %>
-                    </span>
-                  </div>
-                  <div class="cell artistName-col" title='<%= track.artistName %>'>
-                    <%= track.artistName %>
-                  </div>
-                  <div class="cell cassette-col" title='<%= track.cassette.replace(/_/g, " ") %>'>
-                    <%= track.cassette.replace(/_/g, " ") %>
-                    <div class="row-buttons">
-                      <div class="button playnow"></div>
-                      <div class="button remove"></div>
-                      <div class="button queue"></div>
-                      <div class="button download"></div>
+                <div class="row blank cell">
+                  <span class="error-msg"><%= params.errorString %></span>
+                </div>
+              </div>
+            <% } else if (params.trackList.length == 0) { %>
+              <div class="row-container">
+                <div class="row blank">
+                  <% if (params.trackList.destination == "Queue") { %>
+                    There are no tracks in your queue.
+                  <% }
+                  else { %>
+                    Cassette is blank.
+                  <% } %>
+                </div>
+              </div>
+            <% }
+            if (params.trackList.length > 0) { %>
+              <div class="row-container">
+                <div class="row" id="hidden-droprow" index="-1">
+                  <div class="cell trackName-col"></div>
+                  <div class="cell artistName-col"></div>
+                  <div class="cell cassette-col"></div>
+                </div>
+              </div>
+
+              <% for (var i=0; i < params.trackList.length; i++) {
+                var track = params.trackList[i];
+              %>
+                <div class="row-container">
+                  <div class="row
+                              <% if (track.listened) { print(" listened ") } %>
+                              <% if (track.playing) { print(" playing ") } %>"
+                       index='<%= i %>'
+                       track-id='<%= track.tdID %>'
+                       track-type='<% if(typeof(track.type) == "undefined") {
+                                        print("unknown")
+                                      } else {
+                                        print(track.type)
+                                      } %>'
+                       <% if (typeof(track.download) != "undefined") {
+                          print("download='" + track.download + "'");
+                       } %>
+                       draggable="true" >
+                    <div class="cell trackName-col" title='<%= track.trackName %>'>
+                      <span class="trackName-span" >
+                        <%= track.trackName %>
+                      </span>
                     </div>
-                    <div class="row-indicators">
-                      <div class="spinner download"
-                           id="download-spinner"></div>
+                    <div class="cell artistName-col" title='<%= track.artistName %>'>
+                      <%= track.artistName %>
+                    </div>
+                    <div class="cell cassette-col" title='<%= track.cassette.replace(/_/g, " ") %>'>
+                      <%= track.cassette.replace(/_/g, " ") %>
+                      <div class="row-buttons">
+                        <div class="button playnow"></div>
+                        <div class="button remove"></div>
+                        <div class="button queue"></div>
+                        <div class="button download"></div>
+                      </div>
+                      <div class="row-indicators">
+                        <div class="spinner download"
+                             id="download-spinner"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              <% } %>
             <% } %>
           <% } %>
         </div>
@@ -538,9 +540,9 @@
               <div class="menu-row cassettify">
                 Cassettify
               </div>
-              <!-- DEBUG quick-cassette maker
-              <div class="menu-row tbe"> Quick-create TBE </div>
-               END_DEBUG -->
+              <!-- DEBUG quick-cassette maker -->
+              <div class="menu-row tbe"> Quick-create Debug Cassette </div>
+               <!-- END_DEBUG -->
             </div>
           </div>
         </div>

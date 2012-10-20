@@ -21,6 +21,7 @@ if (onObject != null &&
     },
     debug: 0,
 
+    ASYNC_TIMELIMIT: 30, /* seconds */
     moreCallback: null,
     finalCallback: null,
     context: null,
@@ -91,9 +92,26 @@ if (onObject != null &&
           params.callback({ tracks: tracks, finished: (!parser.isParsing) });
         }
 
-        if (!parser.isParsing && parser.finalCallback != null) {
-          var success = (tracks.length > 0);
-          parser.finalCallback({ success: success }); //
+        if (parser.finalCallback != null) {
+          if (!parser.isParsing) {
+            var success = (tracks.length > 0);
+            parser.finalCallback({ success: success });
+          }
+          else {
+            // if there are asych parses in progress, we time limit them
+            setTimeout(function() {
+              console.log("TIMEOUT");
+
+              // destroy the callbacks so that nothing can come in after this
+              var fCallback = parser.finalCallback;
+              parser.finalCallback = null;
+              parser.moreCallback = null;
+
+              // we ran out of time, failure
+              fCallback({ success: false });
+
+            }, parser.ASYNC_TIMELIMIT * 1000)
+          }
         }
       }
       catch (e) {
@@ -105,13 +123,13 @@ if (onObject != null &&
           };
           chrome.extension.sendRequest(response);
           if (parser.finalCallback != null) {
-            parser.finalCallback({ error: "ParserError", success: false });
+            parser.finalCallback({ error: "ParserError", errorCount: 1, success: false });
           }
         }
         else {
           params.callback({ error: "ParserError", finished: true });
           if (parser.finalCallback != null) {
-            parser.finalCallback({ error: "ParserError", success: false });
+            parser.finalCallback({ error: "ParserError", errorCount: 1, success: false });
           }
         }
       }
@@ -562,6 +580,7 @@ if (onObject != null &&
 
     Soundcloud : {
       objectCount : 0,
+      errorCount : 0,
       consumerKey: "46785bdeaee8ea7f992b1bd8333c4445",
 
       // returns true if soundcloud parsing is necessary, false otherwise
@@ -646,7 +665,9 @@ if (onObject != null &&
           var queryURL = decodeURIComponent(matches[1]);
 
           queryURL += "?format=json&consumer_key=";
-          queryURL += soundcloud.consumerKey;
+          if (soundcloud.objectCount != 1) {
+            queryURL += soundcloud.consumerKey;
+          }
 
           parser.log("sending request to " + queryURL);
           $.ajax({
@@ -658,6 +679,10 @@ if (onObject != null &&
 
             error: function (response) {
               console.error("Ajax error retrieving '" + queryURL + "'");
+
+              soundcloud.objectCount--;
+              soundcloud.errorCount++;
+              soundcloud.checkAndFinish();
             },
           });
         }
@@ -710,6 +735,10 @@ if (onObject != null &&
 
           error: function (response) {
             console.error("Ajax error retrieving '" + queryURL + "'");
+
+            soundcloud.objectCount--;
+            soundcloud.errorCount++;
+            soundcloud.checkAndFinish();
           },
         });
       },
@@ -783,8 +812,21 @@ if (onObject != null &&
         parser.log("adding Soundcloud tracks: " + JSON.stringify(tracks));
         parser.moreCallback(tracks);
 
+        soundcloud.checkAndFinish();
+      },
+
+      checkAndFinish: function() {
+        var parser = onObject.TrackParser;
+        var soundcloud = parser.Soundcloud;
+
         if (soundcloud.objectCount == 0 && parser.finalCallback != null) {
-          parser.finalCallback({ success: true });
+          var finalResponse = { success: (soundcloud.errorCount == 0) };
+          if (soundcloud.errorCount > 0) {
+            finalResponse.errorCount = soundcloud.errorCount;
+            soundcloud.errorCount = 0;
+          }
+          console.log("seding finalResponse: " + JSON.stringify(finalResponse));
+          parser.finalCallback(finalResponse);
         }
       },
     }, // end parser.Soundcloud

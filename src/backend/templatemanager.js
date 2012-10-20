@@ -308,9 +308,39 @@ Tapedeck.Backend.TemplateManager = {
       callback(browseTrackList);
     };
 
-    var finalCallback = function(trackJSONs) {
+    var finalCallback = function(response) {
+      var msgHandler = Tapedeck.Backend.MessageHandler;
 
-    };
+
+      var continueFinal = function() {
+        if (!response.success || response.errorCount > 0) {
+
+          Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList){
+            var errorString = "";
+            if (browseList.length == 0) {
+              errorString = "Sorry, we could not parse the site.";
+              if (response.errorCount > 1) {
+                errorString += " (" + response.errorCount + " errors)";
+              }
+            }
+            else if (response.errorCount > 1) {
+              errorString = "There were " + response.errorCount + " errors when parsing the site.";
+            }
+            else {
+              errorString = "There were errors when parsing the site.";
+            }
+            Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, errorString, tab);
+          });
+        }
+      }; // end continueFinal()
+
+      if (typeof(response.tracks) != "undefined" && response.tracks.length > 0) {
+        msgHandler.addTracks(response.tracks, continueFinal);
+      }
+      else {
+        continueFinal();
+      }
+    }; // end finalCallback()
 
     try {
       if (cMgr.currentCassette.isPageable()) {

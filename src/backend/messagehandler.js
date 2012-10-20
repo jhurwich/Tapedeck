@@ -403,12 +403,12 @@ Tapedeck.Backend.MessageHandler = {
   // Basic mutex.  Push tracks to queue if lock is held.
   addTrackAvailable: true,
   addTracksQueued: [ ],
-  addTracks: function(newTracks, tab) {
+  addTracks: function(newTracks, tab, callback) {
     var msgHandler = Tapedeck.Backend.MessageHandler;
     if (!msgHandler.addTrackAvailable) {
       // We shifted the new tracks to the queue, and push empty array
       msgHandler.addTracksQueued = msgHandler.addTracksQueued.concat(newTracks);
-      setTimeout(msgHandler.addTracks.curry([], tab),
+      setTimeout(msgHandler.addTracks.curry([], tab, callback),
                  200);
       return;
     }
@@ -446,14 +446,22 @@ Tapedeck.Backend.MessageHandler = {
         Tapedeck.Backend.Bank.saveCurrentBrowseList(browseList);
       }
       Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
+      if (typeof(callback) !="undefined") {
+        callback();
+      }
     });
   },
 
-  // browseTrackList == null means push the loading state
-  pushBrowseTrackList: function(browseTrackList, tab) {
+  // browseTrackList == null means push the loading state, errorString and tab are optional
+  pushBrowseTrackList: function(browseTrackList, errorString, tab) {
+    if (typeof(errorString) != "string") {
+      tab = errorString;
+      errorString = undefined;
+    }
     if (typeof(tab) == "undefined") {
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
         Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseTrackList,
+                                                            errorString,
                                                             selectedTab);
       });
       return;
@@ -482,6 +490,11 @@ Tapedeck.Backend.MessageHandler = {
       currentPage : cMgr.currPage,
       browseList : browseTrackList
     }
+    if (typeof(errorString) != "undefined") {
+      options.errorString = errorString;
+    }
+
+    console.log("PUSHING BROWSELIST : " + JSON.stringify(options));
 
     Tapedeck.Backend.TemplateManager.renderViewWithOptions("BrowseList", options, function(browseView) {
       Tapedeck.Backend.MessageHandler.pushView(browseView.el,
@@ -713,7 +726,7 @@ Tapedeck.Backend.MessageHandler = {
           break;
 
         default:
-          throw new Error("MessageHandler's sandboxListener was sent an unknown action");
+          throw new Error("MessageHandler's sandboxListener was sent an unknown action: '" + request.action + "'");
           break;
       }
     }

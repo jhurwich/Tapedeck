@@ -43,16 +43,17 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
       tdID: this.get("tdID")
     };
     Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
-      if (typeof(response.error) == "undefined" || !response.error) {
-        // success
-        successCallback(response.tracks, response.finished);
+      console.log("      Adapter received: " + JSON.stringify(response) + " ");
+      if (typeof(response.error) != "undefined" && response.error) {
+        // there was some error
+        errCallback(response.error);
       }
       else if (typeof(response.final) != "undefined" && response.final) {
         // final callback for this interaction
         finalCallback(response);
       } else {
-        // there was some error
-        errCallback(response.error);
+        // success
+        successCallback(response.tracks, response.finished);
       }
     });
   },

@@ -178,6 +178,7 @@ body {
 }
 .tracklist .row.blank {
   padding: 3px;
+  cursor: default;
 }
 .tracklist .spinner.loading,
 .cassettelist .spinner.loading {

@@ -269,6 +269,7 @@ Tapedeck.Backend.CassetteManager = {
   Cassettify: {
     origURL: "",
     secondURL: "",
+    waitingForInput: false,
 
     // for guessing page url structures, $@ is replaced with domain, $# with page number
     commonURLPatterns: ["$@/page/$#"],
@@ -316,6 +317,9 @@ Tapedeck.Backend.CassetteManager = {
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
       var msgHandler = Tapedeck.Backend.MessageHandler;
+
+      self.waitingForInput = true;
+
       msgHandler.showModal({
         fields: [{ type          : "info",
                    text          : "Please enter a site to cassettify." },
@@ -334,12 +338,24 @@ Tapedeck.Backend.CassetteManager = {
     handleURLInput: function(params) {
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
+
+      self.waitingForInput = false;
+      self.createByURL(params)
+    },
+
+    createByURL: function(params) {
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
       var msgHandler = Tapedeck.Backend.MessageHandler;
       if (typeof(params.submitButton) != "undefined" && params.submitButton != "submit") {
          if (params.submitButton == "advanced") {
           cMgr.Cassettify.byPattern();
           return;
         }
+      }
+      // don't continue if we're waiting for the user to continue another cassetification
+      if (self.waitingForInput) {
+        return;
       }
       cMgr.log("Received cassettification url '" + params.url + "'");
 
@@ -363,6 +379,9 @@ Tapedeck.Backend.CassetteManager = {
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
+
+      self.waitingForInput = true;
+
       msgHandler.showModal({
         fields: [{ type          : "info",
                    text          : "Please enter the url for a site with '$#' for the page number." },
@@ -410,7 +429,7 @@ Tapedeck.Backend.CassetteManager = {
 
         self.testPattern(domain, guess, tab, function(successResponse) {
           cMgr.log("Success with guess: '" + guess + "'");
-          self.handlePatternInput(guess);
+          self.createByPattern(guess);
         }, function(failResponse) {
           cMgr.log("Failed with guess: '" + guess + "'");
           tryPattern(i + 1)
@@ -461,7 +480,21 @@ Tapedeck.Backend.CassetteManager = {
     handlePatternInput: function(params) {
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
+
+      self.waitingForInput = false;
+      self.createByPattern(params);
+    },
+
+    // param can be an object of params (with params.pattern) or the pattern string
+    createByPattern: function(params) {
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var self = cMgr.Cassettify;
       var msgHandler = Tapedeck.Backend.MessageHandler;
+
+      // don't continue if we're waiting for the user to continue another cassetification
+      if (self.waitingForInput) {
+        return;
+      }
 
       console.trace();
       msgHandler.showModal({
@@ -486,6 +519,8 @@ Tapedeck.Backend.CassetteManager = {
 
       var index = pattern.indexOf("$#");
       if (index == -1) {
+        self.waitingForInput = true;
+
         // couldn't find the pattern
         msgHandler.showModal({
           fields: [{ type          : "info",
@@ -529,8 +564,8 @@ Tapedeck.Backend.CassetteManager = {
       try {
         Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
           var options = { domain: domain };
-          if (response.cassetteName != "undefined") {
-            options.cassetteName = response.cassetteName;
+          if (params.cassetteName != "undefined") {
+            options.cassetteName = params.cassetteName;
           }
           cMgr.Cassettify.nameCassette(response.rendered, options);
         });
@@ -634,6 +669,7 @@ Tapedeck.Backend.CassetteManager = {
           return;
         }
         var saveableName = params.cassetteName.replace(/\s/g, "_");
+        self.waitingForInput = false;
 
         if (typeof(Tapedeck.Backend.Cassettes[saveableName]) != "undefined") {
           options.msg = "The name you enterred is in use";
@@ -673,6 +709,7 @@ Tapedeck.Backend.CassetteManager = {
                            text          : "",
                            callbackParam : "cassetteName"  });
 
+        self.waitingForInput = true;
         msgHandler.showModal({
           fields: modalFields,
           submitButtons : [{ text: "Submit",
@@ -691,6 +728,11 @@ Tapedeck.Backend.CassetteManager = {
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var cMgr = Tapedeck.Backend.CassetteManager;
       self = cMgr.Cassettify;
+
+      // don't show the fail page if we're waiting for the user's input
+      if (self.waitingForInput) {
+        return;
+      }
 
       var fields = [];
       if ((params.msg) != "undefined") {
@@ -736,8 +778,8 @@ Tapedeck.Backend.CassetteManager = {
 
     quickCreate: function() {
       var cMgr = Tapedeck.Backend.CassetteManager;
-      var name = "TBE " + Math.floor(Math.random() * 100000);
-      cMgr.Cassettify.handlePatternInput({ pattern : "theburningear.com/page/$#",
+      var name = "Audiocred " + Math.floor(Math.random() * 100000);
+      cMgr.Cassettify.handlePatternInput({ pattern : "audiocred.com/page/$#",
                                            cassetteName : name });
     },
 

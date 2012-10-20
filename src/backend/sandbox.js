@@ -9,7 +9,7 @@ Tapedeck.Sandbox = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 2,
+  debug: 1,
 
   cassettes: {},
 
@@ -34,7 +34,7 @@ Tapedeck.Sandbox = {
           Tapedeck.Sandbox.log("Rendering '" + message.templateName + "' with params: " + JSON.stringify(message.params));
         }
         response.rendered = Tapedeck.Sandbox.render(message.textTemplate, message.params);
-        window.parent.postMessage(response, "*");
+        Tapedeck.Sandbox.sendMessage(response);
         break;
 
       case "testPattern":
@@ -58,24 +58,24 @@ Tapedeck.Sandbox = {
               // no error, but make sure we got tracks.  Wait for Soundcloud tracks if not
               response.success = true;
               response.report = report;
+              finished = true;
 
               cleanup();
-              window.parent.postMessage(response, "*");
+              Tapedeck.Sandbox.sendMessage(response);
             }
           }, function(error) {
             // error callback
 
             response.success = false;
             cleanup();
-            window.parent.postMessage(response, "*");
+            Tapedeck.Sandbox.sendMessage(response);
           }, function(final) {
 
-            // final callback, make sure we haven't already succeeded
-            if (!response.success) {
-              response.success = final.success;
-              cleanup();
-              window.parent.postMessage(response, "*");
-            }
+            // final callback
+            var finalResponse = Tapedeck.Sandbox.newResponse(message);
+            finalResponse.success = final.success;
+            cleanup();
+            Tapedeck.Sandbox.sendMessage(finalResponse);
           });
         });
         break;
@@ -83,13 +83,13 @@ Tapedeck.Sandbox = {
       case "prepCassette":
         Tapedeck.Sandbox.prepCassette(message.code, function(report) {
           response.report = report;
-          window.parent.postMessage(response, "*");
+          Tapedeck.Sandbox.sendMessage(response);
         });
         break;
 
       case "clearCassettes":
         Tapedeck.Sandbox.clearCassettes();
-        window.parent.postMessage(response, "*");
+        Tapedeck.Sandbox.sendMessage(response);
         break;
 
       case "getBrowseList":
@@ -98,18 +98,23 @@ Tapedeck.Sandbox = {
 
           // success callback
           response.tracks = tracks;
-          window.parent.postMessage(response, "*");
+          Tapedeck.Sandbox.sendMessage(response);
         }, function(error) {
 
           // error callback
           response.error = error;
-          window.parent.postMessage(response, "*");
+          Tapedeck.Sandbox.sendMessage(response);
         }, function(final) {
 
           // final callback
-          response = final;
-          response.final = true;
-          window.parent.postMessage(response, "*");
+          var finalResponse = Tapedeck.Sandbox.newResponse(message);
+          finalResponse.final = true;
+          finalResponse.success = final.success;
+
+          if (typeof(final.tracks) != "undefined") {
+            finalResponse.tracks = final.tracks;
+          }
+          Tapedeck.Sandbox.sendMessage(finalResponse);
         });
         break;
 
@@ -120,18 +125,23 @@ Tapedeck.Sandbox = {
           // success callback
           response.tracks = params.tracks;
           response.finished = params.finished;
-          window.parent.postMessage(response, "*");
+          Tapedeck.Sandbox.sendMessage(response);
         }, function(error) {
 
           // error callback
           response.error = error;
-          window.parent.postMessage(response, "*");
+          Tapedeck.Sandbox.sendMessage(response);
         }, function(final) {
+          console.log("      SB got final: " + JSON.stringify(final));
 
           // final callback
-          response = final;
-          response.final = true;
-          window.parent.postMessage(response, "*");
+          var finalResponse = Tapedeck.Sandbox.newResponse(message);
+          for (var param in final) {
+            finalResponse[param] = final[param];
+          }
+          finalResponse.final = true;
+
+          Tapedeck.Sandbox.sendMessage(finalResponse);
         });
         break;
 
@@ -146,7 +156,7 @@ Tapedeck.Sandbox = {
                          Tapedeck.Sandbox.DEBUG_LEVELS.ALL);
     var template = _.template(textTemplate);
 
-    if (Tapedeck.Sandbox.debug > 0) {
+    if (Tapedeck.Sandbox.debug > Tapedeck.Sandbox.DEBUG_LEVELS.BASIC) {
       var debugMethods = {
         paramSanity: function(paramName, necessary, checkValue) {
           var str = ">>>==============> ";
@@ -281,6 +291,22 @@ Tapedeck.Sandbox = {
     }, handleAjax);
     // callback to params.success or params.error
 
+    Tapedeck.Sandbox.sendMessage(message);
+  },
+
+  sendMessage: function(message) {
+    var str = "Sending " + message.type;
+    if (typeof(message.action) != "undefined") {
+      str += " with action '" + message.action + "'";
+    }
+    else if (typeof(message.rendered) != "undefined") {
+      str += " with a render";
+    }
+    else {
+      str += " ## " + JSON.stringify(message) + " # ";
+      console.trace();
+    }
+    Tapedeck.Sandbox.log(str);
     window.parent.postMessage(message, "*");
   },
 
@@ -318,7 +344,7 @@ if (typeof Tapedeck.Backend == "undefined") {
       if (typeof(tab) != "undefined") {
         message.tab = tab;
       }
-      window.parent.postMessage(message, "*");
+      Tapedeck.Sandbox.sendMessage(message, "*");
     }
   };
 
