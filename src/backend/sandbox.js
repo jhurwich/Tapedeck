@@ -51,14 +51,13 @@ Tapedeck.Sandbox = {
         response.success = false;
         Tapedeck.Sandbox.prepCassette(code, function(report) {
           var cassette = Tapedeck.Sandbox.cassettes[report.tdID];
-          cassette.getBrowseList(message.context, function(tracks) {
+          cassette.getBrowseList(message.context, function(response) {
             // success callback
 
-            if (tracks.length > 0) {
+            if (response.tracks.length > 0) {
               // no error, but make sure we got tracks.  Wait for Soundcloud tracks if not
               response.success = true;
               response.report = report;
-              finished = true;
 
               cleanup();
               Tapedeck.Sandbox.sendMessage(response);
@@ -94,10 +93,10 @@ Tapedeck.Sandbox = {
 
       case "getBrowseList":
         var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
-        cassette.getBrowseList(message.params.context, function(tracks) {
+        cassette.getBrowseList(message.params.context, function(params) {
 
           // success callback
-          response.tracks = tracks;
+          response.tracks = params.tracks;
           Tapedeck.Sandbox.sendMessage(response);
         }, function(error) {
 
@@ -124,7 +123,6 @@ Tapedeck.Sandbox = {
 
           // success callback
           response.tracks = params.tracks;
-          response.finished = params.finished;
           Tapedeck.Sandbox.sendMessage(response);
         }, function(error) {
 
@@ -303,8 +301,7 @@ Tapedeck.Sandbox = {
       str += " with a render";
     }
     else {
-      str += " ## " + JSON.stringify(message) + " # ";
-      console.trace();
+      str += " ## " + JSON.stringify(message);
     }
     Tapedeck.Sandbox.log(str);
     window.parent.postMessage(message, "*");

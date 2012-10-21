@@ -5,7 +5,7 @@ Tapedeck.Backend.MessageHandler = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 0,
+  debug: 2,
 
   ports: {},
   init: function() {
@@ -405,11 +405,25 @@ Tapedeck.Backend.MessageHandler = {
   addTracksQueued: [ ],
   addTracks: function(newTracks, tab, callback) {
     var msgHandler = Tapedeck.Backend.MessageHandler;
+    var cMgr = Tapedeck.Backend.CassetteManager;
+
+    // Can only add tracis if there's a cassette being browsed
+    if (typeof(cMgr.currentCassette) == "undefined" || cMgr.currentCassette == null) {
+      console.log("add track no cassette - stop");
+      return;
+    }
+    if (newTracks.length > 0 &&
+        newTracks[0].cassette != cMgr.currentCassette.get("name")) {
+      console.log(" add track cassette mismatch ");
+      return;
+    }
+
     if (!msgHandler.addTrackAvailable) {
       // We shifted the new tracks to the queue, and push empty array
       msgHandler.addTracksQueued = msgHandler.addTracksQueued.concat(newTracks);
       setTimeout(msgHandler.addTracks.curry([], tab, callback),
                  200);
+      console.log("  defering");
       return;
     }
     if (typeof(newTracks) == "object") {
@@ -420,6 +434,7 @@ Tapedeck.Backend.MessageHandler = {
         newTracks = [];
       }
     }
+    msgHandler.log("Adding " + newTracks.length + " new tracks.");
 
     // pull in the queued tracks and blank the queue
     newTracks = newTracks.concat(msgHandler.addTracksQueued)
@@ -429,7 +444,10 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
     msgHandler.addTrackAvailable = false;
+    console.log(" && disable in addTracks");
+
     Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList){
+      console.log(" & in gcbl");
       var origLen = browseList.length;
 
       // make sure there isn't already this track in the list
@@ -445,6 +463,7 @@ Tapedeck.Backend.MessageHandler = {
       if (browseList.length > origLen) {
         Tapedeck.Backend.Bank.saveCurrentBrowseList(browseList);
       }
+      console.log(" & calling push");
       Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
       if (typeof(callback) !="undefined") {
         callback();
@@ -454,9 +473,11 @@ Tapedeck.Backend.MessageHandler = {
 
   // browseTrackList == null means push the loading state, errorString and tab are optional
   pushBrowseTrackList: function(browseTrackList, errorString, tab) {
-    if (typeof(errorString) != "string") {
+    console.log(" & pushing");
+    if (typeof(errorString) != "undefined" && typeof(errorString) != "string") {
       tab = errorString;
       errorString = undefined;
+      console.log(" & no errorString");
     }
     if (typeof(tab) == "undefined") {
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
@@ -464,26 +485,28 @@ Tapedeck.Backend.MessageHandler = {
                                                             errorString,
                                                             selectedTab);
       });
+      console.log(" & bouncback");
       return;
     }
+
     var cMgr = Tapedeck.Backend.CassetteManager;
     var msgHandler = Tapedeck.Backend.MessageHandler;
 
+    msgHandler.addTrackAvailable = true;
+    console.log(" && enable in pushbrowse")
+
     // Can only push a new browselist if there's a cassette being browsed
-    if (typeof(cMgr.currentCassette) == "undefined" ||
-               cMgr.currentCassette == null) {
-      msgHandler.addTrackAvailable = true;
+    if (typeof(cMgr.currentCassette) == "undefined" || cMgr.currentCassette == null) {
+      console.log("no cassette - stop");
       return;
     }
     if (browseTrackList != null &&
         browseTrackList.length > 0 &&
         browseTrackList.at(0).get("cassette") != cMgr.currentCassette.get("name")) {
-
-      msgHandler.addTrackAvailable = true;
+      console.log("cassette mismatch - " + browseTrackList.at(0).get("cassette") + " - " + cMgr.currentCassette.get("name"));
+      console.log(JSON.stringify(browseTrackList.toJSON()));
       return;
     }
-
-    msgHandler.addTrackAvailable = true;
 
     var options = {
       currentCassette : cMgr.currentCassette,
@@ -698,10 +721,12 @@ Tapedeck.Backend.MessageHandler = {
 
   sandboxListener: function(event) {
     if (event.data.type == "response") {
+      console.log("     sL: response");
       Tapedeck.Backend.MessageHandler.sandboxCallbacks[event.data.callbackID](event.data);
     }
     else {
       var request = event.data;
+      console.log("     sL: " + JSON.stringify(event.data.action));
       switch (request.action) {
         case "addTracks":
           Tapedeck.Backend.MessageHandler.addTracks(request.tracks, request.tab);

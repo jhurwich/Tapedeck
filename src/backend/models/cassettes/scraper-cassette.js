@@ -23,7 +23,7 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
         for (var i in response.tracks) {
           response.tracks[i].cassette = self.get("name");
         }
-        callback(response.tracks);
+        callback(response);
       }
     };
 

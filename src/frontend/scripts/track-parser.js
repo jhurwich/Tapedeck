@@ -61,19 +61,12 @@ if (onObject != null &&
         };
       }
 
-      if (typeof(params.finalCallback) != "undefined") {
-        parser.finalCallback = params.finalCallback;
-      }
-
       if (typeof(params.context) == "undefined") {
         parser.context = document;
       }
       else {
         parser.context = params.context;
       }
-
-      parser.isParsing = true;
-      parser.log("starting parsing", parser.DEBUG_LEVELS.BASIC);
 
       // try to get songs, catch any parser fails
       try {
@@ -84,38 +77,43 @@ if (onObject != null &&
           var response = {
             type: "response",
             tracks: tracks,
-            finished: (!parser.isParsing)
+            stillParsing: parser.isParsing
           };
           chrome.extension.sendRequest(response);
         }
         else {
-          params.callback({ tracks: tracks, finished: (!parser.isParsing) });
+          params.callback({ tracks: tracks, stillParsing: parser.isParsing });
         }
 
-        if (parser.finalCallback != null) {
+        if (typeof(parser.finalCallback) != "undefined" && parser.finalCallback != null) {
           if (!parser.isParsing) {
             var success = (tracks.length > 0);
             parser.finalCallback({ success: success });
           }
           else {
             // if there are asych parses in progress, we time limit them
-            setTimeout(function() {
-              console.log("TIMEOUT");
+            var timeout = setTimeout(function(p) {
+              console.log("TIMEOUT :: FC=" + typeof(p.finalCallback));
+              if (typeof(p.finalCallback) != "function") {
+                console.log(JSON.stringify(p.finalCallback));
+              }
 
               // destroy the callbacks so that nothing can come in after this
-              var fCallback = parser.finalCallback;
-              parser.finalCallback = null;
-              parser.moreCallback = null;
+              p.finalCallback({ success: false });
+              p.finalCallback = null;
+              p.moreCallback = null;
 
-              // we ran out of time, failure
-              fCallback({ success: false });
-
-            }, parser.ASYNC_TIMELIMIT * 1000)
+            }, parser.ASYNC_TIMELIMIT * 1000, parser);
+            parser.finalCallback = function(options) {
+              console.log("TIMEOUT cleared")
+              clearTimeout(timeout);
+              params.finalCallback(options);
+            }
           }
         }
       }
       catch (e) {
-        console.err("ParserError")
+        console.error("ParserError")
         if (!parser.onBackgroundPage) {
           var response = {
             type: "response",
@@ -127,7 +125,7 @@ if (onObject != null &&
           }
         }
         else {
-          params.callback({ error: "ParserError", finished: true });
+          params.callback({ error: "ParserError" });
           if (parser.finalCallback != null) {
             parser.finalCallback({ error: "ParserError", errorCount: 1, success: false });
           }
@@ -138,6 +136,8 @@ if (onObject != null &&
 
     findSongs : function() {
       var parser = onObject.TrackParser;
+      parser.isParsing = true;
+      parser.log("starting parsing", parser.DEBUG_LEVELS.BASIC);
 
       //  Each scrape returns a map of url => track objects.
       //  This allows us to merge, preventing url duplicates and
@@ -665,9 +665,7 @@ if (onObject != null &&
           var queryURL = decodeURIComponent(matches[1]);
 
           queryURL += "?format=json&consumer_key=";
-          if (soundcloud.objectCount != 1) {
-            queryURL += soundcloud.consumerKey;
-          }
+          queryURL += soundcloud.consumerKey;
 
           parser.log("sending request to " + queryURL);
           $.ajax({

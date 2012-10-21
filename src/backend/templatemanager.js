@@ -285,13 +285,9 @@ Tapedeck.Backend.TemplateManager = {
 
     var context = Tapedeck.Backend.Utils.getContext(tab);
 
-    var handleTrackJSONs = function(trackJSONs, finished) {
-      if (typeof(finished) == "undefined") {
-        console.log("NO FINISHED");
-      }
-      else {
-        console.log("GOT FINISHED: " + finished);
-      }
+    var handleResponse = function(response) {
+      console.log(" gBL handler received : : " + JSON.stringify(response));
+
       // Only push the browselist if we are still browsing the
       // cassette that these tracks belong to
       if (typeof(cMgr.currentCassette) == "undefined" ||
@@ -300,45 +296,67 @@ Tapedeck.Backend.TemplateManager = {
           (trackJSONs.length > 0 &&
            trackJSONs[0].cassette != cMgr.currentCassette.get("name"))) {
         callback(null);
+        console.log("aborting");
         return;
       }
-      var browseTrackList = new Tapedeck.Backend.Collections.TrackList(trackJSONs);
+      var browseTrackList = new Tapedeck.Backend.Collections.TrackList(response.tracks);
       Tapedeck.Backend.Bank.saveCurrentBrowseList(browseTrackList);
 
-      callback(browseTrackList);
+      // TODO use response.stillParsing
+      var toReturn = { fillAll: true,
+                       browseList: browseTrackList,
+                       stillParsing: response.stillParsing};
+
+      callback(toReturn);
     };
 
     var finalCallback = function(response) {
       var msgHandler = Tapedeck.Backend.MessageHandler;
 
 
-      var continueFinal = function() {
-        if (!response.success || response.errorCount > 0) {
+      var continueFinal = function(aResponse) {
 
-          Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList){
+        if (!msgHandler.addTrackAvailable) {
+          // We shifted the new tracks to the queue, and push empty array
+          setTimeout(continueFinal, 200, aResponse);
+          return;
+        }
+
+        Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList){
+          if (typeof(aResponse.success) == "undefined") {
+            console.error("Got no success");
+            aResponse.success = true;
+          }
+
+          if (!aResponse.success || aResponse.errorCount > 0) {
+            // some error occurred
             var errorString = "";
             if (browseList.length == 0) {
               errorString = "Sorry, we could not parse the site.";
-              if (response.errorCount > 1) {
-                errorString += " (" + response.errorCount + " errors)";
+              if (aResponse.errorCount > 1) {
+                errorString += " (" + aResponse.errorCount + " errors)";
               }
             }
-            else if (response.errorCount > 1) {
-              errorString = "There were " + response.errorCount + " errors when parsing the site.";
+            else if (aResponse.errorCount > 1) {
+              errorString = "There were " + aResponse.errorCount + " errors when parsing the site.";
             }
             else {
               errorString = "There were errors when parsing the site.";
             }
             Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, errorString, tab);
-          });
-        }
+          }
+          else {
+            // success path
+            Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
+          }
+        }); // end getCurrentBrowseList()
       }; // end continueFinal()
 
       if (typeof(response.tracks) != "undefined" && response.tracks.length > 0) {
-        msgHandler.addTracks(response.tracks, continueFinal);
+        msgHandler.addTracks(response.tracks, continueFinal.curry(response));
       }
       else {
-        continueFinal();
+        continueFinal(response);
       }
     }; // end finalCallback()
 
@@ -346,12 +364,12 @@ Tapedeck.Backend.TemplateManager = {
       if (cMgr.currentCassette.isPageable()) {
         cMgr.currentCassette.getPage(cMgr.currPage,
                                      context,
-                                     handleTrackJSONs,
+                                     handleResponse,
                                      errCallback,
                                      finalCallback);
       }
       else {
-        cMgr.currentCassette.getBrowseList(context, handleTrackJSONs, errCallback, finalCallback);
+        cMgr.currentCassette.getBrowseList(context, handleResponse, errCallback, finalCallback);
       }
     }
     catch (e) {

@@ -252,7 +252,9 @@
           /* nothing to check */
         } %>
         <div class="tracklist">
-          <% if(typeof(params.trackList) == "undefined" || params.trackList == null) { %>
+          <% if((typeof(params.stillParsing) != "undefined" && params.stillParsing) ||
+                 typeof(params.trackList) == "undefined" ||
+                 params.trackList == null) { %>
             <div class="row-container">
               <div class="row blank">
                 <div class="spinner loading"

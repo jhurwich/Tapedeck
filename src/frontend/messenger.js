@@ -13,7 +13,7 @@ Tapedeck.Frontend.Messenger = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 0,
+  debug: 2,
 
   port: null,
   init: function(callback) {

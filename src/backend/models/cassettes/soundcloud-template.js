@@ -56,7 +56,7 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
             foundTracks[i].cassette = self.get("name"); \
           } \
         } \
-        callback(foundTracks); \
+        callback({ tracks: foundTracks }); \
         return; \
       } \
 \
@@ -68,7 +68,7 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
         } \
         else { \
           self.saveTracksForURL(queryURL, tracks); \
-          callback(tracks); \
+          callback({ tracks: tracks }); \
         } \
       }; \
 \
@@ -142,7 +142,7 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
         var newTrack = responseToTrack(response); \
         tracks.push(newTrack); \
       } \
-      callback(tracks) \
+      callback({ tracks: tracks }); \
     }, \
 \
     urlMap: { }, \
