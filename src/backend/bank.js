@@ -757,6 +757,9 @@ Tapedeck.Backend.Bank = {
     // see if the tracklist is remembered, if so return it
     var tracks = bank.Memory.getTrackList(key);
     if (tracks != null) {
+      if (key.indexOf(bank.savedQueueName) != -1) {
+        console.log(" QQ getting queue from memory");
+      }
       callback(tracks);
       return;
     }
@@ -764,6 +767,9 @@ Tapedeck.Backend.Bank = {
 
     // this will create the tracklist if it doesn't exist
     this.recoverSavedTrackList(key, function(savedTracks) {
+      if (key.indexOf(bank.savedQueueName) != -1) {
+        console.log(" QQ recovered");
+      }
 
       // save tracks in memory so that they're ready for use in the future
       Tapedeck.Backend.Bank.Memory.rememberTrackList(key, savedTracks);
@@ -794,6 +800,9 @@ Tapedeck.Backend.Bank = {
     };
 
     if (bank.isSyncOn()) {
+      if (key.indexOf(bank.savedQueueName) != -1) {
+        console.log(" QQ recovering from sync");
+      }
 
       // recover from sync
       chrome.storage.sync.get(null, function(storedData) {
@@ -850,6 +859,9 @@ Tapedeck.Backend.Bank = {
       }); // end chrome.storage.sync.get(key, ...
     }
     else {
+      if (key.indexOf(bank.savedQueueName) != -1) {
+        console.log(" QQ recovering locally");
+      }
 
       // recover locally
       try {
