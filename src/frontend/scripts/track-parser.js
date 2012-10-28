@@ -28,6 +28,7 @@ if (onObject != null &&
     isParsing: false,
     onBackgroundPage: false,
     cassetteName: "",
+    timeout: null,
     start : function(params) {
       if (typeof(params) == "undefined") {
         params = { };
@@ -86,7 +87,8 @@ if (onObject != null &&
           chrome.extension.sendRequest(response);
         }
         else {
-          params.callback({ tracks: tracks, stillParsing: parser.isParsing });
+          var options = { tracks: tracks, stillParsing: parser.isParsing };
+          params.callback(options);
         }
 
         // If the parser is still parsing, setup a finalCallback even if there's no callback to call out to.
@@ -95,10 +97,11 @@ if (onObject != null &&
         var hasFinalCallback = (typeof(params.finalCallback) != "undefined" && params.finalCallback != null);
 
         if (parser.isParsing) {
-          var timeout = null;
           if (hasFinalCallback) {
-            timeout = setTimeout(function(p) {
+            parser.log ("      Starting Timer ");
+            parser.timeout = setTimeout(function(p) {
 
+              parser.log("      Timeout Elapsed, FAIL.");
               // destroy the callbacks so that nothing can come in after this
               p.finalCallback({ success: false });
               p.finalCallback = null;
@@ -111,7 +114,8 @@ if (onObject != null &&
             parser.isParsing = false;
 
             if (hasFinalCallback) {
-              clearTimeout(timeout);
+              parser.log("      Timeout Cleared, DONE.");
+              clearTimeout(parser.timeout);
               params.finalCallback(options);
             }
           }
@@ -124,8 +128,7 @@ if (onObject != null &&
 
       }
       catch (e) {
-        console.error("ParserError")
-        console.trace();
+        console.error("ParserError");
         if (!parser.onBackgroundPage) {
           var response = {
             type: "response",
@@ -706,7 +709,8 @@ if (onObject != null &&
           });
         }
         else {
-          parser.log("Counldn't locate a url for Soundcloud object");
+          parser.log("Couldn't locate a url for Soundcloud src: '" + str + "'");
+          soundcloud.objectCount--;
         }
       },
 

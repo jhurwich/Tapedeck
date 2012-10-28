@@ -139,6 +139,7 @@ Tapedeck.Backend.TemplateManager = {
     if (postPopulate) {
       tMgr.renderViewWithOptions(scriptName, packageName, { }, callback);
     }
+
     tMgr.fillOptions(hollowView.getOptions(), function(filledOptions) {
       tMgr.renderViewWithOptions(scriptName, packageName, filledOptions, callback);
     });
@@ -300,10 +301,9 @@ Tapedeck.Backend.TemplateManager = {
       var browseTrackList = new Tapedeck.Backend.Collections.TrackList(response.tracks);
       Tapedeck.Backend.Bank.saveCurrentBrowseList(browseTrackList);
 
-      // TODO use response.stillParsing
       var toReturn = { fillAll: true,
                        browseList: browseTrackList,
-                       stillParsing: response.stillParsing};
+                       stillParsing: response.stillParsing };
 
       callback(toReturn);
     };

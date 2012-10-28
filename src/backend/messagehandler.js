@@ -425,7 +425,7 @@ Tapedeck.Backend.MessageHandler = {
     }
     if (typeof(newTracks) == "object") {
       if (typeof(newTracks.error) != "undefined") {
-        // TODO some error
+        console.error("Error adding more tracks: " + JSON.stringify(newTracks.error));
       }
       else if ($.isEmptyObject(newTracks)) {
         newTracks = [];

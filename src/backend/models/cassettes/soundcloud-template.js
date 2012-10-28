@@ -61,14 +61,14 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
       } \
 \
       /* Tracks not found, modify the callback slightly so that the tracks will be saved */ \
-      var saveClearAndCallback = function(tracks) { \
-        if (typeof(tracks.error) != "undefined") { \
+      var saveClearAndCallback = function(params) { \
+        if (typeof(params.error) != "undefined") { \
           console.error("Error parsing tracks for " + self.domain + ", page " + pageNum); \
-          errCallback(tracks.error); \
+          errCallback(params.error); \
         } \
         else { \
-          self.saveTracksForURL(queryURL, tracks); \
-          callback({ tracks: tracks }); \
+          self.saveTracksForURL(queryURL, params.tracks); \
+          callback(params); \
         } \
       }; \
 \

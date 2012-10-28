@@ -27,12 +27,7 @@ Tapedeck.Sandbox = {
     {
       case "render":
       case "template":
-        if (Tapedeck.Sandbox.debug == Tapedeck.Sandbox.DEBUG_LEVELS.BASIC) {
-          Tapedeck.Sandbox.log("Rendering '" + message.templateName + "'");
-        }
-        else {
-          Tapedeck.Sandbox.log("Rendering '" + message.templateName + "' with params: " + JSON.stringify(message.params));
-        }
+        Tapedeck.Sandbox.log("Rendering '" + message.templateName + "' with params: " + JSON.stringify(message.params));
         response.rendered = Tapedeck.Sandbox.render(message.textTemplate, message.params);
         Tapedeck.Sandbox.sendMessage(response);
         break;
@@ -99,7 +94,9 @@ Tapedeck.Sandbox = {
         cassette.getBrowseList(message.params.context, function(params) {
 
           // success callback
-          response.tracks = params.tracks;
+          for (var p in params) {
+            response[p] = params[p];
+          }
           Tapedeck.Sandbox.sendMessage(response);
         }, function(error) {
 
@@ -110,12 +107,11 @@ Tapedeck.Sandbox = {
 
           // final callback
           var finalResponse = Tapedeck.Sandbox.newResponse(message);
-          finalResponse.final = true;
-          finalResponse.success = final.success;
-
-          if (typeof(final.tracks) != "undefined") {
-            finalResponse.tracks = final.tracks;
+          for (var p in final) {
+            finalResponse[p] = final[p];
           }
+          finalResponse.final = true;
+
           Tapedeck.Sandbox.sendMessage(finalResponse);
         });
         break;
@@ -125,7 +121,9 @@ Tapedeck.Sandbox = {
         cassette.getPage(message.params.page, message.params.context, function(params) {
 
           // success callback
-          response.tracks = params.tracks;
+          for (var p in params) {
+            response[p] = params[p];
+          }
           Tapedeck.Sandbox.sendMessage(response);
         }, function(error) {
 

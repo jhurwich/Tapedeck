@@ -294,7 +294,6 @@ Tapedeck.Backend.CassetteManager = {
           self.origURL = params.testURL;
         }
 
-        console.trace();
         msgHandler.showModal({
           fields: [{ type : "info",
                      text : "Building Cassette, please wait." }],
@@ -503,7 +502,6 @@ Tapedeck.Backend.CassetteManager = {
         return;
       }
 
-      console.trace();
       msgHandler.showModal({
         fields: [{ type : "info",
                    text : "Building Cassette, please wait." }],
