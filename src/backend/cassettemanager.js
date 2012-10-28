@@ -10,7 +10,7 @@ Tapedeck.Backend.CassetteManager = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 1,
+  debug: 0,
 
   init: function(continueInit) {
     var cMgr = Tapedeck.Backend.CassetteManager;
@@ -125,12 +125,6 @@ Tapedeck.Backend.CassetteManager = {
   },
 
   setCassette: function(name) {
-    var logStr = "  CCC settting cassette to " + name;
-    if (typeof(this.currentCassette) != "null" && this.currentCassette != null) {
-       logStr += " from " + this.currentCassette.get("name");
-    }
-    console.log(logStr);
-
     var oldCurrent = this.currentCassette;
     this.currPage = 1;
     this.currFeed = null;
@@ -147,7 +141,6 @@ Tapedeck.Backend.CassetteManager = {
         var cassette = this.cassettes[i].cassette;
         if (cassette.get("name") == name) {
           this.currentCassette = cassette;
-          console.log("  CCC found and set cassette:: " + this.currentCassette.get("name"));
           this.currentCassette.set({ active: "active" });
 
           if (typeof(this.cassettes[i].page) != "undefined") {
@@ -369,7 +362,6 @@ Tapedeck.Backend.CassetteManager = {
       }
       cMgr.log("Received cassettification url '" + params.url + "'");
 
-      console.trace();
       msgHandler.showModal({
         fields: [{ type : "info",
                    text : "Building Cassette, please wait." }],
@@ -457,7 +449,6 @@ Tapedeck.Backend.CassetteManager = {
       var self = cMgr.Cassettify;
 
       // prevent the cassette from adding new tracks, forcing them to be queued
-      console.log(" && disable in test");
       msgHandler.addTrackAvailable = false;
 
       // Use Sandbox to generate the Cassette's source
@@ -476,7 +467,6 @@ Tapedeck.Backend.CassetteManager = {
           }
           msgHandler.addTracksQueueud = [];
           msgHandler.addTrackAvailable = true;
-          console.log(" && enable in test success");
 
           if (response.success) {
             successFn(response);
@@ -490,7 +480,6 @@ Tapedeck.Backend.CassetteManager = {
         console.error("ERROR in generating Cassette source -" + JSON.stringify(error));
         msgHandler.addTracksQueueud = [];
         msgHandler.addTrackAvailable = true;
-        console.log(" && enable in test failure");
       }
     },
 

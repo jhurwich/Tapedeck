@@ -34,12 +34,15 @@ if (onObject != null &&
       }
       var parser = onObject.TrackParser;
 
+      var logStr = "Starting TrackParser "
       if (typeof(params.cassetteName) != "undefined") {
         parser.cassetteName = params.cassetteName;
+        logStr  += parser.cassetteName;
       }
       else {
         parser.cassetteName = "";
       }
+      parser.log(logStr);
 
       // Check if we have a callback, and are thus on the bkgrd page.
       // If so, save the add more callback too, otherwise use sendRequest
@@ -70,6 +73,7 @@ if (onObject != null &&
 
       // try to get songs, catch any parser fails
       try {
+        parser.log("Finding Tracks now.");
         var tracks = parser.findSongs();
         parser.log("ending parsing - got tracks: " + JSON.stringify(tracks), parser.DEBUG_LEVELS.BASIC);
 
@@ -85,18 +89,15 @@ if (onObject != null &&
           params.callback({ tracks: tracks, stillParsing: parser.isParsing });
         }
 
-        if (typeof(parser.finalCallback) != "undefined" && parser.finalCallback != null) {
-          if (!parser.isParsing) {
-            var success = (tracks.length > 0);
-            parser.finalCallback({ success: success });
-          }
-          else {
-            // if there are asych parses in progress, we time limit them
-            var timeout = setTimeout(function(p) {
-              console.log("TIMEOUT :: FC=" + typeof(p.finalCallback));
-              if (typeof(p.finalCallback) != "function") {
-                console.log(JSON.stringify(p.finalCallback));
-              }
+        // If the parser is still parsing, setup a finalCallback even if there's no callback to call out to.
+        // If there is a finalCallback, use a timeout to ensure we deliver to it.
+        // If the parser is finished, call the finalCallback if it exists.
+        var hasFinalCallback = (typeof(params.finalCallback) != "undefined" && params.finalCallback != null);
+
+        if (parser.isParsing) {
+          var timeout = null;
+          if (hasFinalCallback) {
+            timeout = setTimeout(function(p) {
 
               // destroy the callbacks so that nothing can come in after this
               p.finalCallback({ success: false });
@@ -104,16 +105,27 @@ if (onObject != null &&
               p.moreCallback = null;
 
             }, parser.ASYNC_TIMELIMIT * 1000, parser);
-            parser.finalCallback = function(options) {
-              console.log("TIMEOUT cleared")
+          }
+
+          parser.finalCallback = function(options) {
+            parser.isParsing = false;
+
+            if (hasFinalCallback) {
               clearTimeout(timeout);
               params.finalCallback(options);
             }
           }
         }
+        else if (hasFinalCallback) {
+          // not parsing and hasFinalCallback, callback immediately
+          var success = (tracks.length > 0);
+          params.finalCallback({ success: success });
+        }
+
       }
       catch (e) {
         console.error("ParserError")
+        console.trace();
         if (!parser.onBackgroundPage) {
           var response = {
             type: "response",
@@ -137,7 +149,6 @@ if (onObject != null &&
     findSongs : function() {
       var parser = onObject.TrackParser;
       parser.isParsing = true;
-      parser.log("starting parsing", parser.DEBUG_LEVELS.BASIC);
 
       //  Each scrape returns a map of url => track objects.
       //  This allows us to merge, preventing url duplicates and
@@ -148,27 +159,38 @@ if (onObject != null &&
       // Scrape Tumblr
       if ($("#tumblr_controls", parser.context).length > 0 ||
           parser.forceTumblr) {
-        resultObjects.push(parser.Tumblr.scrape());
+        var tumblrObjects = parser.Tumblr.scrape();
+        resultObjects.push(tumblrObjects);
+        parser.log("'" + tumblrObjects.length + "' tumblrObjects found");
       }
 
       // Scrape TumblrDashboard
       if (location.href.indexOf('tumblr.com/dashboard') != -1 ||
           parser.forceTumblrDashboard) {
-        resultObjects.push(parser.TumblrDashboard.scrape());
+        var tumblrDashObjects = parser.TumblrDashboard.scrape();
+        resultObjects.push(tumblrDashObjects);
+        parser.log("'" + tumblrDashObjects.length + "' tumblrDashObjects found");
       }
 
       // Scrape mp3 Links
-      resultObjects.push(parser.Links.scrape());
+      var linkObjects = parser.Links.scrape();
+      resultObjects.push(linkObjects);
+      parser.log("'" + linkObjects.length + "' linkObjects found");
 
       // Scrape <audio> elements
-      resultObjects.push(parser.AudioElements.scrape());
+      var audioObjects = parser.AudioElements.scrape();
+      resultObjects.push(audioObjects);
+      parser.log("'" + audioObjects.length + "' audioObjects found");
 
       // Scrape flash players of WordPress's form
-      resultObjects.push(parser.WPFlashPlayers.scrape());
+      var wpObjects = parser.WPFlashPlayers.scrape();
+      resultObjects.push(wpObjects);
+      parser.log("'" + wpObjects.length + "' wpObjects found");
 
       // ================ Async Scrapes ================
       //Scrape Soundcloud
       var parsingSoundcloud = parser.Soundcloud.scrape(); // will be true if special soundcloud parsing is happening
+      parser.log("Soundcloud isParsing == " + parsingSoundcloud);
 
       var toReturn = parser.mergeResults(resultObjects);
 
@@ -552,7 +574,7 @@ if (onObject != null &&
               var pAfter = $(audioContainer).nextAll("p").first();
               if (pAfter != null &&
                   !$(pAfter).hasClass("scraped") &&
-                  $(pAfter).html().length > 0) {
+                  $(pAfter).length > 0) {
                 var afterEntry = parser.Util.cleanHTML($(pAfter).html());
                 parser.Util.addArtistAndTrackNames(track, afterEntry);
               }
@@ -572,7 +594,6 @@ if (onObject != null &&
             trackMap[track.url] = track;
           }
         }); // end flashPlayers.each
-
         return trackMap;
       }
     }, // end parser.WPFlashPlayers
@@ -787,7 +808,6 @@ if (onObject != null &&
             var rTrack = response.tracks[i];
             var newTrack = responseToTrack(rTrack);
             tracks.push(newTrack);
-            soundcloud.objectCount--;
           }
         }
         else if (typeof(response.length) != "undefined" &&
@@ -797,15 +817,14 @@ if (onObject != null &&
             var rTrack = response[i];
             var newTrack = responseToTrack(rTrack);
             tracks.push(newTrack);
-            soundcloud.objectCount--;
           }
         }
         else {
           // parsing a response for one track
           var newTrack = responseToTrack(response);
           tracks.push(newTrack);
-          soundcloud.objectCount--;
         }
+        soundcloud.objectCount--;
 
         parser.log("adding Soundcloud tracks: " + JSON.stringify(tracks));
         parser.moreCallback(tracks);
@@ -817,13 +836,13 @@ if (onObject != null &&
         var parser = onObject.TrackParser;
         var soundcloud = parser.Soundcloud;
 
-        if (soundcloud.objectCount == 0 && parser.finalCallback != null) {
+        if (soundcloud.objectCount <= 0 && parser.finalCallback != null) {
+          parser.log("Finishing Soundcloud parsing");
           var finalResponse = { success: (soundcloud.errorCount == 0) };
           if (soundcloud.errorCount > 0) {
             finalResponse.errorCount = soundcloud.errorCount;
             soundcloud.errorCount = 0;
           }
-          console.log("seding finalResponse: " + JSON.stringify(finalResponse));
           parser.finalCallback(finalResponse);
         }
       },

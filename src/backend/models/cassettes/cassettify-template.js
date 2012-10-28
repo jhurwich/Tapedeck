@@ -46,7 +46,6 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           errCallback(params.error); \
         } \
         else { \
-          console.log("~~~ sCC got : " + JSON.stringify(params.tracks)); \
           self.saveTracksForURL(pageURL, params.tracks); \
           var ourDump = $("#dump").find("#CassetteFromTemplate"); \
           var pageDump = $(ourDump).find("#page" + pageNum); \
@@ -74,7 +73,6 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         /* the dump for this cassette is cached and non-stale */ \
         var ourDump = $("#dump").find("#CassetteFromTemplate"); \
         var pageDump = $(ourDump).find("#page" + pageNum); \
-        console.log(" CCC* starting trakcparser with cname " + self.get("name")); \
         Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                              context      : $(pageDump), \
                                              callback     : saveClearAndCallback, \
@@ -102,7 +100,6 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       $(pageDump).append(cleanedText); \
       $(pageDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
  \
-      console.log(" CCC* starting trakcparser with cname " + self.get("name")); \
       Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                            context      : $(pageDump), \
                                            callback     : callback, \
@@ -111,13 +108,11 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
     }, \
  \
     addMoreCallback: function(self, url, tracks) { \
-      console.log("~~~ addmore got " + JSON.stringify(tracks)); \
       self.saveMoreTracksForURL(url, tracks); \
       Tapedeck.Backend.MessageHandler.addTracks(tracks); \
     }, \
  \
     finish: function(self, params) { \
-      console.log("~~~ finish got " + JSON.stringify(params)); \
       self.finalCallback(params); \
     }, \
  \

@@ -16,7 +16,7 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
     var handleTracks = function(response, sender, sendResponse) {
 
       if (typeof(response.error) != "undefined") {
-        console.error("ERROR IN SCRAPER CASSETTE's PARSING");
+        console.error("ERROR IN SCRAPER CASSETTE's PARSING: " + JSON.stringify(response.error));
         errCallback(response.error);
       }
       else {

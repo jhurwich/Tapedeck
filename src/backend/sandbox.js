@@ -9,7 +9,7 @@ Tapedeck.Sandbox = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 1,
+  debug: 0,
 
   cassettes: {},
 
@@ -51,13 +51,16 @@ Tapedeck.Sandbox = {
         response.success = false;
         Tapedeck.Sandbox.prepCassette(code, function(report) {
           var cassette = Tapedeck.Sandbox.cassettes[report.tdID];
-          cassette.getBrowseList(message.context, function(response) {
+          cassette.getBrowseList(message.context, function(aResponse) {
             // success callback
 
-            if (response.tracks.length > 0) {
+            if (aResponse.tracks.length > 0) {
               // no error, but make sure we got tracks.  Wait for Soundcloud tracks if not
               response.success = true;
               response.report = report;
+              for (var param in aResponse) {
+                response[param] = aResponse[param];
+              }
 
               cleanup();
               Tapedeck.Sandbox.sendMessage(response);
@@ -130,7 +133,6 @@ Tapedeck.Sandbox = {
           response.error = error;
           Tapedeck.Sandbox.sendMessage(response);
         }, function(final) {
-          console.log("      SB got final: " + JSON.stringify(final));
 
           // final callback
           var finalResponse = Tapedeck.Sandbox.newResponse(message);

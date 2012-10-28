@@ -286,17 +286,15 @@ Tapedeck.Backend.TemplateManager = {
     var context = Tapedeck.Backend.Utils.getContext(tab);
 
     var handleResponse = function(response) {
-      console.log(" gBL handler received : : " + JSON.stringify(response));
 
       // Only push the browselist if we are still browsing the
       // cassette that these tracks belong to
       if (typeof(cMgr.currentCassette) == "undefined" ||
           cMgr.currentCassette == null ||
-          typeof(trackJSONs) == "undefined" ||
-          (trackJSONs.length > 0 &&
-           trackJSONs[0].cassette != cMgr.currentCassette.get("name"))) {
+          typeof(response.tracks) == "undefined" ||
+          (response.tracks.length > 0 &&
+           response.tracks[0].cassette != cMgr.currentCassette.get("name"))) {
         callback(null);
-        console.log("aborting");
         return;
       }
       var browseTrackList = new Tapedeck.Backend.Collections.TrackList(response.tracks);

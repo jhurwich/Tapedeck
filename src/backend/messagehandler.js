@@ -5,7 +5,7 @@ Tapedeck.Backend.MessageHandler = {
     BASIC : 1,
     ALL   : 2,
   },
-  debug: 2,
+  debug: 0,
 
   ports: {},
   init: function() {
@@ -409,12 +409,10 @@ Tapedeck.Backend.MessageHandler = {
 
     // Can only add tracis if there's a cassette being browsed
     if (typeof(cMgr.currentCassette) == "undefined" || cMgr.currentCassette == null) {
-      console.log("add track no cassette - stop");
       return;
     }
     if (newTracks.length > 0 &&
         newTracks[0].cassette != cMgr.currentCassette.get("name")) {
-      console.log(" add track cassette mismatch ");
       return;
     }
 
@@ -423,7 +421,6 @@ Tapedeck.Backend.MessageHandler = {
       msgHandler.addTracksQueued = msgHandler.addTracksQueued.concat(newTracks);
       setTimeout(msgHandler.addTracks.curry([], tab, callback),
                  200);
-      console.log("  defering");
       return;
     }
     if (typeof(newTracks) == "object") {
@@ -444,10 +441,8 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
     msgHandler.addTrackAvailable = false;
-    console.log(" && disable in addTracks");
 
     Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList){
-      console.log(" & in gcbl");
       var origLen = browseList.length;
 
       // make sure there isn't already this track in the list
@@ -463,7 +458,6 @@ Tapedeck.Backend.MessageHandler = {
       if (browseList.length > origLen) {
         Tapedeck.Backend.Bank.saveCurrentBrowseList(browseList);
       }
-      console.log(" & calling push");
       Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
       if (typeof(callback) !="undefined") {
         callback();
@@ -473,11 +467,9 @@ Tapedeck.Backend.MessageHandler = {
 
   // browseTrackList == null means push the loading state, errorString and tab are optional
   pushBrowseTrackList: function(browseTrackList, errorString, tab) {
-    console.log(" & pushing");
     if (typeof(errorString) != "undefined" && typeof(errorString) != "string") {
       tab = errorString;
       errorString = undefined;
-      console.log(" & no errorString");
     }
     if (typeof(tab) == "undefined") {
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
@@ -485,7 +477,6 @@ Tapedeck.Backend.MessageHandler = {
                                                             errorString,
                                                             selectedTab);
       });
-      console.log(" & bouncback");
       return;
     }
 
@@ -493,18 +484,14 @@ Tapedeck.Backend.MessageHandler = {
     var msgHandler = Tapedeck.Backend.MessageHandler;
 
     msgHandler.addTrackAvailable = true;
-    console.log(" && enable in pushbrowse")
 
     // Can only push a new browselist if there's a cassette being browsed
     if (typeof(cMgr.currentCassette) == "undefined" || cMgr.currentCassette == null) {
-      console.log("no cassette - stop");
       return;
     }
     if (browseTrackList != null &&
         browseTrackList.length > 0 &&
         browseTrackList.at(0).get("cassette") != cMgr.currentCassette.get("name")) {
-      console.log("cassette mismatch - " + browseTrackList.at(0).get("cassette") + " - " + cMgr.currentCassette.get("name"));
-      console.log(JSON.stringify(browseTrackList.toJSON()));
       return;
     }
 
@@ -516,8 +503,6 @@ Tapedeck.Backend.MessageHandler = {
     if (typeof(errorString) != "undefined") {
       options.errorString = errorString;
     }
-
-    console.log("PUSHING BROWSELIST : " + JSON.stringify(options));
 
     Tapedeck.Backend.TemplateManager.renderViewWithOptions("BrowseList", options, function(browseView) {
       Tapedeck.Backend.MessageHandler.pushView(browseView.el,
@@ -721,12 +706,10 @@ Tapedeck.Backend.MessageHandler = {
 
   sandboxListener: function(event) {
     if (event.data.type == "response") {
-      console.log("     sL: response");
       Tapedeck.Backend.MessageHandler.sandboxCallbacks[event.data.callbackID](event.data);
     }
     else {
       var request = event.data;
-      console.log("     sL: " + JSON.stringify(event.data.action));
       switch (request.action) {
         case "addTracks":
           Tapedeck.Backend.MessageHandler.addTracks(request.tracks, request.tab);
