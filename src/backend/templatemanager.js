@@ -396,12 +396,33 @@ Tapedeck.Backend.TemplateManager = {
     return Tapedeck.Backend.Views[scriptName];
   },
 
-  getTemplate: function(templateName, packageName) {
+  exceptionTemplates: { "Options" :  "frontend/options-template.html" },
+  templatesInProgress: {},
+  getTemplate: function(templateName, packageName, callback) {
     var tMgr = Tapedeck.Backend.TemplateManager;
     if (!this.isValidPackage(packageName)) {
       packageName = this.currentPackage;
     }
     tMgr.log("Requesting template '" + templateName + "' for package '" + packageName + "'");
+
+    // Some templates can't be changed and live outside of background.html.  Grab those with this.
+    if (templateName in tMgr.exceptionTemplates) {
+      var url = chrome.extension.getURL(tMgr.exceptionTemplates[templateName]);
+      $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "text",
+        success : function(template) {
+          console.log("Sending template for " + templateName + ": " + template);
+          callback(template);
+        },
+        error : function(xhr, status) {
+          console.error("Error getting " + tMgr.exceptionTemplates[templateName] + ": " + status);
+          callback(null);
+        }
+      });
+      return;
+    }
 
     // first get the contents of the template
     var templateSelector = "script#" + templateName + "-" + packageName + "-template";
@@ -415,72 +436,86 @@ Tapedeck.Backend.TemplateManager = {
       return new RegExp("<\s*" + tag + "[^<>]*(><\/" + tag + ">|\/>)", "gi");
     }
 
-    var templateMatch = null;
-    templateTagRegex = selfClosedTagRegex("template");
-    while ((templateMatch = templateTagRegex.exec(html)) != null) {
+    tMgr.templatesInProgress[templateName] = { numSubtemplates: 0, subtemplatesComplete: 0 }
+    var templateTagRegex = selfClosedTagRegex("template");
+    var templateMatch = templateTagRegex.exec(html);
+    while (templateMatch != null) {
+      var templateTag = templateMatch[0];
+      templateMatch = templateTagRegex.exec(html);
+
+      tMgr.templatesInProgress[templateName].numSubtemplates++;
 
       // first get information about the referenced template
-      var templateTag = templateMatch[0];
       var subtemplateMatch = templateTag.match(/ref\s*?=\s*?['"]([^'"-]*)-([^'"-]*)-template['"]/);
-
       var subtemplateName = subtemplateMatch[1];
       var subtemplatePackage = subtemplateMatch[2];
       tMgr.log("Subtemplate of '" + templateName + "' found, populating '" + subtemplateName + "'", tMgr.DEBUG_LEVELS.ALL);
 
       // got the template, we still need to fold the <tapedeck> portion in
-      var subtemplateHTML = this.getTemplate(subtemplateName, subtemplatePackage);
+     this.getTemplate(subtemplateName, subtemplatePackage, function(subtemplateHTML) {
 
-      // extract the <tapedeck> portion
-      var openTagRegex = function(tag) {
-        return new RegExp("<\s*" + tag + "[^<>]*>", "gi");
-      }
-      var closeTagRegex = function(tag) {
-        return new RegExp("<\/" + tag + "[^<>]*>", "gi");
-      }
-      var openRegex = openTagRegex('tapedeck');
-      var openMatch = null;
-      var closeRegex = closeTagRegex('tapedeck');
-      var closeMatch = null;
-      while ((openMatch = openRegex.exec(subtemplateHTML)) != null) {
-        if ((closeMatch = closeRegex.exec(subtemplateHTML)) != null &&
-            openMatch.index < closeMatch.index ) {
-
-          // <tapedeck> extracted here and folded into the outer template's
-          var tapedeck = subtemplateHTML.substring
-                                        (openMatch.index + openMatch[0].length,
-                                         closeMatch.index);
-
-          html = html.replace(closeRegex, tapedeck + " </tapedeck>");
-
-          subtemplateHTML = subtemplateHTML.replace
-                                           (subtemplateHTML.substring
-                                                           (openMatch.index,
-                                                            closeMatch.index + closeMatch[0].length), "");
+        // extract the <tapedeck> portion
+        var openTagRegex = function(tag) {
+          return new RegExp("<\s*" + tag + "[^<>]*>", "gi");
         }
-      }
+        var closeTagRegex = function(tag) {
+          return new RegExp("<\/" + tag + "[^<>]*>", "gi");
+        }
+        var openRegex = openTagRegex('tapedeck');
+        var openMatch = null;
+        var closeRegex = closeTagRegex('tapedeck');
+        var closeMatch = null;
+        while ((openMatch = openRegex.exec(subtemplateHTML)) != null) {
+          if ((closeMatch = closeRegex.exec(subtemplateHTML)) != null &&
+              openMatch.index < closeMatch.index ) {
+
+            // <tapedeck> extracted here and folded into the outer template's
+            var tapedeck = subtemplateHTML.substring
+                                          (openMatch.index + openMatch[0].length,
+                                           closeMatch.index);
+
+            html = html.replace(closeRegex, tapedeck + " </tapedeck>");
+
+            subtemplateHTML = subtemplateHTML.replace
+                                             (subtemplateHTML.substring
+                                                             (openMatch.index,
+                                                              closeMatch.index + closeMatch[0].length), "");
+          }
+        }
 
 
-      // strip out the <template> and </template> of the subtemplate
-      subtemplateHTML = subtemplateHTML.replace(openTagRegex('template'), "");
-      subtemplateHTML = subtemplateHTML.replace(closeTagRegex('template'), "");
+        // strip out the <template> and </template> of the subtemplate
+        subtemplateHTML = subtemplateHTML.replace(openTagRegex('template'), "");
+        subtemplateHTML = subtemplateHTML.replace(closeTagRegex('template'), "");
 
-      // add in the subtemplate
-      html = html.replace(templateTag, subtemplateHTML);
+        // add in the subtemplate
+        html = html.replace(templateTag, subtemplateHTML);
 
-      // now handle any remappings
-      var remapMatch = templateTag.match(/remap\s*?=\s*?['"]([^'"]*)['"]/);
-      if (remapMatch != null) {
-        var remappingString = remapMatch[1];
-        var remapRegex = /([^,:]*):([^,]*)/g
-        while ((remapMatch = remapRegex.exec(remappingString)) != null) {
-          var original = remapMatch[1];
-          var remapping = remapMatch[2];
-          html = html.replace(new RegExp(original, "g"), remapping);
-         }
-      }
+        // now handle any remappings
+        var remapMatch = templateTag.match(/remap\s*?=\s*?['"]([^'"]*)['"]/);
+        if (remapMatch != null) {
+          var remappingString = remapMatch[1];
+          var remapRegex = /([^,:]*):([^,]*)/g
+          while ((remapMatch = remapRegex.exec(remappingString)) != null) {
+            var original = remapMatch[1];
+            var remapping = remapMatch[2];
+            html = html.replace(new RegExp(original, "g"), remapping);
+           }
+        }
+        tMgr.templatesInProgress[templateName].subtemplatesComplete++;
+
+        if (templateMatch == null &&
+            tMgr.templatesInProgress[templateName].subtemplatesComplete >= tMgr.templatesInProgress[templateName].numSubtemplates) {
+          delete tMgr.templatesInProgress[templateName];
+          callback(html);
+        }
+      }); // end getTemplate for subtemplate
     }
-
-    return html;
+    if (typeof(tMgr.templatesInProgress[templateName]) != "undefined" &&
+        tMgr.templatesInProgress[templateName].subtemplatesComplete >= tMgr.templatesInProgress[templateName].numSubtemplates) {
+      delete tMgr.templatesInProgress[templateName];
+      callback(html);
+    }
   },
 
   getCSSURL: function(packageName) {

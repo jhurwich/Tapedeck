@@ -740,7 +740,7 @@ Tapedeck.Frontend.Frame = {
   getCSS: function() {
     Tapedeck.Frontend.Messenger.getCSS(function(response) {
 
-      // remove all but tapedeck-frame.css, the basic stylesheet
+      // remove all but tapedeck-base.css, the basic stylesheet
       var oldStyles = $('head').find('link');
       if (oldStyles.length > 0) {
         oldStyles.each(function(index, oldStyle) {
@@ -749,7 +749,7 @@ Tapedeck.Frontend.Frame = {
             return;
           }
 
-          if ($(oldStyle).attr("href").indexOf("tapedeck-frame.css") == -1) {
+          if ($(oldStyle).attr("href").indexOf("tapedeck-base.css") == -1) {
             // remove anything that's not the basic stylesheet
             $(oldStyle).remove();
           }
@@ -874,6 +874,7 @@ Tapedeck.Frontend.Frame = {
   replaceView: function(viewStr, proxyEvents) {
     var view = $(viewStr);
     var targetID = $(view).first().attr("id");
+    console.log("Replacing into " + targetID);
     $("#" + targetID).replaceWith(view);
     if (typeof(proxyEvents) != 'undefined' && !jQuery.isEmptyObject(proxyEvents)) {
       this.attachEvents(targetID, proxyEvents);

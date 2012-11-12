@@ -22,6 +22,7 @@ Tapedeck.Backend.init = function() {
       Tapedeck.Backend.TemplateManager.init(function() {
         Tapedeck.Backend.InjectManager.init();
         Tapedeck.Backend.Sequencer.init();
+        Tapedeck.Backend.OptionsManager.init();
       });
     });
   });

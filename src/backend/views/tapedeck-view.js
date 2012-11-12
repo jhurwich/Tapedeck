@@ -5,19 +5,22 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
   textTemplate: null,
   initialize: function() {
     var tMgr = Tapedeck.Backend.TemplateManager;
-    if (typeof(this.init) != "undefined") {
-      this.init();
+    var self = this;
+    if (typeof(self.init) != "undefined") {
+      self.init();
     }
-    this.templateName = Tapedeck.Backend.Utils.idToTemplateName(this.id);
-    this.packageName = tMgr.currentPackage;
+    self.templateName = Tapedeck.Backend.Utils.idToTemplateName(self.id);
+    self.packageName = tMgr.currentPackage;
 
-    this.textTemplate = tMgr.getTemplate(this.templateName, this.packageName);
+    tMgr.getTemplate(self.templateName, self.packageName, function(template) {
+      self.textTemplate = template;
+    });
 
     // pass the options to the view, and toJSON anything we can
-    this.params = this.options;
-    for (var paramName in this.options) {
-      if (this.options[paramName] && typeof(this.options[paramName].toJSON) != "undefined") {
-        this.params[paramName] = this.options[paramName].toJSON();
+    self.params = self.options;
+    for (var paramName in self.options) {
+      if (self.options[paramName] && typeof(self.options[paramName].toJSON) != "undefined") {
+        self.params[paramName] = self.options[paramName].toJSON();
       }
     }
   },
@@ -30,23 +33,36 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
                  JSON.stringify(self.params) + "'";
     self.log(logStr);
 
-    var message = {
-      action: "render",
-      templateName: self.templateName,
-      packageName: self.packageName,
-      params: self.params,
-      textTemplate: self.textTemplate,
-    };
+    var doRender = function() {
+      var message = {
+        action: "render",
+        templateName: self.templateName,
+        packageName: self.packageName,
+        params: self.params,
+        textTemplate: self.textTemplate,
+      };
 
-    try {
-      Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
-        self.el.innerHTML = response.rendered;
-        self.log("Received generated HTML from Sandbox");
-        callback(self.el);
+      try {
+        Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+          self.el.innerHTML = response.rendered;
+          self.log("Received generated HTML from Sandbox");
+          callback(self.el);
+        });
+
+      } catch(error) {
+        console.error("ERROR in view rendering -" + JSON.stringify(error));
+      }
+    }; // end doRender
+
+    // we beat the template populating
+    if (self.textTemplate == null) {
+      tMgr.getTemplate(self.templateName, self.packageName, function(template) {
+        self.textTemplate = template;
+        doRender();
       });
-
-    } catch(error) {
-      console.error("ERROR in view rendering -" + JSON.stringify(error));
+    }
+    else {
+      doRender();
     }
   },
 

@@ -48,6 +48,7 @@ Tapedeck.Backend.Bank = {
   syncKey: /* bankPrefix + */ "sync",
   volumeKey: /* bankPrefix + */ "volume",
   blockKey: /* bankPrefix + */ "block",
+  optionsPrefix: /* bankPrefix + */ "options",
   lastSyncWarningKey: /* bankPrefix + */ "lastSyncWarning",
   currentCassetteKey: /* bankPrefix + */ "currentCassette",
   cassettePagePrefix: /* bankPrefix + */ "cassettePages",
@@ -71,6 +72,7 @@ Tapedeck.Backend.Bank = {
     bank.repeatKey = bank.bankPrefix + bank.repeatKey;
     bank.syncKey = bank.bankPrefix + bank.syncKey;
     bank.blockKey = bank.bankPrefix + bank.blockKey;
+    bank.optionsPrefix = bank.bankPrefix + bank.optionsPrefix;
     bank.lastSyncWarningKey = bank.bankPrefix + bank.lastSyncWarningKey;
 
     bank.currentCassetteKey = bank.bankPrefix + bank.currentCassetteKey;
@@ -909,6 +911,20 @@ Tapedeck.Backend.Bank = {
       tracks = new Tapedeck.Backend.Collections.TrackList();
     }
     callback(tracks);
+  },
+
+  getSavedOptions: function(confOptions) {
+    var bank = Tapedeck.Backend.Bank;
+
+    var toReturn = {};
+    for (var suffix in confOptions) {
+      var key = bank.optionsPrefix + suffix;
+      var saved = bank.localStorage.getItem(key);
+      if (saved != null) {
+        toReturn[suffix] = saved;
+      }
+    }
+    return toReturn;
   },
 
   setDrawerOpened: function(open) {
