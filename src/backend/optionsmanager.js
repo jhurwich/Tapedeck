@@ -22,17 +22,68 @@ Tapedeck.Backend.OptionsManager = {
     var options = $.parseJSON(conf);
     delete options["_comment"]; // only way to do comments in JSON
 
-    options = optionMgr.unpack("", options);
+    options = optionMgr.flatten("", options);
 
-    var bankOptions = Tapedeck.Backend.Bank.getSavedOptions(options);
+    var bankOptions = Tapedeck.Backend.Bank.getSavedOptionsForConfOptions(options);
 
-    // bankOptions should override the unpacked conf options
+    // bankOptions should override the flattened conf options
     _.extend(options, bankOptions);
 
-    optionMgr.renderOptions(options);
+    //and save them back
+    Tapedeck.Backend.Bank.saveOptions(options);
+
+    // TODO enact the options
   },
 
-  unpack: function(key, object) {
+  getOptions: function(callback) {
+    var optionMgr = Tapedeck.Backend.OptionsManager;
+
+    Tapedeck.Backend.Bank.getSavedOptions(function(flatOptions) {
+      options = optionMgr.unflatten(flatOptions);
+      console.log("Got options -- " + JSON.stringify(options));
+      callback(options);
+    });
+
+  },
+
+  unflatten: function(object) {
+    var toReturn = {};
+
+    for (var key in object) {
+      var split = key.replace("-key", "").split('-'); // remove '-key' from the end and split
+
+      if (split.length == 1) {
+        // top-level key
+        toReturn[split[0]] = object[key];
+      }
+
+      var drillDown = function(aObject, aKeys, aIndex) {
+        var currObject = aObject;
+        for (var i=0; i < aIndex; i++) {
+          currObject = currObject[aKeys[i]];
+        }
+        return currObject;
+      };
+
+      for (var i=0; i < split.length; i++) {
+        var piece = split[i];
+        var onObject = drillDown(toReturn, split, i);
+
+        if (i != split.length - 1) {
+          // not a leaf, an object
+          if(typeof(onObject[piece]) == "undefined") {
+            onObject[piece] = {};
+          }
+        }
+        else {
+          onObject[piece] = object[key];
+        }
+      }
+    }
+    return toReturn;
+  },
+
+  flatten: function(key, object) {
     var toReturn = {};
 
     // non-objects and empty objects are leaves
@@ -51,7 +102,7 @@ Tapedeck.Backend.OptionsManager = {
 
     for (var hrKey in object) {
       var value = object[hrKey];
-      var subOptions = Tapedeck.Backend.OptionsManager.unpack(hrKey, value);
+      var subOptions = Tapedeck.Backend.OptionsManager.flatten(hrKey, value);
 
       for (var subKey in subOptions) {
         var concatKey = hrKey + "-" + subKey;
@@ -62,14 +113,7 @@ Tapedeck.Backend.OptionsManager = {
     return toReturn;
   },
 
-  renderOptions: function(options) {
-    var tMgr = Tapedeck.Backend.TemplateManager;
-
-    tMgr.renderViewWithOptions("Options", options, function(response) {
-        var el = response.el;
-        console.log("got el: " + $(el).html());
-        var proxyEvents = response.proxyEvents;
-    });;
+  show: function(el, proxyEvents) {
     // get master conf defaults
     // get saved options
 
@@ -79,11 +123,6 @@ Tapedeck.Backend.OptionsManager = {
         // includes any local cassettes in the bank's getCassettes return
 
         // all available logs are specified in master conf?
-  },
-
-
-  show: function() {
-
   },
 
 }

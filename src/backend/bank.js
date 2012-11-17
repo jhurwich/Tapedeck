@@ -913,7 +913,26 @@ Tapedeck.Backend.Bank = {
     callback(tracks);
   },
 
-  getSavedOptions: function(confOptions) {
+  getSavedOptions: function(callback) {
+    var bank = Tapedeck.Backend.Bank;
+    bank.findKeys("^" + bank.optionsPrefix, false, function(savedKeys) {
+      var toReturn = {};
+      for (var i = 0; i < savedKeys.length; i++) {
+        var key = savedKeys[i];
+        var hrKey = key.replace(bank.optionsPrefix, "");
+        toReturn[hrKey] = bank.localStorage.getItem(key);
+      }
+      callback(toReturn);
+    });
+  },
+  saveOptions: function(options) {
+    var bank = Tapedeck.Backend.Bank;
+    for (var key in options) {
+      console.log("setting: " + key + "  : " + options[key]);
+      bank.localStorage.setItem(bank.optionsPrefix + key, options[key]);
+    }
+  },
+  getSavedOptionsForConfOptions: function(confOptions) {
     var bank = Tapedeck.Backend.Bank;
 
     var toReturn = {};

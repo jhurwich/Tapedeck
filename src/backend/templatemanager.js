@@ -140,9 +140,24 @@ Tapedeck.Backend.TemplateManager = {
       tMgr.renderViewWithOptions(scriptName, packageName, { }, callback);
     }
 
-    tMgr.fillOptions(hollowView.getOptions(), function(filledOptions) {
-      tMgr.renderViewWithOptions(scriptName, packageName, filledOptions, callback);
-    });
+    var repeatCount = 0;
+    var completeRender = function() {
+      if (!hollowView.initComplete) {
+        if (repeatCount < 10) {
+          repeatCount++;
+          setTimeout(completeRender, 50);
+        }
+        else {
+          console.error("ViewScript never initialized");
+        }
+        return;
+      }
+
+      tMgr.fillOptions(hollowView.getOptions(), function(filledOptions) {
+        tMgr.renderViewWithOptions(scriptName, packageName, filledOptions, callback);
+      });
+    };
+    completeRender();
   },
 
   renderViewWithOptions: function(scriptName, packageName, options, callback) {
@@ -197,6 +212,7 @@ Tapedeck.Backend.TemplateManager = {
       "playerState" : tMgr.getPlayerState,
       "currentTrack" : tMgr.getCurrentTrack,
       "tabID" : tMgr.getTabID,
+      "options": tMgr.getOptions
     };
     tMgr.log("Filling options: " + JSON.stringify(requestedOptions), tMgr.DEBUG_LEVELS.ALL);
 
@@ -391,6 +407,9 @@ Tapedeck.Backend.TemplateManager = {
       callback(selectedTab.id);
     });
   },
+  getOptions: function(callback) {
+    Tapedeck.Backend.OptionsManager.getOptions(callback);
+  },
 
   getViewScript: function(scriptName) {
     return Tapedeck.Backend.Views[scriptName];
@@ -413,7 +432,6 @@ Tapedeck.Backend.TemplateManager = {
         url: url,
         dataType: "text",
         success : function(template) {
-          console.log("Sending template for " + templateName + ": " + template);
           callback(template);
         },
         error : function(xhr, status) {

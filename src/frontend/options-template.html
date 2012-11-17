@@ -1,5 +1,48 @@
+<tapedeck>
+  <options>
+    "options" : "options",
+  </options>
+</tapedeck>
 <template>
+  <%
 
-  BANANAS
+  var makeBox = function(key, value) {
+    if (typeof(value) == "number") {
+      %>
+      <div class="number"> <span class="key"><%= key %></span> <%= value %> </div>
+      <%
+    }
+    else if (typeof(value) == "string") {
+      %>
+      <div class="string"><span class="key"><%= key %></span> <%= value %> </div>
+      <%
+    }
+    else if (typeof(value) == "object") {
+      if (Object.keys(value).length == 0) {
+        /* empty object */
+        %>
+        <div class="empty"><span class="key"><%= key %></span> </div>
+        <%
+      }
+      else {
+        /* container object */
+        %>
+        <div class="container"><span class="key"><%= key %></span>
+        <%
+        for (var subKey in value) {
+          makeBox(subKey, value[subKey]);
+        }
+        %>
+        </div>
+        <%
+      }
+    }
+  };
+
+  delete params.options['debug'];
+  for (var key in params.options) {
+    makeBox(key, params.options[key]);
+  }
+  %>
 
 </template>

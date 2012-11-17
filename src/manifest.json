@@ -20,6 +20,8 @@
     "default_popup": "frontend/browser-action.html"
   },
 
+  "options_page": "frontend/options.html",
+
   "permissions": ["http://*/*",
                   "https://*/*",
                   "tabs",

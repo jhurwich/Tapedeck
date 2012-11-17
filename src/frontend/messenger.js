@@ -1,5 +1,7 @@
-if (typeof Tapedeck == "undefined") {
+if (typeof(Tapedeck) == "undefined") {
   var Tapedeck = { };
+}
+if (typeof(Tapedeck.Frontend) == "undefined") {
   Tapedeck.Frontend = { };
 }
 if (typeof(Tapedeck.Frontend.Messenger) != "undefined") {

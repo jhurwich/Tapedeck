@@ -3,6 +3,7 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
   templateName: null,
   packageName: null,
   textTemplate: null,
+  initComplete: false,
   initialize: function() {
     var tMgr = Tapedeck.Backend.TemplateManager;
     var self = this;
@@ -14,6 +15,7 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
 
     tMgr.getTemplate(self.templateName, self.packageName, function(template) {
       self.textTemplate = template;
+      self.finishInit();
     });
 
     // pass the options to the view, and toJSON anything we can
@@ -23,6 +25,11 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
         self.params[paramName] = self.options[paramName].toJSON();
       }
     }
+  },
+
+  // once textTemplate is populated, init is finished
+  finishInit: function() {
+    this.initComplete = true;
   },
 
   render: function(callback) {
