@@ -1,6 +1,68 @@
+* {
+  font-family: arial, sans-serif;
+}
 *[hidden] {
   display: none !important;
 }
 tapedeck {
   display: none !important;
+}
+
+div.container > div {
+  position: relative;
+  margin: 1px;
+  padding: 0 2px 2px 6px;
+  z-index: 1;
+  border: 1px solid black;
+  max-width: 320px;
+  background-color: #F2F2F2;
+}
+div.container > .key {
+  font-weight: bold;
+  font-size: 18px;
+  padding-left: 0px;
+}
+
+span.key {
+  display: block;
+  height: 20px;
+  padding: 2px 16px 2px 2px;
+}
+
+
+input {
+  margin: 0 0 4px 0;
+}
+
+input.string {
+  width: 300px;
+}
+
+div.number {
+  height: 28px;
+  padding: 5px 2px 0 0 !important;
+  text-align: top;
+  background-color: white !important;
+}
+div.number .key{
+  float: left;
+  clear: right;
+}
+input.number {
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  float: right;
+  clear: right;
+  padding: 0;
+}
+
+/* clearfix */
+div:after{
+  clear: both;
+  content: ".";
+  display: block;
+  height: 0;
+  visibility: hidden;
+  font-size: 0;
 }

@@ -54,7 +54,13 @@ Tapedeck.Backend.OptionsManager = {
 
       if (split.length == 1) {
         // top-level key
-        toReturn[split[0]] = object[key];
+        var asNum = parseInt(object[key]);
+        if (!isNaN(asNum)) {
+          toReturn[split[0]] = asNum;
+        }
+        else {
+          toReturn[split[0]] = object[key];
+        }
       }
 
       var drillDown = function(aObject, aKeys, aIndex) {
@@ -76,7 +82,13 @@ Tapedeck.Backend.OptionsManager = {
           }
         }
         else {
-          onObject[piece] = object[key];
+          var asNum = parseInt(object[key]);
+          if (!isNaN(asNum)) {
+            onObject[split[i]] = asNum;
+          }
+          else {
+            onObject[split[i]] = object[key];
+          }
         }
       }
     }

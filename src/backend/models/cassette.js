@@ -64,6 +64,7 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
     var json = Backbone.Model.prototype.toJSON.call(this);
 
     json['isPageable'] = this.isPageable();
+    json['isBrowseable'] = this.isBrowseable();
     return json;
   },
 });

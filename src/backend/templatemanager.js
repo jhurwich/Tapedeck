@@ -7,7 +7,6 @@ Tapedeck.Backend.TemplateManager = {
     "Frame",
     "Player",
     "PlaylistList",
-    "TrackList",
     "Queue",
     "BrowseRegion",
     "BrowseList",
