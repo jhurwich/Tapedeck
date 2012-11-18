@@ -10,17 +10,9 @@ if (typeof(Tapedeck.Frontend.Messenger) != "undefined") {
 
 Tapedeck.Frontend.Messenger = {
 
-  DEBUG_LEVELS: {
-    NONE  : 0,
-    BASIC : 1,
-    ALL   : 2,
-  },
-  debug: 0,
-
   port: null,
-  init: function(callback) {
+  init: function() {
     var self = this;
-    var initComplete = false;
 
     self.port = chrome.extension.connect();
     self.port.onMessage.addListener(self.handleRequest);
@@ -117,6 +109,10 @@ Tapedeck.Frontend.Messenger = {
         Tapedeck.Frontend.Frame.checkSync();
         break;
 
+      case "setLogs":
+        Tapedeck.Frontend.Utils.setLogs(request.logs);
+        break;
+
       default:
         throw new Error("Messenger's handleRequest was sent an unknown action '" + request.action + "'");
     }
@@ -127,6 +123,14 @@ Tapedeck.Frontend.Messenger = {
       action     : "requestUpdate",
       updateType : updateType
     });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  getLogs: function(callback) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action        : "getLogs",
+    }, callback);
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
@@ -412,11 +416,11 @@ Tapedeck.Frontend.Messenger = {
   sendMessage: function(message) {
     var self = Tapedeck.Frontend.Messenger;
     if (message.type == "request") {
-      self.log("Posting request: " + message.action, self.DEBUG_LEVELS.ALL);
+      self.log("Posting request: " + message.action, Tapedeck.Frontend.Utils.DEBUG_LEVELS.ALL);
     }
     else if (message.type == "response") {
       self.log("Posting response - callback: " + message.callbackID,
-               self.DEBUG_LEVELS.ALL);
+               Tapedeck.Frontend.Utils.DEBUG_LEVELS.ALL);
     }
 
     self.port.postMessage(message);
@@ -468,17 +472,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   log: function(str, level) {
-    if (this.debug == this.DEBUG_LEVELS.NONE) {
-      return;
-    }
-    if (typeof(level) == "undefined") {
-      level = this.DEBUG_LEVELS.BASIC;
-    }
-    if (this.debug >= level) {
-
-      var currentTime = new Date();
-      console.log("Msgr (" + currentTime.getTime() + ") - " + str);
-    }
+    Tapedeck.Frontend.Utils.log("Messenger", str, level);
   },
 
   clear: function() {

@@ -5,13 +5,6 @@ Tapedeck.Backend.CassetteManager = {
   currPage: 1,
   numPreinstalled: 1, // Scraper is preinstalled
 
-  DEBUG_LEVELS: {
-    NONE  : 0,
-    BASIC : 1,
-    ALL   : 2,
-  },
-  debug: 0,
-
   init: function(continueInit) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.cassettes = []; // array of { cassette : __, (page: __) }
@@ -836,16 +829,6 @@ Tapedeck.Backend.CassetteManager = {
   },
 
   log: function(str, level) {
-    var self = Tapedeck.Backend.CassetteManager;
-    if (self.debug == self.DEBUG_LEVELS.NONE) {
-      return;
-    }
-    if (typeof(level) == "undefined") {
-      level = self.DEBUG_LEVELS.BASIC;
-    }
-    if (self.debug >= level) {
-      var currentTime = new Date();
-      console.log("CMgr (" + currentTime.getTime() + ") : " + str);
-    }
+    Tapedeck.Backend.Utils.log("CassetteManager", str, level);
   }
 };

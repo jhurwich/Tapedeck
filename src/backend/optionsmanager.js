@@ -1,7 +1,6 @@
 Tapedeck.Backend.OptionsManager = {
 
-  init: function() {
-    console.log("Initializing Options Manager");
+  init: function(continueInit) {
     var self = this;
 
     var confURL = chrome.extension.getURL("util/options.conf")
@@ -9,20 +8,33 @@ Tapedeck.Backend.OptionsManager = {
       type: "GET",
       url: confURL,
       dataType: "text",
-      success : self.handleConf,
+      success : self.handleConf.curry(continueInit),
       error : function(xhr, status) {
         console.error("Error getting options.conf: " + status);
       }
     });
   },
 
-  handleConf: function(conf) {
+  handleConf: function(continueInit, conf) {
     var optionMgr = Tapedeck.Backend.OptionsManager;
 
     var options = $.parseJSON(conf);
-    delete options["_comment"]; // only way to do comments in JSON
 
-    options = optionMgr.flatten("", options);
+    // remove all _comment's from the conf
+    var commentDelete = function(object) {
+      $.each(object, function(key, value) {
+        if(typeof(value) == "object" ) {
+          commentDelete(value);
+        }
+        else if (value == "_comment") {
+          delete object[key];
+        }
+      });
+      delete object["_comment"];
+    };
+    commentDelete(options);
+
+    options = optionMgr.flatten(options);
 
     var bankOptions = Tapedeck.Backend.Bank.getSavedOptionsForConfOptions(options);
 
@@ -32,7 +44,17 @@ Tapedeck.Backend.OptionsManager = {
     //and save them back
     Tapedeck.Backend.Bank.saveOptions(options);
 
+    optionMgr.enactOptions(optionMgr.unflatten(options), function() {
+      continueInit();
+    });
+
     // TODO enact the options
+    // will establish local CSS override that templateManager will check for
+    // will establish local tempalte override checked for at lines 407 and 408 of templateManager
+    // will force debug cassettified cassettes into cassette manager
+    // includes any local cassettes in the bank's getCassettes return
+
+    // all available logs are specified in master conf?
   },
 
   getOptions: function(callback) {
@@ -43,7 +65,57 @@ Tapedeck.Backend.OptionsManager = {
       console.log("Got options -- " + JSON.stringify(options));
       callback(options);
     });
+  },
 
+  enactOptions: function(options, callback) {
+    var optionMgr = Tapedeck.Backend.OptionsManager;
+    var logsDone = false;
+    var overridesDone = false;
+    var preamadesDone = false;
+    var tryFinish = function() {
+      if (logsDone && overridesDone && premadesDone) {
+        callback();
+      }
+    }
+
+    for (var key in options) {
+      var compareKey = key.toLowerCase();
+
+      if (compareKey.indexOf("log") != -1) {
+        // this is the logs subobject
+        optionMgr.setLogs(options[key], function() {
+          logsDone = true;
+          tryFinish();
+        });
+      }
+      else if (compareKey.indexOf("src/dev") != -1) {
+        // this is the local override subobject
+        optionMgr.localOverrides(options[key]);
+        overridesDone = true;
+        tryFinish();
+      }
+      else if (compareKey.indexOf("premade") != -1) {
+        // this the premade cassettified cassettes subobject
+        optionMgr.premadeCassettes(options[key]);
+        premadesDone = true;
+        tryFinish();
+      }
+    }
+  },
+
+  setLogs: function(object, callback) {
+    Tapedeck.Backend.Utils.setLogs(object);
+    Tapedeck.Backend.MessageHandler.setLogs(object, callback);
+
+    console.log("setLogs got : " + JSON.stringify(object));
+  },
+
+  localOverrides: function(object) {
+    console.log("localOverrides got : " + JSON.stringify(object));
+  },
+
+  premadeCassettes: function(object) {
+    console.log("premadeCassettes got : " + JSON.stringify(object));
   },
 
   unflatten: function(object) {
@@ -95,7 +167,11 @@ Tapedeck.Backend.OptionsManager = {
     return toReturn;
   },
 
-  flatten: function(key, object) {
+  flatten: function(object) {
+    return this.doFlatten("", object);
+  },
+
+  doFlatten: function(key, object) {
     var toReturn = {};
 
     // non-objects and empty objects are leaves
@@ -103,7 +179,7 @@ Tapedeck.Backend.OptionsManager = {
       return { key: object.replace(" ", "_") }
     }
     if (typeof(object) == "number" ||
-        typeof(object) == "array" ||
+        $.isArray(object) ||
         $.isEmptyObject(object)) {
       return { key: object };
     }
@@ -114,7 +190,7 @@ Tapedeck.Backend.OptionsManager = {
 
     for (var hrKey in object) {
       var value = object[hrKey];
-      var subOptions = Tapedeck.Backend.OptionsManager.flatten(hrKey, value);
+      var subOptions = Tapedeck.Backend.OptionsManager.doFlatten(hrKey, value);
 
       for (var subKey in subOptions) {
         var concatKey = hrKey + "-" + subKey;
@@ -123,18 +199,6 @@ Tapedeck.Backend.OptionsManager = {
       }
     }
     return toReturn;
-  },
-
-  show: function(el, proxyEvents) {
-    // get master conf defaults
-    // get saved options
-
-        // will establish local CSS override that templateManager will check for
-        // will establish local tempalte override checked for at lines 407 and 408 of templateManager
-        // will force debug cassettified cassettes into cassette manager
-        // includes any local cassettes in the bank's getCassettes return
-
-        // all available logs are specified in master conf?
   },
 
 }

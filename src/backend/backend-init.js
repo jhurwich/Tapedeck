@@ -17,12 +17,13 @@ Tapedeck.Backend.init = function() {
     return;
   }
   Tapedeck.Backend.MessageHandler.init(); // other inits, like CassetteMgr, need MsgHandler
-  Tapedeck.Backend.Bank.init(function() {
-    Tapedeck.Backend.CassetteManager.init(function() {
-      Tapedeck.Backend.TemplateManager.init(function() {
-        Tapedeck.Backend.InjectManager.init();
-        Tapedeck.Backend.Sequencer.init();
-        Tapedeck.Backend.OptionsManager.init();
+  Tapedeck.Backend.Bank.init(function() { // other inits, like OptionsMgr, need Bank
+    Tapedeck.Backend.OptionsManager.init(function() {
+      Tapedeck.Backend.CassetteManager.init(function() {
+        Tapedeck.Backend.TemplateManager.init(function() {
+          Tapedeck.Backend.InjectManager.init();
+          Tapedeck.Backend.Sequencer.init();
+        });
       });
     });
   });

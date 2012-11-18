@@ -27,11 +27,13 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
       }
     };
 
+    var prepCode = "TapedeckInjected.Utils.setLogs(" + JSON.stringify(Tapedeck.Backend.Utils.logLevels) + ");";
     Tapedeck.Backend.InjectManager
                     .executeScript(context.tab,
                                    { allFrames: false,
                                      file: "frontend/scripts/track-parser.js" },
                                    handleTracks,
-                                   { cassetteName : self.get("name") });
+                                   { cassetteName : self.get("name") },
+                                   prepCode);
   }
 });

@@ -172,6 +172,31 @@ Tapedeck.Backend.Utils = {
 
   domToString: function(dom) {
     return $('div').append($(dom)).remove().html();
+  },
+
+  DEBUG_LEVELS: {
+    ALL: 2,
+    BASIC: 1,
+    NONE: 0
+  },
+  logLevels: { },
+  setLogs: function(logs) {
+    this.logLevels = logs;
+  },
+  log: function(component, str, level) {
+    var currentTime = new Date();
+
+    var logLevel = ((typeof(this.logLevels) != "undefined" && typeof(this.logLevels.Backend) != "undefined") ?
+                    this.logLevels.Backend[component] :
+                    null);
+    if (logLevel == null || typeof(logLevel) == "undefined") {
+      console.log("<Unknown LogLevel> " + component + " (" + currentTime.getTime() + ") - " + str);
+    }
+
+    // compare set logLevel vs level
+    if (logLevel >= level) {
+      console.log(component + " (" + currentTime.getTime() + ") - " + str);
+    }
   }
 }
 

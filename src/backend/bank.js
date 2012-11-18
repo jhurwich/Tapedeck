@@ -1,12 +1,5 @@
 Tapedeck.Backend.Bank = {
 
-  DEBUG_LEVELS: {
-    NONE  : 0,
-    BASIC : 1,
-    ALL   : 2,
-  },
-  debug: 0,
-
   // constants for track modifying in preparation to save
   DONT_SERIALIZE_PROPERTIES: ['description',
                               'location',
@@ -1499,7 +1492,7 @@ Tapedeck.Backend.Bank = {
       var size = JSON.stringify(save).length;
       var logObj = { time: currentTime, size: size };
 
-      if (bank.debug > bank.DEBUG_LEVELS.NONE) {
+      if (bank.debug > Tapedeck.Backend.Utils.DEBUG_LEVELS.NONE) {
         var lists = [];
         for (var key in save) {
           var list = [key, save[key].length]
@@ -1507,7 +1500,7 @@ Tapedeck.Backend.Bank = {
         }
 
         logObj['lists'] = lists;
-        if (bank.debug == bank.DEBUG_LEVELS.ALL) {
+        if (bank.debug == Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL) {
           logObj['saved'] = JSON.stringify(save);
         }
       }
@@ -1527,7 +1520,7 @@ Tapedeck.Backend.Bank = {
           var logObj = JSON.parse(bank.localStorage.getItem(logKeys[i]));
 
           // unless we are debug == ALL, we clear log entries older than an hour
-          if (bank.debug != bank.DEBUG_LEVELS.ALL) {
+          if (bank.debug != Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL) {
             var time = new Date(logObj.time);
             if (time < hourAgo) {
               bank.localStorage.removeItem(logKeys[i]);
@@ -1544,7 +1537,7 @@ Tapedeck.Backend.Bank = {
     // <time as date> <size>chars: <keys and sizes> (\n <saved object depending on log level>
     dumpSyncLog: function() {
       var bank = Tapedeck.Backend.Bank;
-      if (bank.debug == bank.DEBUG_LEVELS.NONE) {
+      if (bank.debug == Tapedeck.Backend.Utils.DEBUG_LEVELS.NONE) {
         return;
       }
 
@@ -1570,7 +1563,7 @@ Tapedeck.Backend.Bank = {
             str = str.substring(0, str.length-3)
           }
 
-          if (bank.debug == bank.DEBUG_LEVELS.ALL) {
+          if (bank.debug == Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL) {
             str += "\n\t";
             str += logObj.saved;
           }
@@ -1581,16 +1574,6 @@ Tapedeck.Backend.Bank = {
   }, // End Tapedeck.Backend.Bank.Sync
 
   log: function(str, level) {
-    var self = Tapedeck.Backend.Bank;
-    if (self.debug == self.DEBUG_LEVELS.NONE) {
-      return;
-    }
-    if (typeof(level) == "undefined") {
-      level = self.DEBUG_LEVELS.BASIC;
-    }
-    if (self.debug >= level) {
-      var currentTime = new Date();
-      console.log("Bank (" + currentTime.getTime() + ") : " + str);
-    }
+    Tapedeck.Backend.Utils.log("Bank", str, level);
   },
 }

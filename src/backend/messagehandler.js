@@ -1,12 +1,5 @@
 Tapedeck.Backend.MessageHandler = {
 
-  DEBUG_LEVELS: {
-    NONE  : 0,
-    BASIC : 1,
-    ALL   : 2,
-  },
-  debug: 0,
-
   ports: {},
   init: function() {
     // ports are used for communication with each of our player frames
@@ -106,10 +99,10 @@ Tapedeck.Backend.MessageHandler = {
     var currentTime = new Date();
     if (typeof(message.action) != "undefined") {
       self.log("(" + currentTime.getTime() + ") Posting action message '" + message.action + "' to tab: " + tabID,
-               self.DEBUG_LEVELS.ALL);
+               Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
     } else {
       self.log("(" + currentTime.getTime() + ")Posting response message '" + message.callbackID + "' to tab: " + tabID,
-               self.DEBUG_LEVELS.ALL);
+               Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
     }
 
     if (typeof(ports[tabID]) != "undefined" &&
@@ -385,6 +378,11 @@ Tapedeck.Backend.MessageHandler = {
 
       case "clear":
         Tapedeck.Backend.Bank.clear();
+        break;
+
+      case "getLogs":
+        response.logs = Tapedeck.Backend.Utils.logLevels;
+        self.postMessage(port.sender.tab.id, response);
         break;
 
       default:
@@ -663,6 +661,24 @@ Tapedeck.Backend.MessageHandler = {
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
   },
 
+  // tab is optional
+  setLogs: function(object, tab, callback) {
+    var self = Tapedeck.Backend.MessageHandler;
+    if (arguments.length < 3) {
+      self.getSelectedTab(function(selectedTab) {
+        self.setLogs(object, selectedTab, tab);
+      });
+      return;
+    }
+
+    var request = self.newRequest({
+      action: "setLogs",
+      logs: object
+    });
+
+    self.messageSandbox(request, callback);
+  },
+
   newRequest: function(object, callback) {
     var request = (object ? object : { });
     request.type = "request";
@@ -741,16 +757,6 @@ Tapedeck.Backend.MessageHandler = {
   },
 
   log: function(str, level) {
-    var self = Tapedeck.Backend.MessageHandler;
-    if (self.debug == self.DEBUG_LEVELS.NONE) {
-      return;
-    }
-    if (typeof(level) == "undefined") {
-      level = self.DEBUG_LEVELS.BASIC;
-    }
-    if (self.debug >= level) {
-      var currentTime = new Date();
-      console.log("MsgHdlr (" + currentTime.getTime() + ") : " + str);
-    }
-  }
+    Tapedeck.Backend.Utils.log("MessageHandler", str, level);
+  },
 };

@@ -5,6 +5,9 @@ if (typeof(Tapedeck) == "undefined") {
 
 Tapedeck.Frontend.init = function() {
   Tapedeck.Frontend.Messenger.init();
+  Tapedeck.Frontend.Messenger.getLogs(function(response) {
+    Tapedeck.Frontend.Utils.setLogs(response.logs);
+  });
 
   var callback = function(response) {
     Tapedeck.Frontend.Frame.replaceView(response.view,

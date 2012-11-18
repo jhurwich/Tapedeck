@@ -53,6 +53,8 @@ Tapedeck.Backend.InjectManager = {
                                        runAt: runAt });
     chrome.tabs.executeScript(tabID, { file: "frontend/tapedeck-inject-all.js",
                                        runAt: runAt });
+    chrome.tabs.executeScript(tabID, { file: "util/frontend-util.js",
+                                       runAt: runAt });
   },
 
   // Post inject scripts are provided context as their only param
@@ -106,9 +108,10 @@ Tapedeck.Backend.InjectManager = {
     });
   },
 
-  // responseCallback should prepare for response.error to be present in the event of error
+  // responseCallback should prepare for response.error to be present in the event of error.
+  // prepCode is optional.
   currInjectors: 0,
-  executeScript: function(tab, options, responseCallback, testParams) {
+  executeScript: function(tab, options, responseCallback, testParams, prepCode) {
     var injectMgr = Tapedeck.Backend.InjectManager;
     if (!injectMgr.isTest(tab.url) && injectMgr.isURLBlocked(tab.url)) {
       return;
@@ -153,6 +156,9 @@ Tapedeck.Backend.InjectManager = {
 
       // Now actually do the injection
       if (!injectMgr.isTest(tab.url)) {
+        if(typeof(prepCode) != "undefined") {
+          chrome.tabs.executeScript(tab.id,{ code : prepCode })
+        }
         chrome.tabs.executeScript(tab.id, options);
       }
       else {

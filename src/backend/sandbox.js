@@ -4,15 +4,6 @@ if (typeof Tapedeck == "undefined") {
 
 Tapedeck.Sandbox = {
 
-  DEBUG_LEVELS: {
-    NONE  : 0,
-    BASIC : 1,
-    ALL   : 2,
-  },
-  debug: 0,
-
-  cassettes: {},
-
   messageHandler: function(e) {
     var message = e.data;
     if (message.action == "response") {
@@ -144,6 +135,12 @@ Tapedeck.Sandbox = {
         });
         break;
 
+      case "setLogs":
+        Tapedeck.Backend.Utils.setLogs(message.logs);
+        var aResponse = Tapedeck.Sandbox.newResponse(message);
+        Tapedeck.Sandbox.sendMessage(aResponse);
+        break;
+
       default:
         throw new Error("Tapedeck.Sandbox was sent an unknown action");
         break;
@@ -152,10 +149,10 @@ Tapedeck.Sandbox = {
 
   render: function(textTemplate, params) {
     Tapedeck.Sandbox.log("Rendering: \n" + textTemplate + "\n with " + JSON.stringify(params),
-                         Tapedeck.Sandbox.DEBUG_LEVELS.ALL);
+                         Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
     var template = _.template(textTemplate);
 
-    if (Tapedeck.Sandbox.debug > Tapedeck.Sandbox.DEBUG_LEVELS.BASIC) {
+    if (Tapedeck.Sandbox.debug > Tapedeck.Backend.Utils.DEBUG_LEVELS.BASIC) {
       var debugMethods = {
         paramSanity: function(paramName, necessary, checkValue) {
           var str = ">>>==============> ";
@@ -266,7 +263,7 @@ Tapedeck.Sandbox = {
   // Tapedeck.ajax cannot be performed from the Sandbox, relay to background
   ajax : function(params) {
     Tapedeck.Sandbox.log("Sandbox is calling out for AJAX: " + JSON.stringify(params),
-                         Tapedeck.Sandbox.DEBUG_LEVELS.ALL);
+                         Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
 
     var successFn = params.success;
     var errorFn = params.error;
@@ -309,18 +306,8 @@ Tapedeck.Sandbox = {
   },
 
   log: function(str, level) {
-    var self = Tapedeck.Sandbox;
-    if (self.debug == self.DEBUG_LEVELS.NONE) {
-      return;
-    }
-    if (typeof(level) == "undefined") {
-      level = self.DEBUG_LEVELS.BASIC;
-    }
-    if (self.debug >= level) {
-      var currentTime = new Date();
-      console.log("Sandbox (" + currentTime.getTime() + ") : " + str);
-    }
-  }
+    Tapedeck.Backend.Utils.log("Sandbox", str, level);
+  },
 };
 
 // Cassettes will expect Backend to exist, map it to the Sandbox
@@ -333,7 +320,7 @@ if (typeof Tapedeck.Backend == "undefined") {
   Tapedeck.Backend.MessageHandler = {
     addTracks: function(tracks, tab) {
       Tapedeck.Sandbox.log("Sandbox is adding tracks: " + JSON.stringify(tracks),
-                           Tapedeck.Sandbox.DEBUG_LEVELS.ALL);
+                           Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
 
       var message = {
         action : "addTracks",
@@ -348,28 +335,5 @@ if (typeof Tapedeck.Backend == "undefined") {
 
   Tapedeck.ajax = Tapedeck.Sandbox.ajax;
 }
-
-// copied wholesale from prototype.js, props to them
-Function.prototype.curry = function() {
-  var slice = Array.prototype.slice;
-
-  function update(array, args) {
-    var arrayLength = array.length, length = args.length;
-    while (length--) array[arrayLength + length] = args[length];
-    return array;
-  }
-
-  function merge(array, args) {
-    array = slice.call(array, 0);
-    return update(array, args);
-  }
-
-  if (!arguments.length) return this;
-  var __method = this, args = slice.call(arguments, 0);
-  return function() {
-    var a = merge(args, arguments);
-    return __method.apply(this, a);
-  }
-};
 
 window.addEventListener('message', Tapedeck.Sandbox.messageHandler);

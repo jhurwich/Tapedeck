@@ -1,5 +1,3 @@
-// Props to Dan Kantor @ ExFM for providing a great song-parser template
-// that this implementation was based off of.
 var onObject = null;
 if (typeof(TapedeckInjected) != "undefined") {
   onObject = TapedeckInjected;
@@ -14,12 +12,6 @@ if (onObject != null &&
      !onObject.TrackParser.isParsing)) {
 
   onObject.TrackParser = {
-    DEBUG_LEVELS: {
-      NONE  : 0,
-      BASIC : 1,
-      ALL   : 2,
-    },
-    debug: 0,
 
     ASYNC_TIMELIMIT: 30, /* seconds */
     moreCallback: null,
@@ -30,10 +22,16 @@ if (onObject != null &&
     cassetteName: "",
     timeout: null,
     start : function(params) {
+      console.log("TP START");
       if (typeof(params) == "undefined") {
         params = { };
       }
       var parser = onObject.TrackParser;
+
+      // Check if we have a callback, and are thus on the bkgrd page.
+      if (typeof(params.callback) != "undefined") {
+        parser.onBackgroundPage = true;
+      }
 
       var logStr = "Starting TrackParser "
       if (typeof(params.cassetteName) != "undefined") {
@@ -45,12 +43,8 @@ if (onObject != null &&
       }
       parser.log(logStr);
 
-      // Check if we have a callback, and are thus on the bkgrd page.
-      // If so, save the add more callback too, otherwise use sendRequest
-      // because we're not on the bkgrd page.
-      if (typeof(params.callback) != "undefined") {
-        parser.onBackgroundPage = true;
-      }
+      // If we're on the background page, save the add more callback too,
+      // otherwise use sendRequest because we're not on the bkgrd page.
       if (parser.onBackgroundPage &&
           typeof(params.moreCallback) != "undefined") {
         parser.moreCallback = params.moreCallback;
@@ -76,7 +70,7 @@ if (onObject != null &&
       try {
         parser.log("Finding Tracks now.");
         var tracks = parser.findSongs();
-        parser.log("ending parsing - got tracks: " + JSON.stringify(tracks), parser.DEBUG_LEVELS.BASIC);
+        parser.log("ending parsing - got tracks: " + JSON.stringify(tracks), onObject.Utils.DEBUG_LEVELS.BASIC);
 
         if (!parser.onBackgroundPage) {
           var response = {
@@ -272,7 +266,7 @@ if (onObject != null &&
                 track.trackName = filename;
               } else {
                 parser.log("No trackName found for '" + a.href + "'. Using 'Unknown Title'",
-                         parser.DEBUG_LEVELS.BASIC);
+                         onObject.Utils.DEBUG_LEVELS.BASIC);
               }
             }
 
@@ -303,7 +297,7 @@ if (onObject != null &&
             }
             if (parser.debug) {
               parser.log("new track object: " + JSON.stringify(track),
-                       parser.DEBUG_LEVELS.ALL);
+                       onObject.Utils.DEBUG_LEVELS.ALL);
             }
 
             mp3Links[track.url] = track;
@@ -342,7 +336,7 @@ if (onObject != null &&
 
             if ($.inArray(track.url, urls) != -1) {
               // already seen this track
-              parser.log("already scraped " + track.url, parser.DEBUG_LEVELS.BASIC);
+              parser.log("already scraped " + track.url, onObject.Utils.DEBUG_LEVELS.BASIC);
               continue;
             }
 
@@ -375,8 +369,7 @@ if (onObject != null &&
             mp3Links[track.url] = track;
           }
           catch(e) {
-            parser.log("Error in TumblrDashboard scraping",
-                     parser.DEBUG_LEVELS.NONE);
+            parser.log("Error in TumblrDashboard scraping", onObject.Utils.DEBUG_LEVELS.NONE);
           }
         }
         return mp3Links;
@@ -450,8 +443,7 @@ if (onObject != null &&
             mp3Links[track.url] = track;
           }
           catch(e) {
-            parser.log("Error in Tumblr scraping",
-                     parser.DEBUG_LEVELS.NONE);
+            parser.log("Error in Tumblr scraping", onObject.Utils.DEBUG_LEVELS.NONE);
           }
         }
         /* jhawk save for loadmore
@@ -501,7 +493,7 @@ if (onObject != null &&
             mp3Links[track.url] = track;
           } else {
             parser.log('<audio> must have src or <source>',
-                     parser.DEBUG_LEVELS.BASIC);
+                     onObject.Utils.DEBUG_LEVELS.BASIC);
           }
 
         }
@@ -1077,18 +1069,8 @@ if (onObject != null &&
     },
 
     log: function(str, level) {
-      var parser = onObject.TrackParser;
-      if (parser.debug == parser.DEBUG_LEVELS.NONE) {
-        return;
-      }
-      if (typeof(level) == "undefined") {
-        level = parser.DEBUG_LEVELS.BASIC;
-      }
-      if (parser.debug >= level) {
-        var currentTime = new Date();
-        console.log("TrackParser (" + currentTime.getTime() + ") - " + str);
-      }
-    }
+      onObject.Utils.log("TrackParser", str, level);
+    },
   };
 
   if (typeof(TapedeckInjected) != "undefined" &&

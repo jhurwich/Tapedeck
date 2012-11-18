@@ -87,17 +87,7 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
 
   // TapedeckView's log is controlled by the Template Manager's debug setting
   log: function(str, level) {
-    var self = Tapedeck.Backend.TemplateManager;
-    if (self.debug == self.DEBUG_LEVELS.NONE) {
-      return;
-    }
-    if (typeof(level) == "undefined") {
-      level = self.DEBUG_LEVELS.BASIC;
-    }
-    if (self.debug >= level) {
-      var currentTime = new Date();
-      console.log("TapedeckView (" + currentTime.getTime() + ") : " + str);
-    }
+    Tapedeck.Backend.Utils.log("TemplateManager", "(TapedeckView) " + str, level);
   }
 
 });
