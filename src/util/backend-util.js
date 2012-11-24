@@ -44,6 +44,24 @@ Tapedeck.Backend.Utils = {
     }
   },
 
+  // callback receives the file contents and url as params.
+  // Contents will be null if there's an error.
+  getFileContents: function(path, callback) {
+    var url = chrome.extension.getURL(path);
+    $.ajax({
+      type: "GET",
+      url: url,
+      dataType: "text",
+      success : function(contents) {
+        callback(contents, url);
+      },
+      error : function(xhr, status) {
+        console.error("Error getting " + url + ": " + status);
+        callback(null, "");
+      }
+    });
+  },
+
     // convenience function for turning a el's id into a templateName
   idToTemplateName: function(id) {
     var templateName = id;
@@ -180,14 +198,15 @@ Tapedeck.Backend.Utils = {
     NONE: 0
   },
   logLevels: { },
-  setLogs: function(logs) {
-    this.logLevels = logs;
+  setLogs: function(logs, bool) {
+    Tapedeck.Backend.Utils.logLevels = logs;
   },
-  log: function(component, str, level) {
+  log: function(component, str, level, forcedLevels) {
+    var self = Tapedeck.Backend.Utils;
     var currentTime = new Date();
 
-    var logLevel = ((typeof(this.logLevels) != "undefined" && typeof(this.logLevels.Backend) != "undefined") ?
-                    this.logLevels.Backend[component] :
+    var logLevel = ((typeof(self.logLevels) != "undefined" && typeof(self.logLevels.Backend) != "undefined") ?
+                    self.logLevels.Backend[component] :
                     null);
     if (logLevel == null || typeof(logLevel) == "undefined") {
       console.log("<Unknown LogLevel> " + component + " (" + currentTime.getTime() + ") - " + str);

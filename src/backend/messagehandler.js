@@ -731,6 +731,15 @@ Tapedeck.Backend.MessageHandler = {
           Tapedeck.Backend.MessageHandler.addTracks(request.tracks, request.tab);
           break;
 
+        case "getLogLevels":
+          var request = Tapedeck.Backend.MessageHandler.newRequest({
+            action: "setLogs",
+            logs: Tapedeck.Backend.Utils.logLevels
+          });
+
+          Tapedeck.Backend.MessageHandler.messageSandbox(request);
+          break;
+
         case "ajax":
           request.params.success = function(data, textStatus, xhr) {
             var response = Tapedeck.Backend.MessageHandler.newResponse(request,

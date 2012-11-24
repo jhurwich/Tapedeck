@@ -17,6 +17,9 @@ Tapedeck.Backend.Bank = {
                 "tdID" : "td"  },
   UMMINIFY_MAP: null,
 
+  devTemplates: null,
+  devCSS: null,
+
   drawerOpen: false,
   localStorage: null,
 
@@ -155,6 +158,42 @@ Tapedeck.Backend.Bank = {
                               JSON.stringify(bank.blockList));
   },
 
+  setDevTemplatesAndCSS: function(templateFilename, cssFilename, callback) {
+    var bank = Tapedeck.Backend.Bank;
+    Tapedeck.Backend.Utils.getFileContents("/dev/" + templateFilename, function(templateContents, templateURL) {
+      Tapedeck.Backend.Utils.getFileContents("/dev/" + cssFilename, function(cssContents, cssURL) {
+
+        if (templateContents != null) {
+          var regex = new RegExp("Frame-([^-]*)-template");
+          var devName = templateContents.match(regex)[1];
+          bank.devTemplates = { name: devName, contents: templateContents, url: templateURL};
+
+          if (cssContents != null) {
+            bank.devCSS = { name: devName, contents: cssContents, url: cssURL};
+          }
+        }
+        else {
+          console.error("Could not get contents of dev template")
+          callback();
+          return;
+        }
+
+        bank.FileSystem.getTemplates(function(templateDatas) {
+          Tapedeck.Backend.TemplateManager.loadTemplates(templateDatas);
+          Tapedeck.Backend.TemplateManager.setPackage(devName);
+          callback();
+        });
+      });
+    });
+  },
+  setDevCassettes: function(filename, callback) {
+    callback();
+    return;
+    Tapedeck.Backend.Utils.getFileContents("/dev/" + filename, function(contents, url) {
+      // TODO implement
+    });
+  },
+
   FileSystem : {
     root : null,
     fileSystemSize: 100, // in MB
@@ -275,7 +314,8 @@ Tapedeck.Backend.Bank = {
     // the contents of a template file should be an HTML doc with <script> templates
     // will return [{ name: "", contents: "", url: "" (, cssURL: "", cssContents: "") }]
     getTemplates: function(aCallback) {
-      var fs = Tapedeck.Backend.Bank.FileSystem;
+      var bank = Tapedeck.Backend.Bank;
+      var fs = bank.FileSystem;
 
       var callback = function(templateDatas, cssDatas) {
         var cssMap = { };
@@ -296,7 +336,13 @@ Tapedeck.Backend.Bank = {
       }
 
       fs.loadDir("Templates", function(aTemplateDatas) {
+        if (bank.devTemplates != null) {
+          aTemplateDatas.push(bank.devTemplates);
+        }
         fs.loadDir("CSS", function(aCSSDatas) {
+          if (bank.devCSS != null) {
+            aCSSDatas.push(bank.devCSS);
+          }
           callback(aTemplateDatas, aCSSDatas);
         })
       });
@@ -921,7 +967,6 @@ Tapedeck.Backend.Bank = {
   saveOptions: function(options) {
     var bank = Tapedeck.Backend.Bank;
     for (var key in options) {
-      console.log("setting: " + key + "  : " + options[key]);
       bank.localStorage.setItem(bank.optionsPrefix + key, options[key]);
     }
   },

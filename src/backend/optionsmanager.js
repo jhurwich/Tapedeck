@@ -47,14 +47,6 @@ Tapedeck.Backend.OptionsManager = {
     optionMgr.enactOptions(optionMgr.unflatten(options), function() {
       continueInit();
     });
-
-    // TODO enact the options
-    // will establish local CSS override that templateManager will check for
-    // will establish local tempalte override checked for at lines 407 and 408 of templateManager
-    // will force debug cassettified cassettes into cassette manager
-    // includes any local cassettes in the bank's getCassettes return
-
-    // all available logs are specified in master conf?
   },
 
   getOptions: function(callback) {
@@ -62,7 +54,6 @@ Tapedeck.Backend.OptionsManager = {
 
     Tapedeck.Backend.Bank.getSavedOptions(function(flatOptions) {
       options = optionMgr.unflatten(flatOptions);
-      console.log("Got options -- " + JSON.stringify(options));
       callback(options);
     });
   },
@@ -90,9 +81,10 @@ Tapedeck.Backend.OptionsManager = {
       }
       else if (compareKey.indexOf("src/dev") != -1) {
         // this is the local override subobject
-        optionMgr.localOverrides(options[key]);
-        overridesDone = true;
-        tryFinish();
+        optionMgr.localOverrides(options[key], function() {
+          overridesDone = true;
+          tryFinish();
+        });
       }
       else if (compareKey.indexOf("premade") != -1) {
         // this the premade cassettified cassettes subobject
@@ -106,12 +98,48 @@ Tapedeck.Backend.OptionsManager = {
   setLogs: function(object, callback) {
     Tapedeck.Backend.Utils.setLogs(object);
     Tapedeck.Backend.MessageHandler.setLogs(object, callback);
-
-    console.log("setLogs got : " + JSON.stringify(object));
   },
 
-  localOverrides: function(object) {
+  localOverrides: function(object, callback) {
+    // overrides are stored in the bank so that they're merged with existing sources
     console.log("localOverrides got : " + JSON.stringify(object));
+    var bank = Tapedeck.Backend.Bank;
+
+    var templatesAndCSSComplete = false;
+    var cassettesComplete = false;
+    var checkAndFinish = function() {
+      if (templatesAndCSSComplete && cassettesComplete) {
+        callback();
+      }
+    };
+
+    for (var key in object) {
+      var compareKey = key.toLowerCase();
+      if (compareKey.indexOf("template") != -1) {
+        devTemplatesFilename = object[key];
+      }
+      else if (compareKey.indexOf("css") != -1) {
+        devCSSFilename = object[key];
+      }
+      else if (compareKey.indexOf("cassette") != -1) {
+        devCassettesFilenames = object[key];
+      }
+    }
+    bank.setDevTemplatesAndCSS(devTemplatesFilename, devCSSFilename, function() {
+      templatesAndCSSComplete = true;
+      checkAndFinish();
+    });
+    bank.setDevCassettes(devCassettesFilenames, function() {
+      cassettesComplete = true;
+      checkAndFinish();
+    });
+
+    // will establish local CSS override that templateManager will check for
+    // will establish local tempalte override checked for at lines 407 and 408 of templateManager
+    // will force debug cassettified cassettes into cassette manager
+    // includes any local cassettes in the bank's getCassettes return
+
+    // all available logs are specified in master conf?
   },
 
   premadeCassettes: function(object) {

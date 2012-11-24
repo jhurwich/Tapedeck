@@ -67,7 +67,7 @@ Tapedeck.Backend.TemplateManager = {
                                                   function() {
 
       // get all saved templates and load them
-      Tapedeck.Backend.Bank.FileSystem.getTemplates(function(templateDatas){
+      Tapedeck.Backend.Bank.FileSystem.getTemplates(function(templateDatas) {
         tMgr.loadTemplates(templateDatas);
         callback();
       });
@@ -418,19 +418,8 @@ Tapedeck.Backend.TemplateManager = {
 
     // Some templates can't be changed and live outside of background.html.  Grab those with this.
     if (templateName in tMgr.exceptionTemplates) {
-      var url = chrome.extension.getURL(tMgr.exceptionTemplates[templateName]);
-      $.ajax({
-        type: "GET",
-        url: url,
-        dataType: "text",
-        success : function(template) {
-          callback(template);
-        },
-        error : function(xhr, status) {
-          console.error("Error getting " + tMgr.exceptionTemplates[templateName] + ": " + status);
-          callback(null);
-        }
-      });
+      Tapedeck.Backend.Utils.getFileContents(tMgr.exceptionTemplates[templateName],
+                                             callback);
       return;
     }
 

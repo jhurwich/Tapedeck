@@ -1,5 +1,7 @@
 if (typeof(Tapedeck) == "undefined") {
   var Tapedeck = { };
+}
+if (typeof(Tapedeck.Options) == "undefined") {
   Tapedeck.Options = { };
 }
 
@@ -7,7 +9,6 @@ Tapedeck.Options.init = function() {
   Tapedeck.Frontend.Messenger.init();
 
   var callback = function(response) {
-    console.log("GOT RESPONSE: " + JSON.stringify(response));
     Tapedeck.Options.replaceView(response.view,
                                  response.proxyEvents);
   };
@@ -22,7 +23,6 @@ Tapedeck.Options.init = function() {
 Tapedeck.Options.replaceView = function(viewStr, proxyEvents) {
   var view = $(viewStr);
   var targetID = $(view).first().attr("id");
-  console.log("Replacing into " + targetID);
   $("#" + targetID).replaceWith(view);
   if (typeof(proxyEvents) != 'undefined' && !jQuery.isEmptyObject(proxyEvents)) {
     this.attachEvents(targetID, proxyEvents);

@@ -12,6 +12,7 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
     }
     self.templateName = Tapedeck.Backend.Utils.idToTemplateName(self.id);
     self.packageName = tMgr.currentPackage;
+    console.log("View created for package: " + self.packageName);
 
     tMgr.getTemplate(self.templateName, self.packageName, function(template) {
       self.textTemplate = template;

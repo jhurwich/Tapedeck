@@ -4,6 +4,42 @@ if (typeof Tapedeck == "undefined") {
 
 Tapedeck.Sandbox = {
 
+  // The sandbox div gets blown away on background.html when we append new templates,
+  // so init() is called each time to re-establish the Sandbox with things like logLevels.
+  init: function() {
+    // we've established Backend for Utils, swing that onto Sandbox
+    var utils = Tapedeck.Backend.Utils;
+
+    Tapedeck.Backend = Tapedeck.Sandbox;
+    Tapedeck.Sandbox.Models = { };
+    Tapedeck.Sandbox.Cassettes = { };
+    Tapedeck.Sandbox.Utils = utils;
+
+    // we capture and simulate Tapedeck.Backend.MessageHandler.addTracks
+    Tapedeck.Backend.MessageHandler = {
+      addTracks: function(tracks, tab) {
+        Tapedeck.Sandbox.log("Sandbox is adding tracks: " + JSON.stringify(tracks),
+                             Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
+
+        var message = {
+          action : "addTracks",
+          tracks : tracks
+        }
+        if (typeof(tab) != "undefined") {
+          message.tab = tab;
+        }
+        Tapedeck.Sandbox.sendMessage(message, "*");
+      }
+    };
+
+    var request = {
+      action : "getLogLevels",
+    };
+    Tapedeck.Sandbox.sendMessage(request);
+
+    Tapedeck.ajax = Tapedeck.Sandbox.ajax;
+  },
+
   messageHandler: function(e) {
     var message = e.data;
     if (message.action == "response") {
@@ -136,9 +172,11 @@ Tapedeck.Sandbox = {
         break;
 
       case "setLogs":
-        Tapedeck.Backend.Utils.setLogs(message.logs);
-        var aResponse = Tapedeck.Sandbox.newResponse(message);
-        Tapedeck.Sandbox.sendMessage(aResponse);
+        Tapedeck.Backend.Utils.setLogs(message.logs, true);
+        if (typeof(message.callbackID) != "undefined") {
+          var aResponse = Tapedeck.Sandbox.newResponse(message);
+          Tapedeck.Sandbox.sendMessage(aResponse);
+        }
         break;
 
       default:
@@ -310,30 +348,5 @@ Tapedeck.Sandbox = {
   },
 };
 
-// Cassettes will expect Backend to exist, map it to the Sandbox
-if (typeof Tapedeck.Backend == "undefined") {
-  Tapedeck.Backend = Tapedeck.Sandbox;
-  Tapedeck.Sandbox.Models = { };
-  Tapedeck.Sandbox.Cassettes = { };
-
-  // we capture and simulate Tapedeck.Backend.MessageHandler.addTracks
-  Tapedeck.Backend.MessageHandler = {
-    addTracks: function(tracks, tab) {
-      Tapedeck.Sandbox.log("Sandbox is adding tracks: " + JSON.stringify(tracks),
-                           Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
-
-      var message = {
-        action : "addTracks",
-        tracks : tracks
-      }
-      if (typeof(tab) != "undefined") {
-        message.tab = tab;
-      }
-      Tapedeck.Sandbox.sendMessage(message, "*");
-    }
-  };
-
-  Tapedeck.ajax = Tapedeck.Sandbox.ajax;
-}
-
 window.addEventListener('message', Tapedeck.Sandbox.messageHandler);
+Tapedeck.Sandbox.init();
