@@ -161,28 +161,27 @@ Tapedeck.Backend.Bank = {
   setDevTemplatesAndCSS: function(templateFilename, cssFilename, callback) {
     var bank = Tapedeck.Backend.Bank;
     Tapedeck.Backend.Utils.getFileContents("/dev/" + templateFilename, function(templateContents, templateURL) {
-      Tapedeck.Backend.Utils.getFileContents("/dev/" + cssFilename, function(cssContents, cssURL) {
 
-        if (templateContents != null) {
-          var regex = new RegExp("Frame-([^-]*)-template");
-          var devName = templateContents.match(regex)[1];
-          bank.devTemplates = { name: devName, contents: templateContents, url: templateURL};
+      if (templateContents != null) {
+        var regex = new RegExp("Frame-([^-]*)-template");
+        var devName = templateContents.match(regex)[1];
+        bank.devTemplates = { name: devName, contents: templateContents, url: templateURL};
 
-          if (cssContents != null) {
-            bank.devCSS = { name: devName, contents: cssContents, url: cssURL};
-          }
+        if (typeof(cssFilename) != "undefined") {
+          var cssURL = chrome.extension.getURL("/dev/" + cssFilename);
+          bank.devCSS = { name: devName, url: cssURL};
         }
-        else {
-          console.error("Could not get contents of dev template")
-          callback();
-          return;
-        }
+      }
+      else {
+        console.error("Could not get contents of dev template")
+        callback();
+        return;
+      }
 
-        bank.FileSystem.getTemplates(function(templateDatas) {
-          Tapedeck.Backend.TemplateManager.loadTemplates(templateDatas);
-          Tapedeck.Backend.TemplateManager.setPackage(devName);
-          callback();
-        });
+      bank.FileSystem.getTemplates(function(templateDatas) {
+        Tapedeck.Backend.TemplateManager.loadTemplates(templateDatas);
+        Tapedeck.Backend.TemplateManager.setPackage(devName);
+        callback();
       });
     });
   },
@@ -312,7 +311,7 @@ Tapedeck.Backend.Bank = {
     },
 
     // the contents of a template file should be an HTML doc with <script> templates
-    // will return [{ name: "", contents: "", url: "" (, cssURL: "", cssContents: "") }]
+    // will return [{ name: "", contents: "", url: "" (, cssURL: "") }]
     getTemplates: function(aCallback) {
       var bank = Tapedeck.Backend.Bank;
       var fs = bank.FileSystem;
@@ -328,7 +327,6 @@ Tapedeck.Backend.Bank = {
           var data = datas[i];
           if (data.name in cssMap) {
             data.cssURL = cssMap[data.name].url;
-            data.cssContents = cssMap[data.name].contents;
           }
         }
 
@@ -336,13 +334,44 @@ Tapedeck.Backend.Bank = {
       }
 
       fs.loadDir("Templates", function(aTemplateDatas) {
+        // always add the default template
+        var defaultTemplateURL = chrome.extension.getURL("/backend/background.html");
+
+        // default lives on the background page; div needed to maintain script tags
+        var div = $('div');
+        $("script[type='text/template']").each(function(index, script) {
+          $(div).append(script);
+        })
+        var defaultTemplateContents = $(div).remove().html();
+
+        aTemplateDatas.push({ name: "default",
+                              contents: defaultTemplateContents,
+                              url: defaultTemplateURL });
+
+        // if there's a dev template, add that
         if (bank.devTemplates != null) {
           aTemplateDatas.push(bank.devTemplates);
         }
+
+        // now handle the CSS
         fs.loadDir("CSS", function(aCSSDatas) {
+          // The CSS contents are unreliable and url should be used.
+          // Delete it to avoid accidental usage.
+          for (var name in aCSSDatas) {
+            delete aCSSDatas[name].contents;
+          }
+
+          //always add the default CSS
+          var defaultCSSURL = chrome.extension.getURL("/frontend/tapedeck.css");
+          aCSSDatas.push({ name: "default",
+                           url: defaultCSSURL });
+
+          // if there's dev CSS, add that
           if (bank.devCSS != null) {
             aCSSDatas.push(bank.devCSS);
           }
+
+          // callback should merge them before returning
           callback(aTemplateDatas, aCSSDatas);
         })
       });

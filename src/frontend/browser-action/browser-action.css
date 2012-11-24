@@ -1,7 +1,15 @@
+* {
+  font-family: arial,sans-serif;
+}
+
 body {
   width: 280px;
   background-color: rgb(188,188,188);
   margin: 2px 0 2px 6px;
+}
+
+#package-select {
+  margin: 6px 0 0 0;
 }
 
 .heading {

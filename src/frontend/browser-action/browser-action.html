@@ -7,8 +7,16 @@
   </head>
 
   <body>
+    <label for="package-select">Change skin: </label>
+    <select name="package-select"
+            id="package-select"
+            onchange="TapedeckBA();"></select>
+
+    <hr />
+
+    <label>Block Tapedeck on certain sites:</label>
     <input id="block-button" type="button" value="Block current page" />
-    <input id="block-input" type="text" size="25" />
+    <input id="block-input" type="text" size="37" placeholder="Block all urls containing this (Press Enter)" />
     <span class="heading">Currently avoiding:</span>
     <div id="blocklist">
     </div>

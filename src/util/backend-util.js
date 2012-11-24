@@ -57,7 +57,7 @@ Tapedeck.Backend.Utils = {
       },
       error : function(xhr, status) {
         console.error("Error getting " + url + ": " + status);
-        callback(null, "");
+        callback(null, url);
       }
     });
   },

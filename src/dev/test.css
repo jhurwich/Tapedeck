@@ -6,7 +6,7 @@ body {
   width: 100%;
   height: 100%;
   display: block !important; /* necessary so that the frame appears when css ready */
-  background-color: yellow;
+  background-color: darkslategrey;
 }
 
 #frame {

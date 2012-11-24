@@ -25,9 +25,9 @@
         <% if(params.debug > 0) {
           /* nothing to check */
         } %>
-        <div id="player">
-          <template ref="Player-test-template" />
-        </div>
+
+        <template ref="BrowseRegion-test-template" />
+
         <div id="queue-region" class="region">
           <div id="queue" class="tracklist">
             <template ref="Queue-test-template" />
@@ -49,8 +49,9 @@
             </div>
           </div>
         </div>
-
-        <template ref="BrowseRegion-test-template" />
+        <div id="player">
+          <template ref="Player-test-template" />
+        </div>
       </template>
     </script>
 

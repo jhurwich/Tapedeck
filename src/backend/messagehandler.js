@@ -78,6 +78,13 @@ Tapedeck.Backend.MessageHandler = {
         }
         break;
 
+      case "getPackages":
+        sendResponse({ packages: Tapedeck.Backend.TemplateManager.getPackages(),
+                       currentPackage: Tapedeck.Backend.TemplateManager.currentPackage })
+        break;
+      case "setPackage":
+        Tapedeck.Backend.TemplateManager.setPackage(request.name);
+        break;
       case "getBlockList":
         var blockListStr = JSON.stringify(Tapedeck.Backend.Bank.getBlockList());
         sendResponse({ blockList: blockListStr });

@@ -17,43 +17,14 @@ Tapedeck.Backend.TemplateManager = {
     var tMgr = Tapedeck.Backend.TemplateManager;
     tMgr.log("TemplateManager.init() starting", Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
 
-    // will receive [{ name: "", contents: "", url: "", cssURL: "", cssContents: "" }]
+    // will receive [{ name: "", contents: "", url: "", cssURL: "" }]
     Tapedeck.Backend.Bank.FileSystem.getTemplates(function(templateDatas) {
 
-      // if there are no templates in the filesystem, read in the default
-      if (templateDatas.length == 0) {
-        tMgr.log("No templates received from filesystem", Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
+      // templates found, set them up
+      tMgr.log(templateDatas.length + " templates received from filesystem", Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
+      tMgr.loadTemplates(templateDatas);
+      continueInit();
 
-        // div needed to preserve script tags of template
-        var div = $('div');
-        $("script[type='text/template']").each(function(index, script) {
-          $(div).append(script);
-        })
-        var templateCode = $(div).remove().html();
-
-        // read in tapedeck.css through XHR
-        var url = chrome.extension.getURL("frontend/tapedeck.css");
-        $.ajax({
-          type: "GET",
-          url: url,
-          dataType: "text",
-          success : function(cssCode) {
-            tMgr.addTemplate(templateCode, cssCode, "default", function() {
-              continueInit();
-            })
-          },
-          error : function(xhr, status) {
-            console.error("Error getting tapedeck.css: " + status);
-            continueInit();
-          }
-        });
-      }
-      else {
-        // templates found, set them up
-        tMgr.log(templateDatas.length + " templates received from filesystem", Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
-        tMgr.loadTemplates(templateDatas);
-        continueInit();
-      }
     });
   },
 
@@ -95,6 +66,12 @@ Tapedeck.Backend.TemplateManager = {
         tMgr.cssForPackages[template.name] = template.cssURL;
       }
     }
+  },
+
+  // returns an array of the package names that are available
+  getPackages: function() {
+    var tMgr = Tapedeck.Backend.TemplateManager;
+    return Object.keys(tMgr.packages);
   },
 
   setPackage: function(packageName) {

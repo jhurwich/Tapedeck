@@ -7,7 +7,45 @@ TapedeckBA = {
     blockInput.addEventListener('keydown', function(event) {
       if (event.keyCode == 13) TapedeckBA.addBlockInput();
     });
+    TapedeckBA.loadPackages();
     TapedeckBA.loadBlockList();
+  },
+
+  loadPackages: function() {
+    chrome.tabs.getSelected(undefined, function(tab) {
+      var request = {
+        action: "getPackages",
+      }
+      chrome.extension.sendRequest(request, function(response) {
+        var packages = response.packages;
+        var selectDOM = document.getElementById("package-select");
+
+        for (var i = 0; i < packages.length; i++) {
+          var newOptionDOM = document.createElement("option");
+          newOptionDOM.setAttribute("value", packages[i]);
+          newOptionDOM.id = packages[i];
+          newOptionDOM.textContent = packages[i];
+          if (packages[i] == response.currentPackage) {
+            newOptionDOM.setAttribute("selected", "true");
+          }
+
+          selectDOM.appendChild(newOptionDOM)
+        }
+
+        selectDOM.addEventListener("change", TapedeckBA.updatePackage);
+      });
+    });
+  },
+
+  updatePackage: function(event) {
+    var selectDOM = document.getElementById("package-select");
+    var newPackageName = selectDOM.options[selectDOM.selectedIndex]
+                                          .getAttribute("value");
+    var request = {
+      action: "setPackage",
+      name: newPackageName
+    }
+    chrome.extension.sendRequest(request);
   },
 
   loadBlockList: function() {
