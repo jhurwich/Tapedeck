@@ -747,6 +747,15 @@ Tapedeck.Backend.MessageHandler = {
           Tapedeck.Backend.MessageHandler.messageSandbox(request);
           break;
 
+        case "executeScript":
+          var callback = function(response) {
+            response.action = 'response';
+            var sendResponse = Tapedeck.Backend.MessageHandler.newResponse(request, response);
+            $("#sandbox").get(0).contentWindow.postMessage(sendResponse, "*");
+          };
+          Tapedeck.Backend.InjectManager.executeScript(request.tab, request.options, callback, request.testParams, request.prepCode);
+          break;
+
         case "ajax":
           request.params.success = function(data, textStatus, xhr) {
             var response = Tapedeck.Backend.MessageHandler.newResponse(request,

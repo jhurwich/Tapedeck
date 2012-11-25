@@ -17,7 +17,12 @@ Tapedeck.Backend.Bank = {
                 "tdID" : "td"  },
   UMMINIFY_MAP: null,
 
+  /* Expected to match the data objects returned by loadDir:
+   * { name: <string_name>, contents:<string_contents>, url:<fs_url> }
+   *
+   * (except for CSS which never have .contents) */
   devTemplates: null,
+  devCassettes: [],
   devCSS: null,
 
   drawerOpen: false,
@@ -185,12 +190,41 @@ Tapedeck.Backend.Bank = {
       });
     });
   },
-  setDevCassettes: function(filename, callback) {
-    callback();
-    return;
-    Tapedeck.Backend.Utils.getFileContents("/dev/" + filename, function(contents, url) {
-      // TODO implement
-    });
+  setDevCassettes: function(filenames, callback) {
+    var bank = Tapedeck.Backend.Bank;
+
+    var files = [];
+    if ($.isArray(filenames)) {
+      files = filenames;
+    }
+    else {
+      var split = filenames.split(",");
+      for (var i = 0; i < split.length; i++) {
+        files.push($.trim(split[i]));
+      }
+    }
+
+    var remaining = files.length;
+    for (var i = 0; i < files.length; i++) {
+      Tapedeck.Backend.Utils.getFileContents("/dev/" + files[i], function(contents, url) {
+        // we don't want to instantialize the cassette without the name, so we hack in to find it
+        var nameRegex = new RegExp("[\'\"]name[\'\"][^:]*:[^\'\"]*[\'\"]([^\'\"]*)[\'\"]");
+        var match = contents.match(nameRegex);
+        var name = "DevCassette" + Math.floor(Math.random() * 100000);
+        if (match != null && match[1] && match[1].length > 0) {
+          name = match[1];
+        }
+
+        var cassetteData = { name: name, contents: contents, url: url };
+        bank.devCassettes.push(cassetteData);
+        remaining--;
+        if (remaining <= 0) {
+          Tapedeck.Backend.CassetteManager.readInCassettes(function() {
+            callback();
+          });
+        }
+      });
+    }
   },
 
   FileSystem : {
@@ -255,18 +289,23 @@ Tapedeck.Backend.Bank = {
 
     // Returns cassetteDatas of the form - name: "", contents: "", url: "" (, page: num)
     getCassettes: function(aCallback) {
+      var bank = Tapedeck.Backend.Bank;
+
       var callback = function(datas) {
+        // if there are dev cassettes, add them now
+        datas = datas.concat(bank.devCassettes);
+
         for (var i = 0; i < datas.length; i++) {
           var name = datas[i].name;
 
-          var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix + name;
-          var page = Tapedeck.Backend.Bank.localStorage.getItem(pageKey);
+          var pageKey = bank.cassettePagePrefix + name;
+          var page = bank.localStorage.getItem(pageKey);
           if (page != null) {
             datas[i].page = page;
           }
 
-          var feedKey = Tapedeck.Backend.Bank.cassetteFeedPrefix + name;
-          var feed = Tapedeck.Backend.Bank.localStorage.getItem(feedKey);
+          var feedKey = bank.cassetteFeedPrefix + name;
+          var feed = bank.localStorage.getItem(feedKey);
           if (feed != null) {
             datas[i].feed = feed;
           }

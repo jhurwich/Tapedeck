@@ -107,12 +107,15 @@ Tapedeck.Backend.CassetteManager = {
     });
   },
 
-  refreshCassetteListView: function() {
+  refreshCassetteListView: function(callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.readInCassettes(function() {
       Tapedeck.Backend.TemplateManager.renderView("CassetteList", function(cassetteListView) {
         Tapedeck.Backend.MessageHandler.pushView(cassetteListView.el,
                                                  cassetteListView.proxyEvents);
+        if (typeof(callback) != "undefined") {
+          callback();
+        }
       });
     });
   },
@@ -830,5 +833,5 @@ Tapedeck.Backend.CassetteManager = {
 
   log: function(str, level) {
     Tapedeck.Backend.Utils.log("CassetteManager", str, level);
-  }
+  },
 };

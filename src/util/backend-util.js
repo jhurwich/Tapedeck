@@ -202,6 +202,9 @@ Tapedeck.Backend.Utils = {
     Tapedeck.Backend.Utils.logLevels = logs;
   },
   log: function(component, str, level, forcedLevels) {
+    if (typeof(level) =="undefined" ) {
+      level = 1;
+    }
     var self = Tapedeck.Backend.Utils;
     var currentTime = new Date();
 

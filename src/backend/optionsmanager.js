@@ -105,10 +105,17 @@ Tapedeck.Backend.OptionsManager = {
     console.log("localOverrides got : " + JSON.stringify(object));
     var bank = Tapedeck.Backend.Bank;
 
+
+    var devTemplatesFilename = "";
+    var devCSSFilename = "";
+    var devCassettesFilenames = "";
+
     var templatesAndCSSComplete = false;
     var cassettesComplete = false;
     var checkAndFinish = function() {
-      if (templatesAndCSSComplete && cassettesComplete) {
+      // if we needed to handle files, length > 0, make sure they're complete
+      if (((devTemplatesFilename.length == 0 || devCSSFilename.length == 0) || templatesAndCSSComplete) &&
+          ((devCassettesFilenames.length == 0) || cassettesComplete)) {
         callback();
       }
     };
@@ -125,21 +132,23 @@ Tapedeck.Backend.OptionsManager = {
         devCassettesFilenames = object[key];
       }
     }
-    bank.setDevTemplatesAndCSS(devTemplatesFilename, devCSSFilename, function() {
-      templatesAndCSSComplete = true;
-      checkAndFinish();
-    });
-    bank.setDevCassettes(devCassettesFilenames, function() {
-      cassettesComplete = true;
-      checkAndFinish();
-    });
+    if (devTemplatesFilename.length > 0 && devCSSFilename.length > 0) {
+      bank.setDevTemplatesAndCSS(devTemplatesFilename, devCSSFilename, function() {
+        templatesAndCSSComplete = true;
+        checkAndFinish();
+      });
+    }
+    if (devCassettesFilenames.length > 0) {
+      bank.setDevCassettes(devCassettesFilenames, function() {
+        cassettesComplete = true;
+        checkAndFinish();
+      });
+    }
 
     // will establish local CSS override that templateManager will check for
     // will establish local tempalte override checked for at lines 407 and 408 of templateManager
     // will force debug cassettified cassettes into cassette manager
     // includes any local cassettes in the bank's getCassettes return
-
-    // all available logs are specified in master conf?
   },
 
   premadeCassettes: function(object) {

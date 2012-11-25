@@ -4,6 +4,8 @@ if (typeof Tapedeck == "undefined") {
 
 Tapedeck.Sandbox = {
 
+  cassettes: {},
+
   // The sandbox div gets blown away on background.html when we append new templates,
   // so init() is called each time to re-establish the Sandbox with things like logLevels.
   init: function() {
@@ -31,6 +33,31 @@ Tapedeck.Sandbox = {
         Tapedeck.Sandbox.sendMessage(message, "*");
       }
     };
+
+    // capture and simulate Tapedeck.Backend.InjectManager.executeScript as well
+    Tapedeck.Backend.InjectManager = {
+
+      // unlike the usual executeScript, things in the sandbox cannot rely on receiving sender or sendResponse
+      executeScript: function(tab, options, responseCallback, testParams, prepCode) {
+        var message = {
+          type: "action",
+          action: "executeScript",
+          tab: tab,
+          options: options
+        };
+        if (typeof(testParams) != "undefined") {
+          message.testParams = testParams;
+        }
+        if (typeof(prepCode) != "undefined") {
+          message.prepCode = prepCode;
+        }
+        var request = Tapedeck.Sandbox.newRequest(message, function(response) {
+          delete response.callbackID;
+          responseCallback(response);
+        });
+        Tapedeck.Sandbox.sendMessage(request, "*");
+      }
+    }
 
     var request = {
       action : "getLogLevels",
@@ -265,6 +292,7 @@ Tapedeck.Sandbox = {
 
   pendingCallbacks: { },
   responseHandler: function(response) {
+    Tapedeck.Sandbox.log("Sandbox received a response with keys: " + JSON.stringify(Object.keys(response)));
     var callbacks = Tapedeck.Sandbox.pendingCallbacks;
     if (response.callbackID in callbacks) {
       callbacks[response.callbackID](response);
