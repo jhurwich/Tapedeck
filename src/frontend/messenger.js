@@ -34,7 +34,13 @@ Tapedeck.Frontend.Messenger = {
       }
     }
     else {
-      console.error("Could not find callback '" + response.callbackID + "' for response.");
+      if (typeof(response.view) != "undefined") {
+        response.view = "<html_removed>";
+      }
+      if (typeof(response.proxyEvents) != "undefined") {
+        response.proxyEvents = "<events_removed>";
+      }
+      console.error("Could not find callback '" + response.callbackID + "' for response: " + JSON.stringify(response));
     }
   },
 

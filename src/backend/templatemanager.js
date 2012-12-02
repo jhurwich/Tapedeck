@@ -386,8 +386,14 @@ Tapedeck.Backend.TemplateManager = {
 
   exceptionTemplates: { "Options" :  "frontend/options/options-template.html" },
   templatesInProgress: {},
+  // packageName is optional
   getTemplate: function(templateName, packageName, callback) {
     var tMgr = Tapedeck.Backend.TemplateManager;
+    if (arguments.length == 2) {
+      callback = packageName;
+      packageName = this.currentPackage;
+    }
+
     if (!this.isValidPackage(packageName)) {
       packageName = this.currentPackage;
     }

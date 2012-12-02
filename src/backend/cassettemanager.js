@@ -3,7 +3,6 @@ Tapedeck.Backend.CassetteManager = {
   cassettes: [],
   currentCassette: null,
   currPage: 1,
-  numPreinstalled: 1, // Scraper is preinstalled
 
   // Prevents any call to readInCassette from changing cMgr.cassettes.
   // This is needed to prevent multiple readIns during initialization.
@@ -30,18 +29,20 @@ Tapedeck.Backend.CassetteManager = {
   readInCassettes: function(callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     if (cMgr.blockReadIn) {
-      console.error("--Cassette Read In Blocked--");
+      console.error("-- Cassette Read In Blocked --");
       callback();
       return;
     }
-    cMgr.log("Discarding and reading in cassettes.");
-    cMgr.cassettes = [];
+
+    cMgr.log("-- readInCassettes --");
 
     // FileSystem cassettes must be run in the Sandbox and communicated with through
     // a CassetteAdapter
     Tapedeck.Backend.Bank.FileSystem.getCassettes(function(cassetteDatas) {
-      Tapedeck.Backend.MessageHandler.messageSandbox({ action: 'clearCassettes' }, function() {
+      cMgr.log("Discarding and reading in cassettes.");
+      cMgr.cassettes = [];
 
+      Tapedeck.Backend.MessageHandler.messageSandbox({ action: 'clearCassettes' }, function() {
         var pageMap = { };
         for (var i = 0; i < cassetteDatas.length; i++) {
           var scoped = function(data) {
@@ -71,6 +72,7 @@ Tapedeck.Backend.CassetteManager = {
                     cassetteEntry.feed = response.report.defaultFeed;
                   }
 
+                  cMgr.log("Loading '" + data.name + "' from the filesystem. #" + cMgr.cassettes.length);
                   cMgr.cassettes.push(cassetteEntry);
                 });
               }
@@ -84,7 +86,7 @@ Tapedeck.Backend.CassetteManager = {
       // Cassettes stored in memory can be used directly
       for (var CassetteModel in Tapedeck.Backend.Cassettes) {
         var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
-        cMgr.log("Loading '" + CassetteModel + "' from memory.");
+        cMgr.log("Loading '" + CassetteModel + "' from memory. #" + cMgr.cassettes.length);
 
         // for the moment no in-memory cassettes have pages, if this changes
         // this will need to pull a page number and store it here
@@ -92,8 +94,8 @@ Tapedeck.Backend.CassetteManager = {
       }
 
       // Confirm that everything was ready to be read in.
-      // We expect all the preinstalled cassettes plus the saved ones.
-      var numExpected = cMgr.numPreinstalled + cassetteDatas.length;
+      // We need to add one because the Scraper cassette is always present
+      var numExpected = cassetteDatas.length + 1;
       var currTimeout = 0;
       var maxTimeout = 10000;
       var delayReturn = function() {
@@ -290,19 +292,21 @@ Tapedeck.Backend.CassetteManager = {
 
     start: function(params) {
       var self = this;
+      var cMgr = Tapedeck.Backend.CassetteManager;
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var injectMgr = Tapedeck.Backend.InjectManager;
       if (typeof(params) == "undefined") {
         params = { };
       }
 
-      Tapedeck.Backend.CassetteManager.log("Begin Cassettification");
+      cMgr.log("Begin Cassettification with params: " + JSON.stringify(params));
 
       msgHandler.getSelectedTab(function(tab) {
         self.origURL = tab.url;
         self.tabID = tab.id;
         if (typeof(params.isTest) != "undefined" && params.isTest) {
           self.origURL = params.testURL;
+          cMgr.log("isTest, using testURL: " + self.origURL);
         }
 
         msgHandler.showModal({
@@ -672,7 +676,13 @@ Tapedeck.Backend.CassetteManager = {
       // This is Soundcloud.finish.
       // cassetteName and callback and are optional - if two arguments are specified, callback is assumed
       finish: function(cassetteName, callback, response) {
-        if (arguments.length == 2) {
+        if (arguments.length == 1) {
+          response = cassetteName;
+          callback = undefined;
+          cassetteName = undefined;
+        }
+        else if (arguments.length == 2) {
+          response = callback;
           callback = cassetteName;
           cassetteName = undefined;
         }
@@ -682,7 +692,7 @@ Tapedeck.Backend.CassetteManager = {
         if (typeof(cassetteName) != "undefined") {
           options.cassetteName = cassetteName;
         }
-        else if (response.cassetteName != "undefined") {
+        else if (typeof(response.cassetteName) != "undefined") {
           options.cassetteName = response.cassetteName;
         }
         Tapedeck.Backend.CassetteManager.Cassettify.nameCassette(response.rendered, options, callback);

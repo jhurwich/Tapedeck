@@ -758,6 +758,14 @@ jasmine.Env.prototype.describe = function(description, specDefinitions) {
       return;
     }
   }
+  else {
+    var skips = __Jasmine__TESTS_TO_SKIP;
+    for (var i = 0; i < skips.length; i++) {
+      if (skips[i] == suite.getFullName()) {
+        return;
+      }
+    }
+  }
 
   var parentSuite = this.currentSuite;
   if (parentSuite) {

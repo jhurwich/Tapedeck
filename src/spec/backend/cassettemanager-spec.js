@@ -14,15 +14,6 @@ describe("Cassette Manager", function() {
     }, "Waiting for CassetteManager.init()", 3000);
   });
 
-  it("should return all installed cassettes", function() {
-    var cassettes = this.cassetteMgr.cassettes;
-    var cassetteCount = 0;
-    for (var cassetteName in this.Tapedeck.Backend.Cassettes) {
-      cassetteCount++;
-    }
-    expect(cassettes.length).toEqual(cassetteCount);
-  });
-
   it("should instantiate all cassette models on init", function() {
     var spies = [];
     for (var cassetteName in this.Tapedeck.Backend.Cassettes) {

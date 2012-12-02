@@ -22,7 +22,6 @@ if (onObject != null &&
     cassetteName: "",
     timeout: null,
     start : function(params) {
-      console.log("TP START");
       if (typeof(params) == "undefined") {
         params = { };
       }

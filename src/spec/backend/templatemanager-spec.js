@@ -20,10 +20,10 @@ describe("Template Manager", function() {
         }
       };
 
-      var templateURL = chrome.extension.getURL("spec/data/test-skin.html");
+      self.templateURL = chrome.extension.getURL("spec/data/test-skin.html");
       $.ajax({
         type: "GET",
-        url: templateURL,
+        url: self.templateURL,
         dataType: "text",
         success : function(aTemplateCode) {
           self.templateCode = aTemplateCode;
@@ -34,10 +34,10 @@ describe("Template Manager", function() {
         }
       });
 
-      var cssURL = chrome.extension.getURL("spec/data/test-skin.css");
+      self.cssURL = chrome.extension.getURL("spec/data/test-skin.css");
       $.ajax({
         type: "GET",
-        url: cssURL,
+        url: self.cssURL,
         dataType: "text",
         success : function(aCSSCode) {
           self.cssCode = aCSSCode;
@@ -80,9 +80,11 @@ describe("Template Manager", function() {
 
       var requiredTemplates = viewScript.prototype.requiredTemplates;
       for (var j = 0; j < requiredTemplates.length; j++) {
+
         var templateName = requiredTemplates[j];
-        var template = this.tMgr.getTemplate(templateName);
-        expect($(template)).toExist();
+        this.tMgr.getTemplate(templateName, function(template) {
+          expect($(template)).toExist();
+        });
       }
     };
   });
@@ -102,10 +104,8 @@ describe("Template Manager", function() {
           var data = datas[i];
 
           if(data.name == "test") {
-            var checkTemplateCode = data.contents;
-            var checkCSSCode = data.cssContents;
-            expect(self.templateCode).toEqual(checkTemplateCode);
-            expect(self.cssCode).toEqual(checkCSSCode);
+            expect(data.contents).toEqual(self.templateCode);
+            expect(data.cssURL).toMatch("filesystem:chrome-extension://[A-Za-z]*/temporary/CSS/" + data.name);
             testComplete = true;
           }
         }
@@ -138,9 +138,10 @@ describe("Template Manager", function() {
         expect(self.tMgr.currentPackage).toEqual("test");
 
         // we've changed to the test package, let's make sure we get its templates now
-        var textTemplate = self.tMgr.getTemplate("Frame");
-        expect($(textTemplate).find("#this-is-the-test-template").length > 0).toBeTruthy();
-        testComplete = true;
+        var textTemplate = self.tMgr.getTemplate("Frame", function(textTemplate) {
+          expect($(textTemplate).find("#this-is-the-test-template").length > 0).toBeTruthy();
+          testComplete = true;
+        });
       });
     });
     waitsFor(function() { return testComplete },

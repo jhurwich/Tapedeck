@@ -200,9 +200,6 @@ Tapedeck.Backend.OptionsManager = {
       name = name.replace(".com", "");
       name = name.replace(/[^a-zA-Z0-9\s]/gi, "");
 
-      // and add a random number to reduce the likelihood of collisions
-      name += Math.floor(Math.random() * 10000)
-
       var param = { pattern: object[key],
                     cassetteName: name };
 

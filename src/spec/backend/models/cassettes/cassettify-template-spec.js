@@ -8,45 +8,34 @@ describe("Cassettification", function() {
     this.cassetteName = "TestCassette";
 
     waitsForFrontendInit();
-    runs(function() {
-      var startSpy = spyOn(this.cMgr.Cassettify, "start").andCallThrough();
-      waitsFor(function() {
-
-        // make sure cassettification started and the UI is ready
-        if (startSpy.callCount > 0) {
-
-          var modal = $("#tapedeck-frame").contents().find("#modal");
-
-          var input = $(modal).find("input[callbackparam='pattern']");
-          return (input.length > 0);
-        }
-        return false;
-      }, "Waiting for cassettification to start", 500);
-
-      this.frame.CassetteList.cassettify(event);
-    });
   });
 
   it("should make a new cassette for the current page", function() {
 
-    waitsFor(function() {
-      var modal = $("#tapedeck-frame").contents().find("#modal");
-      return $(modal).find("input[callbackparam='cassetteName']").length > 0;
-    }, "Waiting for modal to change to cassette naming", 500);
-
-    // start Cassettify in test mode so we can fake the currentURL
-    this.cMgr.Cassettify.start({ isTest: true, testURL: this.testURL })
+    var testComplete = false;
 
     runs(function() {
-      // Name the Cassette when it's ready
-      $(modal).find("input[callbackparam='cassetteName']")
-              .first()
-              .val(this.cassetteName);
+      // start Cassettify in test mode so we can fake the currentURL
+      var options = { isTest: true, testURL: this.testURL };
+      this.cMgr.Cassettify.start(options)
+
+      waitsFor(function() {
+        var modal = $("#tapedeck-frame").contents().find("#modal");
+        return $(modal).find("input[callbackparam='cassetteName']").length > 0;
+      }, "Waiting for modal to change to cassette naming", 20000);
 
       var origCassetteNum = this.cMgr.cassettes.length;
 
-      // Begin the Cassette save
-      $(modal).find("input[type='button']").first().click();
+      runs(function() {
+        // Name the Cassette when it's ready
+        var modal = $("#tapedeck-frame").contents().find("#modal");
+        $(modal).find("input[callbackparam='cassetteName']")
+                .first()
+                .val(this.cassetteName);
+
+        // Begin the Cassette save
+        $(modal).find("input[type='button']").first().click();
+      });
 
       waitsFor(function() { return this.cMgr.cassettes.length == (origCassetteNum + 1); },
                "Waiting for cassettes to be read-in",
@@ -54,8 +43,15 @@ describe("Cassettification", function() {
       runs(function() {
         // The Cassette was saved make sure it's in the cassettelist
         expect(this.cMgr.cassettes.length).toEqual(origCassetteNum + 1);
+        testComplete = true;
       });
     });
+
+    waitsFor(function() { return testComplete; }, 20000);
+    runs(function() {
+      expect(testComplete).toBeTruthy();
+    })
+
   });
 
 /*

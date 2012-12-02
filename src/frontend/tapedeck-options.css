@@ -48,6 +48,11 @@ div.number .key{
   float: left;
   clear: right;
 }
+div.number:hover,
+div.string:hover {
+  background-color: #D0D0D0 !important;
+}
+
 input.number {
   width: 20px;
   height: 20px;

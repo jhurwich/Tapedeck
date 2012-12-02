@@ -3,6 +3,14 @@ __Jasmine__TESTS_TO_RUN = [
   "Cassettification",
 ];
 
+__Jasmine__TESTS_TO_SKIP = [
+  "The Scraper Cassette",
+];
+
+/* Runs initialization before each test.
+ * Dramatically slows down test suite.  */
+__Jasmine__DO_FULL_INIT = true;
+
 beforeEach(function() {
   this.testTracks = [
     {
@@ -92,6 +100,8 @@ beforeEach(function() {
     this.Tapedeck.Backend.Bank.clear();
   });
 
+
+
   this.findTestTab = function() {
     var ports = this.Tapedeck.Backend.MessageHandler.ports;
     for (var id in ports) {
@@ -108,6 +118,20 @@ beforeEach(function() {
       return ($("#tapedeck-frame").contents().find("#browse-list").length > 0);
     }, "Waiting for switch to BrowseList mode", 200);
   };
+
+  this.waitForBackendInit = function() {
+    var initComplete = false;
+    waitsFor(function() { return initComplete; },
+             "Waiting for Backend.init()",
+             1000);
+    this.Tapedeck.Backend.init(function() {
+      initComplete = true;
+    })
+  };
+
+  if (__Jasmine__DO_FULL_INIT) {
+    this.waitForBackendInit();
+  }
 }); // end beforeEach
 
 afterEach(function() {

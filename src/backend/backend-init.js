@@ -9,7 +9,9 @@ Tapedeck.Backend.Cassettes = { };
 Tapedeck.Backend.Collections = { };
 Tapedeck.Backend.Views = { };
 Tapedeck.Backend.Controllers = { };
-Tapedeck.Backend.init = function() {
+
+// callback is optional
+Tapedeck.Backend.init = function(callback) {
   var log = function(str, level) {
     Tapedeck.Backend.Utils.log("Initialization", str, level);
   };
@@ -43,6 +45,9 @@ Tapedeck.Backend.init = function() {
           Tapedeck.Backend.Sequencer.init();
           log("Sequencer initialized.  Complete init.");
 
+          if (typeof(callback) != "undefined") {
+            callback();
+          }
           log("<( Initialization complete )>");
         });
       });

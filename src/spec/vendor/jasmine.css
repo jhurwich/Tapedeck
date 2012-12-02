@@ -2,6 +2,13 @@ body {
   font-family: "Helvetica Neue Light", "Lucida Grande", "Calibri", "Arial", sans-serif;
 }
 
+div.status {
+  margin: 2px 5px;
+  padding-left: 8px;
+  font-weight: bold;
+  border: 1px solid grey;
+  background-color: lightgrey;
+}
 
 .jasmine_reporter a:visited, .jasmine_reporter a {
   color: #303;

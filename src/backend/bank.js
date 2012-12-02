@@ -60,6 +60,7 @@ Tapedeck.Backend.Bank = {
   cassetteFeedPrefix: /* bankPrefix + */ "cassetteFeeds",
   syncLogPrefix:  /* bankPrefix + */ "syncLog",
   savedQueueName: "__q",
+
   init: function(continueInit) {
     var bank = this;
 
@@ -74,17 +75,20 @@ Tapedeck.Backend.Bank = {
 
     bank.localStorage = window.localStorage;
 
-    bank.repeatKey = bank.bankPrefix + bank.repeatKey;
-    bank.syncKey = bank.bankPrefix + bank.syncKey;
-    bank.blockKey = bank.bankPrefix + bank.blockKey;
-    bank.optionsPrefix = bank.bankPrefix + bank.optionsPrefix;
-    bank.lastSyncWarningKey = bank.bankPrefix + bank.lastSyncWarningKey;
+    // build the keys and prefixes, but first make sure they aren't done yet
+    if (bank.repeatKey.indexOf(bank.bankPrefix) == -1) {
+      bank.repeatKey = bank.bankPrefix + bank.repeatKey;
+      bank.syncKey = bank.bankPrefix + bank.syncKey;
+      bank.blockKey = bank.bankPrefix + bank.blockKey;
+      bank.optionsPrefix = bank.bankPrefix + bank.optionsPrefix;
+      bank.lastSyncWarningKey = bank.bankPrefix + bank.lastSyncWarningKey;
 
-    bank.currentCassetteKey = bank.bankPrefix + bank.currentCassetteKey;
-    bank.cassettePagePrefix = bank.bankPrefix + bank.cassettePagePrefix;
-    bank.cassetteFeedPrefix = bank.bankPrefix + bank.cassetteFeedPrefix;
+      bank.currentCassetteKey = bank.bankPrefix + bank.currentCassetteKey;
+      bank.cassettePagePrefix = bank.bankPrefix + bank.cassettePagePrefix;
+      bank.cassetteFeedPrefix = bank.bankPrefix + bank.cassetteFeedPrefix;
 
-    bank.syncLogPrefix = bank.bankPrefix + bank.syncLogPrefix;
+      bank.syncLogPrefix = bank.bankPrefix + bank.syncLogPrefix;
+    }
 
     // pick the namespace for local (off) or synced (on) tracklists
     var syncVal = bank.localStorage.getItem(bank.syncKey);
@@ -180,7 +184,6 @@ Tapedeck.Backend.Bank = {
     var prepareCassette = function(param) {
       index++;
       if (index > bank.premadeCassettes.length) {
-        console.log("end of cassette preparation")
         callback();
         return;
       }
@@ -297,6 +300,9 @@ Tapedeck.Backend.Bank = {
 
     saveCassette: function(code, name, callback) {
       var fs = Tapedeck.Backend.Bank.FileSystem;
+      var bank = Tapedeck.Backend.Bank;
+
+      bank.log("Saving code for cassette: '" + name + "'");
 
       fs.root.getDirectory('Cassettes', {create: true}, function(dirEntry) {
         dirEntry.getFile(name, {create: true}, function(fileEntry) {
@@ -342,9 +348,8 @@ Tapedeck.Backend.Bank = {
       var bank = Tapedeck.Backend.Bank;
 
       var callback = function(datas) {
-        // if there are dev cassettes, add them now
-        datas = datas.concat(bank.devCassettes);
 
+        var done = {};
         for (var i = 0; i < datas.length; i++) {
           var name = datas[i].name;
 
@@ -359,7 +364,33 @@ Tapedeck.Backend.Bank = {
           if (feed != null) {
             datas[i].feed = feed;
           }
+
+          done[name] = true;
         }
+
+        // if there are dev cassettes, add them now
+        for (var i = 0; i < bank.devCassettes.length; i++) {
+          var devData = bank.devCassettes[i];
+
+          if (!(devData.name in done)) {
+            var pageKey = bank.cassettePagePrefix + devData.name;
+            var page = bank.localStorage.getItem(pageKey);
+            if (page != null) {
+              devData.page = page;
+            }
+
+            var feedKey = bank.cassetteFeedPrefix + devData.name;
+            var feed = bank.localStorage.getItem(feedKey);
+            if (feed != null) {
+              devData.feed = feed;
+            }
+
+            datas.push(devData);
+            done[devData.name] = true;
+          }
+        }
+
+        bank.log("getCassettes returning: " + JSON.stringify(Object.keys(done)));
         aCallback(datas);
       };
 
@@ -789,6 +820,9 @@ Tapedeck.Backend.Bank = {
   },
 
   clear: function(callback) {
+    var bank = Tapedeck.Backend.Bank;
+
+    bank.log("! Bank is Clearing !");
     this.localStorage.clear();
     this.Memory.clear();
     this.FileSystem.clear();
@@ -799,6 +833,7 @@ Tapedeck.Backend.Bank = {
     if (typeof(callback) != "undefined") {
       callback();
     }
+    bank.log("!   Bank Cleared   !");
   },
 
   // checkSync is optional;
