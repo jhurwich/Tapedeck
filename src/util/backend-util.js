@@ -198,7 +198,7 @@ Tapedeck.Backend.Utils = {
     NONE: 0
   },
   logLevels: { },
-  setLogs: function(logs, bool) {
+  setLogs: function(logs) {
     Tapedeck.Backend.Utils.logLevels = logs;
   },
   log: function(component, str, level, forcedLevels) {
@@ -211,6 +211,13 @@ Tapedeck.Backend.Utils = {
     var logLevel = ((typeof(self.logLevels) != "undefined" && typeof(self.logLevels.Backend) != "undefined") ?
                     self.logLevels.Backend[component] :
                     null);
+
+    // Scripts are exceptions that could be backend or frontend, see if this is a script
+    if ((typeof(self.logLevels) != "undefined" && typeof(self.logLevels.Scripts) != "undefined") &&
+        logLevel == null) {
+      logLevel = (typeof(self.logLevels.Scripts[component]) != "undefined") ? self.logLevels.Scripts[component] : null;
+    }
+
     if (logLevel == null || typeof(logLevel) == "undefined") {
       console.log("<Unknown LogLevel> " + component + " (" + currentTime.getTime() + ") - " + str);
     }

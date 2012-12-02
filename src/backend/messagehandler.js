@@ -359,10 +359,6 @@ Tapedeck.Backend.MessageHandler = {
         Tapedeck.Backend.CassetteManager.Cassettify.start();
         break;
 
-      case "tbeCassettify":
-        Tapedeck.Backend.CassetteManager.Cassettify.quickCreate();
-        break;
-
       case "loadLink":
         var url = request.url.replace("http://", "");
         chrome.tabs.create({ url: ("http://" + url) });

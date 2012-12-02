@@ -25,6 +25,10 @@ Tapedeck.Backend.Bank = {
   devCassettes: [],
   devCSS: null,
 
+  /* Expected to match { pattern: <string_pattern>, cassetteName: <string_name>},
+   * as the params to createByPattern */
+  premadeCassettes: [],
+
   drawerOpen: false,
   localStorage: null,
 
@@ -163,6 +167,43 @@ Tapedeck.Backend.Bank = {
                               JSON.stringify(bank.blockList));
   },
 
+  preparePremadeCassettes: function(callback) {
+    var bank = Tapedeck.Backend.Bank;
+    var cassettify = Tapedeck.Backend.CassetteManager.Cassettify;
+    if (bank.premadeCassettes.length == 0) {
+      callback();
+      return;
+    }
+
+    var index = 0;
+
+    var prepareCassette = function(param) {
+      index++;
+      if (index > bank.premadeCassettes.length) {
+        console.log("end of cassette preparation")
+        callback();
+        return;
+      }
+
+      // handle any exception domains specially
+      for (var exceptionDomain in cassettify.exceptionDomains) {
+        if (param.pattern.indexOf(exceptionDomain) != -1) {
+          // we've hit an exception domain, defer to exception handling
+          var options = { url: param.pattern, cassetteName: param.cassetteName };
+
+          cassettify[cassettify.exceptionDomains[exceptionDomain]](options, function() {
+            prepareCassette(bank.premadeCassettes[index]);
+          });
+          return
+        }
+      }
+
+      cassettify.createByPattern(param, function() {
+        prepareCassette(bank.premadeCassettes[index]);
+      });
+    }
+    prepareCassette(bank.premadeCassettes[index]);
+  },
   setDevTemplatesAndCSS: function(templateFilename, cssFilename, callback) {
     var bank = Tapedeck.Backend.Bank;
     Tapedeck.Backend.Utils.getFileContents("/dev/" + templateFilename, function(templateContents, templateURL) {
@@ -190,8 +231,13 @@ Tapedeck.Backend.Bank = {
       });
     });
   },
-  setDevCassettes: function(filenames, callback) {
+  // doReadIn is optional, assumed true
+  setDevCassettes: function(filenames, doReadIn, callback) {
     var bank = Tapedeck.Backend.Bank;
+    if (arguments.length == 2) {
+      callback = doReadIn;
+      doReadIn = true;
+    }
 
     var files = [];
     if ($.isArray(filenames)) {
@@ -219,9 +265,13 @@ Tapedeck.Backend.Bank = {
         bank.devCassettes.push(cassetteData);
         remaining--;
         if (remaining <= 0) {
-          Tapedeck.Backend.CassetteManager.readInCassettes(function() {
+          if (doReadIn) {
+            Tapedeck.Backend.CassetteManager.readInCassettes(function() {
+              callback();
+            });
+          } else {
             callback();
-          });
+          }
         }
       });
     }

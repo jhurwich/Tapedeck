@@ -673,11 +673,6 @@ Tapedeck.Frontend.Frame = {
     cassettify: function(e) {
       Tapedeck.Frontend.Messenger.cassettify();
     },
-
-    // for debugging, quick cassette maker
-    tbeCassettify: function(e) {
-      Tapedeck.Frontend.Messenger.tbeCassettify();
-    },
   },
 
   PlaylistList: {

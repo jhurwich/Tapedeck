@@ -396,14 +396,6 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
-  tbeCassettify: function() {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
-      action  : "tbeCassettify"
-    });
-
-    Tapedeck.Frontend.Messenger.sendMessage(request);
-  },
-
   loadLink: function(url) {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action  : "loadLink",

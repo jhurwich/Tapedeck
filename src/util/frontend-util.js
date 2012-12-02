@@ -28,7 +28,6 @@ if (onObject != null &&
     },
     logLevels: { },
     setLogs: function(logs) {
-      console.log(hrOn + " received log levels: " + JSON.stringify(logs));
       this.logLevels = logs;
     },
 
@@ -41,6 +40,13 @@ if (onObject != null &&
       var logLevel = ((typeof(this.logLevels) != "undefined" && typeof(this.logLevels.Frontend) != "undefined") ?
                       this.logLevels.Frontend[component] :
                       null);
+
+      // Scripts are exceptions that could be backend or frontend, see if this is a script
+    if ((typeof(this.logLevels) != "undefined" && typeof(this.logLevels.Scripts) != "undefined") &&
+        logLevel == null) {
+        logLevel = (typeof(this.logLevels.Scripts[component]) != "undefined") ? this.logLevels.Scripts[component] : null;
+      }
+
       if (logLevel == null || typeof(logLevel) == "undefined") {
         console.log("<Unknown LogLevel> " + component + " (" + currentTime.getTime() + ") - " + str);
       }

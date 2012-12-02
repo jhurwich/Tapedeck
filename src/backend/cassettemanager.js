@@ -5,21 +5,35 @@ Tapedeck.Backend.CassetteManager = {
   currPage: 1,
   numPreinstalled: 1, // Scraper is preinstalled
 
+  // Prevents any call to readInCassette from changing cMgr.cassettes.
+  // This is needed to prevent multiple readIns during initialization.
+  blockReadIn: true,
+
   init: function(continueInit) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.cassettes = []; // array of { cassette : __, (page: __) }
-    cMgr.readInCassettes(function() {
-      if (cMgr.currentCassette == null) {
-        var saved = Tapedeck.Backend.Bank.getCurrentCassette();
-        cMgr.setCassette(saved);
-      }
-      window.setInterval(cMgr.dumpCollector, 1000 * 60 * 2 /* 2 min */);
-      continueInit();
+    cMgr.blockReadIn = true;
+
+    Tapedeck.Backend.Bank.preparePremadeCassettes(function() {
+      cMgr.blockReadIn = false;
+      cMgr.readInCassettes(function() {
+        if (cMgr.currentCassette == null) {
+          var saved = Tapedeck.Backend.Bank.getCurrentCassette();
+          cMgr.setCassette(saved);
+        }
+        window.setInterval(cMgr.dumpCollector, 1000 * 60 * 2 /* 2 min */);
+        continueInit();
+      });
     });
   },
 
   readInCassettes: function(callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
+    if (cMgr.blockReadIn) {
+      console.error("--Cassette Read In Blocked--");
+      callback();
+      return;
+    }
     cMgr.log("Discarding and reading in cassettes.");
     cMgr.cassettes = [];
 
@@ -107,6 +121,7 @@ Tapedeck.Backend.CassetteManager = {
     });
   },
 
+  // callback is optional
   refreshCassetteListView: function(callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.readInCassettes(function() {
@@ -479,16 +494,18 @@ Tapedeck.Backend.CassetteManager = {
     },
 
     // param can be an object of params (with params.pattern) or the pattern string
-    handlePatternInput: function(params) {
+    // callback is optional
+    handlePatternInput: function(params, callback) {
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
 
       self.waitingForInput = false;
-      self.createByPattern(params);
+      self.createByPattern(params, callback);
     },
 
     // param can be an object of params (with params.pattern) or the pattern string
-    createByPattern: function(params) {
+    // callback is optional
+    createByPattern: function(params, callback) {
       var cMgr = Tapedeck.Backend.CassetteManager;
       var self = cMgr.Cassettify;
       var msgHandler = Tapedeck.Backend.MessageHandler;
@@ -516,7 +533,7 @@ Tapedeck.Backend.CassetteManager = {
       if (typeof(params) == "string") {
         pattern = params;
       }
-      cMgr.log("Received cassettification pattern '" + pattern + "'");
+      cMgr.log("Received cassettification pattern: " + JSON.stringify(params));
 
       var index = pattern.indexOf("$#");
       if (index == -1) {
@@ -568,23 +585,39 @@ Tapedeck.Backend.CassetteManager = {
           if (params.cassetteName != "undefined") {
             options.cassetteName = params.cassetteName;
           }
-          cMgr.Cassettify.nameCassette(response.rendered, options);
+          if (typeof(callback) != "undefined") {
+            cMgr.Cassettify.nameCassette(response.rendered, options, function() {
+              callback();
+            });
+          } else {
+            cMgr.Cassettify.nameCassette(response.rendered, options);
+          }
         });
-
       } catch(error) {
         console.error("ERROR in generating Cassette source -" + JSON.stringify(error));
       }
-
     },
 
-    handleSoundcloud: function(url) {
-      this.Soundcloud.cassettify(url);
+    // callback is optional
+    // url can be a param object that also specifies a forced cassetteName
+    handleSoundcloud: function(url, callback) {
+      this.Soundcloud.cassettify(url, callback);
     },
 
     Soundcloud : {
       consumerKey: "46785bdeaee8ea7f992b1bd8333c4445",
-      cassettify: function(url) {
+
+      // callback is optional
+      // url can be a param object that also specifies a forced cassetteName
+      cassettify: function(url, callback) {
         var soundcloud = this;
+        var cassetteName = null;
+        if (typeof(url) == "object") {
+          if (typeof(url.cassetteName) != "undefined") {
+            cassetteName = url.cassetteName;
+          }
+          url = url.url;
+        }
         url = url.replace("http://", "");
         url = url.replace("www.", "");
 
@@ -619,7 +652,12 @@ Tapedeck.Backend.CassetteManager = {
               textTemplate: Tapedeck.Backend.CassetteManager.SoundcloudTemplate.template
             };
             try {
-              Tapedeck.Backend.MessageHandler.messageSandbox(message, soundcloud.finish);
+              if (cassetteName == null) {
+                Tapedeck.Backend.MessageHandler.messageSandbox(message, soundcloud.finish.curry(callback));
+              }
+              else {
+                Tapedeck.Backend.MessageHandler.messageSandbox(message, soundcloud.finish.curry(cassetteName, callback));
+              }
 
             } catch(error) {
               console.error("ERROR in generating Cassette source -" + JSON.stringify(error));
@@ -631,20 +669,31 @@ Tapedeck.Backend.CassetteManager = {
         });
       },
 
-      finish: function(response) {
+      // This is Soundcloud.finish.
+      // cassetteName and callback and are optional - if two arguments are specified, callback is assumed
+      finish: function(cassetteName, callback, response) {
+        if (arguments.length == 2) {
+          callback = cassetteName;
+          cassetteName = undefined;
+        }
         var soundcloud = Tapedeck.Backend.CassetteManager.Cassettify.Soundcloud;
+
         var options = { domain: soundcloud.domain };
-        if (response.cassetteName != "undefined") {
+        if (typeof(cassetteName) != "undefined") {
+          options.cassetteName = cassetteName;
+        }
+        else if (response.cassetteName != "undefined") {
           options.cassetteName = response.cassetteName;
         }
-        Tapedeck.Backend.CassetteManager.Cassettify.nameCassette(response.rendered, options);
+        Tapedeck.Backend.CassetteManager.Cassettify.nameCassette(response.rendered, options, callback);
       }
     },
 
-    nameCassette: function(code, options) {
+    // callback is optional
+    nameCassette: function(code, options, callback) {
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var cMgr = Tapedeck.Backend.CassetteManager;
-      cMgr.log("Cassette prepared, naming now")
+      cMgr.log("Cassette prepared, naming now: " + JSON.stringify(options));
 
       var nameAndSaveCassette = function(params) {
         if (typeof(params.submitButton) != "undefined" && params.submitButton != "submit") {
@@ -659,14 +708,14 @@ Tapedeck.Backend.CassetteManager = {
         }
         if (params.cassetteName.length == 0) {
           options.msg = "You must enter a name";
-          cMgr.Cassettify.nameCassette(code, options);
+          cMgr.Cassettify.nameCassette(code, options, callback);
           return;
         }
 
         // any non-a-Z,0-9, or space
         if ((/[^a-zA-Z0-9\s]/).test(params.cassetteName)) {
           options.msg = "Only a-Z, 0-9, and spaces are allowed.";
-          cMgr.Cassettify.nameCassette(code, options);
+          cMgr.Cassettify.nameCassette(code, options, callback);
           return;
         }
         var saveableName = params.cassetteName.replace(/\s/g, "_");
@@ -674,7 +723,7 @@ Tapedeck.Backend.CassetteManager = {
 
         if (typeof(Tapedeck.Backend.Cassettes[saveableName]) != "undefined") {
           options.msg = "The name you enterred is in use";
-          cMgr.Cassettify.nameCassette(code, options);
+          cMgr.Cassettify.nameCassette(code, options, callback);
           return;
         }
 
@@ -685,7 +734,7 @@ Tapedeck.Backend.CassetteManager = {
         code = code.replace(/Unnamed/g, saveableName);
         Tapedeck.Backend.Bank.FileSystem.saveCassette(code,
                                                       saveableName,
-                                                      cMgr.Cassettify.finish);
+                                                      cMgr.Cassettify.finish.curry(callback));
       };
 
       if (typeof(options.cassetteName) != "undefined"){
@@ -752,10 +801,16 @@ Tapedeck.Backend.CassetteManager = {
       }, self.chooseMethod, self.postLoadCleanup);
     },
 
-    finish: function(success) {
+    // callback is optional, but would be curried in as the first param
+    finish: function(callback, success) {
+      if (arguments.length == 1) {
+        success = callback;
+        callback = undefined;
+      }
+
       var cMgr = Tapedeck.Backend.CassetteManager;
       if(success) {
-        cMgr.refreshCassetteListView();
+        cMgr.refreshCassetteListView(callback);
       }
       else {
         console.error("Cassette could not be properly saved");
@@ -777,14 +832,6 @@ Tapedeck.Backend.CassetteManager = {
         }
       }
     },
-
-    quickCreate: function() {
-      var cMgr = Tapedeck.Backend.CassetteManager;
-      var name = "Audiocred " + Math.floor(Math.random() * 100000);
-      cMgr.Cassettify.handlePatternInput({ pattern : "audiocred.com/page/$#",
-                                           cassetteName : name });
-    },
-
 
 /* SAVE_FOR_CAPTURE_NEXT_LOAD
 *    captureNextLoad: function(context) {

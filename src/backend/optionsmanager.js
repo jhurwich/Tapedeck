@@ -62,7 +62,7 @@ Tapedeck.Backend.OptionsManager = {
     var optionMgr = Tapedeck.Backend.OptionsManager;
     var logsDone = false;
     var overridesDone = false;
-    var preamadesDone = false;
+    var premadesDone = false;
     var tryFinish = function() {
       if (logsDone && overridesDone && premadesDone) {
         callback();
@@ -72,25 +72,32 @@ Tapedeck.Backend.OptionsManager = {
     for (var key in options) {
       var compareKey = key.toLowerCase();
 
+      // search for the logs and do those first, so that logging is sensical before initializing other things
       if (compareKey.indexOf("log") != -1) {
         // this is the logs subobject
         optionMgr.setLogs(options[key], function() {
           logsDone = true;
+
+          for (var aKey in options) {
+            var compareKey = aKey.toLowerCase();
+            if (compareKey.indexOf("development") != -1) {
+              // this is the local override subobject
+              optionMgr.localOverrides(options[aKey], function() {
+                overridesDone = true;
+                tryFinish();
+              });
+            }
+            else if (compareKey.indexOf("premade") != -1) {
+              // this the premade cassettified cassettes subobject
+              optionMgr.premadeCassettes(options[aKey], function() {
+                premadesDone = true;
+                tryFinish();
+              });
+            }
+          }
           tryFinish();
         });
-      }
-      else if (compareKey.indexOf("src/dev") != -1) {
-        // this is the local override subobject
-        optionMgr.localOverrides(options[key], function() {
-          overridesDone = true;
-          tryFinish();
-        });
-      }
-      else if (compareKey.indexOf("premade") != -1) {
-        // this the premade cassettified cassettes subobject
-        optionMgr.premadeCassettes(options[key]);
-        premadesDone = true;
-        tryFinish();
+        break;
       }
     }
   },
@@ -102,7 +109,6 @@ Tapedeck.Backend.OptionsManager = {
 
   localOverrides: function(object, callback) {
     // overrides are stored in the bank so that they're merged with existing sources
-    console.log("localOverrides got : " + JSON.stringify(object));
     var bank = Tapedeck.Backend.Bank;
 
 
@@ -122,16 +128,31 @@ Tapedeck.Backend.OptionsManager = {
 
     for (var key in object) {
       var compareKey = key.toLowerCase();
-      if (compareKey.indexOf("template") != -1) {
-        devTemplatesFilename = object[key];
+
+      if (compareKey == "skinning") {
+        for (subKey in object[key]) {
+          compareKey = subKey.toLowerCase();
+
+          if (compareKey.indexOf("template") != -1) {
+            devTemplatesFilename = object[key][subKey];
+          }
+          else if (compareKey.indexOf("css") != -1) {
+            devCSSFilename = object[key][subKey];
+          }
+        }
       }
-      else if (compareKey.indexOf("css") != -1) {
-        devCSSFilename = object[key];
+      else if (compareKey == "cassettes") {
+        for (subKey in object[key]) {
+          compareKey = subKey.toLowerCase();
+
+          if (compareKey.indexOf("cassette") != -1) {
+            devCassettesFilenames = object[key][subKey];
+          }
+        }
       }
-      else if (compareKey.indexOf("cassette") != -1) {
-        devCassettesFilenames = object[key];
-      }
-    }
+    } // end for (var key in object)
+    checkAndFinish();
+
     if (devTemplatesFilename.length > 0 && devCSSFilename.length > 0) {
       bank.setDevTemplatesAndCSS(devTemplatesFilename, devCSSFilename, function() {
         templatesAndCSSComplete = true;
@@ -139,20 +160,55 @@ Tapedeck.Backend.OptionsManager = {
       });
     }
     if (devCassettesFilenames.length > 0) {
-      bank.setDevCassettes(devCassettesFilenames, function() {
+      // param 2 is false to avoid reading in cassettes, that will happen in cassettemanager init
+      bank.setDevCassettes(devCassettesFilenames, false, function() {
         cassettesComplete = true;
         checkAndFinish();
       });
     }
-
     // will establish local CSS override that templateManager will check for
     // will establish local tempalte override checked for at lines 407 and 408 of templateManager
     // will force debug cassettified cassettes into cassette manager
     // includes any local cassettes in the bank's getCassettes return
   },
 
-  premadeCassettes: function(object) {
-    console.log("premadeCassettes got : " + JSON.stringify(object));
+  // CassetteManager isn't initialized, just prepare the params and it's init will get these through the bank
+  premadeCassettes: function(object, callback) {
+
+    Tapedeck.Backend.Bank.premadeCassettes = [];
+    for (var key in object) {
+      var pattern = object[key];
+      if (typeof(pattern) != "string" || pattern.length == 0) {
+        continue;
+      }
+
+
+      // we use url to first slash as the name
+      var firstSlash = pattern.indexOf('/');
+      var name = pattern.substring(0, firstSlash);
+
+      // except for exception domains
+      for (var exceptionDomain in Tapedeck.Backend.CassetteManager.Cassettify.exceptionDomains) {
+        if (pattern.indexOf(exceptionDomain) != -1) {
+          name = pattern.replace(exceptionDomain, "");
+        }
+      }
+
+      // get rid of url cruft and forbidden chars for cassette names
+      name = name.replace("http://", "");
+      name = name.replace("www.", "");
+      name = name.replace(".com", "");
+      name = name.replace(/[^a-zA-Z0-9\s]/gi, "");
+
+      // and add a random number to reduce the likelihood of collisions
+      name += Math.floor(Math.random() * 10000)
+
+      var param = { pattern: object[key],
+                    cassetteName: name };
+
+      Tapedeck.Backend.Bank.premadeCassettes.push(param);
+    } // end for (var key in object)
+    callback();
   },
 
   unflatten: function(object) {
