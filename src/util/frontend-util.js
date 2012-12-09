@@ -1,23 +1,7 @@
-// detect if we should attach to Tapedeck.Frontend or TapedeckInjected
-var onObject = null;
-var hrOn = "";
-if (typeof(TapedeckInjected) != "undefined") {
-  onObject = TapedeckInjected;
-  hrOn = "injected";
-}
-else {
-  if (typeof Tapedeck == "undefined") {
-    var Tapedeck = { };
+var attachTo = function(onObject) {
+  if (onObject == null || (typeof(onObject.Utils) != "undefined")) {
+    return;
   }
-  if (typeof(Tapedeck.Frontend) == "undefined") {
-    Tapedeck.Frontend = { };
-  }
-  onObject = Tapedeck.Frontend;
-  hrOn = "frontend";
-}
-
-if (onObject != null &&
-    (typeof(onObject.Utils) == "undefined")) {
 
   onObject.Utils = {
 
@@ -57,7 +41,24 @@ if (onObject != null &&
       }
     },
   }; // end onObject.Utils
+};
+
+// detect if we should attach to Tapedeck.Frontend or TapedeckInjected
+var onObject = null;
+if (typeof(TapedeckInjected) != "undefined") {
+  onObject = TapedeckInjected;
 }
+else {
+  if (typeof Tapedeck == "undefined") {
+    var Tapedeck = { };
+  }
+  if (typeof(Tapedeck.Frontend) == "undefined") {
+    Tapedeck.Frontend = { };
+  }
+  onObject = Tapedeck.Frontend;
+}
+attachTo(onObject);
+
 
 // copied wholesale from prototype.js, props to them
 Function.prototype.curry = function() {
@@ -79,5 +80,5 @@ Function.prototype.curry = function() {
   return function() {
     var a = merge(args, arguments);
     return __method.apply(this, a);
-  }
+  };
 };

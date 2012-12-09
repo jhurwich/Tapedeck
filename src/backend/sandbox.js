@@ -26,7 +26,7 @@ Tapedeck.Sandbox = {
         var message = {
           action : "addTracks",
           tracks : tracks
-        }
+        };
         if (typeof(tab) != "undefined") {
           message.tab = tab;
         }
@@ -57,10 +57,10 @@ Tapedeck.Sandbox = {
         });
         Tapedeck.Sandbox.sendMessage(request, "*");
       }
-    }
+    };
 
     var request = {
-      action : "getLogLevels",
+      action : "getLogLevels"
     };
     Tapedeck.Sandbox.sendMessage(request);
 
@@ -96,7 +96,7 @@ Tapedeck.Sandbox = {
 
         var cleanup = function() {
           delete Tapedeck.Sandbox.Cassettes[testCassetteName];
-        }
+        };
 
         response.success = false;
         Tapedeck.Sandbox.prepCassette(code, function(report) {
@@ -208,7 +208,6 @@ Tapedeck.Sandbox = {
 
       default:
         throw new Error("Tapedeck.Sandbox was sent an unknown action");
-        break;
     }
   },
 
@@ -230,7 +229,7 @@ Tapedeck.Sandbox = {
           }
           else if (checkValue == null) {
             checkValue = "Null";
-            checkHasValue = false
+            checkHasValue = false;
           }
           str += " and we got " + JSON.stringify(checkValue);
 
@@ -240,8 +239,8 @@ Tapedeck.Sandbox = {
           else {
             console.log(str);
           }
-        },
-      }
+        }
+      };
 
       params.debug = Tapedeck.Sandbox.debug;
       _.extend(params, debugMethods);
@@ -272,7 +271,7 @@ Tapedeck.Sandbox = {
     }
 
     // if the cassette has loaded, attach it and return; if not, keep waiting
-    if (newCassetteName != "" && typeof(Tapedeck.Sandbox.Cassettes[newCassetteName]) != "undefined") {
+    if (newCassetteName !== "" && typeof(Tapedeck.Sandbox.Cassettes[newCassetteName]) != "undefined") {
       // Cassette has loaded.  Get a handle on it and return its report
       var newCassette = new Tapedeck.Sandbox.Cassettes[newCassetteName]();
       Tapedeck.Sandbox.cassettes[newCassette.get("tdID")] = newCassette;
@@ -373,7 +372,7 @@ Tapedeck.Sandbox = {
 
   log: function(str, level) {
     Tapedeck.Backend.Utils.log("Sandbox", str, level);
-  },
+  }
 };
 
 window.addEventListener('message', Tapedeck.Sandbox.messageHandler);

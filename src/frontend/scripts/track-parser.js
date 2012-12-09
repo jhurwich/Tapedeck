@@ -32,7 +32,7 @@ if (onObject != null &&
         parser.onBackgroundPage = true;
       }
 
-      var logStr = "Starting TrackParser "
+      var logStr = "Starting TrackParser ";
       if (typeof(params.cassetteName) != "undefined") {
         parser.cassetteName = params.cassetteName;
         logStr  += parser.cassetteName;
@@ -52,7 +52,7 @@ if (onObject != null &&
         parser.moreCallback = function(tracks) {
           var request = {
             action: "add_tracks",
-            tracks: tracks,
+            tracks: tracks
           };
           chrome.extension.sendRequest(request);
         };
@@ -111,7 +111,7 @@ if (onObject != null &&
               clearTimeout(parser.timeout);
               params.finalCallback(options);
             }
-          }
+          };
         }
         else if (hasFinalCallback) {
           // not parsing and hasFinalCallback, callback immediately
@@ -125,7 +125,7 @@ if (onObject != null &&
         if (!parser.onBackgroundPage) {
           var response = {
             type: "response",
-            error: { message: "ParserError" },
+            error: { message: "ParserError" }
           };
           chrome.extension.sendRequest(response);
           if (parser.finalCallback != null) {
@@ -219,7 +219,7 @@ if (onObject != null &&
       // if we have the trackName but no artist try to figure it out
       if (track.trackName &&
           track.trackName.length > 0 &&
-          (!track.artistName || track.artistName.length == 0)) {
+          (!track.artistName || track.artistName.length === 0)) {
 
         // if the trackName has only one dash or hypen, split on it
         var pieces = track.trackName.split("–");
@@ -246,7 +246,7 @@ if (onObject != null &&
           var extension = href.substr(href.lastIndexOf('.'), 4);
 
           // If Yahoo Media Player is installed we could double count tracks
-          if ($(a).hasClass('ymp-tray-track') == true) {
+          if ($(a).hasClass('ymp-tray-track') === true) {
             continue;
           }
 
@@ -257,11 +257,10 @@ if (onObject != null &&
 
             track = parser.Util.addArtistAndTrackNames(track, text);
 
-            if (track.trackName == "") {
+            if (track.trackName === "") {
               var splitHref = a.href.split(extension)[0];
-              var filename = unescape(splitHref.substr
-                                               (splitHref.lastIndexOf('/')+1));
-              if (filename != '') {
+              var filename = unescape(splitHref.substr(splitHref.lastIndexOf('/')+1));
+              if (filename !== '') {
                 track.trackName = filename;
               } else {
                 parser.log("No trackName found for '" + a.href + "'. Using 'Unknown Title'",
@@ -280,7 +279,7 @@ if (onObject != null &&
                 track.location = $(wpBookmark).attr('href');
               }
               var wpParentEntry = $(wpParentPost).children('div.entry');
-              if (wpParentEntry.length == 0) {
+              if (wpParentEntry.length === 0) {
                 wpParentEntry = $(wpParentPost).children('div.entry-content');
               }
 
@@ -303,7 +302,7 @@ if (onObject != null &&
           }
         }
         return mp3Links;
-      },
+      }
     }, // end parser.Links
 
     TumblrDashboard : {
@@ -466,20 +465,20 @@ if (onObject != null &&
           var track = { type: "mp3" };
 
           var src = audio.src;
-          if (typeof(src) == "undefined" || src == "") {
+          if (typeof(src) == "undefined" || src === "") {
             var sources = $(audio).children("source");
             if (sources != null && sources.length > 0) {
               sources.each(function (index, source) {
                 var sourceSrc = $(source).attr("src");
-                if (typeof(sourceSrc) != "undefined"
-                    && sourceSrc.match(/.mp3/).length > 0) {
+                if (typeof(sourceSrc) != "undefined" &&
+                    sourceSrc.match(/.mp3/).length > 0) {
                   src = sourceSrc;
                 }
               });
             }
           }
 
-          if (src != undefined && src != "") {
+          if (src !== undefined && src !== "") {
             track.url = src;
             track.location = location.href;
             track.domain = location.hostname;
@@ -581,7 +580,7 @@ if (onObject != null &&
             }
 
             // As a last resort, use the filename
-            if (typeof(track.trackName) == "undefined" || track.trackName.length == 0) {
+            if (typeof(track.trackName) == "undefined" || track.trackName.length === 0) {
               var lastSlash = fileURL.lastIndexOf('/');
               track.trackName = fileURL.substring(lastSlash + 1);
             }
@@ -638,7 +637,7 @@ if (onObject != null &&
             }
           }); // end params.each
 
-          if (swfValue.length == 0) {
+          if (swfValue.length === 0) {
             parser.log("Couldn't find url param in Soundcloud object");
             soundcloud.objectCount--;
             return;
@@ -673,7 +672,7 @@ if (onObject != null &&
         var matches = str.match(/\?url=(.*?)&/);
         if (matches == null) {
           // possible there were just no other params
-          matches = str.match(/\?url=(.*)/)
+          matches = str.match(/\?url=(.*)/);
         }
 
         if (matches != null && matches.length > 1) {
@@ -696,7 +695,7 @@ if (onObject != null &&
               soundcloud.objectCount--;
               soundcloud.errorCount++;
               soundcloud.checkAndFinish();
-            },
+            }
           });
         }
         else {
@@ -753,7 +752,7 @@ if (onObject != null &&
             soundcloud.objectCount--;
             soundcloud.errorCount++;
             soundcloud.checkAndFinish();
-          },
+          }
         });
       },
 
@@ -789,7 +788,7 @@ if (onObject != null &&
           if (typeof(track.url) != "undefined") {
             track.url = track.url +
                         "?consumer_key=" +
-                        soundcloud.consumerKey
+                        soundcloud.consumerKey;
           }
 
           parser.log("built track " + JSON.stringify(track));
@@ -833,29 +832,29 @@ if (onObject != null &&
 
         if (soundcloud.objectCount <= 0 && parser.finalCallback != null) {
           parser.log("Finishing Soundcloud parsing");
-          var finalResponse = { success: (soundcloud.errorCount == 0) };
+          var finalResponse = { success: (soundcloud.errorCount === 0) };
           if (soundcloud.errorCount > 0) {
             finalResponse.errorCount = soundcloud.errorCount;
             soundcloud.errorCount = 0;
           }
           parser.finalCallback(finalResponse);
         }
-      },
+      }
     }, // end parser.Soundcloud
 
     Util: {
       removeUnwantedTags: function(text) {
         var openTagRegex = function(tag) {
           return new RegExp("<\s*" + tag + "[^<>]*>");
-        }
+        };
 
         var closeTagRegex = function(tag) {
           return new RegExp("<\/" + tag + "[^<>]*>", "i");
-        }
+        };
 
         var selfClosedTagRegex = function(tag) {
           return new RegExp("<\s*" + tag + "[^<>]*\/>", "i");
-        }
+        };
 
         var unwantedBlocks = ["head", "meta", "script", "noscript"]; // remove these tags and everything that may be in them
         for (var i = 0; i < unwantedBlocks.length; i++) {
@@ -941,7 +940,7 @@ if (onObject != null &&
       },
 
       cleanHTML : function(html) {
-        return $.trim(html.replace(/(<([^>]+)>)/ig,""))
+        return $.trim(html.replace(/(<([^>]+)>)/ig,""));
       },
 
       cleanHref : function(href) {
@@ -949,7 +948,7 @@ if (onObject != null &&
         str = str.replace(/www./, "");
 
         var lastSlash = str.indexOf("/");
-        while (lastSlash == 0) {
+        while (lastSlash === 0) {
           str = str.substr(0);
           lastSlash = str.indexOf("/");
         }
@@ -989,7 +988,7 @@ if (onObject != null &&
             return false;
           }
 
-          if (bestSplit.length == 0) {
+          if (bestSplit.length === 0) {
             return true;
           }
 
@@ -997,7 +996,7 @@ if (onObject != null &&
           var bestSplitDiff = Math.abs(bestSplit[0].length - bestSplit[1].length);
 
           return (checkSplitDiff < bestSplitDiff);
-        }
+        };
 
         // Try each common splitter to find which gives the best 2 pieces,
         // if any.  First piece is set to artistName and second to trackName
@@ -1041,7 +1040,7 @@ if (onObject != null &&
           track.artistName = $.trim(bestSplit[0]).replace(/[‘’“”'"]/g, "");
           track.artistName = track.artistName.replace(new RegExp("[" + unwantedStr + "]", "g"), "");
 
-          track.trackName = $.trim(bestSplit[1]).replace(/[‘’“”'"]/g, "");;
+          track.trackName = $.trim(bestSplit[1]).replace(/[‘’“”'"]/g, "");
           track.trackName = track.trackName.replace(new RegExp("[" + unwantedStr + "]", "g"), "");
         }
         else if (text.length < 100 && text.split(" ") < 10) {
@@ -1064,12 +1063,12 @@ if (onObject != null &&
           url = parser.context.location.href;
         }
         return url;
-      },
+      }
     },
 
     log: function(str, level) {
       onObject.Utils.log("TrackParser", str, level);
-    },
+    }
   };
 
   if (typeof(TapedeckInjected) != "undefined" &&

@@ -1,7 +1,7 @@
 describe("Message Handler", function() {
 
   beforeEach(function() {
-    waitsForFrontendInit();
+    this.waitsForFrontendInit();
   });
 
   it("should return a rendered view when requested", function() {
@@ -58,7 +58,7 @@ describe("Message Handler", function() {
 
     this.Tapedeck.Backend.MessageHandler.pushView(testDiv, { }, testTab);
 
-    waitsForElement("#testdiv");
+    this.waitsForElement("#testdiv");
 
     runs(function() {
       expect($("#tapedeck-frame").contents()).toContain("#cassette-list");

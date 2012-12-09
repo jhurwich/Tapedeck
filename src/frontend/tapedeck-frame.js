@@ -52,7 +52,7 @@ Tapedeck.Frontend.Frame = {
         slider.startY = e.clientY;
 
         // grab the clicked element's position
-        var top = parseInt($(target).css('top'));
+        var top = parseInt($(target).css('top'), 10);
         slider.offsetY = (top == null || isNaN(top)) ? 0 : top;
 
         // tell our code to start moving the element with the mouse
@@ -86,7 +86,7 @@ Tapedeck.Frontend.Frame = {
           newOffset = 0;
         }
 
-        var sliderHeight = parseInt($("#volume-slider").css("height"));
+        var sliderHeight = parseInt($("#volume-slider").css("height"), 10);
         var maxOffset = sliderHeight - 5; // 5px less looks nice
         if (newOffset > maxOffset) {
           newOffset = maxOffset;
@@ -96,13 +96,13 @@ Tapedeck.Frontend.Frame = {
       },
 
       offsetPercent: function(offset) {
-        var sliderHeight = parseInt($("#volume-slider").css("height"));
+        var sliderHeight = parseInt($("#volume-slider").css("height"), 10);
         var maxOffset = sliderHeight - 5; // 5px less looks nice
 
         return (offset/maxOffset);
       },
       percentOffset: function(percent) {
-        var sliderHeight = parseInt($("#volume-slider").css("height"));
+        var sliderHeight = parseInt($("#volume-slider").css("height"), 10);
         var maxOffset = sliderHeight - 5; // 5px less looks nice
         return maxOffset * (1 - percent);
       },
@@ -136,7 +136,7 @@ Tapedeck.Frontend.Frame = {
         slider.startX = e.clientX;
 
         // grab the clicked element's position
-        var left = parseInt($(target).css('left'));
+        var left = parseInt($(target).css('left'), 10);
         slider.offsetX = (left == null || isNaN(left)) ? 0 : left;
 
         // tell our code to start moving the element with the mouse
@@ -169,7 +169,7 @@ Tapedeck.Frontend.Frame = {
           newOffset = 0;
         }
 
-        var sliderWidth = parseInt($("#seek-slider").css("width"));
+        var sliderWidth = parseInt($("#seek-slider").css("width"), 10);
         var maxOffset = sliderWidth - 15; // 15px less looks nice
         if (newOffset > maxOffset) {
           newOffset = maxOffset;
@@ -191,7 +191,7 @@ Tapedeck.Frontend.Frame = {
         if (slider.dragging) {
           return;
         }
-        offset = slider.calculateOffset();
+        var offset = slider.calculateOffset();
         this.setHandle(offset);
       },
 
@@ -206,7 +206,7 @@ Tapedeck.Frontend.Frame = {
 
         var handle = $("#seek-slider #handle");
         var handleVal = $("#seek-slider #handle-val");
-        $(handle).css('left', offset)
+        $(handle).css('left', offset);
         $(handleVal).html(slider.prettifyTime(timeAtPosition));
 
         if (displayTime) {
@@ -218,13 +218,13 @@ Tapedeck.Frontend.Frame = {
       },
 
       offsetPercent: function(offset) {
-        var sliderWidth = parseInt($("#seek-slider").css("width"));
+        var sliderWidth = parseInt($("#seek-slider").css("width"), 10);
         var maxOffset = sliderWidth - 15; // 15px less looks nice
 
         return (offset/maxOffset);
       },
       calculateOffset: function() {
-        var sliderWidth = parseInt($("#seek-slider").css("width"));
+        var sliderWidth = parseInt($("#seek-slider").css("width"), 10);
         var maxOffset = sliderWidth - 15; // 15px less looks nice
 
         return Math.floor((this.currentTime/this.duration) * maxOffset);
@@ -235,7 +235,7 @@ Tapedeck.Frontend.Frame = {
         if (seconds.length == 1) {
           seconds = "0" + seconds;
         }
-        return "" + minutes + ":" + seconds
+        return "" + minutes + ":" + seconds;
       },
 
       mouseoverHandle: function(e) {
@@ -267,7 +267,7 @@ Tapedeck.Frontend.Frame = {
         document.onselectstart = null;
         seekslider.dragging = false;
 
-        var offset = parseInt($("#seek-slider #handle").css('left'));
+        var offset = parseInt($("#seek-slider #handle").css('left'), 10);
         var percent = seekslider.offsetPercent(offset);
 
         Tapedeck.Frontend.Messenger.seekPercent(percent);
@@ -283,7 +283,7 @@ Tapedeck.Frontend.Frame = {
 
         // We calculate percent from the top of the slider,
         // that's the opposite of the desired volume percentage.
-        var offset = parseInt($("#volume-slider #handle").css('top'));
+        var offset = parseInt($("#volume-slider #handle").css('top'), 10);
         volumeslider.currentOffset = offset;
         volumeslider.currentVolume = (1 - volumeslider.offsetPercent(offset));
 
@@ -327,7 +327,7 @@ Tapedeck.Frontend.Frame = {
         }
       }
 
-      var clickIndex = parseInt($(row).attr("index"));
+      var clickIndex = parseInt($(row).attr("index"), 10);
       tracklists.clickID = clickIndex;
       tracklists.clickTimer = setTimeout(function() {
 
@@ -352,7 +352,7 @@ Tapedeck.Frontend.Frame = {
 
           var rows = $(row).closest(".tracklist").find(".row");
           rows.each( function(i, aRow) {
-            var pos = parseInt($(aRow).attr("index"));
+            var pos = parseInt($(aRow).attr("index"), 10);
             if (pos <= highBound && pos >= lowBound) {
               if (isSelect) {
                 $(aRow).addClass("selected");
@@ -475,7 +475,7 @@ Tapedeck.Frontend.Frame = {
 
       var target = $(e.target).closest(".row");
 
-      var dropIndex = parseInt(target.attr("index"));
+      var dropIndex = parseInt(target.attr("index"), 10);
 
       rowDrag.tracks.sort(function(a,b) {
         return a.index - b.index;
@@ -566,7 +566,7 @@ Tapedeck.Frontend.Frame = {
         evt.initEvent("click", true, true);
         downloadLink.dispatchEvent(evt);
         return;
-      }
+      };
 
       Tapedeck.Frontend.Messenger.download(trackID, callback);
     },
@@ -598,7 +598,7 @@ Tapedeck.Frontend.Frame = {
       $("#current-page").hide();
       $("#set-page").keypress(function(e) {
         if(e.which == 13) {
-          var page = parseInt($("#set-page").val());
+          var page = parseInt($("#set-page").val(), 10);
           if (!isNaN(page) && page > 0) {
              Tapedeck.Frontend.Messenger.setPage(page);
           }
@@ -748,7 +748,7 @@ Tapedeck.Frontend.Frame = {
             // remove anything that's not the basic stylesheet
             $(oldStyle).remove();
           }
-        })
+        });
       }
       $('head').append('<link rel="stylesheet" href="' + response.cssURL + '" type="text/css" />');
     });
@@ -770,13 +770,13 @@ Tapedeck.Frontend.Frame = {
         $("#repeat").attr("src", chrome.extension.getURL("images/repeat-active.png"));
       }
       else {
-        $("#repeat").attr("src", chrome.extension.getURL("images/repeat.png"))
+        $("#repeat").attr("src", chrome.extension.getURL("images/repeat.png"));
       }
     });
   },
   checkSync: function() {
     Tapedeck.Frontend.Messenger.getSync(function(response) {
-      var imgPath = "images/sync-disabled.png"
+      var imgPath = "images/sync-disabled.png";
       if (response.sync == "on") {
         imgPath = "images/sync-active.png";
       }
@@ -787,7 +787,7 @@ Tapedeck.Frontend.Frame = {
         imgPath = "images/sync-broken.png";
       }
 
-      $("#sync").attr("src", chrome.extension.getURL(imgPath))
+      $("#sync").attr("src", chrome.extension.getURL(imgPath));
     });
   },
 
@@ -875,7 +875,7 @@ Tapedeck.Frontend.Frame = {
       this.attachEvents(targetID, proxyEvents);
     }
     else {
-      console.error("Replacing view '" + targetID + "' without attaching events")
+      console.error("Replacing view '" + targetID + "' without attaching events");
     }
   },
 
@@ -887,7 +887,7 @@ Tapedeck.Frontend.Frame = {
         method = method[methodPieces[i]];
       }
 
-      if (methodPieces.length == 0 ||
+      if (methodPieces.length === 0 ||
           typeof(method) == "undefined") {
         console.error("Event " + JSON.stringify(methodPieces) + " does not exist");
       }

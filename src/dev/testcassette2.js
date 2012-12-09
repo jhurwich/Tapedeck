@@ -2,7 +2,7 @@ Tapedeck.Backend.Cassettes.TestCassette2 = Tapedeck.Backend.Models.Cassette.exte
   defaults : {
     "name" : "TestCassette2",
     "developer" : "Jhawk",
-    "developerLink" : "www.tape-deck.com",
+    "developerLink" : "www.tape-deck.com"
   },
 
   // Don't want the interval event

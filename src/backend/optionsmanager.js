@@ -3,7 +3,7 @@ Tapedeck.Backend.OptionsManager = {
   init: function(continueInit) {
     var self = this;
 
-    var confURL = chrome.extension.getURL("util/options.conf")
+    var confURL = chrome.extension.getURL("util/options.conf");
     $.ajax({
       type: "GET",
       url: confURL,
@@ -53,7 +53,7 @@ Tapedeck.Backend.OptionsManager = {
     var optionMgr = Tapedeck.Backend.OptionsManager;
 
     Tapedeck.Backend.Bank.getSavedOptions(function(flatOptions) {
-      options = optionMgr.unflatten(flatOptions);
+      var options = optionMgr.unflatten(flatOptions);
       callback(options);
     });
   },
@@ -67,7 +67,32 @@ Tapedeck.Backend.OptionsManager = {
       if (logsDone && overridesDone && premadesDone) {
         callback();
       }
-    }
+    };
+
+    var handleOverridesAndPremades = function () {
+      logsDone = true;
+
+      var overridesFinish = function() {
+        overridesDone = true;
+        tryFinish();
+      };
+      var premadesFinish = function() {
+        premadesDone = true;
+        tryFinish();
+      };
+      for (var aKey in options) {
+        var compareKey = aKey.toLowerCase();
+        if (compareKey.indexOf("development") != -1) {
+          // this is the local override subobject
+          optionMgr.localOverrides(options[aKey], overridesFinish);
+        }
+        else if (compareKey.indexOf("premade") != -1) {
+          // this the premade cassettified cassettes subobject
+          optionMgr.premadeCassettes(options[aKey], premadesFinish);
+        }
+      }
+      tryFinish();
+    };
 
     for (var key in options) {
       var compareKey = key.toLowerCase();
@@ -75,28 +100,7 @@ Tapedeck.Backend.OptionsManager = {
       // search for the logs and do those first, so that logging is sensical before initializing other things
       if (compareKey.indexOf("log") != -1) {
         // this is the logs subobject
-        optionMgr.setLogs(options[key], function() {
-          logsDone = true;
-
-          for (var aKey in options) {
-            var compareKey = aKey.toLowerCase();
-            if (compareKey.indexOf("development") != -1) {
-              // this is the local override subobject
-              optionMgr.localOverrides(options[aKey], function() {
-                overridesDone = true;
-                tryFinish();
-              });
-            }
-            else if (compareKey.indexOf("premade") != -1) {
-              // this the premade cassettified cassettes subobject
-              optionMgr.premadeCassettes(options[aKey], function() {
-                premadesDone = true;
-                tryFinish();
-              });
-            }
-          }
-          tryFinish();
-        });
+        optionMgr.setLogs(options[key], handleOverridesAndPremades);
         break;
       }
     }
@@ -120,8 +124,8 @@ Tapedeck.Backend.OptionsManager = {
     var cassettesComplete = false;
     var checkAndFinish = function() {
       // if we needed to handle files, length > 0, make sure they're complete
-      if (((devTemplatesFilename.length == 0 || devCSSFilename.length == 0) || templatesAndCSSComplete) &&
-          ((devCassettesFilenames.length == 0) || cassettesComplete)) {
+      if (((devTemplatesFilename.length === 0 || devCSSFilename.length === 0) || templatesAndCSSComplete) &&
+          ((devCassettesFilenames.length === 0) || cassettesComplete)) {
         callback();
       }
     };
@@ -130,7 +134,7 @@ Tapedeck.Backend.OptionsManager = {
       var compareKey = key.toLowerCase();
 
       if (compareKey == "skinning") {
-        for (subKey in object[key]) {
+        for (var subKey in object[key]) {
           compareKey = subKey.toLowerCase();
 
           if (compareKey.indexOf("template") != -1) {
@@ -142,7 +146,7 @@ Tapedeck.Backend.OptionsManager = {
         }
       }
       else if (compareKey == "cassettes") {
-        for (subKey in object[key]) {
+        for (var subKey in object[key]) {
           compareKey = subKey.toLowerCase();
 
           if (compareKey.indexOf("cassette") != -1) {
@@ -178,7 +182,7 @@ Tapedeck.Backend.OptionsManager = {
     Tapedeck.Backend.Bank.premadeCassettes = [];
     for (var key in object) {
       var pattern = object[key];
-      if (typeof(pattern) != "string" || pattern.length == 0) {
+      if (typeof(pattern) != "string" || pattern.length === 0) {
         continue;
       }
 
@@ -211,12 +215,20 @@ Tapedeck.Backend.OptionsManager = {
   unflatten: function(object) {
     var toReturn = {};
 
+    var drillDown = function(aObject, aKeys, aIndex) {
+      var currObject = aObject;
+      for (var i=0; i < aIndex; i++) {
+        currObject = currObject[aKeys[i]];
+      }
+      return currObject;
+    };
+
     for (var key in object) {
       var split = key.replace("-key", "").split('-'); // remove '-key' from the end and split
 
       if (split.length == 1) {
         // top-level key
-        var asNum = parseInt(object[key]);
+        var asNum = parseInt(object[key], 10);
         if (!isNaN(asNum)) {
           toReturn[split[0]] = asNum;
         }
@@ -224,14 +236,6 @@ Tapedeck.Backend.OptionsManager = {
           toReturn[split[0]] = object[key];
         }
       }
-
-      var drillDown = function(aObject, aKeys, aIndex) {
-        var currObject = aObject;
-        for (var i=0; i < aIndex; i++) {
-          currObject = currObject[aKeys[i]];
-        }
-        return currObject;
-      };
 
       for (var i=0; i < split.length; i++) {
         var piece = split[i];
@@ -244,7 +248,7 @@ Tapedeck.Backend.OptionsManager = {
           }
         }
         else {
-          var asNum = parseInt(object[key]);
+          var asNum = parseInt(object[key], 10);
           if (!isNaN(asNum)) {
             onObject[split[i]] = asNum;
           }
@@ -266,7 +270,7 @@ Tapedeck.Backend.OptionsManager = {
 
     // non-objects and empty objects are leaves
     if (typeof(object) == "string") {
-      return { key: object.replace(" ", "_") }
+      return { key: object.replace(" ", "_") };
     }
     if (typeof(object) == "number" ||
         $.isArray(object) ||
@@ -285,10 +289,9 @@ Tapedeck.Backend.OptionsManager = {
       for (var subKey in subOptions) {
         var concatKey = hrKey + "-" + subKey;
         concatKey = concatKey.replace(" ", "_");
-        toReturn[concatKey] = subOptions[subKey];;
+        toReturn[concatKey] = subOptions[subKey];
       }
     }
     return toReturn;
-  },
-
-}
+  }
+};

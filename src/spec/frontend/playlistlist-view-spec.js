@@ -37,10 +37,10 @@ describe("PlaylistList View", function() {
 
     });
 
-    waitsFor(function() { return testComplete }, "Waiting for PlaylistLists to be built", 2000);
+    waitsFor(function() { return testComplete; }, "Waiting for PlaylistLists to be built", 2000);
     runs(function() {
       expect(testComplete).toBeTruthy();
-    })
+    });
 
   });
 });

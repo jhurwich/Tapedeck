@@ -5,6 +5,6 @@ Tapedeck.Backend.Views.Player = Tapedeck.Backend.Views.TapedeckView.extend({
   requiredTemplates: [
     "Player"
   ],
-  template: null,
+  template: null
 
 });

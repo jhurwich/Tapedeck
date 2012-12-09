@@ -81,11 +81,11 @@ Tapedeck.Backend.Utils = {
 
     var openTagRegex = function(tag) {
       return new RegExp("<\s*" + tag + "[^<>]*>", "gi");
-    }
+    };
 
     var closeTagRegex = function(tag) {
       return new RegExp("<\/" + tag + "[^<>]*>", "gi");
-    }
+    };
 
     var openRegex = openTagRegex(tagName);
     var openMatch = null;
@@ -115,10 +115,12 @@ Tapedeck.Backend.Utils = {
     var targetRegex = /"([^"]+)["]\s*?:\s*?["]([^"]+)["]/g;
 
     for (var i = 0; i < targetTags.length; i ++) {
-      while ((targetMatch = targetRegex.exec(targetTags[i])) != null) {
+      var targetMatch = targetRegex.exec(targetTags[i]);
+      while (targetMatch != null) {
         var key = targetMatch[1];
         var value = targetMatch[2];
         map[key] = value;
+        targetMatch = targetRegex.exec(targetTags[i]);
       }
     }
     return map;
@@ -130,15 +132,15 @@ Tapedeck.Backend.Utils = {
   removeTags: function(text, tags, removeContentToo) {
     var openTagRegex = function(tag) {
       return new RegExp("<\s*" + tag + "[^<>]*>");
-    }
+    };
 
     var closeTagRegex = function(tag) {
       return new RegExp("<\/" + tag + "[^<>]*>", "i");
-    }
+    };
 
     var selfClosedTagRegex = function(tag) {
       return new RegExp("<\s*" + tag + "[^<>]*\/>", "i");
-    }
+    };
 
     if (removeContentToo) {
       // remove the tags and their contents
@@ -227,7 +229,7 @@ Tapedeck.Backend.Utils = {
       console.log(component + " (" + currentTime.getTime() + ") - " + str);
     }
   }
-}
+};
 
 // copied wholesale from prototype.js, props to them
 Function.prototype.curry = function() {
@@ -249,5 +251,5 @@ Function.prototype.curry = function() {
 	return function() {
 		var a = merge(args, arguments);
 		return __method.apply(this, a);
-	}
+	};
 };

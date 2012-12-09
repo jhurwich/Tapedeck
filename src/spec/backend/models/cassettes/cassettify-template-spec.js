@@ -7,7 +7,13 @@ describe("Cassettification", function() {
     this.pattern = "www.theburningear.com/page/$#";
     this.cassetteName = "TestCassette";
 
-    waitsForFrontendInit();
+
+    // Cassettification needs a full init, so do it if we didn't already
+    if (!__Jasmine__DO_FULL_INIT) {
+      this.waitsForBackendInit();
+    }
+
+    this.waitsForFrontendInit();
   });
 
   it("should make a new cassette for the current page", function() {
@@ -17,7 +23,7 @@ describe("Cassettification", function() {
     runs(function() {
       // start Cassettify in test mode so we can fake the currentURL
       var options = { isTest: true, testURL: this.testURL };
-      this.cMgr.Cassettify.start(options)
+      this.cMgr.Cassettify.start(options);
 
       waitsFor(function() {
         var modal = $("#tapedeck-frame").contents().find("#modal");
@@ -50,7 +56,7 @@ describe("Cassettification", function() {
     waitsFor(function() { return testComplete; }, 20000);
     runs(function() {
       expect(testComplete).toBeTruthy();
-    })
+    });
 
   });
 

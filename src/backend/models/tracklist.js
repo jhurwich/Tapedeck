@@ -15,7 +15,7 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
 
     var estimateSize = function(serializedArray, splitNum) {
       var splitKey = null;
-      if (splitNum == 0) {
+      if (splitNum === 0) {
         splitKey = self.getPrefix() + self.id;
       }
       else {
@@ -35,7 +35,7 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
       currArray.push(model.serialize());
 
       if (maxSize > 0 && estimateSize(currArray, result.length) > maxSize) {
-        var lastAdded = currArray.pop()
+        var lastAdded = currArray.pop();
         result.push(JSON.stringify(currArray));
         currArray = [lastAdded];
       }
@@ -71,5 +71,5 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
 
     json['destination'] = this.destination;
     return json;
-  },
+  }
 });

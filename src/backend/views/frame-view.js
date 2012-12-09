@@ -10,6 +10,6 @@ Tapedeck.Backend.Views.Frame = Tapedeck.Backend.Views.TapedeckView.extend({
     "BrowseRegion",
     "BrowseList",
     "CassetteList"
-  ],
+  ]
 
 });

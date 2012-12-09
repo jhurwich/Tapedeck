@@ -20,6 +20,12 @@ Tapedeck.Backend.InjectManager = {
         return;
     }
 
+    // the tab is loading a new page, clear any previous executions we had logged
+    if (changeInfo.status == "loading") {
+      injectMgr.executedMap[tabID] = [];
+      console.log("clearing executed");
+    }
+
     // Handle status == 'complete' updates
     if (typeof(changeInfo.status) != "undefined" &&
         changeInfo.status == "complete") {
@@ -69,7 +75,7 @@ Tapedeck.Backend.InjectManager = {
   removePostInjectScript: function(tabID, scriptToRemove) {
     var scripts = this.postInjectMap[tabID];
     if (typeof(scripts) == "undefined" ||
-        scripts.length == 0) {
+        scripts.length === 0) {
       console.error("No postinject script to remove for " + tabID);
       return;
     }
@@ -78,7 +84,7 @@ Tapedeck.Backend.InjectManager = {
       if (scripts[i] == scriptToRemove) {
         scripts.splice(i, 1);
         i--;
-      };
+      }
     }
   },
 
@@ -110,22 +116,26 @@ Tapedeck.Backend.InjectManager = {
 
   // responseCallback should prepare for response.error to be present in the event of error.
   // prepCode is optional.
+  executedMap: { },
   currInjectors: 0,
   executeScript: function(tab, options, responseCallback, testParams, prepCode) {
     var injectMgr = Tapedeck.Backend.InjectManager;
     if (!injectMgr.isTest(tab.url) && injectMgr.isURLBlocked(tab.url)) {
       return;
     }
+    console.log("Script injection beginning");
 
     // we rate-limit the number of injectors
     var currTimeout = 1;
     var setupAndInject = function() {
+
       currTimeout = currTimeout + 100;
       var maxTimeout = injectMgr.currInjectors * 300;
+      console.log("setupAndInject: (" + injectMgr.currInjectors + ") " + currTimeout + " / " + maxTimeout);
       if (currTimeout < maxTimeout) {
         setTimeout(setupAndInject, currTimeout);
         return;
-      };
+      }
       injectMgr.currInjectors++;
 
       // We'll need to wrap the callback so we can make it's
@@ -133,6 +143,8 @@ Tapedeck.Backend.InjectManager = {
       // Also, if the inject fails we'll need to clean everything up
       var wrappedCallback = null;
       var cleanupTimer = setTimeout(function() {
+        console.log("Cleaning up an abandoned injections, total: " + injectMgr.currInjectors);
+
         // if the callback never gets called we need to clean it up
         injectMgr.currInjectors = injectMgr.currInjectors - 1;
         if (wrappedCallback != null) {
@@ -150,22 +162,46 @@ Tapedeck.Backend.InjectManager = {
 
           responseCallback(response, sender, sendResponse);
           chrome.extension.onRequest.removeListener(arguments.callee);
-        }
+        };
         chrome.extension.onRequest.addListener(wrappedCallback);
       }
 
       // Now actually do the injection
       if (!injectMgr.isTest(tab.url)) {
-        if(typeof(prepCode) != "undefined") {
-          chrome.tabs.executeScript(tab.id,{ code : prepCode })
+        // this is not the test tab, normal injection
+
+        // if there's some prep work, do it
+        if (typeof(prepCode) != "undefined") {
+          chrome.tabs.executeScript(tab.id, { code : prepCode });
         }
-        chrome.tabs.executeScript(tab.id, options);
+
+        if (injectMgr.alreadyExecuted(tab.id, options.file)) {
+          console.log("REPEAT injection!");
+          // we've already injected this file into this tab, reuse the previous injection;
+          var request = Tapedeck.Backend.MessageHandler.newRequest({
+            action: "executeScriptAgain",
+            script: options.file
+          });
+          chrome.tabs.sendRequest(tab.id, request);
+        }
+        else {
+          console.log("Performing injection!");
+          // we haven't injected this file yet, go for it.
+          chrome.tabs.executeScript(tab.id, options);
+
+          if (typeof(injectMgr.executedMap[tab.id]) == "undefined") {
+            injectMgr.executedMap[tab.id] = [options.file];
+          }
+          else {
+            injectMgr.executedMap[tab.id].push(options.file);
+          }
+        }
       }
       else {
         // If it's the test tab, fake the injection
         var request = Tapedeck.Backend.MessageHandler.newRequest({
           action: "executeScriptInTest",
-          script: options.file,
+          script: options.file
         });
         if (typeof(options.params) != "undefined") {
           /* Special means of sending params to start() for test setup */
@@ -178,10 +214,24 @@ Tapedeck.Backend.InjectManager = {
     setupAndInject();
   },
 
+  alreadyExecuted: function(tabID, file) {
+    var injectMgr = Tapedeck.Backend.InjectManager;
+
+    if (typeof(injectMgr.executedMap[tabID]) != "undefined") {
+      for(var i = 0; i < injectMgr.executedMap[tabID].length; i++) {
+        if (injectMgr.executedMap[tabID][i] == file) {
+          return true;
+        }
+      }
+    }
+    return false;
+  },
+
   isTest: function(url) {
     var match = url.match(/chrome-extension.*SpecRunner.html/);
     return (match != null);
   },
+
 
   alwaysBlocked: ["chrome://", "chrome-extension://", "chrome-devtools://"],
   isURLBlocked: function(url) {
@@ -195,5 +245,5 @@ Tapedeck.Backend.InjectManager = {
       }
     }
     return false;
-  },
-}
+  }
+};

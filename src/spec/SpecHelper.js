@@ -1,4 +1,4 @@
-__Jasmine__RUN_ALL_TESTS = false;
+__Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
   "Cassettification",
 ];
@@ -9,9 +9,76 @@ __Jasmine__TESTS_TO_SKIP = [
 
 /* Runs initialization before each test.
  * Dramatically slows down test suite.  */
-__Jasmine__DO_FULL_INIT = true;
+__Jasmine__DO_FULL_INIT = false;
 
 beforeEach(function() {
+  this.Tapedeck = {};
+  this.Tapedeck.Backend = chrome.extension
+                                 .getBackgroundPage()
+                                 .Tapedeck
+                                 .Backend;
+
+
+  /********* addMatchers *************/
+  this.addMatchers({
+    // A track model must reflect the JSON from which it was created in
+    // order to be considered valid.
+    toReflectJSON: function(expectedJSON, exceptions) {
+      if (typeof(exceptions) == "undefined") {
+        exceptions = [];
+      }
+      for (var attrName in expectedJSON) {
+        if (!($.inArray(attrName, exceptions)) &&
+            expectedJSON[attrName] != this.actual.get(attrName)) {
+          console.log("fail on '" + attrName + "' expected:"+ expectedJSON[attrName] + " actual:"+ this.actual.get(attrName));
+          return false;
+        }
+      }
+      return true;
+    },
+  });
+
+
+  /********* Added waitsFor *************/
+  this.waitsForSwitchToBrowseList = function() {
+    this.Tapedeck.Frontend.Messenger.setCassette("Scraper");
+    waitsFor(function() {
+      return ($("#tapedeck-frame").contents().find("#browse-list").length > 0);
+    }, "Waiting for switch to BrowseList mode", 200);
+  };
+
+  this.waitsForBackendInit = function() {
+    var initComplete = false;
+    waitsFor(function() { return initComplete; },
+             "Waiting for Backend.init()",
+             1000);
+    this.Tapedeck.Backend.init(function() {
+      initComplete = true;
+    });
+  };
+
+  // Convenience method to wait for the frontend's initialization
+  this.waitsForFrontendInit = function() {
+    this.waitsForElement("#player");
+  };
+
+  this.waitsForElement = function(selector) {
+    waitsFor(function() {
+      return ($("#tapedeck-frame").contents().find(selector).length > 0);
+    }, "Timedout waiting for '" + selector + "' to populate", 2000);
+  };
+
+
+  /********* Utility *************/
+  this.findTestTab = function() {
+    var ports = this.Tapedeck.Backend.MessageHandler.ports;
+    for (var id in ports) {
+      var tab = ports[id].sender.tab;
+      if (tab.url.match(/chrome-extension.*SpecRunner.html$/)) {
+        return tab;
+      }
+    }
+  };
   this.testTracks = [
     {
       type          : "mp3",
@@ -60,29 +127,8 @@ beforeEach(function() {
     },
   ]; // End testTracks
 
-  this.addMatchers({
-    // A track model must reflect the JSON from which it was created in
-    // order to be considered valid.
-    toReflectJSON: function(expectedJSON, exceptions) {
-      if (typeof(exceptions) == "undefined") {
-        exceptions = [];
-      }
-      for (var attrName in expectedJSON) {
-        if (!($.inArray(attrName, exceptions)) &&
-            expectedJSON[attrName] != this.actual.get(attrName)) {
-          console.log("fail on '" + attrName + "' expected:"+ expectedJSON[attrName] + " actual:"+ this.actual.get(attrName));
-          return false;
-        }
-      }
-      return true;
-    },
-  });
 
-  this.Tapedeck = {};
-  this.Tapedeck.Backend = chrome.extension
-                                 .getBackgroundPage()
-                                 .Tapedeck
-                                 .Backend;
+  /********* Bootstrapping *************/
   var frameLoaded = false;
   var tapedeckFrame = $("#tapedeck-frame");
 
@@ -100,57 +146,19 @@ beforeEach(function() {
     this.Tapedeck.Backend.Bank.clear();
   });
 
-
-
-  this.findTestTab = function() {
-    var ports = this.Tapedeck.Backend.MessageHandler.ports;
-    for (var id in ports) {
-      var tab = ports[id].sender.tab;
-      if (tab.url.match(/chrome-extension.*SpecRunner.html$/)) {
-        return tab;
-      }
-    }
-  };
-
-  this.waitForSwitchToBrowseList = function() {
-    this.Tapedeck.Frontend.Messenger.setCassette("Scraper");
-    waitsFor(function() {
-      return ($("#tapedeck-frame").contents().find("#browse-list").length > 0);
-    }, "Waiting for switch to BrowseList mode", 200);
-  };
-
-  this.waitForBackendInit = function() {
-    var initComplete = false;
-    waitsFor(function() { return initComplete; },
-             "Waiting for Backend.init()",
-             1000);
-    this.Tapedeck.Backend.init(function() {
-      initComplete = true;
-    })
-  };
-
   if (__Jasmine__DO_FULL_INIT) {
-    this.waitForBackendInit();
+    this.waitsForBackendInit();
   }
 }); // end beforeEach
 
 afterEach(function() {
   var cleanComplete = false;
   this.Tapedeck.Backend.Sequencer.clear(function() {
-    this.Tapedeck.Backend.Bank.clear(function() { cleanComplete = true });
+    this.Tapedeck.Backend.Bank.clear(function() { cleanComplete = true; });
   });
-  waitsFor(function() { return cleanComplete }, "Waiting for cleanup", 500);
-  runs(function() { expect(cleanComplete).toBeTruthy() });
+  waitsFor(function() { return cleanComplete; }, "Waiting for cleanup", 500);
+  runs(function() { expect(cleanComplete).toBeTruthy(); });
 }); // end afterEach
 
-// Convenience method to wait for the frontend's initialization
-waitsForFrontendInit = function() {
-  waitsForElement("#player");
-}
 
-waitsForElement = function(selector) {
-  waitsFor(function() {
-    return ($("#tapedeck-frame").contents().find(selector).length > 0);
-  }, "Timedout waiting for '" + selector + "' to populate", 2000);
-}
 

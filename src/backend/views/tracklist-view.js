@@ -15,7 +15,7 @@ Tapedeck.Backend.Views.TrackList = Tapedeck.Backend.Views.TapedeckView.extend({
         typeof(this.options.trackList) != "undefined") {
       this.options.trackList = this.options.trackList.toJSON();
     }
-  },
+  }
 
 });
 

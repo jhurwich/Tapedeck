@@ -44,41 +44,43 @@ Tapedeck.Backend.CassetteManager = {
 
       Tapedeck.Backend.MessageHandler.messageSandbox({ action: 'clearCassettes' }, function() {
         var pageMap = { };
+
+        var scoped = function(data) {
+          // Extract the code in the filesystem cassette and pass to sandbox to execute
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", data.url, true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+              cMgr.log("Sending '" + data.name + "' to sandbox to be prepared.");
+
+              // Tell the Sandbox to prepare this cassette, in the response is a report
+              // from which a CassetteAdapter can be created.  Map that adapter as the cassette
+              var message = {
+                action: "prepCassette",
+                code: xhr.responseText
+              };
+              Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+                var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
+                var cassetteEntry = { cassette: newAdapter };
+                if (typeof(data.page) != "undefined") {
+                  cassetteEntry.page = data.page;
+                }
+                if (typeof(data.feed) != "undefined") {
+                  cassetteEntry.feed = data.feed;
+                }
+                else if (typeof(response.report.defaultFeed) != "undefined") {
+                  cassetteEntry.feed = response.report.defaultFeed;
+                }
+
+                cMgr.log("Loading '" + data.name + "' from the filesystem. #" + cMgr.cassettes.length);
+                cMgr.cassettes.push(cassetteEntry);
+              });
+            }
+          }; // end xhr.onreadystatechange
+          xhr.send();
+        }; // end scoped
+
         for (var i = 0; i < cassetteDatas.length; i++) {
-          var scoped = function(data) {
-            // Extract the code in the filesystem cassette and pass to sandbox to execute
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", data.url, true);
-            xhr.onreadystatechange = function() {
-              if (xhr.readyState == 4 && xhr.status == 200) {
-                cMgr.log("Sending '" + data.name + "' to sandbox to be prepared.");
-
-                // Tell the Sandbox to prepare this cassette, in the response is a report
-                // from which a CassetteAdapter can be created.  Map that adapter as the cassette
-                var message = {
-                  action: "prepCassette",
-                  code: xhr.responseText
-                };
-                Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
-                  var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
-                  var cassetteEntry = { cassette: newAdapter };
-                  if (typeof(data.page) != "undefined") {
-                    cassetteEntry.page = data.page;
-                  }
-                  if (typeof(data.feed) != "undefined") {
-                    cassetteEntry.feed = data.feed;
-                  }
-                  else if (typeof(response.report.defaultFeed) != "undefined") {
-                    cassetteEntry.feed = response.report.defaultFeed;
-                  }
-
-                  cMgr.log("Loading '" + data.name + "' from the filesystem. #" + cMgr.cassettes.length);
-                  cMgr.cassettes.push(cassetteEntry);
-                });
-              }
-            }; // end xhr.onreadystatechange
-            xhr.send();
-          }; // end scoped
           scoped(cassetteDatas[i]);
         } // end handling FileSystem cassettes
       }); // end messageSandbox({ action: 'clearCassettes' ...
@@ -118,7 +120,7 @@ Tapedeck.Backend.CassetteManager = {
           cMgr.log("Reading in complete - " + cMgr.cassettes.length + " cassettes loaded.");
           callback();
         }
-      }
+      };
       delayReturn();
     });
   },
@@ -146,7 +148,7 @@ Tapedeck.Backend.CassetteManager = {
     // to null, 'ejecting' it.
     if (typeof(name) == "undefined" ||
         name == null ||
-        name.length == 0) {
+        name.length === 0) {
       this.currentCassette = null;
     }
     else {
@@ -157,7 +159,7 @@ Tapedeck.Backend.CassetteManager = {
           this.currentCassette.set({ active: "active" });
 
           if (typeof(this.cassettes[i].page) != "undefined") {
-            this.currPage = parseInt(this.cassettes[i].page);
+            this.currPage = parseInt(this.cassettes[i].page, 10);
           }
           if (typeof(this.cassettes[i].feed) != "undefined") {
             this.currFeed = this.cassettes[i].feed;
@@ -172,7 +174,7 @@ Tapedeck.Backend.CassetteManager = {
       // Change the current cassette
       var cassetteName = "";
       if (this.currentCassette != null) {
-        cassetteName = this.currentCassette.get("name")
+        cassetteName = this.currentCassette.get("name");
       }
       if(oldCurrent != null) {
         oldCurrent.unset("active");
@@ -252,10 +254,10 @@ Tapedeck.Backend.CassetteManager = {
   },
   setPage: function(page) {
     var cMgr = Tapedeck.Backend.CassetteManager;
-    if (cMgr.currPage == parseInt(page)) {
+    if (cMgr.currPage == parseInt(page, 10)) {
       return;
     }
-    cMgr.currPage = parseInt(page);
+    cMgr.currPage = parseInt(page, 10);
     if (cMgr.currPage < 1) {
       cMgr.currPage = 1;
     }
@@ -316,7 +318,7 @@ Tapedeck.Backend.CassetteManager = {
                              callbackParam: "anotherSite" },
                            { text: "Advanced",
                              callbackParam: "advanced" }],
-          title: "Cassettify",
+          title: "Cassettify"
         }, self.chooseMethod);
 
         // first check if there's a cassette in the store for this url
@@ -348,7 +350,7 @@ Tapedeck.Backend.CassetteManager = {
                            callbackParam: "submit" },
                          { text: "Advanced",
                            callbackParam: "advanced" }],
-        title: "Cassettify a Site",
+        title: "Cassettify a Site"
       }, self.handleURLInput, self.postLoadCleanup);
     },
 
@@ -357,7 +359,7 @@ Tapedeck.Backend.CassetteManager = {
       var self = cMgr.Cassettify;
 
       self.waitingForInput = false;
-      self.createByURL(params)
+      self.createByURL(params);
     },
 
     createByURL: function(params) {
@@ -383,7 +385,7 @@ Tapedeck.Backend.CassetteManager = {
                            callbackParam: "anotherSite" },
                          { text: "Advanced",
                            callbackParam: "advanced" }],
-        title: "Cassettify",
+        title: "Cassettify"
       }, self.chooseMethod);
 
       self.postLoadCleanup();
@@ -410,7 +412,7 @@ Tapedeck.Backend.CassetteManager = {
                    text          : "",
                    width         : "300",
                    callbackParam : "pattern" }],
-        title: "Advanced Cassettify",
+        title: "Advanced Cassettify"
       }, self.handlePatternInput, self.postLoadCleanup);
     },
 
@@ -422,14 +424,14 @@ Tapedeck.Backend.CassetteManager = {
         if (url.indexOf(exceptionDomain) != -1) {
           // we've hit an exception domain, defer to exception handling
           self[self.exceptionDomains[exceptionDomain]](url);
-          return
+          return;
         }
       }
 
       // not an exception domain, try our guesses
       url = url.replace("http://", "");
       url = url.replace("www.", "");
-      domain = url;
+      var domain = url;
       if (url.indexOf('/') != -1) {
         domain = url.substring(0, url.indexOf('/'));
       }
@@ -439,7 +441,7 @@ Tapedeck.Backend.CassetteManager = {
       var tryPattern = function(i) {
         if (i >= self.commonURLPatterns.length) {
           // we failed to guess the pattern
-          self.fail({ msg: "Could not build a cassette for this site" })
+          self.fail({ msg: "Could not build a cassette for this site" });
           return;
         }
 
@@ -451,7 +453,7 @@ Tapedeck.Backend.CassetteManager = {
           self.createByPattern(guess);
         }, function(failResponse) {
           cMgr.log("Failed with guess: '" + guess + "'");
-          tryPattern(i + 1)
+          tryPattern(i + 1);
         });
       };
       tryPattern(0);
@@ -526,7 +528,7 @@ Tapedeck.Backend.CassetteManager = {
                            callbackParam: "anotherSite" },
                          { text: "Advanced",
                            callbackParam: "advanced" }],
-        title: "Cassettify",
+        title: "Cassettify"
       }, self.chooseMethod);
 
       var cMgr = Tapedeck.Backend.CassetteManager;
@@ -546,7 +548,7 @@ Tapedeck.Backend.CassetteManager = {
         // couldn't find the pattern
         msgHandler.showModal({
           fields: [{ type          : "info",
-                     text          : "Couldn't find '$#' please try again.", },
+                     text          : "Couldn't find '$#' please try again." },
                    { type          : "info",
                      text          : "Please enter the url for a site with '$#' for the page number." },
                    { type          : "info",
@@ -561,7 +563,7 @@ Tapedeck.Backend.CassetteManager = {
                              callbackParam: "anotherSite" },
                            { text: "Advanced",
                              callbackParam: "advanced" }],
-          title: "Advanced Cassettify",
+          title: "Advanced Cassettify"
         }, self.handlePatternInput, self.postLoadCleanup);
         return;
       }
@@ -626,13 +628,13 @@ Tapedeck.Backend.CassetteManager = {
         url = url.replace("www.", "");
 
         soundcloud.isGroup = false;
-        var patternBase = "soundcloud.com/"
+        var patternBase = "soundcloud.com/";
         if (url.indexOf("soundcloud.com/groups") != -1) {
           soundcloud.isGroup = true;
           patternBase = patternBase + "groups/";
         }
 
-        var entityRegex = new RegExp(patternBase + "([^/]*)")
+        var entityRegex = new RegExp(patternBase + "([^/]*)");
         soundcloud.entity = url.match(entityRegex)[1];
         soundcloud.domain = "http://www." + patternBase + soundcloud.entity;
 
@@ -668,7 +670,7 @@ Tapedeck.Backend.CassetteManager = {
             }
           },
           error : function(xhr, status) {
-            console.error("Error getting Soundcloud entity id: " + domain);
+            console.error("Error getting Soundcloud entity id: " + url);
           }
         });
       },
@@ -716,7 +718,7 @@ Tapedeck.Backend.CassetteManager = {
             return;
           }
         }
-        if (params.cassetteName.length == 0) {
+        if (params.cassetteName.length === 0) {
           options.msg = "You must enter a name";
           cMgr.Cassettify.nameCassette(code, options, callback);
           return;
@@ -729,7 +731,7 @@ Tapedeck.Backend.CassetteManager = {
           return;
         }
         var saveableName = params.cassetteName.replace(/\s/g, "_");
-        self.waitingForInput = false;
+        cMgr.Cassettify.waitingForInput = false;
 
         if (typeof(Tapedeck.Backend.Cassettes[saveableName]) != "undefined") {
           options.msg = "The name you enterred is in use";
@@ -757,19 +759,19 @@ Tapedeck.Backend.CassetteManager = {
                              text : options.msg });
         }
         modalFields.push({ type          : "info",
-                           text          : "Name your new cassette",});
+                           text          : "Name your new cassette"});
         if (typeof(options.domain) != "undefined") {
           options.domain = options.domain.replace("http://", "");
           options.domain = options.domain.replace("www.", "");
 
           modalFields.push({ type: "info",
-                             text: "for " + options.domain })
+                             text: "for " + options.domain });
         }
         modalFields.push({ type          : "input",
                            text          : "",
                            callbackParam : "cassetteName"  });
 
-        self.waitingForInput = true;
+        cMgr.Cassettify.waitingForInput = true;
         msgHandler.showModal({
           fields: modalFields,
           submitButtons : [{ text: "Submit",
@@ -778,7 +780,7 @@ Tapedeck.Backend.CassetteManager = {
                              callbackParam: "anotherSite" },
                            { text: "Advanced",
                              callbackParam: "advanced" }],
-          title: "Name New Cassette",
+          title: "Name New Cassette"
         }, nameAndSaveCassette);
 
       }
@@ -787,7 +789,7 @@ Tapedeck.Backend.CassetteManager = {
     fail: function(params) {
       var msgHandler = Tapedeck.Backend.MessageHandler;
       var cMgr = Tapedeck.Backend.CassetteManager;
-      self = cMgr.Cassettify;
+      var self = cMgr.Cassettify;
 
       // don't show the fail page if we're waiting for the user's input
       if (self.waitingForInput) {
@@ -799,7 +801,7 @@ Tapedeck.Backend.CassetteManager = {
         fields.push({ type : "info",
                       text : params.msg });
       }
-      fields.push({ type  : "info", text : "Please try again." })
+      fields.push({ type  : "info", text : "Please try again." });
 
       msgHandler.showModal({
         fields: fields,
@@ -807,7 +809,7 @@ Tapedeck.Backend.CassetteManager = {
                            callbackParam: "anotherSite" },
                          { text: "Advanced",
                            callbackParam: "advanced" }],
-        title: "Cassettify Failed",
+        title: "Cassettify Failed"
       }, self.chooseMethod, self.postLoadCleanup);
     },
 
@@ -875,12 +877,12 @@ Tapedeck.Backend.CassetteManager = {
      *  injectMgr.removePostInjectScript(cassettify.tabID,
      *                                   cassettify.captureNextLoad);
      */
-    },
+    }
   },
 
   dumpCollector: function() {
     $("[expiry]").each(function(index, expire) {
-      var expiry = parseInt($(expire).attr("expiry"));
+      var expiry = parseInt($(expire).attr("expiry"), 10);
 
       if ((expiry - (new Date()).getTime()) < 0) {
         $(expire).remove();
@@ -890,5 +892,5 @@ Tapedeck.Backend.CassetteManager = {
 
   log: function(str, level) {
     Tapedeck.Backend.Utils.log("CassetteManager", str, level);
-  },
+  }
 };

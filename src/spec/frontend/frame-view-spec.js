@@ -3,7 +3,7 @@ describe("Frame View", function() {
   beforeEach(function() {
     // We need to wait for Tapedeck.Frontend.Init to run
     // We need to wait for Tapedeck.Frontend.Init to run
-    waitsForFrontendInit();
+    this.waitsForFrontendInit();
   });
 
   it("should render the Player when rendered", function() {

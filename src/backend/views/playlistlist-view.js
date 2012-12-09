@@ -5,6 +5,6 @@ Tapedeck.Backend.Views.PlaylistList = Tapedeck.Backend.Views.TapedeckView.extend
   requiredTemplates: [
     "PlaylistList"
   ],
-  template: null,
+  template: null
 
 });

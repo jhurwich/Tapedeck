@@ -14,8 +14,8 @@ TapedeckBA = {
   loadPackages: function() {
     chrome.tabs.getSelected(undefined, function(tab) {
       var request = {
-        action: "getPackages",
-      }
+        action: "getPackages"
+      };
       chrome.extension.sendRequest(request, function(response) {
         var packages = response.packages;
         var selectDOM = document.getElementById("package-select");
@@ -29,7 +29,7 @@ TapedeckBA = {
             newOptionDOM.setAttribute("selected", "true");
           }
 
-          selectDOM.appendChild(newOptionDOM)
+          selectDOM.appendChild(newOptionDOM);
         }
 
         selectDOM.addEventListener("change", TapedeckBA.updatePackage);
@@ -44,15 +44,15 @@ TapedeckBA = {
     var request = {
       action: "setPackage",
       name: newPackageName
-    }
+    };
     chrome.extension.sendRequest(request);
   },
 
   loadBlockList: function() {
     chrome.tabs.getSelected(undefined, function(tab) {
       var request = {
-        action: "getBlockList",
-      }
+        action: "getBlockList"
+      };
       chrome.extension.sendRequest(request, function(response) {
         var oldListDOM = document.getElementById("blocklist");
         var newListDOM = document.createElement("div");
@@ -75,7 +75,7 @@ TapedeckBA = {
 
   makeBlockRow: function(index, url) {
     var row = document.createElement('div');
-    row.index = index
+    row.index = index;
     row.className = 'blocklist-row';
 
     var entry = document.createElement('div');
@@ -132,7 +132,7 @@ TapedeckBA = {
       }
     }
 
-    TapedeckBA.blockList.splice(target.index, 1)
+    TapedeckBA.blockList.splice(target.index, 1);
     TapedeckBA.sendBlockListToSave(TapedeckBA.blockList, function() {
       TapedeckBA.loadBlockList();
     });
@@ -142,11 +142,11 @@ TapedeckBA = {
     var request = {
       action: "saveBlockList",
       blockList: JSON.stringify(blockList)
-    }
+    };
     chrome.extension.sendRequest(request, function(response) {
       callback(response);
     });
-  },
+  }
 };
 
 window.onload = TapedeckBA.onload;

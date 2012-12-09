@@ -53,7 +53,7 @@ Tapedeck.Backend.TemplateManager = {
       tMgr.packages[template.name] = true;
 
       // save the template to the background page except for those that are already there
-      if ($("script#Frame-" + template.name + "-template").length == 0) {
+      if ($("script#Frame-" + template.name + "-template").length === 0) {
         tMgr.log("Loading new template '" + template.name + "' into background DOM");
         var scripts = Tapedeck.Backend.Utils.removeTags(template.contents,
                                                        ["html", "head", "body"],
@@ -150,17 +150,19 @@ Tapedeck.Backend.TemplateManager = {
   },
 
   assignImages: function(el, images) {
+    var assign = function(index, elem) {
+      var url = chrome.extension.getURL("images/" + images[selector]);
+      if ($(elem).get(0).tagName == "DIV") {
+        url = "url('" + url + "')";
+        $(elem).css("background-image", url);
+      }
+      else if ($(elem).get(0).tagName == "IMG") {
+        $(elem).attr("src", url);
+      }
+    };
+
     for (var selector in images) {
-      $(el).find(selector).each(function(index, elem) {
-        var url = chrome.extension.getURL("images/" + images[selector]);
-        if ($(elem).get(0).tagName == "DIV") {
-          url = "url('" + url + "')";
-          $(elem).css("background-image", url);
-        }
-        else if ($(elem).get(0).tagName == "IMG") {
-          $(elem).attr("src", url);
-        }
-      });
+      $(el).find(selector).each(assign);
     }
   },
 
@@ -188,48 +190,47 @@ Tapedeck.Backend.TemplateManager = {
     var options = {};
     var optionCount = Object.keys(requestedOptions).length;
     var filledCount = 0;
+
+    var scoped = function(param, filler) {
+      // call the filler
+      filler(function(filling) {
+        // if filling.fillAll, then fold all params from filling into options
+        if (filling &&
+            typeof(filling) == "object" &&
+            typeof(filling.fillAll) != "undefined" &&
+            filling.fillAll) {
+          for (var aParam in filling) {
+            if (aParam != "fillAll") {
+              options[aParam] = filling[aParam];
+            }
+          }
+        }
+        else {
+          options[param] = filling;
+        }
+
+        filledCount = filledCount + 1;
+        if (filledCount >= optionCount) {
+          callback(options);
+        }
+      }, function(error) {
+        // failed to fill
+        optionCount = optionCount - 1;
+        options[param] = "error";
+        console.error("Fill map error on param '" + param + "': "+ JSON.stringify(error));
+        if (filledCount >= optionCount) {
+          callback(options);
+        }
+      });
+    }; // end scoped
+
     for (var optionName in requestedOptions) {
       if (optionName in fillMap) {
-
         // attempt to the fill the requested option
         var paramName = requestedOptions[optionName];
         var fillFn = fillMap[optionName];
 
-        var scoped = function(param, filler) {
-
-          // call the filler
-          filler(function(filling) {
-            // if filling.fillAll, then fold all params from filling into options
-            if (filling &&
-                typeof(filling) == "object" &&
-                typeof(filling.fillAll) != "undefined" &&
-                filling.fillAll) {
-              for (var aParam in filling) {
-                if (aParam != "fillAll") {
-                  options[aParam] = filling[aParam];
-                }
-              }
-            }
-            else {
-              options[param] = filling;
-            }
-
-            filledCount = filledCount + 1;
-            if (filledCount >= optionCount) {
-              callback(options);
-            }
-          }, function(error) {
-            // failed to fill
-            optionCount = optionCount - 1;
-            options[param] = "error";
-            console.error("Fill map error on param '" + param + "': "+ JSON.stringify(error));
-            if (filledCount >= optionCount) {
-              callback(options);
-            }
-          });
-
-        }(paramName, fillFn); // end scoped
-
+        scoped(paramName, fillFn);
       }
       else {
         console.error(optionName + " not in the fillMap");
@@ -242,7 +243,7 @@ Tapedeck.Backend.TemplateManager = {
     callback(Tapedeck.Backend.CassetteManager.currentCassette);
   },
   getCurrentPage: function(callback) {
-    callback(Tapedeck.Backend.CassetteManager.currPage)
+    callback(Tapedeck.Backend.CassetteManager.currPage);
   },
   getCurrentFeed: function(callback) {
     var feed = Tapedeck.Backend.CassetteManager.currFeed;
@@ -314,7 +315,7 @@ Tapedeck.Backend.TemplateManager = {
           if (!aResponse.success || aResponse.errorCount > 0) {
             // some error occurred
             var errorString = "";
-            if (browseList.length == 0) {
+            if (browseList.length === 0) {
               errorString = "Sorry, we could not parse the site.";
               if (aResponse.errorCount > 1) {
                 errorString += " (" + aResponse.errorCount + " errors)";
@@ -416,9 +417,66 @@ Tapedeck.Backend.TemplateManager = {
      * (somewhere they are getting converted from self closed to immediately). */
     var selfClosedTagRegex = function(tag) {
       return new RegExp("<\s*" + tag + "[^<>]*(><\/" + tag + ">|\/>)", "gi");
-    }
+    };
 
-    tMgr.templatesInProgress[templateName] = { numSubtemplates: 0, subtemplatesComplete: 0 }
+    var populateSubTemplate = function(subtemplateHTML) {
+      // extract the <tapedeck> portion
+      var openTagRegex = function(tag) {
+        return new RegExp("<\s*" + tag + "[^<>]*>", "gi");
+      };
+      var closeTagRegex = function(tag) {
+        return new RegExp("<\/" + tag + "[^<>]*>", "gi");
+      };
+      var openRegex = openTagRegex('tapedeck');
+      var openMatch = null;
+      var closeRegex = closeTagRegex('tapedeck');
+      var closeMatch = null;
+      while ((openMatch = openRegex.exec(subtemplateHTML)) != null) {
+        if ((closeMatch = closeRegex.exec(subtemplateHTML)) != null &&
+            openMatch.index < closeMatch.index ) {
+
+          // <tapedeck> extracted here and folded into the outer template's
+          var tapedeck = subtemplateHTML.substring
+                                        (openMatch.index + openMatch[0].length,
+                                         closeMatch.index);
+
+          html = html.replace(closeRegex, tapedeck + " </tapedeck>");
+
+          subtemplateHTML = subtemplateHTML.replace
+                                           (subtemplateHTML.substring
+                                                           (openMatch.index,
+                                                            closeMatch.index + closeMatch[0].length), "");
+        }
+      }
+
+      // strip out the <template> and </template> of the subtemplate
+      subtemplateHTML = subtemplateHTML.replace(openTagRegex('template'), "");
+      subtemplateHTML = subtemplateHTML.replace(closeTagRegex('template'), "");
+
+      // add in the subtemplate
+      html = html.replace(templateTag, subtemplateHTML);
+
+      // now handle any remappings
+      var remapMatch = templateTag.match(/remap\s*?=\s*?['"]([^'"]*)['"]/);
+      if (remapMatch != null) {
+        var remappingString = remapMatch[1];
+        var remapRegex = /([^,:]*):([^,]*)/g;
+        while ((remapMatch = remapRegex.exec(remappingString)) != null) {
+          var original = remapMatch[1];
+          var remapping = remapMatch[2];
+          html = html.replace(new RegExp(original, "g"), remapping);
+         }
+      }
+      tMgr.templatesInProgress[templateName].subtemplatesComplete++;
+
+      if (templateMatch == null &&
+          tMgr.templatesInProgress[templateName].subtemplatesComplete >= tMgr.templatesInProgress[templateName].numSubtemplates) {
+        delete tMgr.templatesInProgress[templateName];
+        callback(html);
+      }
+    }; // end populateSubTemplate
+
+    tMgr.templatesInProgress[templateName] = { numSubtemplates: 0, subtemplatesComplete: 0 };
     var templateTagRegex = selfClosedTagRegex("template");
     var templateMatch = templateTagRegex.exec(html);
     while (templateMatch != null) {
@@ -428,70 +486,13 @@ Tapedeck.Backend.TemplateManager = {
       tMgr.templatesInProgress[templateName].numSubtemplates++;
 
       // first get information about the referenced template
-      var subtemplateMatch = templateTag.match(/ref\s*?=\s*?['"]([^'"-]*)-([^'"-]*)-template['"]/);
+      var subtemplateMatch = templateTag.match(/ref\s*?=\s*?['"]([^'"\-]*)-([^'"\-]*)-template['"]/);
       var subtemplateName = subtemplateMatch[1];
       var subtemplatePackage = subtemplateMatch[2];
       tMgr.log("Subtemplate of '" + templateName + "' found, populating '" + subtemplateName + "'", Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
 
       // got the template, we still need to fold the <tapedeck> portion in
-     this.getTemplate(subtemplateName, subtemplatePackage, function(subtemplateHTML) {
-
-        // extract the <tapedeck> portion
-        var openTagRegex = function(tag) {
-          return new RegExp("<\s*" + tag + "[^<>]*>", "gi");
-        }
-        var closeTagRegex = function(tag) {
-          return new RegExp("<\/" + tag + "[^<>]*>", "gi");
-        }
-        var openRegex = openTagRegex('tapedeck');
-        var openMatch = null;
-        var closeRegex = closeTagRegex('tapedeck');
-        var closeMatch = null;
-        while ((openMatch = openRegex.exec(subtemplateHTML)) != null) {
-          if ((closeMatch = closeRegex.exec(subtemplateHTML)) != null &&
-              openMatch.index < closeMatch.index ) {
-
-            // <tapedeck> extracted here and folded into the outer template's
-            var tapedeck = subtemplateHTML.substring
-                                          (openMatch.index + openMatch[0].length,
-                                           closeMatch.index);
-
-            html = html.replace(closeRegex, tapedeck + " </tapedeck>");
-
-            subtemplateHTML = subtemplateHTML.replace
-                                             (subtemplateHTML.substring
-                                                             (openMatch.index,
-                                                              closeMatch.index + closeMatch[0].length), "");
-          }
-        }
-
-
-        // strip out the <template> and </template> of the subtemplate
-        subtemplateHTML = subtemplateHTML.replace(openTagRegex('template'), "");
-        subtemplateHTML = subtemplateHTML.replace(closeTagRegex('template'), "");
-
-        // add in the subtemplate
-        html = html.replace(templateTag, subtemplateHTML);
-
-        // now handle any remappings
-        var remapMatch = templateTag.match(/remap\s*?=\s*?['"]([^'"]*)['"]/);
-        if (remapMatch != null) {
-          var remappingString = remapMatch[1];
-          var remapRegex = /([^,:]*):([^,]*)/g
-          while ((remapMatch = remapRegex.exec(remappingString)) != null) {
-            var original = remapMatch[1];
-            var remapping = remapMatch[2];
-            html = html.replace(new RegExp(original, "g"), remapping);
-           }
-        }
-        tMgr.templatesInProgress[templateName].subtemplatesComplete++;
-
-        if (templateMatch == null &&
-            tMgr.templatesInProgress[templateName].subtemplatesComplete >= tMgr.templatesInProgress[templateName].numSubtemplates) {
-          delete tMgr.templatesInProgress[templateName];
-          callback(html);
-        }
-      }); // end getTemplate for subtemplate
+     this.getTemplate(subtemplateName, subtemplatePackage, populateSubTemplate); // end getTemplate for subtemplate
     }
     if (typeof(tMgr.templatesInProgress[templateName]) != "undefined" &&
         tMgr.templatesInProgress[templateName].subtemplatesComplete >= tMgr.templatesInProgress[templateName].numSubtemplates) {
@@ -519,5 +520,5 @@ Tapedeck.Backend.TemplateManager = {
 
   log: function(str, level) {
     Tapedeck.Backend.Utils.log("TemplateManager", str, level);
-  },
-}
+  }
+};

@@ -70,7 +70,7 @@ describe("The Scraper Cassette", function() {
       var context = self.Tapedeck.Backend.Utils.getContext(testTab);
 
       var spy = null;
-      if(numPostLoads != 0) {
+      if(numPostLoads !== 0) {
 
         // We need to see that the postLoads are completed, but
         // we need to call getBrowseList to queue the postLoads.
@@ -123,7 +123,7 @@ describe("The Scraper Cassette", function() {
 
     };
 
-    waitsForFrontendInit();
+    this.waitsForFrontendInit();
   }); // end beforeEach
 
   afterEach(function() {

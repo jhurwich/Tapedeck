@@ -66,7 +66,7 @@ Tapedeck.Backend.Bank = {
 
     // unpack the MINIFY_MAP to form the UNMINIFY_MAP
     if (bank.UNMINIFY_MAP == null) {
-      bank.UNMINIFY_MAP = {}
+      bank.UNMINIFY_MAP = {};
 
       for (var prop in bank.MINIFY_MAP) {
         bank.UNMINIFY_MAP[bank.MINIFY_MAP[prop]] = prop;
@@ -117,7 +117,7 @@ Tapedeck.Backend.Bank = {
           Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList) {
             browseList.bind("change tracks", function() {
               Tapedeck.Backend.MessageHandler.pushBrowseTrackList(this);
-            })
+            });
 
             continueInit();
           });
@@ -174,7 +174,7 @@ Tapedeck.Backend.Bank = {
   preparePremadeCassettes: function(callback) {
     var bank = Tapedeck.Backend.Bank;
     var cassettify = Tapedeck.Backend.CassetteManager.Cassettify;
-    if (bank.premadeCassettes.length == 0) {
+    if (bank.premadeCassettes.length === 0) {
       callback();
       return;
     }
@@ -189,22 +189,21 @@ Tapedeck.Backend.Bank = {
       }
 
       // handle any exception domains specially
+      var doPrepare = function() { prepareCassette(bank.premadeCassettes[index]); };
       for (var exceptionDomain in cassettify.exceptionDomains) {
         if (param.pattern.indexOf(exceptionDomain) != -1) {
           // we've hit an exception domain, defer to exception handling
           var options = { url: param.pattern, cassetteName: param.cassetteName };
 
-          cassettify[cassettify.exceptionDomains[exceptionDomain]](options, function() {
-            prepareCassette(bank.premadeCassettes[index]);
-          });
-          return
+          cassettify[cassettify.exceptionDomains[exceptionDomain]](options, doPrepare);
+          return;
         }
       }
 
       cassettify.createByPattern(param, function() {
         prepareCassette(bank.premadeCassettes[index]);
       });
-    }
+    };
     prepareCassette(bank.premadeCassettes[index]);
   },
   setDevTemplatesAndCSS: function(templateFilename, cssFilename, callback) {
@@ -222,7 +221,7 @@ Tapedeck.Backend.Bank = {
         }
       }
       else {
-        console.error("Could not get contents of dev template")
+        console.error("Could not get contents of dev template");
         callback();
         return;
       }
@@ -254,29 +253,31 @@ Tapedeck.Backend.Bank = {
     }
 
     var remaining = files.length;
-    for (var i = 0; i < files.length; i++) {
-      Tapedeck.Backend.Utils.getFileContents("/dev/" + files[i], function(contents, url) {
-        // we don't want to instantialize the cassette without the name, so we hack in to find it
-        var nameRegex = new RegExp("[\'\"]name[\'\"][^:]*:[^\'\"]*[\'\"]([^\'\"]*)[\'\"]");
-        var match = contents.match(nameRegex);
-        var name = "DevCassette" + Math.floor(Math.random() * 100000);
-        if (match != null && match[1] && match[1].length > 0) {
-          name = match[1];
-        }
+    var handleContents = function(contents, url) {
+      // we don't want to instantialize the cassette without the name, so we hack in to find it
+      var nameRegex = new RegExp("[\'\"]name[\'\"][^:]*:[^\'\"]*[\'\"]([^\'\"]*)[\'\"]");
+      var match = contents.match(nameRegex);
+      var name = "DevCassette" + Math.floor(Math.random() * 100000);
+      if (match != null && match[1] && match[1].length > 0) {
+        name = match[1];
+      }
 
-        var cassetteData = { name: name, contents: contents, url: url };
-        bank.devCassettes.push(cassetteData);
-        remaining--;
-        if (remaining <= 0) {
-          if (doReadIn) {
-            Tapedeck.Backend.CassetteManager.readInCassettes(function() {
-              callback();
-            });
-          } else {
+      var cassetteData = { name: name, contents: contents, url: url };
+      bank.devCassettes.push(cassetteData);
+      remaining--;
+      if (remaining <= 0) {
+        if (doReadIn) {
+          Tapedeck.Backend.CassetteManager.readInCassettes(function() {
             callback();
-          }
+          });
+        } else {
+          callback();
         }
-      });
+      }
+    };
+
+    for (var j = 0; j < files.length; j++) {
+      Tapedeck.Backend.Utils.getFileContents("/dev/" + files[j], handleContents);
     }
   },
 
@@ -369,8 +370,8 @@ Tapedeck.Backend.Bank = {
         }
 
         // if there are dev cassettes, add them now
-        for (var i = 0; i < bank.devCassettes.length; i++) {
-          var devData = bank.devCassettes[i];
+        for (var j = 0; j < bank.devCassettes.length; j++) {
+          var devData = bank.devCassettes[j];
 
           if (!(devData.name in done)) {
             var pageKey = bank.cassettePagePrefix + devData.name;
@@ -394,7 +395,7 @@ Tapedeck.Backend.Bank = {
         aCallback(datas);
       };
 
-      this.loadDir("Cassettes", callback)
+      this.loadDir("Cassettes", callback);
     },
 
     // cssCode is optional
@@ -451,7 +452,7 @@ Tapedeck.Backend.Bank = {
         }
 
         aCallback(datas);
-      }
+      };
 
       fs.loadDir("Templates", function(aTemplateDatas) {
         // always add the default template
@@ -461,7 +462,7 @@ Tapedeck.Backend.Bank = {
         var div = $('div');
         $("script[type='text/template']").each(function(index, script) {
           $(div).append(script);
-        })
+        });
         var defaultTemplateContents = $(div).remove().html();
 
         aTemplateDatas.push({ name: "default",
@@ -493,7 +494,7 @@ Tapedeck.Backend.Bank = {
 
           // callback should merge them before returning
           callback(aTemplateDatas, aCSSDatas);
-        })
+        });
       });
     },
 
@@ -534,42 +535,43 @@ Tapedeck.Backend.Bank = {
           var dirReader = dirEntry.createReader();
           dirReader.readEntries(function(entries) {
             var numReads = entries.length;
-            if (numReads == 0) {
+            if (numReads === 0) {
               callback(datas);
               return;
             }
 
+            var scoped = function(currEntry) {
+              var name = currEntry.name;
+              if (!currEntry.isFile) {
+                numReads--;
+                if (numReads === 0) {
+                  callback(datas);
+                }
+                return;
+              }
+
+              currEntry.file(function(file) {
+                var reader = new FileReader();
+                reader.onloadend = function(e) {
+                  numReads--;
+                  var data = { name: name,
+                               contents: this.result,
+                               url : currEntry.toURL() };
+
+                  datas.push(data);
+
+                  if (numReads === 0) {
+                    callback(datas);
+                  }
+                };
+
+                reader.readAsText(file);
+              });
+            };
             for (var i = 0; i < entries.length; i++) {
               var entry = entries[i];
 
-              var scoped = function(currEntry) {
-                var name = currEntry.name;
-                if (!currEntry.isFile) {
-                  numReads--;
-                  if (numReads == 0) {
-                    callback(datas);
-                  }
-                  return;
-                }
-
-                currEntry.file(function(file) {
-                  var reader = new FileReader();
-                  reader.onloadend = function(e) {
-                    numReads--;
-                    var data = { name: name,
-                                 contents: this.result,
-                                 url : currEntry.toURL() };
-
-                    datas.push(data);
-
-                    if (numReads == 0) {
-                      callback(datas);
-                    }
-                  };
-
-                  reader.readAsText(file);
-                });
-              }(entry);
+              scoped(entry);
             }
 
           });
@@ -604,9 +606,9 @@ Tapedeck.Backend.Bank = {
       xhr.onreadystatechange = function() {
         if(xhr.readyState == 4 && xhr.status == 200)  {
           fs.saveResponse(track, xhr.response, callback);
-          delete xhr;
+          xhr = undefined;
         }
-      } // end xhr.onreadystatechange
+      }; // end xhr.onreadystatechange
 
       xhr.send();
     }, // end fs.download()
@@ -641,7 +643,7 @@ Tapedeck.Backend.Bank = {
 
           // Write the blob to the file
           fileWriter.write(blob);
-          delete blob;
+          blob = undefined;
         }, fs.errorHandler.curry("saveResponse2")); // end fileEntry.createWrite(...)
       }, fs.errorHandler.curry("saveResponse1")); // end fs.root.getFile(...);
     },
@@ -664,11 +666,13 @@ Tapedeck.Backend.Bank = {
       var fs = Tapedeck.Backend.Bank.FileSystem;
       var dirReader = fs.root.createReader();
       dirReader.readEntries(function(entries) {
-        for (var i = 0, entry; entry = entries[i]; ++i) {
+        var success = function() {};
+        for (var i = 0; i < entries.length; ++i) {
+          var entry = entries[i];
           if (entry.isDirectory) {
-            entry.removeRecursively(function() {}, fs.errorHandler.curry("clear2A"));
+            entry.removeRecursively(success, fs.errorHandler.curry("clear2A"));
           } else {
-            entry.remove(function() {}, fs.errorHandler.curry("clear2B"));
+            entry.remove(success, fs.errorHandler.curry("clear2B"));
           }
         }
       }, fs.errorHandler.curry("clear1"));
@@ -680,7 +684,7 @@ Tapedeck.Backend.Bank = {
     nameFile: function(track) {
       var trim = function(string) {
         return string.replace(/^\s+|\s+$/g, '');
-      }
+      };
 
       // Attempt to name the file as "<artistName> - <trackName>"
       var fileName = "";
@@ -692,16 +696,16 @@ Tapedeck.Backend.Bank = {
       }
 
       // If we couldn't do that, gotta use the url
-      if (fileName.length == 0) {
-        var urlName = url.replace("http://", "");
+      if (fileName.length === 0) {
+        var urlName = track.url.replace("http://", "");
         urlName = urlName.replace("www.", "");
 
         // We pull off the file extension, if there is one.
         // We consider it a file extension if there are 4 or less
         // characters after the final dot.
         var extensionDot = urlName.indexOf(".", urlName.length - 5);
-        if (extensionDot > 0,
-            extensionDot = urlName.lastIndexOf(".")) {
+        if (extensionDot > 0 &&
+            extensionDot == urlName.lastIndexOf(".")) {
           urlName = urlName.substring(0, extensionDot);
         }
         fileName = urlName;
@@ -718,7 +722,7 @@ Tapedeck.Backend.Bank = {
     errorHandler: function(functionName, e) {
       if (typeof(functionName) != "string") {
         e = functionName;
-        functionName = "unknown location"
+        functionName = "unknown location";
       }
       var msg = '';
 
@@ -762,13 +766,12 @@ Tapedeck.Backend.Bank = {
         default:
           msg = 'Unknown Error';
           break;
-      };
+      }
       console.error('File System Error in "' + functionName + '": ' + msg);
-    },
+    }
   },
 
   Memory: {
-    tracks: { },
     /* tracksData = { tracks: _, expiry: _ } */
 
     init: function() {},
@@ -778,12 +781,12 @@ Tapedeck.Backend.Bank = {
 
     // we associate the trackList to a key, but for the browseList we use it's name
     rememberTrackList: function(key, trackList) {
-      var bank = Tapedeck.Backend.Bank
+      var bank = Tapedeck.Backend.Bank;
       this.trackLists[key] = trackList;
     },
 
     getTrackList: function(key) {
-      if (typeof(this.trackLists[key]) != undefined) {
+      if (typeof(this.trackLists[key]) !== undefined) {
         return this.trackLists[key];
       }
       else {
@@ -792,11 +795,12 @@ Tapedeck.Backend.Bank = {
     },
 
     getTrack: function(trackID) {
+      var pullTDID = function(tr) {
+        return tr.get("tdID") == trackID;
+      };
       for (var listName in this.trackLists) {
         var list = this.trackLists[listName];
-        var found = list.select(function(tr) {
-          return tr.get("tdID") == trackID;
-        });
+        var found = list.select(pullTDID);
 
         if (found.length == 1) {
           return found[0];
@@ -811,7 +815,7 @@ Tapedeck.Backend.Bank = {
 
     clear: function() {
       this.trackLists = {};
-    },
+    }
   },
 
   getTrack: function(trackID) {
@@ -900,12 +904,13 @@ Tapedeck.Backend.Bank = {
 
   getPlaylists: function() {
     if (this.PlaylistList == null) {
-      console.error("PlaylistList is not ready.")
+      console.error("PlaylistList is not ready.");
     }
     return this.PlaylistList;
   },
 
-  clearList: function(trackList) {
+  // callback is optional
+  clearList: function(trackList, callback) {
     var bank = Tapedeck.Backend.Bank;
 
     try {
@@ -936,7 +941,7 @@ Tapedeck.Backend.Bank = {
               }
             }
           });
-        }
+        };
 
         if (key in allKeys) {
           removePiece(key);
@@ -978,7 +983,7 @@ Tapedeck.Backend.Bank = {
     id = id.replace(bank.trackListPiece, "");
     id = id.replace(bank.playlistPiece, "");
     id = id.replace(bank.syncOnPostPrefix, "");
-    id = id.replace(bank.syncOffPostPrefix, "")
+    id = id.replace(bank.syncOffPostPrefix, "");
 
     var makeListAndReturn = function(json) {
       var list;
@@ -1047,7 +1052,7 @@ Tapedeck.Backend.Bank = {
             nextCount++;
             foldInContinues();
           });
-        } // end foldInContinues
+        }; // end foldInContinues
 
         foldInContinues();
       }); // end chrome.storage.sync.get(key, ...
@@ -1091,7 +1096,7 @@ Tapedeck.Backend.Bank = {
         // That path will generate a new browselist, blowing away this change before we can show it.
         Tapedeck.Backend.MessageHandler.pushBrowseTrackList(trackList);
       }
-    }
+    };
     trackList.bind("all", browseListChanged);
 
     bank.Memory.rememberTrackList(bank.savedBrowseListName, trackList);
@@ -1187,7 +1192,7 @@ Tapedeck.Backend.Bank = {
 
   getSync: function() {
     var bank = Tapedeck.Backend.Bank;
-    var sync = bank.localStorage.getItem(this.syncKey)
+    var sync = bank.localStorage.getItem(this.syncKey);
     return (sync ? sync : bank.Sync.STATES.OFF);
   },
 
@@ -1311,7 +1316,7 @@ Tapedeck.Backend.Bank = {
       if (sync.dirtyMetadata) {
         sync.syncMetadata(function() {
           sync.syncCollector();
-        })
+        });
         return;
       }
       console.log(" = = = SYNC = = = ");
@@ -1319,65 +1324,66 @@ Tapedeck.Backend.Bank = {
       // find all the tracklists for which sync is on
       bank.findKeys(bank.trackListPiece + ".*" + bank.syncOnPostPrefix, true, function(syncKeys) {
         sync.numClean = 0;
+
+        var attemptSave =  function(trackList) {
+          if (!trackList.dirty) {
+            sync.numClean = sync.numClean + 1;
+
+            // if nothing is dirty, we should callback immediately if one was given
+            if (sync.numClean == syncKeys.length && typeof(callback) != "undefined") {
+              callback();
+            }
+            return;
+          }
+          console.log("'" + trackList.id +  "' is dirty, writing to sync");
+
+          // trackList is dirty, upload to sync
+          // serialize the strings such that none is greater than MAX_SYNC_STRING_SIZE
+          var serialized = trackList.serialize(bank.MAX_SYNC_STRING_SIZE);
+
+          if (serialized.length > bank.MAX_NUMBER_SPLITS) {
+            // Don't do splits this large, just give up
+            console.error("Won't split playlist into " + serialized.length + " parts for saving.  Playlist is too large.");
+
+            Tapedeck.Backend.MessageHandler.showModal({
+              fields: [
+                { type          : "info",
+                  text          : "One of your playlists is too long to save and sync."},
+                { type          : "info",
+                  text          : "Consider turning off syncing." }
+              ],
+              title: "Cassettify Wizard"
+            });
+            return;
+          }
+
+          // if we split into more pieces the last time we synced, we need to remove the old continue pieces
+          var numLastSynced = 0;
+          if (typeof(sync.syncedLists[trackList.id]) != "undefined") {
+            numLastSynced = Object.keys(sync.syncedLists[trackList.id]).length;
+          }
+
+          if (numLastSynced > serialized.length) {
+            var numToRemove = numLastSynced - serialized.length;
+            var removeKeys = [];
+            for (var i = 0; i < numToRemove; i++) {
+              // -2 because listContinues start with the second list and at 0 instead of 1
+              var suffix = numLastSynced - i - 2;
+              var keyToRemove = bank.splitListContinuePrefix + trackList.id + "@" + suffix;
+              removeKeys.push(keyToRemove);
+              delete sync.syncedLists[trackList.id][keyToRemove]; // remove from our memory of synced Lists
+            }
+            chrome.storage.sync.remove(removeKeys, sync.save.curry(trackList, serialized, callback));
+          }
+          else {
+            sync.save(trackList, serialized, callback);
+          }
+
+          trackList.dirty = false;
+        };
+
         for (var i = 0; i < syncKeys.length; i++) {
-          bank.getSavedTrackList(syncKeys[i], function(trackList) {
-
-            if (!trackList.dirty) {
-              sync.numClean = sync.numClean + 1;
-
-              // if nothing is dirty, we should callback immediately if one was given
-              if (sync.numClean == syncKeys.length && typeof(callback) != "undefined") {
-                callback();
-              }
-              return;
-            }
-            console.log("'" + trackList.id +  "' is dirty, writing to sync");
-
-            // trackList is dirty, upload to sync
-            // serialize the strings such that none is greater than MAX_SYNC_STRING_SIZE
-            var serialized = trackList.serialize(bank.MAX_SYNC_STRING_SIZE);
-
-            if (serialized.length > bank.MAX_NUMBER_SPLITS) {
-              // Don't do splits this large, just give up
-              console.error("Won't split playlist into " + serialized.length + " parts for saving.  Playlist is too large.")
-
-              Tapedeck.Backend.MessageHandler.showModal({
-                fields: [
-                  { type          : "info",
-                    text          : "One of your playlists is too long to save and sync."},
-                  { type          : "info",
-                    text          : "Consider turning off syncing." },
-                ],
-                title: "Cassettify Wizard",
-              });
-              return;
-            }
-
-            // if we split into more pieces the last time we synced, we need to remove the old continue pieces
-            var numLastSynced = 0;
-            if (typeof(sync.syncedLists[trackList.id]) != "undefined") {
-              numLastSynced = Object.keys(sync.syncedLists[trackList.id]).length;
-            }
-
-            if (numLastSynced > serialized.length) {
-              var numToRemove = numLastSynced - serialized.length;
-              var removeKeys = [];
-              for (var i = 0; i < numToRemove; i++) {
-                // -2 because listContinues start with the second list and at 0 instead of 1
-                var suffix = numLastSynced - i - 2;
-                var keyToRemove = bank.splitListContinuePrefix + trackList.id + "@" + suffix;
-                removeKeys.push(keyToRemove);
-                delete sync.syncedLists[trackList.id][keyToRemove]; // remove from our memory of synced Lists
-              }
-              chrome.storage.sync.remove(removeKeys, sync.save.curry(trackList, serialized, callback));
-            }
-            else {
-              sync.save(trackList, serialized, callback);
-            }
-
-            trackList.dirty = false;
-
-          }); // end bank.getSavedTrackList
+          bank.getSavedTrackList(syncKeys[i], attemptSave); // end bank.getSavedTrackList
         }
       }); // end bank.findKeys
 
@@ -1391,10 +1397,56 @@ Tapedeck.Backend.Bank = {
 
       var savedKeys = {};
       var numToSync = serialized.length;
+
+      var scopedSave = function(splitKey) {
+        var save = {};
+        if (splitKey.indexOf("off") != -1) {
+          console.error("SETTING A LOCAL KEY TO THE SYNC SERVER: " + splitKey);
+        }
+        save[splitKey] = serialized[i];
+
+        sync.logSync(save);
+        try {
+          chrome.storage.sync.set(save, function() {
+            var error = chrome.extension.lastError;
+            if(typeof(error) != 'undefined') {
+              // there was an error in saving
+
+              if (error.message == "Quota exceeded") {
+                // got a quota exceeded error, delete any saves in progress and try again
+                var deleteObject = [];
+                for (var savedKey in savedKeys){
+                  deleteObject.push(savedKey);
+                }
+
+                if (!$.isEmptyObject(deleteObject)) {
+                  chrome.storage.sync.remove(deleteObject, function() {
+                    // finish in error
+                    sync.finish(trackList, error.message, callback);
+                  });
+                }
+              }
+            }
+            else {
+              // success in saving
+              savedKeys[splitKey] = save[splitKey];
+              if (Object.keys(savedKeys).length == numToSync) {
+                // we're done here
+                sync.finish(trackList, savedKeys, callback);
+                return;
+              }
+            }
+          }); // end set()
+        }
+        catch (e) {
+          console.error("Error! " + JSON.stringify(e));
+        }
+      }; // end scopedSave
+
       for (var i = 0; i < serialized.length; i++) {
         // the first entry will have the original key, each entry then gets a splitContinue key
         var splitKey;
-        if (i == 0) {
+        if (i === 0) {
           splitKey = trackList.getPrefix() + trackList.id;
         }
         else {
@@ -1414,50 +1466,7 @@ Tapedeck.Backend.Bank = {
           continue;
         }
 
-        var scopedSave = function(splitKey) {
-          var save = {};
-          if (splitKey.indexOf("off") != -1) {
-            console.error("SETTING A LOCAL KEY TO THE SYNC SERVER: " + splitKey);
-          }
-          save[splitKey] = serialized[i];
 
-          sync.logSync(save);
-          try {
-            chrome.storage.sync.set(save, function() {
-              var error = chrome.extension.lastError;
-              if(typeof(error) != 'undefined') {
-                // there was an error in saving
-
-                if (error.message == "Quota exceeded") {
-                  // got a quota exceeded error, delete any saves in progress and try again
-                  var deleteObject = [];
-                  for (var savedKey in savedKeys){
-                    deleteObject.push(savedKey);
-                  }
-
-                  if (!$.isEmptyObject(deleteObject)) {
-                    chrome.storage.sync.remove(deleteObject, function() {
-                      // finish in error
-                      sync.finish(trackList, error.message, callback);
-                    })
-                  }
-                }
-              }
-              else {
-                // success in saving
-                savedKeys[splitKey] = save[splitKey];
-                if (Object.keys(savedKeys).length == numToSync) {
-                  // we're done here
-                  sync.finish(trackList, savedKeys, callback);
-                  return;
-                }
-              }
-            }); // end set()
-          }
-          catch (e) {
-            console.error("Error! " + JSON.stringify(e));
-          }
-        }; // end scopedSave
         scopedSave(splitKey);
       } // end for... i < serialized.length
     }, // end save
@@ -1511,13 +1520,13 @@ Tapedeck.Backend.Bank = {
       save['queuePosition'] = queuePosition;
 
       if (JSON.stringify(save).length > bank.MAX_SYNC_STRING_SIZE) {
-        console.error("Metadata is now too large to sync.")
+        console.error("Metadata is now too large to sync.");
       }
       else {
         chrome.storage.sync.set(save, function() {
           if(typeof(chrome.extension.lastError) != 'undefined') {
             // there was an error in saving
-            console.error("Error when setting metadata: " + chrome.extension.lastError.message)
+            console.error("Error when setting metadata: " + chrome.extension.lastError.message);
           }
           else {
             // success in saving
@@ -1538,7 +1547,7 @@ Tapedeck.Backend.Bank = {
           sqcr.setQueuePosition(recovered.queuePosition);
         }
         callback();
-      })
+      });
     },
 
     checkQuota: function() {
@@ -1552,7 +1561,7 @@ Tapedeck.Backend.Bank = {
       // == warning and clearing values ==
       // MAX_WRITE_OPERATIONS_PER_HOUR
       var warnWritesPerHour = 900;
-      var clearWritesPerHour = 800
+      var clearWritesPerHour = 800;
 
       // MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE
       var warnWritesPerTenMin = 80;
@@ -1634,13 +1643,13 @@ Tapedeck.Backend.Bank = {
       bank.localStorage.setItem(bank.syncKey, bank.Sync.STATES.BROKEN);
 
       // show the modal to explain the high sync usage
-      var fields = []
+      var fields = [];
       for (var i = 0; i < messages.length; i++) {
         fields.push({ type: "info", text: messages[i] });
       }
       Tapedeck.Backend.MessageHandler.showModal({
         fields: fields,
-        title: "Cassettify Wizard",
+        title: "Cassettify Wizard"
       });
 
       // set the sync icon to the syncWarning
@@ -1662,13 +1671,13 @@ Tapedeck.Backend.Bank = {
       if (lastWarning == null || (now - lastWarning) > (24 * 60 * 60 * 1000 /* 24 hours */)) {
 
         // show the modal to explain the high sync usage
-        var fields = []
+        var fields = [];
         for (var i = 0; i < messages.length; i++) {
           fields.push({ type: "info", text: messages[i] });
         }
         Tapedeck.Backend.MessageHandler.showModal({
           fields: fields,
-          title: "Cassettify Wizard",
+          title: "Cassettify Wizard"
         });
 
         bank.localStorage.setItem(bank.lastSyncWarningKey, now);
@@ -1693,8 +1702,8 @@ Tapedeck.Backend.Bank = {
       if (bank.debug > Tapedeck.Backend.Utils.DEBUG_LEVELS.NONE) {
         var lists = [];
         for (var key in save) {
-          var list = [key, save[key].length]
-          lists.push(list)
+          var list = [key, save[key].length];
+          lists.push(list);
         }
 
         logObj['lists'] = lists;
@@ -1728,7 +1737,7 @@ Tapedeck.Backend.Bank = {
           syncLog.push(logObj);
         }
         callback(syncLog);
-      })
+      });
     },
 
     // dumps the contents of the syncLog of the form:
@@ -1753,12 +1762,12 @@ Tapedeck.Backend.Bank = {
             for (var j = 0; j < logObj.lists.length; j++) {
               var list = logObj.lists[j];
               for (var k = 0; k < list.length; k++) {
-                str += list[k] + ", "
+                str += list[k] + ", ";
               }
-              str = str.substring(0, str.length-2)
+              str = str.substring(0, str.length-2);
               str += " - ";
             }
-            str = str.substring(0, str.length-3)
+            str = str.substring(0, str.length-3);
           }
 
           if (bank.debug == Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL) {
@@ -1768,10 +1777,10 @@ Tapedeck.Backend.Bank = {
           console.log(str);
         }
       });
-    },
+    }
   }, // End Tapedeck.Backend.Bank.Sync
 
   log: function(str, level) {
     Tapedeck.Backend.Utils.log("Bank", str, level);
-  },
-}
+  }
+};

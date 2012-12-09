@@ -2,7 +2,7 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
   defaults : {
     "name" : "Unnamed Cassette",
     "developer" : "Unknown Developer",
-    "developerLink" : "",
+    "developerLink" : ""
   },
 
   initialize: function(options) {
@@ -53,7 +53,7 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
        isBrowseable: this.isBrowseable(),
        isPageable: this.isPageable(),
        defaultFeed: this.get("defaultFeed"),
-       feeds: this.feeds,
+       feeds: this.feeds
      };
 
      return report;
@@ -66,5 +66,5 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
     json['isPageable'] = this.isPageable();
     json['isBrowseable'] = this.isBrowseable();
     return json;
-  },
+  }
 });

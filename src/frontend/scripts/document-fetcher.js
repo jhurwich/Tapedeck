@@ -4,7 +4,7 @@ TapedeckInjected.DocumentFetcher = {
     var response = { };
     response.document = $("body").html();
     chrome.extension.sendRequest(response);
-  },
+  }
 
 };
 

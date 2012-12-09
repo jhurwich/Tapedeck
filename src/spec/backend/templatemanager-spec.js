@@ -8,7 +8,7 @@ describe("Template Manager", function() {
     this.tMgr.setPackage("default");
 
     var self = this;
-    self.waitForAddTestTemplate = function() {
+    self.waitsForAddTestTemplate = function() {
       var doneSaving = false;
       self.templateCode = null;
       self.cssCode = null;
@@ -48,12 +48,12 @@ describe("Template Manager", function() {
         }
       });
 
-      waitsFor(function() { return doneSaving },
+      waitsFor(function() { return doneSaving; },
                "Waiting for saving template",
                2000);
     };
 
-    var initComplete = false
+    var initComplete = false;
     self.Tapedeck.Backend.TemplateManager.init(function() {
       initComplete = true;
     });
@@ -70,10 +70,14 @@ describe("Template Manager", function() {
       var scriptName = this.tMgr.requiredScripts[i];
       var viewScript = this.tMgr.getViewScript(scriptName);
       expect(viewScript.prototype instanceof Backbone.View).toBeTruthy();
-    };
+    }
   });
 
   it("should get view templates from getTemplate", function() {
+    var expectTemplateToExist = function(template) {
+      expect($(template)).toExist();
+    };
+
     for (var i = 0; i < this.tMgr.requiredScripts.length; i++) {
       var scriptName = this.tMgr.requiredScripts[i];
       var viewScript = this.tMgr.getViewScript(scriptName);
@@ -82,18 +86,16 @@ describe("Template Manager", function() {
       for (var j = 0; j < requiredTemplates.length; j++) {
 
         var templateName = requiredTemplates[j];
-        this.tMgr.getTemplate(templateName, function(template) {
-          expect($(template)).toExist();
-        });
+        this.tMgr.getTemplate(templateName, expectTemplateToExist);
       }
-    };
+    }
   });
 
   it("should save and retrieve templates", function() {
     var self = this;
     var testComplete = false;
 
-    self.waitForAddTestTemplate();
+    self.waitsForAddTestTemplate();
     runs(function() {
       self.Tapedeck.Backend.Bank.FileSystem.getTemplates(function(datas) {
 
@@ -110,7 +112,7 @@ describe("Template Manager", function() {
           }
         }
       });
-      waitsFor(function() { return testComplete },
+      waitsFor(function() { return testComplete; },
                "Waiting for saving and checking template",
                2000);
 
@@ -129,7 +131,7 @@ describe("Template Manager", function() {
     expect(self.tMgr.currentPackage).toEqual("default");
 
     // load the test skin and try to change to it
-    self.waitForAddTestTemplate();
+    self.waitsForAddTestTemplate();
     runs(function() {
       self.Tapedeck.Backend.Bank.FileSystem.getTemplates(function(datas) {
         expect(datas.length).toEqual(2);
@@ -144,7 +146,7 @@ describe("Template Manager", function() {
         });
       });
     });
-    waitsFor(function() { return testComplete },
+    waitsFor(function() { return testComplete; },
          "Waiting for saving and switching template",
          2000);
     runs(function() {

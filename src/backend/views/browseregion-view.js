@@ -8,6 +8,6 @@ Tapedeck.Backend.Views.BrowseRegion = Tapedeck.Backend.Views.TapedeckView.extend
     "BrowseList",
     "CassetteList"
   ],
-  template: null,
+  template: null
 
 });

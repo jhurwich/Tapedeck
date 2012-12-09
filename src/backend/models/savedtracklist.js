@@ -71,5 +71,5 @@ Tapedeck.Backend.Collections.SavedTrackList =
 
     this.removed = true;
     bank.clearList(this);
-  },
+  }
 });

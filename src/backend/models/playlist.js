@@ -20,11 +20,11 @@ Tapedeck.Backend.Collections.Playlist =
       bank.PlaylistList.add(this);
     }
     else {
-      var message = "Tapedeck only supports " + bank.MAX_NUM_SYNC_PLAYLISTS + " playlists when using cloud storage."
+      var message = "Tapedeck only supports " + bank.MAX_NUM_SYNC_PLAYLISTS + " playlists when using cloud storage.";
       Tapedeck.Backend.MessageHandler.showModal({
         fields: [{ type: "info",
                    text: message }],
-        title: "Cassettify Wizard",
+        title: "Cassettify Wizard"
       });
     }
   },
@@ -35,5 +35,5 @@ Tapedeck.Backend.Collections.Playlist =
 
     json['id'] = this.id;
     return json;
-  },
+  }
 });

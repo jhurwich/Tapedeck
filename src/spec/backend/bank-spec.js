@@ -8,12 +8,12 @@ describe("Bank", function() {
   });
 
   afterEach(function() {
-    var clearFinished = false
-    this.bank.clear(function() { clearFinished = true });
-    waitsFor(function() { return clearFinished }, "Waiting for Bank.clear to finish.", 500);
+    var clearFinished = false;
+    this.bank.clear(function() { clearFinished = true; });
+    waitsFor(function() { return clearFinished; }, "Waiting for Bank.clear to finish.", 500);
     runs(function() {
       expect(clearFinished).toBeTruthy();
-    })
+    });
   });
 
   it("should save and retrieve tracks", function() {
@@ -40,21 +40,21 @@ describe("Bank", function() {
                             .SavedTrackList(self.testTracks, { id: self.testTrackListID });
     trackList.trigger("add"); // we expect an add event for populated playlists or changes to the queue, force it
 
-    waitsFor(function() { return spy.callCount > 0 }, "Waiting for trackList to be saved", 1000);
+    waitsFor(function() { return spy.callCount > 0; }, "Waiting for trackList to be saved", 1000);
     runs(function() {
       self.bank.getSavedTrackList(self.testTrackListID, function(bankedList) {
         for (var i = 0; i < trackList.length; i++) {
           var expectedTrack = trackList.at(i);
           var bankedTrack = bankedList.at(i);
           expect(bankedTrack).toReflectJSON(expectedTrack.toJSON());
-        };
+        }
         testComplete = true;
       });
 
-      waitsFor(function() { return testComplete }, "Waiting for tracklist from bank", 1000);
+      waitsFor(function() { return testComplete; }, "Waiting for tracklist from bank", 1000);
       runs(function() {
         expect(testComplete).toBeTruthy();
-      })
+      });
     });
   });
 
@@ -68,7 +68,7 @@ describe("Bank", function() {
                            .Collections
                            .Playlist(self.testTracks, { id: self.testTrackListID });
 
-    waitsFor(function() { return spy.callCount > 0 }, "Waiting for playlist to be saved", 1000);
+    waitsFor(function() { return spy.callCount > 0; }, "Waiting for playlist to be saved", 1000);
     runs(function() {
       var bankedPlaylists = self.bank.getPlaylists();
       expect(bankedPlaylists.length).toEqual(origPlaylistNum + 1);
@@ -79,7 +79,7 @@ describe("Bank", function() {
         if (bankedPlaylist.id == self.testTrackListID) {
           foundPlaylist = true;
         }
-      };
+      }
 
       expect(foundPlaylist).toBeTruthy();
     });
@@ -144,9 +144,9 @@ describe("Bank", function() {
 
     // toggle sync, should hide the playlist we just added
     var toggleComplete = false;
-    self.bank.toggleSync(function() { toggleComplete = true });
+    self.bank.toggleSync(function() { toggleComplete = true; });
 
-    waitsFor(function() { return toggleComplete }, "Waiting for sync to toggle #1.", 1000);
+    waitsFor(function() { return toggleComplete; }, "Waiting for sync to toggle #1.", 1000);
     runs(function() {
       expect(self.bank.isSyncOn()).toBeTruthy();
 
@@ -157,7 +157,7 @@ describe("Bank", function() {
       if (syncPlaylists.length == localPlaylistNum) {
         for (var i = 0; i < syncPlaylists.length; i++) {
           expect(syncPlaylists.at(i).id).not.toBe(localPlaylist.id);
-        };
+        }
       }
 
 
@@ -170,16 +170,16 @@ describe("Bank", function() {
                                  .Collections
                                  .Playlist(self.testTracks, { id: "syncTestPlaylist123" });
 
-      waitsFor(function() { return endSyncSpy.callCount > 0 }, "Waiting for playlist to save to sync", 4000);
+      waitsFor(function() { return endSyncSpy.callCount > 0; }, "Waiting for playlist to save to sync", 4000);
       runs(function() {
         syncPlaylists = self.bank.getPlaylists();
         expect(syncPlaylists.length).toEqual(origSyncNum + 1);
 
         // toggle sync, should hide the playlist we just added
         toggleComplete = false;
-        self.bank.toggleSync(function() { toggleComplete = true });
+        self.bank.toggleSync(function() { toggleComplete = true; });
 
-        waitsFor(function() { return toggleComplete }, "Waiting for sync to toggle #2.", 1000);
+        waitsFor(function() { return toggleComplete; }, "Waiting for sync to toggle #2.", 1000);
         runs(function() {
           expect(self.bank.isSyncOn()).not.toBeTruthy();
 
@@ -194,7 +194,7 @@ describe("Bank", function() {
             if (localPlaylists.at(i).id == localPlaylist.id) {
               foundLocal = true;
             }
-          };
+          }
           expect(foundLocal).toBeTruthy();
         }); // ends runs after spyOn(self.Tapedeck.Backend.MessageHandler, "forceCheckSync").callCount > 0 - #2
       }); // ends runs after spyOn(self.Tapedeck.Backend.Bank.Sync, "finish").callCount > 0
@@ -218,7 +218,7 @@ describe("Bank", function() {
                              .Collections
                              .Playlist(self.testTracks, { id: self.testTrackListID });
 
-      waitsFor(function() { return endSyncSpy.callCount > 0 }, "Waiting for playlist to save to sync", 4000);
+      waitsFor(function() { return endSyncSpy.callCount > 0; }, "Waiting for playlist to save to sync", 4000);
       runs(function() {
         var bankedPlaylists = self.bank.getPlaylists();
         expect(bankedPlaylists.length).toEqual(origPlaylistNum + 1);
@@ -229,7 +229,7 @@ describe("Bank", function() {
           if (bankedPlaylist.id == this.testTrackListID) {
             foundPlaylist = true;
           }
-        };
+        }
 
         expect(foundPlaylist).toBeTruthy();
       });
@@ -238,9 +238,9 @@ describe("Bank", function() {
     // we need sync to be on for self test
     if (!self.bank.isSyncOn()) {
       var toggleComplete = false;
-      self.bank.toggleSync(function() { toggleComplete = true });
-      waitsFor(function() { return toggleComplete }, "Waiting for sync to toggle.", 1000);
-      runs(runTest)
+      self.bank.toggleSync(function() { toggleComplete = true; });
+      waitsFor(function() { return toggleComplete; }, "Waiting for sync to toggle.", 1000);
+      runs(runTest);
     }
     else {
       runTest();

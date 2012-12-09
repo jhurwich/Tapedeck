@@ -43,5 +43,5 @@ Tapedeck.Backend.Models.Track = Backbone.Model.extend({
       }
     }
     return attributes;
-  },
+  }
 });

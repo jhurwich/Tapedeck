@@ -214,7 +214,7 @@ Tapedeck.Frontend.Messenger = {
 
     if (typeof(index) != "undefined") {
       request.index = index;
-    };
+    }
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
@@ -229,7 +229,7 @@ Tapedeck.Frontend.Messenger = {
 
     if (typeof(index) != "undefined") {
       request.index = index;
-    };
+    }
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },

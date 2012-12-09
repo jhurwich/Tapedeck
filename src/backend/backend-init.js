@@ -1,4 +1,4 @@
-// App object for Tapedeck
+/* App object for Tapedeck */
 if (typeof Tapedeck == "undefined") {
   var Tapedeck = { };
   Tapedeck.Backend = { };

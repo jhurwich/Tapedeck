@@ -18,7 +18,7 @@ describe("After content-scripts are injected", function() {
 
   it("should render the Frame view into the iframe", function() {
     // we need to give Tapedeck.Frontend.init time to run
-    waitsForFrontendInit();
+    this.waitsForFrontendInit();
     runs(function() {
       expect($("#tapedeck-frame").contents()).toContain("#player");
     });

@@ -1,14 +1,14 @@
 describe("Frontend Frame Logic", function() {
 
   beforeEach(function() {
-    waitsForFrontendInit();
+    this.waitsForFrontendInit();
   });
 
   it("should queue a browse-track when it is double-clicked *flaky*", function() {
 
     var self = this;
     var testTrackList = new this.Tapedeck.Backend.Collections.SavedTrackList(this.testTracks);
-    self.waitForSwitchToBrowseList();
+    this.waitsForSwitchToBrowseList();
     runs(function() {
       // Generate a new browseList for the testTracks
       var numTracks = self.testTracks.length;
@@ -68,7 +68,7 @@ describe("Frontend Frame Logic", function() {
     self.Tapedeck.Backend.Sequencer.prepareQueue(self.testTrackList, function() { });
     self.Tapedeck.Backend.Sequencer.queue.trigger("change"); // force frontend to update
 
-    waitsFor(function() { return queueReadySpy.callCount > 0 }, "Waiting for Queue to populate", 1000);
+    waitsFor(function() { return queueReadySpy.callCount > 0; }, "Waiting for Queue to populate", 1000);
     runs(function() {
       var rows = $("#tapedeck-frame").contents()
                                      .find("#queue")
@@ -86,7 +86,7 @@ describe("Frontend Frame Logic", function() {
       runs(function() {
         expect(sqcrSpy.callCount).toEqual(1);
       });
-    })
+    });
   });
 
 });

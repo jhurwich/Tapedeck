@@ -24,13 +24,44 @@ if (typeof(TapedeckInjected) == "undefined") {
       TapedeckInjected.bringToFront();
 
       chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-        if (request.action == "setDrawer") {
-          if (request.opened) {
-            TapedeckInjected.openDrawer();
-          }
-          else {
-            TapedeckInjected.closeDrawer();
-          }
+
+        switch(request.action)
+        {
+          case "executeScriptAgain":
+            console.log("TDInjected received request: " + request.action);
+
+            var script = request.script;
+            var scriptFile = script.replace("frontend/scripts/", "");
+            scriptFile = scriptFile.replace(".js", "");
+
+            var words = scriptFile.split("-");
+            var scriptName = "";
+            for (var i = 0; i < words.length; i++) {
+              scriptName += words[i].charAt(0).toUpperCase() +
+                            words[i].slice(1);
+            }
+
+            console.log("Executing script again: " + scriptName);
+            if (typeof(request.params) != "undefined") {
+              TapedeckInjected[scriptName].start(request.params);
+            }
+            else {
+              TapedeckInjected[scriptName].start();
+            }
+            break;
+
+          case "setDrawer":
+            if (request.opened) {
+              TapedeckInjected.openDrawer();
+            }
+            else {
+              TapedeckInjected.closeDrawer();
+            }
+            break;
+
+          default:
+            console.error("TapedeckInjected's requestHandler was sent an unknown action '" + request.action + "'");
+            break;
         }
       });
 
@@ -92,7 +123,7 @@ if (typeof(TapedeckInjected) == "undefined") {
       var maxZ = -1;
       $("*").each(function(index, elem) {
         var z = $(elem).css("z-index");
-        z = parseInt(z);
+        z = parseInt(z, 10);
         if (z != "NaN" && z > maxZ) {
           maxZ = z;
         }
@@ -116,7 +147,7 @@ if (typeof(TapedeckInjected) == "undefined") {
       var drawerClose = document.getElementById("tapedeck-injected-drawerclose");
       drawerClose.removeAttribute("hidden");
 
-      bodyDOM = document.getElementsByTagName("body")[0];
+      var bodyDOM = document.getElementsByTagName("body")[0];
       bodyDOM.setAttribute("tapedeck-opened", true);
 
       TapedeckInjected.moveFixedElements();
@@ -125,7 +156,7 @@ if (typeof(TapedeckInjected) == "undefined") {
     closeDrawer: function() {
       if (TapedeckInjected.tapedeckFrame.getAttribute("hidden")) {
         // already closed, abort
-        return
+        return;
       }
 
       TapedeckInjected.tapedeckFrame.setAttribute("hidden", true);
@@ -136,7 +167,7 @@ if (typeof(TapedeckInjected) == "undefined") {
       var drawerOpen = document.getElementById("tapedeck-injected-draweropen");
       drawerOpen.removeAttribute("hidden");
 
-      bodyDOM = document.getElementsByTagName("body")[0];
+      var bodyDOM = document.getElementsByTagName("body")[0];
       bodyDOM.removeAttribute("tapedeck-opened");
 
       TapedeckInjected.resetFixedElements();
@@ -172,7 +203,7 @@ if (typeof(TapedeckInjected) == "undefined") {
            $(elem).attr("id") != "tapedeck-frame") {
 
           var right = $(elem).css("right");
-          var oldSpot = right ? parseInt(right) : 0;
+          var oldSpot = right ? parseInt(right, 10) : 0;
           var newSpot = oldSpot + TapedeckInjected.toolbarWidth;
           $(elem).css("right", newSpot);
           $(elem).attr("tdMoved", true);
@@ -184,7 +215,7 @@ if (typeof(TapedeckInjected) == "undefined") {
       $("*").each(function(index, elem) {
         if($(elem).attr("tdMoved") == "true") {
           var right = $(elem).css("right");
-          var newSpot = right ? parseInt(right) : TapedeckInjected.toolbarWidth;
+          var newSpot = right ? parseInt(right, 10) : TapedeckInjected.toolbarWidth;
           var oldSpot = newSpot - TapedeckInjected.toolbarWidth;
           $(elem).css("right", oldSpot);
           $(elem).removeAttr("tdMoved");
@@ -205,8 +236,9 @@ if (typeof(TapedeckInjected) == "undefined") {
     isTest: function() {
       var match = window.location.href.match(/chrome-extension.*SpecRunner.html$/);
       return (match != null);
-    },
-  }
+    }
+  };
 
   TapedeckInjected.init();
 }
+console.log("TDInjected: " + typeof(TapedeckInjected));

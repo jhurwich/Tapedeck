@@ -28,11 +28,11 @@ Tapedeck.Options.replaceView = function(viewStr, proxyEvents) {
     this.attachEvents(targetID, proxyEvents);
   }
   else {
-    console.error("Replacing view '" + targetID + "' without attaching events")
+    console.error("Replacing view '" + targetID + "' without attaching events");
   }
 },
 
 $(document).ready(function() {
-  Tapedeck.Options.init()
+  Tapedeck.Options.init();
 });
 

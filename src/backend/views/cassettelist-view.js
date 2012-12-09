@@ -6,6 +6,6 @@ Tapedeck.Backend.Views.CassetteList = Tapedeck.Backend.Views.TapedeckView.extend
   requiredTemplates: [
     "CassetteList"
   ],
-  template: null,
+  template: null
 
 });

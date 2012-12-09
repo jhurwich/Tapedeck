@@ -1,7 +1,7 @@
 describe("Utils", function() {
 
   beforeEach(function() {
-    waitsForFrontendInit();
+    this.waitsForFrontendInit();
   });
 
   it("should get the current context", function() {

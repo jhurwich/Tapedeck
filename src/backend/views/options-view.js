@@ -5,6 +5,6 @@ Tapedeck.Backend.Views.Options = Tapedeck.Backend.Views.TapedeckView.extend({
   requiredTemplates: [
     "Modal"
   ],
-  template: null,
+  template: null
 
 });

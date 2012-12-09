@@ -34,13 +34,13 @@ Tapedeck.Backend.Sequencer = {
           if (eventName.indexOf("change:") == -1) {
             Tapedeck.Backend.MessageHandler.updateView("Queue");
           }
-        }
+        };
         sqcr.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
         sqcr.queue.bind('all', updateQueue);
-        sqcr.queue.bind('set position', bank.sync)
+        sqcr.queue.bind('set position', bank.sync);
         callback();
       });
-    }
+    };
 
     if (forcedQueue != null) {
       setQueue(forcedQueue);
@@ -214,7 +214,7 @@ Tapedeck.Backend.Sequencer = {
       }
       console.error("Player reported last error as '" + lastError +
                     "' and the network state as '" + networkState + "'");
-    },
+    }
   }, // End Tapedeck.Sequencer.Player
 
   getCurrentState: function() {
@@ -378,7 +378,7 @@ Tapedeck.Backend.Sequencer = {
     var tracksToRemove = [];
     var playingIndex = -1;
     _.map(trackIndexPairs, function(pair) {
-      var index = parseInt(pair.index);
+      var index = parseInt(pair.index, 10);
       if (index == sqcr.queuePosition) {
         // we are attempting to move the playing track, record its index
         playingIndex = tracksToRemove.length;
@@ -464,6 +464,6 @@ Tapedeck.Backend.Sequencer = {
   playPlaylist: function(playlist) {
     this.clear();
     this.insertSomeAt(playlist.models, 0);
-  },
+  }
 
 };

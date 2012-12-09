@@ -55,6 +55,6 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
         successCallback(response);
       }
     });
-  },
+  }
 
 });

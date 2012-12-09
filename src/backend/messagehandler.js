@@ -40,7 +40,7 @@ Tapedeck.Backend.MessageHandler = {
     var self = Tapedeck.Backend.MessageHandler;
     var str = "Request received: " + request.action;
     str += ((sender.tab == null) ? "from outside tabs"
-                                 : "from tab " + sender.tab.id)
+                                 : "from tab " + sender.tab.id);
     self.log(str);
 
     switch (request.action) {
@@ -74,13 +74,13 @@ Tapedeck.Backend.MessageHandler = {
         for (var tabID in self.ports) {
           var request = self.newRequest({ action : "setDrawer",
                                           opened : request.opened });
-          chrome.tabs.sendRequest(parseInt(tabID), request);
+          chrome.tabs.sendRequest(parseInt(tabID, 10), request);
         }
         break;
 
       case "getPackages":
         sendResponse({ packages: Tapedeck.Backend.TemplateManager.getPackages(),
-                       currentPackage: Tapedeck.Backend.TemplateManager.currentPackage })
+                       currentPackage: Tapedeck.Backend.TemplateManager.currentPackage });
         break;
       case "setPackage":
         Tapedeck.Backend.TemplateManager.setPackage(request.name);
@@ -167,7 +167,7 @@ Tapedeck.Backend.MessageHandler = {
 
           // if there are outstanding callbacks, don't clear the callback from the frontend
           callbacksExpected = callbacksExpected - 1;
-          if (callbacksExpected != 0) {
+          if (callbacksExpected !== 0) {
             response.dontClear = true;
           }
           else {
@@ -210,7 +210,7 @@ Tapedeck.Backend.MessageHandler = {
           response.url = fileData.url;
           response.fileName = fileData.fileName;
           self.postMessage(port.sender.tab.id, response);
-        }
+        };
         bank.FileSystem.download(request.trackID, callback);
         break;
 
@@ -236,7 +236,7 @@ Tapedeck.Backend.MessageHandler = {
         }
 
         if (typeof(request.index) != "undefined") {
-          var index = parseInt(request.index);
+          var index = parseInt(request.index, 10);
           sqcr.insertSomeAt(tracks, index);
         }
         else {
@@ -258,7 +258,7 @@ Tapedeck.Backend.MessageHandler = {
         });
 
         if (typeof(request.index) != "undefined") {
-          var destination = parseInt(request.index);
+          var destination = parseInt(request.index, 10);
           sqcr.moveSomeTo(trackIndexPairs, destination);
         }
         else {
@@ -310,7 +310,7 @@ Tapedeck.Backend.MessageHandler = {
         break;
 
       case "makePlaylist":
-        if (sqcr.queue.length == 0) {
+        if (sqcr.queue.length === 0) {
           return;
         }
 
@@ -326,7 +326,7 @@ Tapedeck.Backend.MessageHandler = {
         break;
 
       case "playIndex":
-        var index = parseInt(request.index);
+        var index = parseInt(request.index, 10);
         sqcr.playIndex(index);
         break;
 
@@ -435,9 +435,9 @@ Tapedeck.Backend.MessageHandler = {
     msgHandler.log("Adding " + newTracks.length + " new tracks.");
 
     // pull in the queued tracks and blank the queue
-    newTracks = newTracks.concat(msgHandler.addTracksQueued)
+    newTracks = newTracks.concat(msgHandler.addTracksQueued);
     msgHandler.addTracksQueued = [];
-    if (newTracks.length == 0) {
+    if (newTracks.length === 0) {
       // if empty then nothing to do
       return;
     }
@@ -500,7 +500,7 @@ Tapedeck.Backend.MessageHandler = {
       currentCassette : cMgr.currentCassette,
       currentPage : cMgr.currPage,
       browseList : browseTrackList
-    }
+    };
     if (typeof(errorString) != "undefined") {
       options.errorString = errorString;
     }
@@ -543,7 +543,7 @@ Tapedeck.Backend.MessageHandler = {
     var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "updateSeekSlider",
       currentTime: track.get("currentTime"),
-      duration: track.get("duration"),
+      duration: track.get("duration")
     });
 
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
@@ -560,7 +560,7 @@ Tapedeck.Backend.MessageHandler = {
 
     var request = Tapedeck.Backend.MessageHandler.newRequest({
       action: "updateVolumeSlider",
-      volume: volume,
+      volume: volume
     });
 
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
@@ -575,7 +575,7 @@ Tapedeck.Backend.MessageHandler = {
     }
 
     var request = Tapedeck.Backend.MessageHandler.newRequest({
-      action: "forceCheckSync",
+      action: "forceCheckSync"
     });
 
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
@@ -622,7 +622,7 @@ Tapedeck.Backend.MessageHandler = {
       var request = Tapedeck.Backend.MessageHandler.newRequest({
         action: "showModal",
         view: viewString,
-        proxyEvents: rendered.proxyEvents,
+        proxyEvents: rendered.proxyEvents
       }, finishUp);
 
       Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
@@ -658,7 +658,7 @@ Tapedeck.Backend.MessageHandler = {
 
   signalLoadComplete: function(tab) {
     var request = Tapedeck.Backend.MessageHandler.newRequest({
-      action: "loadComplete",
+      action: "loadComplete"
     });
 
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
@@ -769,17 +769,16 @@ Tapedeck.Backend.MessageHandler = {
             $("#sandbox").get(0).contentWindow.postMessage(response, "*");
           };
           msgHandler.log("Performing ajax request for Sandbox to '" + request.params.url + "'");
-          $.ajax(request.params)
+          $.ajax(request.params);
           break;
 
         default:
           throw new Error("MessageHandler's sandboxListener was sent an unknown action: '" + request.action + "'");
-          break;
       }
     }
   },
 
   log: function(str, level) {
     Tapedeck.Backend.Utils.log("MessageHandler", str, level);
-  },
+  }
 };

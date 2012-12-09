@@ -23,6 +23,6 @@ Tapedeck.Frontend.init = function() {
 };
 
 $(document).ready(function() {
-  Tapedeck.Frontend.init()
+  Tapedeck.Frontend.init();
 });
 
