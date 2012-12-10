@@ -237,7 +237,7 @@ Tapedeck.Sandbox = {
             console.error(str);
           }
           else {
-            console.log(str);
+            console.log(str); /* ALLOWED */
           }
         }
       };

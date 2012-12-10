@@ -1122,24 +1122,15 @@ Tapedeck.Backend.Bank = {
       callback(toReturn);
     });
   },
-  saveOptions: function(options) {
+  saveOptions: function(options, callback) {
     var bank = Tapedeck.Backend.Bank;
     for (var key in options) {
-      bank.localStorage.setItem(bank.optionsPrefix + key, options[key]);
+      var saveKey = (bank.optionsPrefix + key).replace(/\s/g, "_");
+      bank.localStorage.setItem(saveKey, options[key]);
     }
-  },
-  getSavedOptionsForConfOptions: function(confOptions) {
-    var bank = Tapedeck.Backend.Bank;
-
-    var toReturn = {};
-    for (var suffix in confOptions) {
-      var key = bank.optionsPrefix + suffix;
-      var saved = bank.localStorage.getItem(key);
-      if (saved != null) {
-        toReturn[suffix] = saved;
-      }
+    if (typeof(callback) != "undefined") {
+      callback();
     }
-    return toReturn;
   },
 
   setDrawerOpened: function(open) {
@@ -1319,7 +1310,7 @@ Tapedeck.Backend.Bank = {
         });
         return;
       }
-      console.log(" = = = SYNC = = = ");
+      console.log(" = = = SYNC = = = "); /* ALLOWED */
 
       // find all the tracklists for which sync is on
       bank.findKeys(bank.trackListPiece + ".*" + bank.syncOnPostPrefix, true, function(syncKeys) {
@@ -1335,7 +1326,7 @@ Tapedeck.Backend.Bank = {
             }
             return;
           }
-          console.log("'" + trackList.id +  "' is dirty, writing to sync");
+          console.log("'" + trackList.id +  "' is dirty, writing to sync"); /* ALLOWED */
 
           // trackList is dirty, upload to sync
           // serialize the strings such that none is greater than MAX_SYNC_STRING_SIZE
@@ -1627,7 +1618,7 @@ Tapedeck.Backend.Bank = {
                             "Tapedeck may become unreliable if you exceed your capacity."];
             sync.showWarning(messages);
           }
-          console.log("Using " + inUse + "/" + chrome.storage.sync.QUOTA_BYTES + " bytes, " +
+          console.log("Using " + inUse + "/" + chrome.storage.sync.QUOTA_BYTES + " bytes, " + /* ALLOWED */
                       withinTen + "/" + (10 * chrome.storage.sync.MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE) +
                       " writes in last 10min, " + withinSixty + "/" + chrome.storage.sync.MAX_WRITE_OPERATIONS_PER_HOUR +
                       " in last hour.");
@@ -1774,7 +1765,7 @@ Tapedeck.Backend.Bank = {
             str += "\n\t";
             str += logObj.saved;
           }
-          console.log(str);
+          console.log(str); /* ALLOWED */
         }
       });
     }

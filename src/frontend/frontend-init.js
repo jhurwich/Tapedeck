@@ -10,7 +10,7 @@ Tapedeck.Frontend.init = function() {
   });
 
   var callback = function(response) {
-    Tapedeck.Frontend.Frame.replaceView(response.view,
+    Tapedeck.Frontend.Utils.replaceView(response.view,
                                         response.proxyEvents);
     Tapedeck.Frontend.Frame.init();
   };

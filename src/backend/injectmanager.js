@@ -23,7 +23,6 @@ Tapedeck.Backend.InjectManager = {
     // the tab is loading a new page, clear any previous executions we had logged
     if (changeInfo.status == "loading") {
       injectMgr.executedMap[tabID] = [];
-      console.log("clearing executed");
     }
 
     // Handle status == 'complete' updates
@@ -123,7 +122,6 @@ Tapedeck.Backend.InjectManager = {
     if (!injectMgr.isTest(tab.url) && injectMgr.isURLBlocked(tab.url)) {
       return;
     }
-    console.log("Script injection beginning");
 
     // we rate-limit the number of injectors
     var currTimeout = 1;
@@ -131,7 +129,6 @@ Tapedeck.Backend.InjectManager = {
 
       currTimeout = currTimeout + 100;
       var maxTimeout = injectMgr.currInjectors * 300;
-      console.log("setupAndInject: (" + injectMgr.currInjectors + ") " + currTimeout + " / " + maxTimeout);
       if (currTimeout < maxTimeout) {
         setTimeout(setupAndInject, currTimeout);
         return;
@@ -143,7 +140,6 @@ Tapedeck.Backend.InjectManager = {
       // Also, if the inject fails we'll need to clean everything up
       var wrappedCallback = null;
       var cleanupTimer = setTimeout(function() {
-        console.log("Cleaning up an abandoned injections, total: " + injectMgr.currInjectors);
 
         // if the callback never gets called we need to clean it up
         injectMgr.currInjectors = injectMgr.currInjectors - 1;
@@ -176,16 +172,15 @@ Tapedeck.Backend.InjectManager = {
         }
 
         if (injectMgr.alreadyExecuted(tab.id, options.file)) {
-          console.log("REPEAT injection!");
           // we've already injected this file into this tab, reuse the previous injection;
           var request = Tapedeck.Backend.MessageHandler.newRequest({
             action: "executeScriptAgain",
-            script: options.file
+            script: options.file,
+            params: { cassetteName: Tapedeck.Backend.CassetteManager.currentCassette.get("name") }
           });
           chrome.tabs.sendRequest(tab.id, request);
         }
         else {
-          console.log("Performing injection!");
           // we haven't injected this file yet, go for it.
           chrome.tabs.executeScript(tab.id, options);
 

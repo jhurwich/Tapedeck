@@ -15,6 +15,60 @@ var attachTo = function(onObject) {
       this.logLevels = logs;
     },
 
+    replaceView: function(viewStr, proxyEvents) {
+      var view = $(viewStr);
+      var targetID = $(view).first().attr("id");
+
+      $("#" + targetID).replaceWith(view);
+      if (typeof(proxyEvents) != 'undefined' && !jQuery.isEmptyObject(proxyEvents)) {
+        onObject.Utils.attachEvents(targetID, proxyEvents);
+      }
+      else {
+        console.error("Replacing view '" + targetID + "' without attaching events");
+      }
+    },
+
+    attachEvents: function(id, events) {
+      for (var key in events) {
+        var methodPieces = events[key].split(".");
+        var method = Tapedeck.Frontend.Frame;
+
+        // Utils is used by the Options, we're there if not on the Frame
+        if (typeof(method) == "undefined") {
+          method = Tapedeck.Options;
+        }
+
+        for(var i = 0; i < methodPieces.length; i++) {
+          method = method[methodPieces[i]];
+        }
+
+        if (methodPieces.length === 0 ||
+            typeof(method) == "undefined") {
+          console.error("Event " + JSON.stringify(methodPieces) + " does not exist");
+        }
+
+        var match = key.match(/^(\S+)\s*(.*)$/);
+        var eventName = match[1];
+        var selector = match[2];
+
+        if (eventName.indexOf("onreplace") == -1) {
+          if (selector === '') {
+            // no selector applies to #frame
+            $("#frame").unbind(eventName);
+            $("#frame").bind(eventName, method);
+          }
+          else {
+            $(selector).unbind(eventName);
+            $(selector).bind(eventName, method);
+          }
+        }
+        else {
+          // onreplace actions should happen immediately
+          method();
+        }
+      }
+    },
+
     log: function(component, str, level) {
       if (typeof(level) == "undefined") {
         level = onObject.Utils.DEBUG_LEVELS.BASIC;
@@ -32,12 +86,12 @@ var attachTo = function(onObject) {
       }
 
       if (logLevel == null || typeof(logLevel) == "undefined") {
-        console.log("<Unknown LogLevel> " + component + " (" + currentTime.getTime() + ") - " + str);
+        console.log("<Unknown LogLevel> " + component + " (" + currentTime.getTime() + ") - " + str); /* ALLOWED */
       }
 
       // compare set logLevel vs level
       if (logLevel >= level) {
-        console.log(component + " (" + currentTime.getTime() + ") - " + str);
+        console.log(component + " (" + currentTime.getTime() + ") - " + str); /* ALLOWED */
       }
     },
   }; // end onObject.Utils

@@ -36,16 +36,17 @@ Tapedeck.Backend.OptionsManager = {
 
     options = optionMgr.flatten(options);
 
-    var bankOptions = Tapedeck.Backend.Bank.getSavedOptionsForConfOptions(options);
+    Tapedeck.Backend.Bank.getSavedOptions(function(bankOptions) {
 
-    // bankOptions should override the flattened conf options
-    _.extend(options, bankOptions);
+      // bankOptions should override the flattened conf options
+      options = _.extend(options, bankOptions);
 
-    //and save them back
-    Tapedeck.Backend.Bank.saveOptions(options);
+      //and save them back
+      Tapedeck.Backend.Bank.saveOptions(options);
 
-    optionMgr.enactOptions(optionMgr.unflatten(options), function() {
-      continueInit();
+      optionMgr.enactOptions(optionMgr.unflatten(options), function() {
+        continueInit();
+      });
     });
   },
 
@@ -252,6 +253,9 @@ Tapedeck.Backend.OptionsManager = {
           if (!isNaN(asNum)) {
             onObject[split[i]] = asNum;
           }
+          else if (typeof(object[key]) == "string") {
+            onObject[split[i]] = object[key].replace(/\s/g, "_");
+          }
           else {
             onObject[split[i]] = object[key];
           }
@@ -270,7 +274,7 @@ Tapedeck.Backend.OptionsManager = {
 
     // non-objects and empty objects are leaves
     if (typeof(object) == "string") {
-      return { key: object.replace(" ", "_") };
+      return { key: object.replace(/\s/g, "_") };
     }
     if (typeof(object) == "number" ||
         $.isArray(object) ||
@@ -288,7 +292,7 @@ Tapedeck.Backend.OptionsManager = {
 
       for (var subKey in subOptions) {
         var concatKey = hrKey + "-" + subKey;
-        concatKey = concatKey.replace(" ", "_");
+        concatKey = concatKey.replace(/\s/g, "_");
         toReturn[concatKey] = subOptions[subKey];
       }
     }

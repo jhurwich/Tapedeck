@@ -77,7 +77,7 @@ Tapedeck.Frontend.Messenger = {
         break;
 
       case "pushView":
-        Tapedeck.Frontend.Frame.replaceView(request.view,
+        Tapedeck.Frontend.Utils.replaceView(request.view,
                                             request.proxyEvents);
         break;
 
@@ -411,6 +411,23 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
+  saveOptions: function(options, callback) {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "saveOptions",
+      options : options
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  runTests: function() {
+    var request = Tapedeck.Frontend.Messenger.newRequest({
+      action  : "runTests"
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
   sendMessage: function(message) {
     var self = Tapedeck.Frontend.Messenger;
     if (message.type == "request") {
@@ -473,10 +490,10 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Utils.log("Messenger", str, level);
   },
 
-  clear: function() {
+  clear: function(callback) {
     var request = Tapedeck.Frontend.Messenger.newRequest({
       action  : "clear",
-    });
+    }, callback);
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },

@@ -1,5 +1,5 @@
-/* The iframe needs !importants so that the outer page's css cannot
- * affect its styling */
+/* The iframe and injected buttons needs !importants
+ * so that the outer page's css cannot affect their styling */
 #tapedeck-frame {
   display: block !important;
   position: fixed !important;
@@ -20,7 +20,7 @@
 }
 
 body[tapedeck-opened] {
-  margin-right: 300px;
+  margin-right: 350px !important;
 }
 
 tapedeck-buttonbox#tapedeck-injected-buttons {
@@ -34,13 +34,14 @@ tapedeck-buttonbox#tapedeck-injected-buttons {
 }
 
 .tapedeck-injected-button {
-  display: inline-block;
-  position: static;
-  margin-bottom: 10px;
-  width: 20px;
-  height: 20px;
-  background-size: 20px 20px;
-  clear: both;
+  display: inline-block !important;
+  position: static !important;
+  margin: 0 0 10px 0 !important;
+  padding: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  background-size: 20px 20px !important;
+  clear: both !important;
 }
 
 .tapedeck-injected-button:hover {

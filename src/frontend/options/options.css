@@ -29,11 +29,28 @@ span.key {
   padding: 2px 16px 2px 2px;
 }
 
-
-input {
-  margin: 0 0 4px 0;
+#dataloss {
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#F28880), to(#DE4949));
+  border: 1px solid black;
+  padding: 5px;
+  width: 318px;
+  margin-left: 1px;
+  text-align: center;
 }
 
+.heading {
+  font-size: 18px;
+  font-weight: bold;
+  display: block;
+}
+
+input[type='button'] {
+  margin: 0px 2px;
+}
+input.number,
+input.string {
+  margin: 0 0 4px 0;
+}
 input.string {
   width: 300px;
 }

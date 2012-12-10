@@ -1,10 +1,9 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Cassettification",
+  "Frontend Frame Logic",
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
-  "The Scraper Cassette",
 ];
 
 /* Runs initialization before each test.
@@ -30,7 +29,7 @@ beforeEach(function() {
       for (var attrName in expectedJSON) {
         if (!($.inArray(attrName, exceptions)) &&
             expectedJSON[attrName] != this.actual.get(attrName)) {
-          console.log("fail on '" + attrName + "' expected:"+ expectedJSON[attrName] + " actual:"+ this.actual.get(attrName));
+          console.log("Fail on '" + attrName + "' expected:"+ expectedJSON[attrName] + " actual:"+ this.actual.get(attrName)); /* ALLOWED */
           return false;
         }
       }
@@ -44,7 +43,7 @@ beforeEach(function() {
     this.Tapedeck.Frontend.Messenger.setCassette("Scraper");
     waitsFor(function() {
       return ($("#tapedeck-frame").contents().find("#browse-list").length > 0);
-    }, "Waiting for switch to BrowseList mode", 200);
+    }, "Waiting for switch to BrowseList mode", 600);
   };
 
   this.waitsForBackendInit = function() {

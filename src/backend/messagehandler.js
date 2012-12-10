@@ -39,8 +39,8 @@ Tapedeck.Backend.MessageHandler = {
 
     var self = Tapedeck.Backend.MessageHandler;
     var str = "Request received: " + request.action;
-    str += ((sender.tab == null) ? "from outside tabs"
-                                 : "from tab " + sender.tab.id);
+    str += ((sender.tab == null) ? " from outside tabs"
+                                 : " from tab " + sender.tab.id);
     self.log(str);
 
     switch (request.action) {
@@ -380,12 +380,28 @@ Tapedeck.Backend.MessageHandler = {
         break;
 
       case "clear":
-        Tapedeck.Backend.Bank.clear();
+        Tapedeck.Backend.Bank.clear(function() {
+          self.postMessage(port.sender.tab.id, response);
+        });
         break;
 
       case "getLogs":
         response.logs = Tapedeck.Backend.Utils.logLevels;
         self.postMessage(port.sender.tab.id, response);
+        break;
+
+      case "saveOptions":
+        Tapedeck.Backend.Bank.saveOptions(request.options, function() {
+          var unflattened = Tapedeck.Backend.OptionsManager.unflatten(request.options);
+          Tapedeck.Backend.OptionsManager.enactOptions(unflattened, function () {
+            self.postMessage(port.sender.tab.id, response);
+          });
+        });
+        break;
+
+      case "runTests":
+        var testURL = chrome.extension.getURL("/spec/SpecRunner.html");
+        chrome.tabs.create({ url: testURL });
         break;
 
       default:
@@ -414,6 +430,8 @@ Tapedeck.Backend.MessageHandler = {
     }
     if (newTracks.length > 0 &&
         newTracks[0].cassette != cMgr.currentCassette.get("name")) {
+      console.error("Received tracks for '" + newTracks[0].cassette +
+                    "' when currentCassette is '" + cMgr.currentCassette.get("name") + "'");
       return;
     }
 

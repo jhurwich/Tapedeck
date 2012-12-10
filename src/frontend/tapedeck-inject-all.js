@@ -28,8 +28,6 @@ if (typeof(TapedeckInjected) == "undefined") {
         switch(request.action)
         {
           case "executeScriptAgain":
-            console.log("TDInjected received request: " + request.action);
-
             var script = request.script;
             var scriptFile = script.replace("frontend/scripts/", "");
             scriptFile = scriptFile.replace(".js", "");
@@ -41,7 +39,6 @@ if (typeof(TapedeckInjected) == "undefined") {
                             words[i].slice(1);
             }
 
-            console.log("Executing script again: " + scriptName);
             if (typeof(request.params) != "undefined") {
               TapedeckInjected[scriptName].start(request.params);
             }
@@ -203,10 +200,19 @@ if (typeof(TapedeckInjected) == "undefined") {
            $(elem).attr("id") != "tapedeck-frame") {
 
           var right = $(elem).css("right");
-          var oldSpot = right ? parseInt(right, 10) : 0;
-          var newSpot = oldSpot + TapedeckInjected.toolbarWidth;
-          $(elem).css("right", newSpot);
-          $(elem).attr("tdMoved", true);
+          if (right != "auto") {
+            var oldSpot = right ? parseInt(right, 10) : 0;
+            var newSpot = oldSpot + TapedeckInjected.toolbarWidth;
+            $(elem).css("right", newSpot);
+            $(elem).attr("tdMoved", true);
+            return;
+          }
+
+          var elemWidth = $(elem).width();
+          if (elemWidth >= document.body.clientWidth - TapedeckInjected.toolbarWidth) {
+            $(elem).width(elemWidth - TapedeckInjected.toolbarWidth);
+            $(elem).attr("tdShrunk", elemWidth);
+          }
         }
       });
     },
@@ -219,6 +225,11 @@ if (typeof(TapedeckInjected) == "undefined") {
           var oldSpot = newSpot - TapedeckInjected.toolbarWidth;
           $(elem).css("right", oldSpot);
           $(elem).removeAttr("tdMoved");
+        }
+        var originalWidth = $(elem).attr("tdShrunk");
+        if(typeof(originalWidth) != "undefined") {
+          $(elem).width(originalWidth);
+          $(elem).removeAttr("tdShrunk");
         }
       });
     },
@@ -241,4 +252,3 @@ if (typeof(TapedeckInjected) == "undefined") {
 
   TapedeckInjected.init();
 }
-console.log("TDInjected: " + typeof(TapedeckInjected));

@@ -221,12 +221,12 @@ Tapedeck.Backend.Utils = {
     }
 
     if (logLevel == null || typeof(logLevel) == "undefined") {
-      console.log("<Unknown LogLevel> " + component + " (" + currentTime.getTime() + ") - " + str);
+      console.log("<Unknown LogLevel> " + component + " (" + currentTime.getTime() + ") - " + str); /* ALLOWED */
     }
 
     // compare set logLevel vs level
     if (logLevel >= level) {
-      console.log(component + " (" + currentTime.getTime() + ") - " + str);
+      console.log(component + " (" + currentTime.getTime() + ") - " + str); /* ALLOWED */
     }
   }
 };

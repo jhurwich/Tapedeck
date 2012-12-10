@@ -2,33 +2,49 @@
   <options>
     "options" : "options",
   </options>
+  <events>
+    "click #runtests" : "runtests",
+    "click #reset"    : "reset",
+    "propertychange input[type='text']"  : "submit",
+    "keyup input[type='text']"           : "submit",
+    "input input[type='text']"           : "submit",
+    "paste input[type='text']"           : "submit",
+    "click input[type='text']"           : "selectAll",
+  </events>
 </tapedeck>
 <template>
+  <div id="dataloss">
+    <span class="heading">Data loss will occur</span>
+    <div id="button-box">
+      <input id="runtests" type="button" value="Run Tests" />
+      <input id="reset" type="button" value="Factory Reset" />
+    </div>
+  </div>
   <div class="container">
     <%
 
     var makeBox = function(key, value) {
       if (typeof(value) == "number") {
         %>
-        <div class="number clearfix"> <span class="key"><%= key.replace("_", " ") %></span><input id="<%= key %>" class="number" value="<%= value %>" /> </div>
+        <div class="number clearfix"> <span class="key"><%= key.replace(/_/g, " ") %></span><input type="text" id="<%= key %>" class="number" value="<%= value %>" /> </div>
         <%
       }
       else if (typeof(value) == "string") {
         %>
-        <div class="string clearfix"><span class="key"><%= key.replace("_", " ") %></span><input id="<%= key %>" class="string" value="<%= value %>" /> </div>
+        <div class="string clearfix"><span class="key"><%= key.replace(/_/g, " ") %></span><input type="text" id="<%= key %>" class="string" value="<%= value %>" /> </div>
         <%
       }
       else if (typeof(value) == "object") {
         if (Object.keys(value).length == 0) {
           /* empty object */
           %>
-          <div class="empty"><span class="key"><%= key.replace("_", " ") %></span> </div>
+          <div class="empty"><span class="key"><%= key.replace(/_/g, " ") %></span> </div>
           <%
         }
         else {
           /* container object */
           %>
-          <div class="container clearfix"><span class="key"><%= key.replace("_", " ") %></span>
+          <div class="container clearfix"><span class="key"><%= key.replace(/_/g, " ") %></span>
           <%
           for (var subKey in value) {
             makeBox(subKey, value[subKey]);

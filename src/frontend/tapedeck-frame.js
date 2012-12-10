@@ -811,7 +811,7 @@ Tapedeck.Frontend.Frame = {
     show: function(viewString, proxyEvents, aCallback, aCleanup) {
       var modal = Tapedeck.Frontend.Frame.Modal;
 
-      Tapedeck.Frontend.Frame.replaceView(viewString,
+      Tapedeck.Frontend.Utils.replaceView(viewString,
                                           proxyEvents);
 
       var inputs = $("#modal").find("input[type='text']");
@@ -864,54 +864,6 @@ Tapedeck.Frontend.Frame = {
         return false;
       }
     },
-  },
-
-  replaceView: function(viewStr, proxyEvents) {
-    var view = $(viewStr);
-    var targetID = $(view).first().attr("id");
-
-    $("#" + targetID).replaceWith(view);
-    if (typeof(proxyEvents) != 'undefined' && !jQuery.isEmptyObject(proxyEvents)) {
-      this.attachEvents(targetID, proxyEvents);
-    }
-    else {
-      console.error("Replacing view '" + targetID + "' without attaching events");
-    }
-  },
-
-  attachEvents: function(id, events) {
-    for (var key in events) {
-      var methodPieces = events[key].split(".");
-      var method = Tapedeck.Frontend.Frame;
-      for(var i = 0; i < methodPieces.length; i++) {
-        method = method[methodPieces[i]];
-      }
-
-      if (methodPieces.length === 0 ||
-          typeof(method) == "undefined") {
-        console.error("Event " + JSON.stringify(methodPieces) + " does not exist");
-      }
-
-      var match = key.match(/^(\S+)\s*(.*)$/);
-      var eventName = match[1];
-      var selector = match[2];
-
-      if (eventName.indexOf("onreplace") == -1) {
-        if (selector === '') {
-          // no selector applies to #frame
-          $("#frame").unbind(eventName);
-          $("#frame").bind(eventName, method);
-        }
-        else {
-          $(selector).unbind(eventName);
-          $(selector).bind(eventName, method);
-        }
-      }
-      else {
-        // onreplace actions should happen immediately
-        method();
-      }
-    }
   },
 
   onFrameRender: function() {

@@ -56,7 +56,7 @@ Tapedeck.Backend.Collections.SavedTrackList =
         this.ignoreFirstSave = false;
       }
       else if (bank.isSyncOn()) {
-        console.log(">> I '" + this.id + "' am dirty again because of (" + eventName + ") - was " + this.dirty);
+        console.log(">> I '" + this.id + "' am dirty again because of (" + eventName + ") - was " + this.dirty); /* ALLOWED */
         this.dirty = true;
         bank.sync();
       }

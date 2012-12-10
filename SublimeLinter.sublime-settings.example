@@ -154,6 +154,7 @@
             "__Jasmine__TESTS_TO_RUN",
             "__Jasmine__TESTS_TO_SKIP",
             "console",
+            "alert",
             "unescape",
             "prompt",
             "FileError"

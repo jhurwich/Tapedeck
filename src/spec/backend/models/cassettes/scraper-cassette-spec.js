@@ -79,8 +79,7 @@ describe("The Scraper Cassette", function() {
         // numPostLoads refers to the number of times groups of tracks
         // will be added after the original, in the event of a
         // soundcloud playlist this can contain more than one track.
-        spy = spyOn(this.Tapedeck.Backend.MessageHandler,
-                    "pushBrowseTrackList");
+        spy = spyOn(this.Tapedeck.Backend.MessageHandler, "addTracks");
         waitsFor(function() {
           return spy.callCount == numPostLoads;
         }, "Timed out waiting for add_tracks tracks", 2000);
@@ -89,7 +88,7 @@ describe("The Scraper Cassette", function() {
       var testTab = self.findTestTab();
       var context = self.Tapedeck.Backend.Utils.getContext(testTab);
 
-      self.scraper.getBrowseList(context, function(tracks) {
+      self.scraper.getBrowseList(context, function(params) {
         // We need to handle this a little differently if we were
         // expecting some postLoadTracks (for example from soundcloud).
         // The spy should have captured those, if it exists, so
@@ -98,9 +97,8 @@ describe("The Scraper Cassette", function() {
           runs(function() {
             var postLoadTracks = spy.mostRecentCall.args[0];
             if (postLoadTracks.length > 0) {
-              postLoadTracks.add(tracks);
-              tracks = postLoadTracks.toJSON();
-              self.verifyTracks(tracks,
+              $.extend(params.tracks, postLoadTracks);
+              self.verifyTracks(params.tracks,
                                 expectedTrackJSONs,
                                 expectedAttrs,
                                 expectedTypes);
@@ -108,7 +106,7 @@ describe("The Scraper Cassette", function() {
           });
         }
         else {
-          self.verifyTracks(tracks,
+          self.verifyTracks(params.tracks,
                             expectedTrackJSONs,
                             expectedAttrs,
                             expectedTypes);
@@ -199,6 +197,7 @@ describe("The Scraper Cassette", function() {
 *    <a href="http://sir-peter.tumblr.com/post/9930597361/portishead-small-if-i-remember-the-night-that" title="View post - Wednesday, 5:29pm" class="permalink " id="permalink_9930597361"></a>
 *  </li>
 ****************************/
+
   it("should return the *tumblrDashboard* style tracks on the page" , function() {
     var asTumblrDashboard = function(trackJSON) {
       var post = $("<li id='post_1234567890' class='post audio'> \
@@ -279,6 +278,7 @@ describe("The Scraper Cassette", function() {
 *    </div>
 *  </div>
 ****************************/
+
   it("should return the *a links* on the page as tracks", function() {
     var asLinks = function(trackJSON) {
       var post = $("<div class='post-12345 post type-post post_box top' id='post12345'> \

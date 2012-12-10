@@ -57,34 +57,41 @@ describe("Frontend Frame Logic", function() {
   });
 
   it("should play a queued track when it is double-clicked *flaky*", function() {
+
     var self = this;
+    var queuePrepared = false;
 
     var queueID = self.Tapedeck.Backend.Bank.savedQueueName;
     var queueReplacement = new this.Tapedeck.Backend.Collections.SavedTrackList(this.testTracks,
                                                                                 { id: queueID });
 
-    var queueReadySpy = spyOn(self.Tapedeck.Backend.MessageHandler, "updateView").andCallThrough();
+    self.Tapedeck.Backend.Sequencer.prepareQueue(self.testTrackList, function() { queuePrepared = true; });
 
-    self.Tapedeck.Backend.Sequencer.prepareQueue(self.testTrackList, function() { });
-    self.Tapedeck.Backend.Sequencer.queue.trigger("change"); // force frontend to update
-
-    waitsFor(function() { return queueReadySpy.callCount > 0; }, "Waiting for Queue to populate", 1000);
+    // wait for the new queue to be prepared
+    waitsFor(function() { return queuePrepared; }, "Waiting for new queue to be ready", 500);
     runs(function() {
-      var rows = $("#tapedeck-frame").contents()
-                                     .find("#queue")
-                                     .first()
-                                     .children(".row")
-                                     .not("#hidden-droprow");
-      self.Tapedeck.Frontend.Frame.TrackLists.queueDblClick(rows[0]);
 
-      var sqcrSpy = spyOn(self.Tapedeck.Backend.Sequencer, "playIndex");
-      waitsFor(function() {
-        return sqcrSpy.callCount > 0;
-      }, "Timed out waiting for tracks to be played", 2000);
+      var queueReadySpy = spyOn(self.Tapedeck.Backend.MessageHandler, "updateView").andCallThrough();
+      self.Tapedeck.Backend.Sequencer.queue.trigger("change"); // force frontend to update
 
-
+      waitsFor(function() { return queueReadySpy.callCount > 0; }, "Waiting for Queue to populate", 1000);
       runs(function() {
-        expect(sqcrSpy.callCount).toEqual(1);
+        var rows = $("#tapedeck-frame").contents()
+                                       .find("#queue")
+                                       .first()
+                                       .children(".row")
+                                       .not("#hidden-droprow");
+        self.Tapedeck.Frontend.Frame.TrackLists.queueDblClick(rows[0]);
+
+        var sqcrSpy = spyOn(self.Tapedeck.Backend.Sequencer, "playIndex");
+        waitsFor(function() {
+          return sqcrSpy.callCount > 0;
+        }, "Timed out waiting for tracks to be played", 2000);
+
+
+        runs(function() {
+          expect(sqcrSpy.callCount).toEqual(1);
+        });
       });
     });
   });
