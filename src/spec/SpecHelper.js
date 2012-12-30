@@ -1,6 +1,6 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Frontend Frame Logic",
+  "Template Manager",
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
@@ -8,7 +8,7 @@ __Jasmine__TESTS_TO_SKIP = [
 
 /* Runs initialization before each test.
  * Dramatically slows down test suite.  */
-__Jasmine__DO_FULL_INIT = false;
+__Jasmine__DO_FULL_INIT = true;
 
 beforeEach(function() {
   this.Tapedeck = {};
@@ -78,6 +78,44 @@ beforeEach(function() {
       }
     }
   };
+
+   // recreate the options object returned by the conf with the actual settings
+  this.recoverOptions = function() {
+    var bank = this.Tapedeck.Backend.Bank;
+    // dev local overrides
+    var devTemplates = ((bank.devTemplates) ? bank.devTemplates : "");
+    if (devTemplates.length > 0) {
+      devTemplates = devTemplates.url.substring(devTemplates.url.lastIndexOf("/") + 1);
+    }
+
+    var devCSS = ((bank.devCSS) ? bank.devCSS : "");
+    if (devCSS.length > 0) {
+      devCSS = devCSS.url.substring(devCSS.url.lastIndexOf("/") + 1);
+    }
+
+    var devCassettes = ((bank.devCassettes) ? bank.devCassettes : []);
+    devCassettes = _.map(devCassettes, function(cassetteData) {
+      var lastSlash = cassetteData.url.lastIndexOf("/");
+      return cassetteData.url.substring(lastSlash + 1);
+    });
+
+    /* Expected to match { pattern: <string_pattern>, cassetteName: <string_name>},
+     * as the params to createByPattern */
+    var premadeCassettes = bank.premadeCassettes;
+    premadeCassettes = _.map(premadeCassettes, function(cassetteData) {
+      return cassetteData.pattern;
+    });
+    // logs
+    var logs = this.Tapedeck.Backend.Utils.logLevels;
+
+    var options = { devTemplates: devTemplates,
+                    devCSS: devCSS,
+                    devCassettes: devCassettes,
+                    premadeCassettes: premadeCassettes,
+                    logs: logs };
+    return options;
+  };
+
   this.testTracks = [
     {
       type          : "mp3",

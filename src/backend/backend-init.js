@@ -31,26 +31,38 @@ Tapedeck.Backend.init = function(callback) {
     log("Bank initialized.  Next is OptionsManager...");
 
     Tapedeck.Backend.OptionsManager.init(function() {
-      log("OptionsManager initialized. Next is CassetteManager...");
+      log("OptionsManager initialized. Next is Sandbox...");
 
-      Tapedeck.Backend.CassetteManager.init(function() {
-        log("CassetteManager initialized. Next is TemplateManager...");
+      // we just wait for the sandbox to tell us that it's ready
+      var delay = 250; // ms
+      var postSandboxInit = function() {
+        if (!Tapedeck.Backend.Bank.sandboxReady) {
+          log("  Sandbox not ready yet, delaying...");
+          setTimeout(postSandboxInit, delay);
+          return;
+        }
+        log("Sandbox initialized. Next is CassetteManager...");
 
-        Tapedeck.Backend.TemplateManager.init(function() {
-          log("TemplateManager initialized.  Next is InjectManager...");
+        Tapedeck.Backend.CassetteManager.init(function() {
+          log("CassetteManager initialized. Next is TemplateManager...");
 
-          Tapedeck.Backend.InjectManager.init();
-          log("InjectManager initialized.  Next is Sequencer...");
+          Tapedeck.Backend.TemplateManager.init(function() {
+            log("TemplateManager initialized.  Next is InjectManager...");
 
-          Tapedeck.Backend.Sequencer.init();
-          log("Sequencer initialized.  Complete init.");
+            Tapedeck.Backend.InjectManager.init();
+            log("InjectManager initialized.  Next is Sequencer...");
 
-          if (typeof(callback) != "undefined") {
-            callback();
-          }
-          log("<( Initialization complete )>");
+            Tapedeck.Backend.Sequencer.init();
+            log("Sequencer initialized.  Complete init.");
+
+            if (typeof(callback) != "undefined") {
+              callback();
+            }
+            log("<( Initialization complete )>");
+          });
         });
-      });
+      };
+      setTimeout(postSandboxInit, delay);
     });
   });
 

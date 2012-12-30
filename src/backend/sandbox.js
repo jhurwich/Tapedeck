@@ -59,12 +59,19 @@ Tapedeck.Sandbox = {
       }
     };
 
-    var request = {
+    var request = Tapedeck.Sandbox.newRequest({
       action : "getLogLevels"
-    };
+    });
     Tapedeck.Sandbox.sendMessage(request);
 
     Tapedeck.ajax = Tapedeck.Sandbox.ajax;
+  },
+
+  finishInit: function() {
+    var request = Tapedeck.Sandbox.newRequest({
+      action : "sandboxInitialized"
+    });
+    Tapedeck.Sandbox.sendMessage(request);
   },
 
   messageHandler: function(e) {
@@ -199,10 +206,20 @@ Tapedeck.Sandbox = {
         break;
 
       case "setLogs":
+        // if we didn't have logs set before, we are newly initialized and should respond
+        var newlyInitialized = false;
+        if ($.isEmptyObject(Tapedeck.Backend.Utils.logLevels)) {
+          newlyInitialized = true;
+        }
+
         Tapedeck.Backend.Utils.setLogs(message.logs, true);
         if (typeof(message.callbackID) != "undefined") {
           var aResponse = Tapedeck.Sandbox.newResponse(message);
           Tapedeck.Sandbox.sendMessage(aResponse);
+        }
+
+        if (newlyInitialized) {
+          Tapedeck.Sandbox.finishInit();
         }
         break;
 

@@ -22,15 +22,17 @@ Tapedeck.Frontend.Messenger = {
 
   pendingCallbacks: {},
   handleResponse: function(response) {
+    var msgr = Tapedeck.Frontend.Messenger;
+
     if (response.type != "response") {
       return;
     }
 
-    if (response.callbackID in Tapedeck.Frontend.Messenger.pendingCallbacks) {
-      Tapedeck.Frontend.Messenger.pendingCallbacks[response.callbackID](response);
+    if (response.callbackID in msgr.pendingCallbacks) {
+      msgr.pendingCallbacks[response.callbackID](response);
 
       if (typeof(response.dontClear) == "undefined" || !response.dontClear) {
-        delete Tapedeck.Frontend.Messenger.pendingCallbacks[response.callbackID];
+        delete msgr.pendingCallbacks[response.callbackID];
       }
     }
     else {
@@ -40,7 +42,24 @@ Tapedeck.Frontend.Messenger = {
       if (typeof(response.proxyEvents) != "undefined") {
         response.proxyEvents = "<events_removed>";
       }
-      console.error("Could not find callback '" + response.callbackID + "' for response: " + JSON.stringify(response));
+
+      // We only want to print this if we're not in the testTab.  The testTab is the only tab with
+      // an accessible parent, so only print if the parent is inaccessible.
+      if (msgr.inaccessibleParent != msgr.port.portId_) {
+        try {
+          var parentURL = parent.document.location.href;
+
+          // parent is accessible
+          msgr.inaccessibleParent = -1;
+        }
+        catch (e) {
+          msgr.inaccessibleParent = msgr.port.portId_;
+
+        }
+      }
+      if (msgr.inaccessibleParent == msgr.port.portId_) {
+        console.error("Could not find callback '" + response.callbackID + "' for response: " + JSON.stringify(response));
+      }
     }
   },
 

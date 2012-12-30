@@ -2,20 +2,27 @@ Tapedeck.Backend.OptionsManager = {
 
   init: function(continueInit) {
     var self = this;
+    self.getConf(self.handleConf.curry(continueInit));
 
+  },
+
+  // This expects a callback that itself takes the params (successCallback, conf),
+  // successCallback receives no params, is just an indicator.
+  // conf should be $.parseJSON(conf)-able
+  getConf: function(callback) {
     var confURL = chrome.extension.getURL("util/options.conf");
     $.ajax({
       type: "GET",
       url: confURL,
       dataType: "text",
-      success : self.handleConf.curry(continueInit),
+      success : callback,
       error : function(xhr, status) {
         console.error("Error getting options.conf: " + status);
       }
     });
   },
 
-  handleConf: function(continueInit, conf) {
+  handleConf: function(successCallback, conf) {
     var optionMgr = Tapedeck.Backend.OptionsManager;
 
     var options = $.parseJSON(conf);
@@ -45,7 +52,7 @@ Tapedeck.Backend.OptionsManager = {
       Tapedeck.Backend.Bank.saveOptions(options);
 
       optionMgr.enactOptions(optionMgr.unflatten(options), function() {
-        continueInit();
+        successCallback();
       });
     });
   },
@@ -171,10 +178,6 @@ Tapedeck.Backend.OptionsManager = {
         checkAndFinish();
       });
     }
-    // will establish local CSS override that templateManager will check for
-    // will establish local tempalte override checked for at lines 407 and 408 of templateManager
-    // will force debug cassettified cassettes into cassette manager
-    // includes any local cassettes in the bank's getCassettes return
   },
 
   // CassetteManager isn't initialized, just prepare the params and it's init will get these through the bank

@@ -14,13 +14,13 @@ describe("Template Manager", function() {
       self.cssCode = null;
       var trySave = function() {
         if (self.templateCode != null && self.cssCode != null) {
-          self.tMgr.addTemplate(self.templateCode, self.cssCode, "test", function() {
+          self.tMgr.addTemplate(self.templateCode, self.cssCode, "spec", function() {
             doneSaving = true;
           });
         }
       };
 
-      self.templateURL = chrome.extension.getURL("spec/data/test-skin.html");
+      self.templateURL = chrome.extension.getURL("spec/data/spec-skin.html");
       $.ajax({
         type: "GET",
         url: self.templateURL,
@@ -30,11 +30,11 @@ describe("Template Manager", function() {
           trySave();
         },
         error : function(xhr, status) {
-          console.error("Error getting test-skin.html: " + status);
+          console.error("Error getting spec-skin.html: " + status);
         }
       });
 
-      self.cssURL = chrome.extension.getURL("spec/data/test-skin.css");
+      self.cssURL = chrome.extension.getURL("spec/data/spec-skin.css");
       $.ajax({
         type: "GET",
         url: self.cssURL,
@@ -44,7 +44,7 @@ describe("Template Manager", function() {
           trySave();
         },
         error : function(xhr, status) {
-          console.error("Error getting test-skin.html: " + status);
+          console.error("Error getting spec-skin.css: " + status);
         }
       });
 
@@ -53,14 +53,7 @@ describe("Template Manager", function() {
                2000);
     };
 
-    var initComplete = false;
-    self.Tapedeck.Backend.TemplateManager.init(function() {
-      initComplete = true;
-    });
-
-    waitsFor(function() {
-      return initComplete;
-    }, "Waiting for TemplateManager.init()", 3000);
+    this.waitsForBackendInit();
   });
 
   it("should get Backbone view constructors from getViewScript", function() {
@@ -94,23 +87,40 @@ describe("Template Manager", function() {
   it("should save and retrieve templates", function() {
     var self = this;
     var testComplete = false;
+    var recoveredOptions = self.recoverOptions();
+    console.log("recovered: " + JSON.stringify(recoveredOptions));
 
     self.waitsForAddTestTemplate();
     runs(function() {
       self.Tapedeck.Backend.Bank.FileSystem.getTemplates(function(datas) {
 
         // ensure that we have one default template and the test template
-        expect(datas.length).toEqual(2);
+        var toPrint = _.map(datas, function(value, key) { return value.url; });
+        console.log(JSON.stringify(toPrint));
+        var numExpected = 2;
+        if (recoveredOptions.devTemplates !== "") {
+          numExpected++;
+        }
+
+        expect(datas.length).toEqual(numExpected);
 
         for (var i = 0; i < datas.length; i++) {
           var data = datas[i];
-
-          if(data.name == "test") {
+          console.log("considering " + data.url + " CSS: " +  data.cssURL);
+          // we've loaded one test template into the filesystem, check it
+          if (data.url.indexOf("filesystem:chrome-extension://") != -1) {
             expect(data.contents).toEqual(self.templateCode);
             expect(data.cssURL).toMatch("filesystem:chrome-extension://[A-Za-z]*/temporary/CSS/" + data.name);
-            testComplete = true;
+          }
+          else {
+            // otherwise we're considering the default on background.html and/or something from the conf options
+            if (data.url.indexOf("background.html") == -1 &&
+                data.url.indexOf(recoveredOptions.devTemplates.url) == -1) {
+              expect(data.url).toEqual("background.html or " + recoveredOptions.devTemplates.url + " from options");
+            }
           }
         }
+        testComplete = true;
       });
       waitsFor(function() { return testComplete; },
                "Waiting for saving and checking template",
@@ -121,7 +131,7 @@ describe("Template Manager", function() {
       });
     });
   });
-
+/*
   it("should switch skins", function() {
     var self = this;
     var testComplete = false;
@@ -155,4 +165,5 @@ describe("Template Manager", function() {
     });
   });
 
+*/
 });

@@ -29,6 +29,8 @@ Tapedeck.Backend.Bank = {
    * as the params to createByPattern */
   premadeCassettes: [],
 
+  sandboxReady: false,
+
   drawerOpen: false,
   localStorage: null,
 
@@ -252,6 +254,7 @@ Tapedeck.Backend.Bank = {
       }
     }
 
+    bank.devCassettes = [];
     var remaining = files.length;
     var handleContents = function(contents, url) {
       // we don't want to instantialize the cassette without the name, so we hack in to find it

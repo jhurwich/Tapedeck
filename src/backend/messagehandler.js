@@ -16,6 +16,11 @@ Tapedeck.Backend.MessageHandler = {
 
   portListener: function(port) {
     var self = Tapedeck.Backend.MessageHandler;
+
+    if (typeof(self.ports[port.sender.tab.id]) != "undefined" &&
+        self.ports[port.sender.tab.id]) {
+      return;
+    }
     self.log("Port connecting: " + port.sender.tab.id);
     self.ports[port.sender.tab.id] = port;
 
@@ -759,6 +764,10 @@ Tapedeck.Backend.MessageHandler = {
           });
 
           Tapedeck.Backend.MessageHandler.messageSandbox(request);
+          break;
+
+        case "sandboxInitialized":
+          Tapedeck.Backend.Bank.sandboxReady = true;
           break;
 
         case "executeScript":
