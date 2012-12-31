@@ -173,7 +173,7 @@ Tapedeck.Backend.InjectManager = {
 
         if (injectMgr.alreadyExecuted(tab.id, options.file)) {
           // we've already injected this file into this tab, reuse the previous injection;
-          var request = Tapedeck.Backend.MessageHandler.newRequest({
+          var request = Tapedeck.Backend.Utils.newRequest({
             action: "executeScriptAgain",
             script: options.file,
             params: { cassetteName: Tapedeck.Backend.CassetteManager.currentCassette.get("name") }
@@ -194,7 +194,7 @@ Tapedeck.Backend.InjectManager = {
       }
       else {
         // If it's the test tab, fake the injection
-        var request = Tapedeck.Backend.MessageHandler.newRequest({
+        var request = Tapedeck.Backend.Utils.newRequest({
           action: "executeScriptInTest",
           script: options.file
         });

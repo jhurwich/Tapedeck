@@ -37,11 +37,11 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
   },
 
   proxyMethod: function(methodName, params, successCallback, errCallback, finalCallback) {
-    var message = {
+    var message = Tapedeck.Backend.Utils.newRequest({
       action: methodName,
       params: params,
       tdID: this.get("tdID")
-    };
+    });
     Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
       if (typeof(response.error) != "undefined" && response.error) {
         // there was some error

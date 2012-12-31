@@ -194,6 +194,45 @@ Tapedeck.Backend.Utils = {
     return $('div').append($(dom)).remove().html();
   },
 
+  pendingCallbacks: {},
+  newRequest: function(object, callback) {
+    var request = (object ? object : { });
+    request.type = "request";
+
+
+    var rID = new Date().getTime();
+    while (rID in Tapedeck.Backend.Utils.pendingCallbacks) {
+      rID = rID + 1;
+    }
+    request.requestID = rID;
+
+    if (typeof(callback) != "undefined" &&
+        callback != null) {
+      Tapedeck.Backend.Utils.pendingCallbacks[rID] = callback;
+    }
+    else {
+      Tapedeck.Backend.Utils.pendingCallbacks[rID] = false;
+    }
+
+    return request;
+  },
+
+  newResponse: function(request, object) {
+    var response = (object ? object : { });
+    response.type = "response";
+
+    if ("requestID" in request) {
+      response.callbackID = request.requestID;
+    }
+    else {
+      console.error("Can't make a response without a callbackID - now requestID in the requesting: " + request.action);
+      if ("callbackID" in request) {
+        console.error("callbackID: " + request.callbackID);
+      }
+    }
+    return response;
+  },
+
   DEBUG_LEVELS: {
     ALL: 2,
     BASIC: 1,

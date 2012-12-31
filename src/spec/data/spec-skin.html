@@ -1,5 +1,5 @@
 <html>
-  <script id="Frame-test-template" type="text/template">
+  <script id="Frame-spec-template" type="text/template">
     <tapedeck>
       <events>
         "click #queue-save"    : "PlaylistList.saveQueue",
@@ -17,18 +17,18 @@
     </tapedeck>
 
     <template>
-      <div id="this-is-the-test-template"></div>
+      <div id="this-is-the-spec-template"></div>
       <div id="player">
-        <template ref="Player-test-template" />
+        <template ref="Player-spec-template" />
       </div>
       <div id="queue-region" class="region">
         <div id="queue" class="tracklist">
-          <template ref="Queue-test-template" />
+          <template ref="Queue-spec-template" />
         </div>
 
         <div id="queue-buttons">
           <div id="playlist-list">
-            <template ref="PlaylistList-test-template" />
+            <template ref="PlaylistList-spec-template" />
           </div>
 
           <button id="queue-save" type="button">
@@ -42,11 +42,11 @@
         </div>
       </div>
 
-      <template ref="BrowseRegion-test-template" />
+      <template ref="BrowseRegion-spec-template" />
     </template>
   </script>
 
-  <script id="BrowseRegion-test-template" type="text/template">
+  <script id="BrowseRegion-spec-template" type="text/template">
     <tapedeck>
       <events>
       </events>
@@ -58,16 +58,16 @@
     <template>
       <div id="browse-region" class="region">
         <% if(typeof(params.currentCassette) != "undefined" && params.currentCassette != null) { %>
-          <template ref="BrowseList-test-template" />
+          <template ref="BrowseList-spec-template" />
         <% }
         else { %>
-          <template ref="CassetteList-test-template" />
+          <template ref="CassetteList-spec-template" />
         <% } %>
       </div>
     </template>
   </script>
 
-  <script id="Player-test-template" type="text/template">
+  <script id="Player-spec-template" type="text/template">
     <tapedeck>
       <events>
         "mouseover #seek-slider #handle": "Player.SeekSlider.mouseoverHandle",
@@ -152,7 +152,7 @@
     </template>
   </script>
 
-  <script id="TrackList-test-template" type="text/template">
+  <script id="TrackList-spec-template" type="text/template">
     <tapedeck>
       <events>
         "click .tracklist .row"                 : "TrackLists.rowClick",
@@ -284,7 +284,7 @@
     </template>
   </script>
 
-  <script id="Queue-test-template" type="text/template">
+  <script id="Queue-spec-template" type="text/template">
     <tapedeck>
       <events>
         "dragstart #queue .row" : "TrackLists.rowDragStart",
@@ -302,12 +302,12 @@
     <template>
       <div id="queue" class="tracklist-container" rowdblclick="queueDblClick">
         <!-- we do not want the currentCassette, so make sure the trackList can not find it -->
-        <template ref="TrackList-test-template" remap="params.trackList:params.queue,params.currentCassette:params.__doesNotExist__"/>
+        <template ref="TrackList-spec-template" remap="params.trackList:params.queue,params.currentCassette:params.__doesNotExist__"/>
       </div>
     </template>
   </script>
 
-  <script id="BrowseList-test-template" type="text/template">
+  <script id="BrowseList-spec-template" type="text/template">
     <tapedeck>
       <events>
         "dragstart #browse-list .row" : "TrackLists.rowDragStart",
@@ -322,12 +322,12 @@
 
     <template>
       <div id="browse-list" class="tracklist-container" rowdblclick="browseDblClick">
-        <template ref="TrackList-test-template" remap="params.trackList:params.browseList" />
+        <template ref="TrackList-spec-template" remap="params.trackList:params.browseList" />
       </div>
     </template>
   </script>
 
-  <script id="PlaylistList-test-template" type="text/template">
+  <script id="PlaylistList-spec-template" type="text/template">
     <tapedeck>
       <events>
         "mouseover #playlist-list-header"   : "PlaylistList.showPlaylistList",
@@ -367,7 +367,7 @@
     </template>
   </script>
 
-  <script id="CassetteList-test-template" type="text/template">
+  <script id="CassetteList-spec-template" type="text/template">
     <tapedeck>
       <events>
         "click .cassettelist .row"            : "CassetteList.rowClick",
@@ -440,7 +440,7 @@
     </template>
   </script>
 
-  <script id="Modal-test-template" type="text/template">
+  <script id="Modal-spec-template" type="text/template">
     <tapedeck>
       <events>
           "click .modal #close-button"  : "Modal.close",

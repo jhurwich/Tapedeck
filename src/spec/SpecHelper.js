@@ -1,14 +1,14 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Template Manager",
+  "Template Manager"
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
 ];
 
 /* Runs initialization before each test.
- * Dramatically slows down test suite.  */
-__Jasmine__DO_FULL_INIT = true;
+ * Dramatically slows down test suite and can get crashy.  */
+__Jasmine__DO_FULL_INIT = false;
 
 beforeEach(function() {
   this.Tapedeck = {};

@@ -79,10 +79,10 @@ describe("The Scraper Cassette", function() {
         // numPostLoads refers to the number of times groups of tracks
         // will be added after the original, in the event of a
         // soundcloud playlist this can contain more than one track.
-        spy = spyOn(this.Tapedeck.Backend.MessageHandler, "addTracks");
+        spy = spyOn(this.Tapedeck.Backend.MessageHandler, "addTracks").andCallThrough();
         waitsFor(function() {
           return spy.callCount == numPostLoads;
-        }, "Timed out waiting for add_tracks tracks", 2000);
+        }, "Timed out waiting for add_tracks tracks", 5000);
       }
 
       var testTab = self.findTestTab();

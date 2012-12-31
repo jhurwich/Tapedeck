@@ -50,10 +50,10 @@ if (onObject != null &&
       }
       else {
         parser.moreCallback = function(tracks) {
-          var request = {
+          var request = onObject.Utils.newRequest({
             action: "add_tracks",
             tracks: tracks
-          };
+          });
           chrome.extension.sendRequest(request);
         };
       }
@@ -72,11 +72,11 @@ if (onObject != null &&
         parser.log("ending parsing - got tracks: " + JSON.stringify(tracks), onObject.Utils.DEBUG_LEVELS.BASIC);
 
         if (!parser.onBackgroundPage) {
-          var response = {
+          var response = onObject.Utils.newRequest({
             type: "response",
             tracks: tracks,
             stillParsing: parser.isParsing
-          };
+          });
           chrome.extension.sendRequest(response);
         }
         else {
@@ -123,10 +123,10 @@ if (onObject != null &&
       catch (e) {
         console.error("ParserError");
         if (!parser.onBackgroundPage) {
-          var response = {
+          var response = onObject.newResponse({
             type: "response",
             error: { message: "ParserError" }
-          };
+          });
           chrome.extension.sendRequest(response);
           if (parser.finalCallback != null) {
             parser.finalCallback({ error: "ParserError", errorCount: 1, success: false });

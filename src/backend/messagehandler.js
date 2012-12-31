@@ -17,6 +17,7 @@ Tapedeck.Backend.MessageHandler = {
   portListener: function(port) {
     var self = Tapedeck.Backend.MessageHandler;
 
+    // we seem to get multiple connection requests for the same tab
     if (typeof(self.ports[port.sender.tab.id]) != "undefined" &&
         self.ports[port.sender.tab.id]) {
       return;
@@ -33,16 +34,59 @@ Tapedeck.Backend.MessageHandler = {
     });
   },
 
+  MAX_REGISTER_SIZE: 400,
+  requestRegister: {},
   requestListener: function(request,
                             sender,
                             sendResponse) {
+    var self = Tapedeck.Backend.MessageHandler;
+
     // Injected scripts also transmit with requests, but their
     // requests don't have actions.
     if (typeof(request.action) == "undefined") {
       return;
     }
 
-    var self = Tapedeck.Backend.MessageHandler;
+    // all requests must have a requestID to prevent duplicates
+    if (typeof(request.requestID) == "undefined") {
+      console.error("Request without requestID: " + request.action);
+      return;
+    }
+    else {
+      // returns true if the request has been received before and maintains the requestRegister
+      var checkRegister = function(rID) {
+
+        // check if a request with that id has been made before
+        if (rID in self.requestRegister) {
+          return true;
+        }
+        else {
+          self.requestRegister[rID] = true;
+        }
+
+        // this is a new request
+        var requestIDs = Object.keys(self.requestRegister).sort();
+        var registerSize = requestIDs.length;
+
+        // register has grown too large, clear everything but the 25% most recent
+        if (registerSize >= self.MAX_REGISTER_SIZE) {
+          while(registerSize >= 0.25 * self.MAX_REGISTER_SIZE) {
+            var removedID = requestIDs.shift();
+            delete self.requestRegister[removedID];
+            registerSize--;
+            console.log("*******too many requests, reduced to " + registerSize);
+          }
+        }
+        return false;
+      };
+
+      // this request was seen before
+      if (checkRegister(request.requestID)) {
+        console.error("Duplicate request: " + request.action + " (" + request.requestID + ")");
+        return;
+      }
+    }
+
     var str = "Request received: " + request.action;
     str += ((sender.tab == null) ? " from outside tabs"
                                  : " from tab " + sender.tab.id);
@@ -77,8 +121,8 @@ Tapedeck.Backend.MessageHandler = {
 
         // echo to all tabs
         for (var tabID in self.ports) {
-          var request = self.newRequest({ action : "setDrawer",
-                                          opened : request.opened });
+          var request = Tapedeck.Backend.Utils.newRequest({ action : "setDrawer",
+                                                            opened : request.opened });
           chrome.tabs.sendRequest(parseInt(tabID, 10), request);
         }
         break;
@@ -123,14 +167,14 @@ Tapedeck.Backend.MessageHandler = {
     }
   },
 
-  pendingCallbacks: {},
   handleResponse: function(response) {
     if (response.type != "response") {
       return;
     }
 
-    var callbacks = Tapedeck.Backend.MessageHandler.pendingCallbacks;
-    if (response.callbackID in callbacks) {
+    var callbacks = Tapedeck.Backend.Utils.pendingCallbacks;
+    if (response.callbackID in callbacks &&
+        callbacks[response.callbackID]) {
       callbacks[response.callbackID](response);
     }
   },
@@ -144,7 +188,7 @@ Tapedeck.Backend.MessageHandler = {
     var sqcr = Tapedeck.Backend.Sequencer;
     var bank = Tapedeck.Backend.Bank;
 
-    var response = self.newResponse(request);
+    var response = Tapedeck.Backend.Utils.newResponse(request);
 
     self.log("Received message: " + request.action + " from tab " + port.sender.tab.id);
 
@@ -563,7 +607,7 @@ Tapedeck.Backend.MessageHandler = {
     }
     var track = Tapedeck.Backend.Sequencer.getCurrentTrack();
 
-    var request = Tapedeck.Backend.MessageHandler.newRequest({
+    var request = Tapedeck.Backend.Utils.newRequest({
       action: "updateSeekSlider",
       currentTime: track.get("currentTime"),
       duration: track.get("duration")
@@ -581,7 +625,7 @@ Tapedeck.Backend.MessageHandler = {
     }
     var volume = Tapedeck.Backend.Bank.getVolume();
 
-    var request = Tapedeck.Backend.MessageHandler.newRequest({
+    var request = Tapedeck.Backend.Utils.newRequest({
       action: "updateVolumeSlider",
       volume: volume
     });
@@ -597,7 +641,7 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
 
-    var request = Tapedeck.Backend.MessageHandler.newRequest({
+    var request = Tapedeck.Backend.Utils.newRequest({
       action: "forceCheckSync"
     });
 
@@ -642,7 +686,7 @@ Tapedeck.Backend.MessageHandler = {
                                  .html();
 
       // if there's a callback specified, finishUp will not be null
-      var request = Tapedeck.Backend.MessageHandler.newRequest({
+      var request = Tapedeck.Backend.Utils.newRequest({
         action: "showModal",
         view: viewString,
         proxyEvents: rendered.proxyEvents
@@ -670,7 +714,7 @@ Tapedeck.Backend.MessageHandler = {
                                .remove()
                                .html();
 
-    var request = Tapedeck.Backend.MessageHandler.newRequest({
+    var request = Tapedeck.Backend.Utils.newRequest({
       action: "pushView",
       view: viewString,
       proxyEvents : proxyEvents
@@ -680,7 +724,7 @@ Tapedeck.Backend.MessageHandler = {
   },
 
   signalLoadComplete: function(tab) {
-    var request = Tapedeck.Backend.MessageHandler.newRequest({
+    var request = Tapedeck.Backend.Utils.newRequest({
       action: "loadComplete"
     });
 
@@ -697,7 +741,7 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
 
-    var request = self.newRequest({
+    var request = Tapedeck.Backend.Utils.newRequest({
       action: "setLogs",
       logs: object
     });
@@ -705,43 +749,10 @@ Tapedeck.Backend.MessageHandler = {
     self.messageSandbox(request, callback);
   },
 
-  newRequest: function(object, callback) {
-    var request = (object ? object : { });
-    request.type = "request";
-
-    if (typeof(callback) != "undefined" &&
-        callback != null) {
-      var cbID = new Date().getTime();
-      while (cbID in Tapedeck.Backend.MessageHandler.pendingCallbacks) {
-        cbID = cbID + 1;
-      }
-
-      Tapedeck.Backend.MessageHandler.pendingCallbacks[cbID] = callback;
-      request.callbackID = cbID;
-    }
-    return request;
-  },
-
-  newResponse: function(request, object) {
-    var response = (object ? object : { });
-    response.type = "response";
-
-    if ("callbackID" in request) {
-      response.callbackID = request.callbackID;
-    }
-    return response;
-  },
-
   sandboxCallbacks: {},
   messageSandbox: function(message, callback) {
     if (typeof(callback) != "undefined" && callback != null) {
-      var cbID = new Date().getTime();
-      while (cbID in Tapedeck.Backend.MessageHandler.sandboxCallbacks) {
-        cbID = cbID + 1;
-      }
-
-      Tapedeck.Backend.MessageHandler.sandboxCallbacks[cbID] = callback;
-      message.callbackID = cbID;
+      Tapedeck.Backend.MessageHandler.sandboxCallbacks[message.requestID] = callback;
     }
     $("#sandbox").get(0).contentWindow.postMessage(message, "*");
   },
@@ -758,12 +769,9 @@ Tapedeck.Backend.MessageHandler = {
           break;
 
         case "getLogLevels":
-          var request = Tapedeck.Backend.MessageHandler.newRequest({
-            action: "setLogs",
-            logs: Tapedeck.Backend.Utils.logLevels
-          });
-
-          Tapedeck.Backend.MessageHandler.messageSandbox(request);
+          Tapedeck.Backend.MessageHandler.setLogs(Tapedeck.Backend.Utils.logLevels,
+                                                  null,
+                                                  function() { });
           break;
 
         case "sandboxInitialized":
@@ -773,7 +781,7 @@ Tapedeck.Backend.MessageHandler = {
         case "executeScript":
           var callback = function(response) {
             response.action = 'response';
-            var sendResponse = Tapedeck.Backend.MessageHandler.newResponse(request, response);
+            var sendResponse = Tapedeck.Backend.Utils.newResponse(request, response);
             $("#sandbox").get(0).contentWindow.postMessage(sendResponse, "*");
           };
           Tapedeck.Backend.InjectManager.executeScript(request.tab, request.options, callback, request.testParams, request.prepCode);
@@ -782,17 +790,17 @@ Tapedeck.Backend.MessageHandler = {
         case "ajax":
           var msgHandler = Tapedeck.Backend.MessageHandler;
           request.params.success = function(data, textStatus, xhr) {
-            var response = msgHandler.newResponse(request,
-                                                  { action: 'response',
-                                                    responseText: xhr.responseText });
+            var response = Tapedeck.Backend.Utils.newResponse(request,
+                                                              { action: 'response',
+                                                                responseText: xhr.responseText });
             $("#sandbox").get(0).contentWindow.postMessage(response, "*");
           };
 
           request.params.error = function(data, textStatus, jqXHR) {
             console.error("Error performing ajax on behalf of Sandbox");
-            var response = msgHandler.newResponse(request,
-                                                  { action: 'response',
-                                                    error : "Ajax error" });
+            var response = Tapedeck.Backend.Utils.newResponse(request,
+                                                              { action: 'response',
+                                                                error : "Ajax error" });
             $("#sandbox").get(0).contentWindow.postMessage(response, "*");
           };
           msgHandler.log("Performing ajax request for Sandbox to '" + request.params.url + "'");

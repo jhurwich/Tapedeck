@@ -5,13 +5,7 @@ describe("Cassette Manager", function() {
                            .Backend
                            .CassetteManager;
 
-    var initComplete = false;
-    this.Tapedeck.Backend.CassetteManager.init(function() {
-      initComplete = true;
-    });
-    waitsFor(function() {
-      return initComplete;
-    }, "Waiting for CassetteManager.init()", 3000);
+    this.waitsForBackendInit();
   });
 
   it("should instantiate all cassette models on init", function() {

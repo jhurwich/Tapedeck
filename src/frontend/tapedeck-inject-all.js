@@ -62,7 +62,15 @@ if (typeof(TapedeckInjected) == "undefined") {
         }
       });
 
-      TapedeckInjected.checkDrawerOpened();
+      var finishInit = function() {
+        if (typeof(TapedeckInjected.Utils) == "undefined") {
+          setTimeout(finishInit, 100);
+          return;
+        }
+        TapedeckInjected.checkDrawerOpened();
+      };
+
+      finishInit();
     },
 
     injectSideButtons: function() {
@@ -171,7 +179,10 @@ if (typeof(TapedeckInjected) == "undefined") {
     },
 
     checkDrawerOpened: function() {
-      chrome.extension.sendRequest({action: "checkDrawer"}, function(response){
+      var request = TapedeckInjected.Utils.newRequest({action: "checkDrawer"});
+
+      // it's a bit strange that this uses sendResponse rather than a callbackID
+      chrome.extension.sendRequest(request, function(response){
         if (response.opened) {
           TapedeckInjected.openDrawer();
         }
@@ -183,14 +194,14 @@ if (typeof(TapedeckInjected) == "undefined") {
 
     setDrawerOpened: function() {
       TapedeckInjected.openDrawer();
-      chrome.extension.sendRequest({ action: "setDrawer",
-                                     opened: true });
+      var request = TapedeckInjected.Utils.newRequest({ action: "setDrawer", opened: true });
+      chrome.extension.sendRequest(request);
     },
 
     setDrawerClosed: function() {
       TapedeckInjected.closeDrawer();
-      chrome.extension.sendRequest({ action: "setDrawer",
-                                     opened: false });
+      var request = TapedeckInjected.Utils.newRequest({ action: "setDrawer", opened: false });
+      chrome.extension.sendRequest(request);
     },
 
     moveFixedElements: function() {
@@ -235,13 +246,16 @@ if (typeof(TapedeckInjected) == "undefined") {
     },
 
     playPause: function() {
-      chrome.extension.sendRequest({action: "play_pause"});
+      var request = TapedeckInjected.Utils.newRequest({action: "play_pause"});
+      chrome.extension.sendRequest(request);
     },
     next: function() {
-      chrome.extension.sendRequest({action: "next"});
+      var request = TapedeckInjected.Utils.newRequest({action: "next"});
+      chrome.extension.sendRequest(request);
     },
     prev: function() {
-      chrome.extension.sendRequest({action: "prev"});
+      var request = TapedeckInjected.Utils.newRequest({action: "prev"});
+      chrome.extension.sendRequest(request);
     },
 
     isTest: function() {

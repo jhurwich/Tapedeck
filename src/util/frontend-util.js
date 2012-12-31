@@ -69,6 +69,61 @@ var attachTo = function(onObject) {
       }
     },
 
+    pendingCallbacks: {},
+    newRequest: function(object, callback) {
+      var request = (object ? object : { });
+      request.type = "request";
+
+      // the time should be unique enough to prevent most collisions
+      var rID = new Date().getTime();
+      while (rID in this.pendingCallbacks) {
+        // increment until we're out of collisions
+        rID = rID + 1;
+      }
+
+      request.requestID = rID;
+      if (typeof(callback) != "undefined") {
+        this.pendingCallbacks[rID] = callback;
+      }
+      else {
+        this.pendingCallbacks[rID] = false;
+      }
+      return request;
+    },
+
+    newTrackBasedRequest: function(object, callback) {
+      var trackXs = object.trackXs;
+      object.trackXs = null;
+      var request = Tapedeck.Frontend.Utils.newRequest(object, callback);
+
+      if (typeof(trackXs[0]) == "string") {
+        // we got the tracks as trackIDs
+        request.trackIDs = trackXs;
+      }
+      else {
+        // we got the tracks as crude objects
+        request.trackObjs = trackXs;
+      }
+
+      return request;
+    },
+
+    newResponse: function(request, object) {
+      var response = (object ? object : { });
+      response.type = "response";
+
+      if ("requestID" in request) {
+        response.callbackID = request.requestID;
+      }
+      else {
+        console.error("Can't make a response without a callbackID - now requestID in the requesting: " + request.action);
+        if ("callbackID" in request) {
+          console.error("callbackID: " + request.callbackID);
+        }
+      }
+      return response;
+    },
+
     log: function(component, str, level) {
       if (typeof(level) == "undefined") {
         level = onObject.Utils.DEBUG_LEVELS.BASIC;

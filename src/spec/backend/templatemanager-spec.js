@@ -88,15 +88,12 @@ describe("Template Manager", function() {
     var self = this;
     var testComplete = false;
     var recoveredOptions = self.recoverOptions();
-    console.log("recovered: " + JSON.stringify(recoveredOptions));
 
     self.waitsForAddTestTemplate();
     runs(function() {
       self.Tapedeck.Backend.Bank.FileSystem.getTemplates(function(datas) {
 
         // ensure that we have one default template and the test template
-        var toPrint = _.map(datas, function(value, key) { return value.url; });
-        console.log(JSON.stringify(toPrint));
         var numExpected = 2;
         if (recoveredOptions.devTemplates !== "") {
           numExpected++;
@@ -106,11 +103,10 @@ describe("Template Manager", function() {
 
         for (var i = 0; i < datas.length; i++) {
           var data = datas[i];
-          console.log("considering " + data.url + " CSS: " +  data.cssURL);
           // we've loaded one test template into the filesystem, check it
           if (data.url.indexOf("filesystem:chrome-extension://") != -1) {
             expect(data.contents).toEqual(self.templateCode);
-            expect(data.cssURL).toMatch("filesystem:chrome-extension://[A-Za-z]*/temporary/CSS/" + data.name);
+            expect(data.cssURL).toMatch("filesystem:chrome-extension://[A-Za-z]*\/temporary/CSS/" + data.name);
           }
           else {
             // otherwise we're considering the default on background.html and/or something from the conf options
@@ -131,27 +127,35 @@ describe("Template Manager", function() {
       });
     });
   });
-/*
+
   it("should switch skins", function() {
     var self = this;
     var testComplete = false;
+    var recoveredOptions = self.recoverOptions();
 
     // without test loaded, this should go to default package
-    self.tMgr.setPackage("test");
+    self.tMgr.setPackage("spec");
     expect(self.tMgr.currentPackage).toEqual("default");
 
     // load the test skin and try to change to it
     self.waitsForAddTestTemplate();
     runs(function() {
       self.Tapedeck.Backend.Bank.FileSystem.getTemplates(function(datas) {
-        expect(datas.length).toEqual(2);
+        var names = _.map(datas, function (value) { return value.name; });
+        var numTemplatesExpected = 2;
+        if (typeof(recoveredOptions.devTemplates) != "undefined" &&
+            recoveredOptions.devTemplates &&
+            !$.isEmptyObject(recoveredOptions.devTemplates)) {
+          numTemplatesExpected++;
+        }
+        expect(datas.length).toEqual(numTemplatesExpected);
 
-        self.Tapedeck.Backend.TemplateManager.setPackage("test");
-        expect(self.tMgr.currentPackage).toEqual("test");
+        self.Tapedeck.Backend.TemplateManager.setPackage("spec");
+        expect(self.tMgr.currentPackage).toEqual("spec");
 
         // we've changed to the test package, let's make sure we get its templates now
         var textTemplate = self.tMgr.getTemplate("Frame", function(textTemplate) {
-          expect($(textTemplate).find("#this-is-the-test-template").length > 0).toBeTruthy();
+          expect($(textTemplate).find("#this-is-the-spec-template").length > 0).toBeTruthy();
           testComplete = true;
         });
       });
@@ -164,6 +168,4 @@ describe("Template Manager", function() {
       self.Tapedeck.Backend.TemplateManager.setPackage("default");
     });
   });
-
-*/
 });

@@ -51,7 +51,7 @@ Tapedeck.Sandbox = {
         if (typeof(prepCode) != "undefined") {
           message.prepCode = prepCode;
         }
-        var request = Tapedeck.Sandbox.newRequest(message, function(response) {
+        var request = Tapedeck.Sandbox.Utils.newRequest(message, function(response) {
           delete response.callbackID;
           responseCallback(response);
         });
@@ -59,7 +59,7 @@ Tapedeck.Sandbox = {
       }
     };
 
-    var request = Tapedeck.Sandbox.newRequest({
+    var request = Tapedeck.Sandbox.Utils.newRequest({
       action : "getLogLevels"
     });
     Tapedeck.Sandbox.sendMessage(request);
@@ -68,7 +68,7 @@ Tapedeck.Sandbox = {
   },
 
   finishInit: function() {
-    var request = Tapedeck.Sandbox.newRequest({
+    var request = Tapedeck.Sandbox.Utils.newRequest({
       action : "sandboxInitialized"
     });
     Tapedeck.Sandbox.sendMessage(request);
@@ -81,7 +81,7 @@ Tapedeck.Sandbox = {
       return;
     }
 
-    var response = Tapedeck.Sandbox.newResponse(message);
+    var response = Tapedeck.Sandbox.Utils.newResponse(message);
     Tapedeck.Sandbox.log("Sandbox received message: " + message.action);
 
     switch(message.action)
@@ -131,7 +131,7 @@ Tapedeck.Sandbox = {
           }, function(final) {
 
             // final callback
-            var finalResponse = Tapedeck.Sandbox.newResponse(message);
+            var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
             finalResponse.success = final.success;
             cleanup();
             Tapedeck.Sandbox.sendMessage(finalResponse);
@@ -168,7 +168,7 @@ Tapedeck.Sandbox = {
         }, function(final) {
 
           // final callback
-          var finalResponse = Tapedeck.Sandbox.newResponse(message);
+          var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
           for (var p in final) {
             finalResponse[p] = final[p];
           }
@@ -195,7 +195,7 @@ Tapedeck.Sandbox = {
         }, function(final) {
 
           // final callback
-          var finalResponse = Tapedeck.Sandbox.newResponse(message);
+          var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
           for (var param in final) {
             finalResponse[param] = final[param];
           }
@@ -213,8 +213,8 @@ Tapedeck.Sandbox = {
         }
 
         Tapedeck.Backend.Utils.setLogs(message.logs, true);
-        if (typeof(message.callbackID) != "undefined") {
-          var aResponse = Tapedeck.Sandbox.newResponse(message);
+        if (typeof(message.requestID) != "undefined") {
+          var aResponse = Tapedeck.Sandbox.Utils.newResponse(message);
           Tapedeck.Sandbox.sendMessage(aResponse);
         }
 
@@ -309,37 +309,9 @@ Tapedeck.Sandbox = {
   pendingCallbacks: { },
   responseHandler: function(response) {
     Tapedeck.Sandbox.log("Sandbox received a response with keys: " + JSON.stringify(Object.keys(response)));
-    var callbacks = Tapedeck.Sandbox.pendingCallbacks;
-    if (response.callbackID in callbacks) {
-      callbacks[response.callbackID](response);
+    if (response.callbackID in Tapedeck.Sandbox.Utils.pendingCallbacks) {
+      Tapedeck.Sandbox.Utils.pendingCallbacks[response.callbackID](response);
     }
-  },
-
-  newResponse: function(message, object) {
-    var response = (object ? object : { });
-    response.type = "response";
-
-    if ("callbackID" in message) {
-      response.callbackID = message.callbackID;
-    }
-    return response;
-  },
-
-  newRequest: function(object, callback) {
-    var request = (object ? object : { });
-    request.type = "request";
-
-    if (typeof(callback) != "undefined" &&
-        callback != null) {
-      var cbID = new Date().getTime();
-      while (cbID in Tapedeck.Sandbox.pendingCallbacks) {
-        cbID = cbID + 1;
-      }
-
-      Tapedeck.Sandbox.pendingCallbacks[cbID] = callback;
-      request.callbackID = cbID;
-    }
-    return request;
   },
 
   // Tapedeck.ajax cannot be performed from the Sandbox, relay to background
@@ -363,12 +335,11 @@ Tapedeck.Sandbox = {
       }
     };
 
-    var message = Tapedeck.Sandbox.newRequest({
+    var message = Tapedeck.Sandbox.Utils.newRequest({
       action : "ajax",
       params : params
     }, handleAjax);
     // callback to params.success or params.error
-
     Tapedeck.Sandbox.sendMessage(message);
   },
 

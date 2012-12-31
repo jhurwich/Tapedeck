@@ -41,13 +41,13 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
     self.log(logStr);
 
     var doRender = function() {
-      var message = {
+      var message = Tapedeck.Backend.Utils.newRequest({
         action: "render",
         templateName: self.templateName,
         packageName: self.packageName,
         params: self.params,
         textTemplate: self.textTemplate
-      };
+      });
 
       try {
         Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {

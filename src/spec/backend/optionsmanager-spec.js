@@ -43,6 +43,7 @@ describe("Options Manager", function() {
     this.waitsForBackendInit();
   });
 
+  // A conf file entry for each attribute must exist to be tested
   it("should default to conf settings", function() {
     var self = this;
     var testComplete = false;
@@ -85,6 +86,12 @@ describe("Options Manager", function() {
             return value;
           });
           patterns = patterns.sort();
+          for (var i = 0; i < patterns.length; i++) {
+            if (patterns[i] === "") {
+              patterns.splice(i, 1);
+              i--;
+            }
+          }
           expect(patterns).toEqual(recovered.premadeCassettes.sort());
           premadesChecked = true;
 
@@ -98,11 +105,24 @@ describe("Options Manager", function() {
               var skinObject = devObject[devParam];
               for (var skinParam in skinObject) {
                 if (skinParam.indexOf("Template") != -1) {
-                  expect(skinObject[skinParam]).toEqual(recovered.devTemplates);
+
+                  // conf file entry changes must exist to be tested
+                  if (skinObject[skinParam] !== "") {
+                    var lastSlash = recovered.devTemplates.url.lastIndexOf("/");
+                    var templateURL = recovered.devTemplates.url.substring(lastSlash + 1);
+                    expect(skinObject[skinParam]).toEqual(templateURL);
+                  }
                   templatesChecked = true;
+
                 }
                 else if (skinParam.indexOf("CSS") != -1) {
-                  expect(skinObject[skinParam]).toEqual(recovered.devCSS);
+
+                  // conf file entry changes must exist to be tested
+                  if (skinObject[skinParam] !== "") {
+                    var lastSlash = recovered.devCSS.url.lastIndexOf("/");
+                    var cssURL = recovered.devCSS.url.substring(lastSlash + 1);
+                    expect(skinObject[skinParam]).toEqual(cssURL);
+                  }
                   cssChecked = true;
                 }
               }
@@ -139,22 +159,22 @@ describe("Options Manager", function() {
     var testComplete = false;
 
     runs(function() {
-      console.log("saving options");
       self.Tapedeck.Frontend.Messenger.saveOptions(self.testOptions, function() {
         var recovered = self.recoverOptions();
-        console.log(JSON.stringify(recovered));
         for (var param in recovered) {
           var value = recovered[param];
           switch(param)
           {
             case "devTemplates":
               var expectedTemplate = self.testOptions.Development.Skinning["Template in src/dev"];
-              expect(value).toEqual(expectedTemplate);
+              var recoveredFilename = value.url.substring(value.url.lastIndexOf("/") + 1);
+              expect(recoveredFilename).toEqual(expectedTemplate);
               break;
 
             case "devCSS":
               var expectedCSS = self.testOptions.Development.Skinning["CSS in src/dev"];
-              expect(value).toEqual(expectedCSS);
+              var recoveredFilename = value.url.substring(value.url.lastIndexOf("/") + 1);
+              expect(recoveredFilename).toEqual(expectedCSS);
               break;
 
             case "devCassettes":

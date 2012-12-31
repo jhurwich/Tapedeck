@@ -20,19 +20,20 @@ Tapedeck.Frontend.Messenger = {
     self.log("Connected port for tab " + self.port.name);
   },
 
-  pendingCallbacks: {},
   handleResponse: function(response) {
     var msgr = Tapedeck.Frontend.Messenger;
+    var utils = Tapedeck.Frontend.Utils;
 
     if (response.type != "response") {
       return;
     }
 
-    if (response.callbackID in msgr.pendingCallbacks) {
-      msgr.pendingCallbacks[response.callbackID](response);
+    if (response.callbackID in utils.pendingCallbacks &&
+        utils.pendingCallbacks[response.callbackID]) {
+      utils.pendingCallbacks[response.callbackID](response);
 
       if (typeof(response.dontClear) == "undefined" || !response.dontClear) {
-        delete msgr.pendingCallbacks[response.callbackID];
+        delete utils.pendingCallbacks[response.callbackID];
       }
     }
     else {
@@ -69,7 +70,7 @@ Tapedeck.Frontend.Messenger = {
     }
     var self = Tapedeck.Frontend.Messenger;
 
-    var response = self.newResponse(request);
+    var response = Tapedeck.Frontend.Utils.newResponse(request);
     self.log("Receiving request: " + request.action);
 
     switch(request.action)
@@ -144,7 +145,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   requestUpdate: function(updateType) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action     : "requestUpdate",
       updateType : updateType
     });
@@ -153,7 +154,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   getLogs: function(callback) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action        : "getLogs",
     }, callback);
 
@@ -167,7 +168,7 @@ Tapedeck.Frontend.Messenger = {
       postPopulate = false;
     }
 
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action        : "getView",
       viewName      : viewName,
       postPopulate  : postPopulate
@@ -184,7 +185,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   seekPercent: function(percent) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "seek",
       percent : percent
     });
@@ -193,7 +194,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   setVolume: function(percent) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "setVolume",
       percent : percent
     });
@@ -202,7 +203,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   download: function(trackID, callback) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "download",
       trackID : trackID
     }, callback);
@@ -210,7 +211,7 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
   finishDownload: function(trackID) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "finishDownload",
       trackID : trackID
     });
@@ -226,7 +227,7 @@ Tapedeck.Frontend.Messenger = {
   queueTracks: function(trackXs, index) {
     // trackX because could be Obj or ID
 
-    var request = Tapedeck.Frontend.Messenger.newTrackBasedRequest({
+    var request = Tapedeck.Frontend.Utils.newTrackBasedRequest({
       action : "queueTracks",
       trackXs : trackXs
     });
@@ -241,7 +242,7 @@ Tapedeck.Frontend.Messenger = {
   moveTracks: function(trackObjs, index) {
     // can only move trackObjs because need each track's current index
 
-    var request = Tapedeck.Frontend.Messenger.newTrackBasedRequest({
+    var request = Tapedeck.Frontend.Utils.newTrackBasedRequest({
       action : "moveTracks",
       trackXs : trackObjs
     });
@@ -254,7 +255,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   removeQueuedAt: function(pos) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action : "removeQueuedAt",
       pos    : pos
     });
@@ -263,7 +264,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   playPlaylist: function(index) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action : "playPlaylist",
       index  : index,
     });
@@ -272,7 +273,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   removePlaylist: function(index) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action : "removePlaylist",
       index  : index,
     });
@@ -281,7 +282,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   chooseFeed: function(feedName) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action : "chooseFeed",
       feedName  : feedName,
     });
@@ -290,7 +291,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   getCSS: function(callback) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action       : "getCSS",
     }, callback);
 
@@ -298,35 +299,35 @@ Tapedeck.Frontend.Messenger = {
   },
 
   getRepeat: function(callback) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action       : "getRepeat",
     }, callback);
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
   getSync: function(callback) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action       : "getSync",
     }, callback);
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   toggleRepeat: function() {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action       : "toggleRepeat",
     });
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
   toggleSync: function() {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action       : "toggleSync",
     });
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
   shuffleQueue: function() {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action       : "shuffleQueue",
     });
 
@@ -334,7 +335,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   makePlaylist: function(playlistName) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action       : "makePlaylist",
       playlistName : playlistName,
     });
@@ -343,7 +344,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   clearQueue: function() {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action   : "clearQueue"
     });
 
@@ -351,7 +352,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   playIndex: function(index) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "playIndex",
       index : index
     });
@@ -360,7 +361,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   queueAndPlayNow: function(trackID) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "queueAndPlayNow",
       trackID : trackID
     });
@@ -369,7 +370,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   setCassette: function(cassetteID) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "setCassette",
       cassetteID : cassetteID
     });
@@ -378,7 +379,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   removeCassette: function(cassetteID) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "removeCassette",
       cassetteID : cassetteID
     });
@@ -387,14 +388,14 @@ Tapedeck.Frontend.Messenger = {
   },
 
   browsePrevPage: function() {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "browsePrevPage"
     });
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
   setPage: function(page) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "setPage",
       page    : page
     });
@@ -402,7 +403,7 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
   browseNextPage: function() {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "browseNextPage"
     });
 
@@ -414,7 +415,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   cassettify: function() {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "cassettify"
     });
 
@@ -422,7 +423,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   loadLink: function(url) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "loadLink",
       url : url
     });
@@ -431,7 +432,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   saveOptions: function(options, callback) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "saveOptions",
       options : options
     }, callback);
@@ -440,7 +441,7 @@ Tapedeck.Frontend.Messenger = {
   },
 
   runTests: function() {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "runTests"
     });
 
@@ -460,57 +461,12 @@ Tapedeck.Frontend.Messenger = {
     self.port.postMessage(message);
   },
 
-  newRequest: function(object, callback) {
-    var request = (object ? object : { });
-    request.type = "request";
-
-    if (typeof(callback) != "undefined") {
-      // the time should be unique enough to prevent most collisions
-      var cbID = new Date().getTime();
-      while (cbID in Tapedeck.Frontend.Messenger.pendingCallbacks) {
-        // increment until we're out of collisions
-        cbID = cbID + 1;
-      }
-      Tapedeck.Frontend.Messenger.pendingCallbacks[cbID] = callback;
-      request.callbackID = cbID;
-    }
-    return request;
-  },
-
-  newTrackBasedRequest: function(object, callback) {
-    var trackXs = object.trackXs;
-    object.trackXs = null;
-    var request = Tapedeck.Frontend.Messenger.newRequest(object,
-                                                         callback);
-
-    if (typeof(trackXs[0]) == "string") {
-      // we got the tracks as trackIDs
-      request.trackIDs = trackXs;
-    }
-    else {
-      // we got the tracks as crude objects
-      request.trackObjs = trackXs;
-    }
-
-    return request;
-  },
-
-  newResponse: function(request, object) {
-    var response = (object ? object : { });
-    response.type = "response";
-
-    if ("callbackID" in request) {
-      response.callbackID = request.callbackID;
-    }
-    return response;
-  },
-
   log: function(str, level) {
     Tapedeck.Frontend.Utils.log("Messenger", str, level);
   },
 
   clear: function(callback) {
-    var request = Tapedeck.Frontend.Messenger.newRequest({
+    var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "clear",
     }, callback);
 

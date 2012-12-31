@@ -42,7 +42,8 @@ Tapedeck.Backend.CassetteManager = {
       cMgr.log("Discarding and reading in cassettes.");
       cMgr.cassettes = [];
 
-      Tapedeck.Backend.MessageHandler.messageSandbox({ action: 'clearCassettes' }, function() {
+      var request = Tapedeck.Backend.Utils.newRequest({ action: 'clearCassettes' });
+      Tapedeck.Backend.MessageHandler.messageSandbox(request, function() {
         var pageMap = { };
 
         var scoped = function(data) {
@@ -55,10 +56,10 @@ Tapedeck.Backend.CassetteManager = {
 
               // Tell the Sandbox to prepare this cassette, in the response is a report
               // from which a CassetteAdapter can be created.  Map that adapter as the cassette
-              var message = {
+              var message = Tapedeck.Backend.Utils.newRequest({
                 action: "prepCassette",
                 code: xhr.responseText
-              };
+              });
               Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
                 var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
                 var cassetteEntry = { cassette: newAdapter };
@@ -469,12 +470,12 @@ Tapedeck.Backend.CassetteManager = {
 
       // Use Sandbox to generate the Cassette's source
       var context = Tapedeck.Backend.Utils.getContext(tab);
-      var message = {
+      var message = Tapedeck.Backend.Utils.newRequest({
         action: "testPattern",
         params: { domain: domain, pattern: pattern },
         textTemplate: cMgr.CassettifyTemplate.template,
         context: context
-      };
+      });
       try {
         msgHandler.messageSandbox(message, function(response) {
           // check if tracks were added using msgHandler.addTracks, though getBrowseList may have failed
@@ -580,11 +581,11 @@ Tapedeck.Backend.CassetteManager = {
       }
 
       // Use Sandbox to generate the Cassette's source
-      var message = {
+      var message = Tapedeck.Backend.Utils.newRequest({
         action: "template",
         params: { domain: domain, pattern: pattern },
         textTemplate: cMgr.CassettifyTemplate.template
-      };
+      });
       try {
         Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
           var options = { domain: domain };
@@ -649,14 +650,14 @@ Tapedeck.Backend.CassetteManager = {
             soundcloud.entityID = response.id;
 
             // Use Sandbox to generate the Cassette's source
-            var message = {
+            var message = Tapedeck.Backend.Utils.newRequest({
               action: "template",
               params: { isGroup : soundcloud.isGroup,
                         entity  : soundcloud.entity,
                         entityID: soundcloud.entityID,
                         domain  : soundcloud.domain },
               textTemplate: Tapedeck.Backend.CassetteManager.SoundcloudTemplate.template
-            };
+            });
             try {
               if (cassetteName == null) {
                 Tapedeck.Backend.MessageHandler.messageSandbox(message, soundcloud.finish.curry(callback));

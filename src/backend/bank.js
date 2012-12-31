@@ -830,10 +830,12 @@ Tapedeck.Backend.Bank = {
     var bank = Tapedeck.Backend.Bank;
 
     bank.log("! Bank is Clearing !");
+
     this.localStorage.clear();
     this.Memory.clear();
     this.FileSystem.clear();
     this.Sync.clear();
+
     if (typeof(this.PlaylistList) != "undefined" && this.PlaylistList != null) {
       this.PlaylistList.reset();
     }

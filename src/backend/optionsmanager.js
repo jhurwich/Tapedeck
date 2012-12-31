@@ -3,7 +3,6 @@ Tapedeck.Backend.OptionsManager = {
   init: function(continueInit) {
     var self = this;
     self.getConf(self.handleConf.curry(continueInit));
-
   },
 
   // This expects a callback that itself takes the params (successCallback, conf),
@@ -50,7 +49,6 @@ Tapedeck.Backend.OptionsManager = {
 
       //and save them back
       Tapedeck.Backend.Bank.saveOptions(options);
-
       optionMgr.enactOptions(optionMgr.unflatten(options), function() {
         successCallback();
       });
