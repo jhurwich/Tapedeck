@@ -29,13 +29,13 @@ Tapedeck.Backend.Collections.PlaylistList = Backbone.Collection.extend({
   },
 
   addPlaylist: function(playlist) {
-    Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
+    Tapedeck.Backend.TemplateManager.renderViewAndPush("PlaylistList");
   },
 
   removePlaylist: function(playlist) { // TODO fix me, push clearing down a level
     var bank = Tapedeck.Backend.Bank;
 
     playlist.destroy();
-    Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
+    Tapedeck.Backend.TemplateManager.renderViewAndPush("PlaylistList");
   }
 });

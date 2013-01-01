@@ -22,8 +22,8 @@ describe("Sequencer", function() {
     expect(this.sqcr.queue.length).toEqual(origLen + 1);
   });
 
-  it("should call updateView when a track is added", function() {
-    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "updateView")
+  it("should call renderViewAndPush when a track is added", function() {
+    var spy = spyOn(this.Tapedeck.Backend.TemplateManager, "renderViewAndPush")
                    .andCallThrough();
 
     this.sqcr.push(this.testTracks[0]);
@@ -86,10 +86,10 @@ describe("Sequencer", function() {
     expect(secondTrack).toReflectJSON(this.testTracks[2]);
   });
 
-  it("should call updateView when a track is removed", function() {
+  it("should call renderViewAndPush when a track is removed", function() {
     this.sqcr.push(this.testTracks[0]);
 
-    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "updateView")
+    var spy = spyOn(this.Tapedeck.Backend.TemplateManager, "renderViewAndPush")
                    .andCallThrough();
     this.sqcr.removeAt(0);
 
@@ -107,9 +107,9 @@ describe("Sequencer", function() {
     expect(this.sqcr.queue.length).toEqual(0);
   });
 
-  it("should call updateView when tracks are cleared", function() {
+  it("should call renderViewAndPush when tracks are cleared", function() {
     var origLen = this.sqcr.queue.length;
-    var spy = spyOn(this.Tapedeck.Backend.MessageHandler, "updateView")
+    var spy = spyOn(this.Tapedeck.Backend.TemplateManager, "renderViewAndPush")
                    .andCallThrough();
 
     this.sqcr.insertSomeAt(this.testTracks, origLen);

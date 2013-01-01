@@ -22,13 +22,17 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
     /* No events, although probably want interval */ \
     events: [], \
 \
-    getBrowseList: function(context, callback, errCallback) { \
+    getBrowseList: function(context, callback, errCallback, finalCallback) { \
       var self = this; \
-      self.getPage(1, context, callback, errCallback); \
+      self.getPage(1, context, callback, errCallback, finalCallback); \
     }, /* end getBrowseList */ \
 \
-    getPage: function(pageNum, context, callback, errCallback) { \
+    getPage: function(pageNum, context, callback, errCallback, finalCallback) { \
       var self = this; \
+      if (typeof(finalCallback) != "undefined") { \
+        self.finalCallback = finalCallback; \
+      } \
+\
       var queryURL = "http://api.soundcloud.com"; \
       if (self.isGroup) { \
         queryURL = queryURL + "/groups"; \
@@ -57,6 +61,7 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
           } \
         } \
         callback({ tracks: foundTracks }); \
+        self.finalCallback({ success: true }); \
         return; \
       } \
 \
@@ -69,6 +74,7 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
         else { \
           self.saveTracksForURL(queryURL, params.tracks); \
           callback(params); \
+          self.finalCallback({ success: true }); \
         } \
       }; \
 \

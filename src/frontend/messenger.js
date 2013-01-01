@@ -32,9 +32,7 @@ Tapedeck.Frontend.Messenger = {
         utils.pendingCallbacks[response.callbackID]) {
       utils.pendingCallbacks[response.callbackID](response);
 
-      if (typeof(response.dontClear) == "undefined" || !response.dontClear) {
-        delete utils.pendingCallbacks[response.callbackID];
-      }
+      delete utils.pendingCallbacks[response.callbackID];
     }
     else {
       if (typeof(response.view) != "undefined") {
@@ -144,10 +142,14 @@ Tapedeck.Frontend.Messenger = {
     }
   },
 
-  requestUpdate: function(updateType) {
+  requestUpdate: function(updateType, pushHollowFirst) {
+    if (typeof(pushHollowFirst) == "undefined") {
+      pushHollowFirst = false;
+    }
     var request = Tapedeck.Frontend.Utils.newRequest({
-      action     : "requestUpdate",
-      updateType : updateType
+      action          : "requestUpdate",
+      updateType      : updateType,
+      pushHollowFirst : pushHollowFirst
     });
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
@@ -157,29 +159,6 @@ Tapedeck.Frontend.Messenger = {
     var request = Tapedeck.Frontend.Utils.newRequest({
       action        : "getLogs",
     }, callback);
-
-    Tapedeck.Frontend.Messenger.sendMessage(request);
-  },
-
-  // options should be null if view should self-populate, an empty object will force
-  // no options to the view
-  getView: function(viewName, options, packageName, callback, postPopulate) {
-    if(typeof(postPopulate) == "undefined") {
-      postPopulate = false;
-    }
-
-    var request = Tapedeck.Frontend.Utils.newRequest({
-      action        : "getView",
-      viewName      : viewName,
-      postPopulate  : postPopulate
-    }, callback);
-
-    if (packageName && packageName.length > 0) {
-      request.packageName = packageName;
-    }
-    if (typeof(options) != "undefined" && options != null) {
-      request.options = options;
-    }
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },

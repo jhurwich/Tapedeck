@@ -36,7 +36,39 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
     this.proxyMethod("getBrowseList", params, callback, errCallback, finalCallback);
   },
 
+  // the adapter prevents requests from being repeated to the sandbox, all callbacks get the first's result
+  requestMap: {},
   proxyMethod: function(methodName, params, successCallback, errCallback, finalCallback) {
+
+    // mapID is the page concatted to the feed, if it exists
+    var mapID = 0;
+    if (typeof(params.page) != "undefined") {
+      mapID = params.page;
+    }
+    if (Tapedeck.Backend.CassetteManager.currFeed != null) {
+      mapID = "" + mapID + Tapedeck.Backend.CassetteManager.currFeed;
+    }
+
+    // initialize the map for this method if it doesn't exist
+    if (!(methodName in this.requestMap)) {
+      this.requestMap[methodName] = { };
+    }
+
+    var callbackMap = this.requestMap[methodName];
+    if (typeof(callbackMap[mapID]) != "undefined") {
+      // request already made, allow that to complete and return based on it
+      callbackMap[mapID].push({ successCallback : successCallback,
+                                errCallback     : errCallback,
+                                finalCallback   : finalCallback });
+      return;
+    }
+    else {
+      // new request, queue the callbacks and continue to make it
+      callbackMap[mapID] = [{ successCallback : successCallback,
+                              errCallback     : errCallback,
+                              finalCallback   : finalCallback }];
+    }
+
     var message = Tapedeck.Backend.Utils.newRequest({
       action: methodName,
       params: params,
@@ -45,14 +77,22 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
     Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
       if (typeof(response.error) != "undefined" && response.error) {
         // there was some error
-        errCallback(response.error);
+        for (var i = 0; i < callbackMap[mapID].length; i++) {
+          callbackMap[mapID][i].errCallback(response.error);
+        }
+        delete callbackMap[mapID];
       }
       else if (typeof(response.final) != "undefined" && response.final) {
         // final callback for this interaction
-        finalCallback(response);
+        for (var i = 0; i < callbackMap[mapID].length; i++) {
+          callbackMap[mapID][i].finalCallback(response);
+        }
+        delete callbackMap[mapID];
       } else {
         // success
-        successCallback(response);
+        for (var i = 0; i < callbackMap[mapID].length; i++) {
+          callbackMap[mapID][i].successCallback(response);
+        }
       }
     });
   }

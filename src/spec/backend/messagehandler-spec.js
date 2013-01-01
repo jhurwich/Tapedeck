@@ -4,19 +4,19 @@ describe("Message Handler", function() {
     this.waitsForFrontendInit();
   });
 
-  it("should return a rendered view when requested", function() {
+  it("should update a view when requested", function() {
     var requestProcessed = false;
-    var callback = function(response) {
-      expect($(response.view)).toHaveId("frame");
-      requestProcessed = true;
-    };
 
-    this.Tapedeck.Frontend.Messenger.getView
-        ("Frame", { }, null, callback);
+    var replaceSpy = spyOn(this.Tapedeck.Frontend.Utils, "replaceView");
+    this.Tapedeck.Frontend.Messenger.requestUpdate("Frame");
 
     waitsFor(function() {
-      return requestProcessed;
-    }, "Request for Frame View never processed", 1000);
+      return replaceSpy.callCount > 0;
+    }, "Request for Frame View never completed", 2000);
+
+    runs(function() {
+      expect($(replaceSpy.mostRecentCall.args[0])).toHaveId("frame");
+    })
   });
 
 /* Flaky and won't fix, decommissioning 1-29-12

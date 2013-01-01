@@ -252,7 +252,11 @@
       <template>
         <% if(params.debug > 0) {
 
-        } %>
+        }
+        if (params.trackList == "error") {
+          params.errorString = "Could not populate this list.";
+        }
+        %>
         <div class="tracklist">
           <% if (typeof(params.errorString) != "undefined" && params.errorString.length > 0) { %>
             <div class="row-container">
@@ -261,17 +265,12 @@
               </div>
             </div>
           <% }
-          if (typeof(params.trackList) == "undefined" ||
-             params.trackList == null ||
-             (params.trackList.length == 0 && typeof(params.stillParsing) != "undefined" && params.stillParsing)) { %>
-            <div class="row-container">
-              <div class="row blank">
-                <div class="spinner loading"
-                     id="loading-spinner"></div>
-              </div>
-            </div>
-          <% }
-          else if (params.trackList.length == 0) { %>
+          if (typeof(params.trackList) != "undefined" &&
+              params.trackList != null &&
+              params.trackList.length === 0 &&
+              (params.trackList.destination == "Queue" ||
+               typeof(params.stillParsing) == "undefined" ||
+               !params.stillParsing)) { %>
             <div class="row-container">
               <div class="row blank">
                 <% if (params.trackList.destination == "Queue") { %>
@@ -283,7 +282,17 @@
               </div>
             </div>
           <% }
-          if (typeof(params.trackList) != "undefined" && params.trackList != null && params.trackList.length > 0) { %>
+          else if (typeof(params.trackList) == "undefined" ||
+                   params.trackList == null ||
+                   (params.trackList.length == 0 && typeof(params.stillParsing) != "undefined" && params.stillParsing)) { %>
+            <div class="row-container">
+              <div class="row blank">
+                <div class="spinner loading"
+                     id="loading-spinner"></div>
+              </div>
+            </div>
+          <% }
+          if (typeof(params.trackList) == "object" && params.trackList != null && params.trackList.length > 0) { %>
             <div class="row-container">
               <div class="row" id="hidden-droprow" index="-1">
                 <div class="cell trackName-col"></div>

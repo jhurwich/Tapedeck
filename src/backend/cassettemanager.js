@@ -130,9 +130,7 @@ Tapedeck.Backend.CassetteManager = {
   refreshCassetteListView: function(callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     cMgr.readInCassettes(function() {
-      Tapedeck.Backend.TemplateManager.renderView("CassetteList", function(cassetteListView) {
-        Tapedeck.Backend.MessageHandler.pushView(cassetteListView.el,
-                                                 cassetteListView.proxyEvents);
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("CassetteList", function(cassetteListView) {
         if (typeof(callback) != "undefined") {
           callback();
         }
@@ -186,9 +184,8 @@ Tapedeck.Backend.CassetteManager = {
 
       // Push the new view
       Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Tapedeck.Backend.TemplateManager.renderView("BrowseRegion", function(browseRegionView) {
-          Tapedeck.Backend.MessageHandler.pushView(browseRegionView.el,
-                                                   browseRegionView.proxyEvents);
+        Tapedeck.Backend.TemplateManager.renderViewAndPush("BrowseRegion", function(browseRegionView) {
+          // already pushed, nothing to do
         }, true);
       });
     }
@@ -236,7 +233,7 @@ Tapedeck.Backend.CassetteManager = {
     }
 
     // change to the new page in the frontend, in the selected tab, with postPopulate
-    Tapedeck.Backend.MessageHandler.updateView("BrowseList", true);
+    Tapedeck.Backend.TemplateManager.renderViewAndPush("BrowseList", true);
 
     // save the page to persist
     Tapedeck.Backend.Bank.saveCassetteFeed(cMgr.currentCassette.get("name"),
@@ -272,7 +269,7 @@ Tapedeck.Backend.CassetteManager = {
     }
 
     // change to the new page in the frontend, in the selected tab, with postPopulate
-    Tapedeck.Backend.MessageHandler.updateView("BrowseList", true);
+    Tapedeck.Backend.TemplateManager.renderViewAndPush("BrowseList", true);
 
     // save the page to persist
     Tapedeck.Backend.Bank.saveCassettePage(cMgr.currentCassette.get("name"),

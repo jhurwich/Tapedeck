@@ -9,16 +9,10 @@ Tapedeck.Frontend.init = function() {
     Tapedeck.Frontend.Utils.setLogs(response.logs);
   });
 
-  var callback = function(response) {
-    Tapedeck.Frontend.Utils.replaceView(response.view,
-                                        response.proxyEvents);
-    Tapedeck.Frontend.Frame.init();
-  };
-
-  // Get the Frame, self-populated, from the default package, callback above, and postPopulate it
+  // Get the Frame, but have it push hollow first
   Tapedeck.Frontend
           .Messenger
-          .getView("Frame", null, null, callback, true);
+          .requestUpdate("Frame", true);
 
 };
 

@@ -87,27 +87,66 @@ Tapedeck.Backend.TemplateManager = {
     }
   },
 
-  // packageName is optional
-  // if postPopulate then view will be rendered and pushed without options and a
-  // following push with options will be made when ready
-  renderView: function(scriptName, packageName, callback, postPopulate) {
+  // packageName, callback, pushHollowFirst, and tab are optional
+  // returns the viewData, el and proxyEvents, but also pushes it
+  renderViewAndPush: function(scriptName, packageName, callback, pushHollowFirst, tab) {
     var tMgr = Tapedeck.Backend.TemplateManager;
-    if (typeof(packageName) == "function") {
-      postPopulate = callback;
+    if (typeof(packageName) != "string") {
+      tab = pushHollowFirst;
+      pushHollowFirst = callback;
       callback = packageName;
       packageName = null;
     }
-    if (typeof(postPopulate) == "undefined") {
-      postPopulate = false;
+    if (typeof(callback) != "function") {
+      tab = pushHollowFirst;
+      pushHollowFirst = callback;
+      callback = undefined
+    }
+    if (typeof(pushHollowFirst) != "boolean") {
+      tab = pushHollowFirst;
+      pushHollowFirst = false;
+    }
+
+    fullRenderComplete = false;
+    if (pushHollowFirst) {
+      tMgr.renderViewWithOptions(scriptName, packageName, { }, function(hollowViewData) {
+        // hollow view rendered, push here but prevent if main push succeeded
+        if (!fullRenderComplete) {
+          Tapedeck.Backend.MessageHandler.pushView(hollowViewData.el, hollowViewData.proxyEvents, tab);
+        }
+      });
+    }
+
+    tMgr.renderView(scriptName, packageName, function(fullViewData) {
+      fullRenderComplete = true;
+
+      // push to the selectedTab, or specified tab if one was given
+      if (typeof(tab) == "undefined" || !tab) {
+        Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+          Tapedeck.Backend.MessageHandler.pushView(fullViewData.el, fullViewData.proxyEvents, selectedTab);
+        });
+      }
+      else {
+        Tapedeck.Backend.MessageHandler.pushView(fullViewData.el, fullViewData.proxyEvents, tab);
+      }
+
+      if (typeof(callback) != "undefined") {
+        callback(fullViewData);
+      }
+    });
+  },
+
+  // packageName is optional
+  renderView: function(scriptName, packageName, callback) {
+    var tMgr = Tapedeck.Backend.TemplateManager;
+    if (typeof(packageName) == "function") {
+      callback = packageName;
+      packageName = null;
     }
 
     // generate the view with no options to know what it needs
     var viewScript = tMgr.getViewScript(scriptName);
     var hollowView = new viewScript({ });
-
-    if (postPopulate) {
-      tMgr.renderViewWithOptions(scriptName, packageName, { }, callback);
-    }
 
     var repeatCount = 0;
     var completeRender = function() {
@@ -229,7 +268,6 @@ Tapedeck.Backend.TemplateManager = {
         // attempt to the fill the requested option
         var paramName = requestedOptions[optionName];
         var fillFn = fillMap[optionName];
-
         scoped(paramName, fillFn);
       }
       else {

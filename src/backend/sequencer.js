@@ -32,7 +32,7 @@ Tapedeck.Backend.Sequencer = {
         var updateQueue = function(eventName) {
           // we only care about the greater 'change' event.  The "change:__" events are ignored.
           if (eventName.indexOf("change:") == -1) {
-            Tapedeck.Backend.MessageHandler.updateView("Queue");
+            Tapedeck.Backend.TemplateManager.renderViewAndPush("Queue");
           }
         };
         sqcr.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
@@ -133,26 +133,26 @@ Tapedeck.Backend.Sequencer = {
 
     handlePlaying: function(self) {
       self.currentState = self.STATES.PLAY;
-      Tapedeck.Backend.MessageHandler.updateView("Player");
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
     },
 
     handlePause: function(self) {
-      Tapedeck.Backend.MessageHandler.updateView("Player");
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
     },
 
     handleEnded: function(self) {
       Tapedeck.Backend.Sequencer.next();
-      Tapedeck.Backend.MessageHandler.updateView("Player");
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
     },
 
     handleLoadStart: function(self) {
       self.currentState = self.STATES.LOAD;
-      Tapedeck.Backend.MessageHandler.updateView("Player");
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
     },
 
     handleCanPlay: function(self) {
       self.currentState = self.STATES.READY;
-      Tapedeck.Backend.MessageHandler.updateView("Player");
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
     },
 
     handleDurationChange: function(self) {

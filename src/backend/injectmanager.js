@@ -100,15 +100,8 @@ Tapedeck.Backend.InjectManager = {
           injectMgr.isTest(tab.url)) {
         return;
       }
-      Tapedeck.Backend.TemplateManager.renderView("Frame", function(rendered) {
-
-        var viewString = $('<div>').append($(rendered.el))
-                                   .remove()
-                                   .html();
-
-        Tapedeck.Backend.MessageHandler.pushView(viewString,
-                                                 rendered.proxyEvents,
-                                                 tab);
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("Frame", function(rendered) {
+        // nothing to do, already pushed
       });
     });
   },

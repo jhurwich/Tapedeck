@@ -88,7 +88,7 @@ Tapedeck.Sandbox = {
     {
       case "render":
       case "template":
-        Tapedeck.Sandbox.log("Rendering '" + message.templateName + "' with params: " + JSON.stringify(message.params));
+        Tapedeck.Sandbox.log("Rendering '" + message.templateName + "' with params: " + JSON.stringify(Object.keys(message.params)));
 
         response.rendered = Tapedeck.Sandbox.render(message.textTemplate, message.params);
         Tapedeck.Sandbox.sendMessage(response);

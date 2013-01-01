@@ -7,15 +7,10 @@ if (typeof(Tapedeck.Options) == "undefined") {
     init: function() {
       Tapedeck.Frontend.Messenger.init();
 
-      var callback = function(response) {
-        Tapedeck.Frontend.Utils.replaceView(response.view,
-                                            response.proxyEvents);
-      };
-
-      // Get Options, self-populated, from the default package, callback above, and postPopulate it
+      // Get Options, self-populated, from the default package, callback above
       Tapedeck.Frontend
               .Messenger
-              .getView("Options", null, null, callback, false);
+              .requestUpdate("Options");
     },
 
     submit: function() {

@@ -1222,14 +1222,14 @@ Tapedeck.Backend.Bank = {
 
       bank.PlaylistList = new Tapedeck.Backend.Collections.PlaylistList();
       bank.PlaylistList.init(function() {
-        Tapedeck.Backend.MessageHandler.updateView("PlaylistList");
+        Tapedeck.Backend.TemplateManager.renderViewAndPush("PlaylistList");
         playlistListUpdated = true;
         finish();
       });
 
       // sync changed so we need to discard the current queue and get the synced one
       Tapedeck.Backend.Sequencer.prepareQueue(function() {
-        Tapedeck.Backend.MessageHandler.updateView("Queue");
+        Tapedeck.Backend.TemplateManager.renderViewAndPush("Queue");
         queueUpdated = true;
         finish();
       });

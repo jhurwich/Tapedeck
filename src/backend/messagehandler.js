@@ -194,57 +194,13 @@ Tapedeck.Backend.MessageHandler = {
 
     switch(request.action)
     {
-      case "getView":
-        var scriptName = request.viewName;
-        var packageName = (request.packageName ? request.packageName : null);
-
-        // if request.postPopulate than this will be called twice, the first one should
-        // not clear the callback from the frontend messenger
-        var callbacksExpected = 1;
-        if (typeof(request.postPopulate) != "undefined" && request.postPopulate) {
-          callbacksExpected = callbacksExpected + 1;
-        }
-
-        var handleRendered = function(rendered) {
-
-          var viewString = $('<div>').append($(rendered.el))
-                                     .remove()
-                                     .html();
-
-          response.view = viewString;
-          response.proxyEvents = rendered.proxyEvents;
-
-          // if there are outstanding callbacks, don't clear the callback from the frontend
-          callbacksExpected = callbacksExpected - 1;
-          if (callbacksExpected !== 0) {
-            response.dontClear = true;
-          }
-          else {
-            response.dontClear = false;
-          }
-          self.postMessage(port.sender.tab.id, response);
-        };
-
-        // getView can specify forced options, if provided use them (an empty object would force no options)
-        if (typeof(request.options) != "undefined" && request.options != null) {
-          if (request.postPopulate) {
-            console.error("Doesn't make sense to force options and postPopulate - postPopulate ignored.");
-          }
-          request.options["tabID"] = port.sender.tab.id;
-          Tapedeck.Backend.TemplateManager.renderViewWithOptions(scriptName, packageName, request.options, handleRendered);
-        }
-        else {
-          Tapedeck.Backend.TemplateManager.renderView(scriptName, packageName, handleRendered, request.postPopulate);
-        }
-        break;
-
       case "requestUpdate":
         var updateType = request.updateType.charAt(0).toUpperCase() +
                          request.updateType.slice(1);
 
         // Sliders aren't views, but can be updated specially
         if (updateType.indexOf("Slider") == -1) {
-          Tapedeck.Backend.MessageHandler.updateView(updateType, port.sender.tab);
+          Tapedeck.Backend.TemplateManager.renderViewAndPush(updateType, request.pushHollowFirst, port.sender.tab);
         }
         else if (updateType == "SeekSlider") {
           Tapedeck.Backend.MessageHandler.updateSeekSlider(port.sender.tab);
@@ -577,25 +533,6 @@ Tapedeck.Backend.MessageHandler = {
                                                browseView.proxyEvents,
                                                tab);
     });
-  },
-
-  // tab is optional
-  updateView: function(viewName, tab, postPopulate) {
-    var self = Tapedeck.Backend.MessageHandler;
-    if(arguments.length == 2) {
-      postPopulate = tab;
-      tab = null;
-    }
-    if (typeof(tab) == "undefined" || !tab || typeof(tab.id) == "undefined") {
-      self.getSelectedTab(function(selectedTab) {
-        self.updateView(viewName, selectedTab, postPopulate);
-      });
-      return;
-    }
-
-    Tapedeck.Backend.TemplateManager.renderView(viewName, function(viewData) {
-      self.pushView(viewData.el, viewData.proxyEvents, tab);
-    }, postPopulate);
   },
 
   updateSeekSlider: function(tab) {

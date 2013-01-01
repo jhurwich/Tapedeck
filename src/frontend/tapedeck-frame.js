@@ -7,10 +7,6 @@ if (typeof(Tapedeck.Frontend.Frame) != "undefined") {
 }
 
 Tapedeck.Frontend.Frame = {
-  init : function() {
-
-  },
-
   Player : {
     VolumeSlider : {
       currentVolume: -1,

@@ -71,7 +71,7 @@ describe("Frontend Frame Logic", function() {
     waitsFor(function() { return queuePrepared; }, "Waiting for new queue to be ready", 500);
     runs(function() {
 
-      var queueReadySpy = spyOn(self.Tapedeck.Backend.MessageHandler, "updateView").andCallThrough();
+      var queueReadySpy = spyOn(self.Tapedeck.Backend.TemplateManager, "renderViewAndPush").andCallThrough();
       self.Tapedeck.Backend.Sequencer.queue.trigger("change"); // force frontend to update
 
       waitsFor(function() { return queueReadySpy.callCount > 0; }, "Waiting for Queue to populate", 1000);
