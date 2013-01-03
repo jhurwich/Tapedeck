@@ -100,14 +100,14 @@ Tapedeck.Backend.TemplateManager = {
     if (typeof(callback) != "function") {
       tab = pushHollowFirst;
       pushHollowFirst = callback;
-      callback = undefined
+      callback = undefined;
     }
     if (typeof(pushHollowFirst) != "boolean") {
       tab = pushHollowFirst;
       pushHollowFirst = false;
     }
 
-    fullRenderComplete = false;
+    var fullRenderComplete = false;
     if (pushHollowFirst) {
       tMgr.renderViewWithOptions(scriptName, packageName, { }, function(hollowViewData) {
         // hollow view rendered, push here but prevent if main push succeeded
@@ -183,6 +183,7 @@ Tapedeck.Backend.TemplateManager = {
 
     view.render(function(el) {
       tMgr.assignImages(el, view.getImages());
+      el = tMgr.removeTemplateCruft(el);
 
       callback({ el : el, proxyEvents : view.getEvents() });
     });
@@ -203,6 +204,19 @@ Tapedeck.Backend.TemplateManager = {
     for (var selector in images) {
       $(el).find(selector).each(assign);
     }
+  },
+
+  removeTemplateCruft: function(el) {
+    // first remove the <tapedeck> metadata
+    $(el).find("tapedeck").remove();
+
+    // then remove the <template> tags
+    var templateTags = $(el).find("template");
+    templateTags.each(function(index, elem) {
+      $(elem, el).replaceWith($(elem, el).html());
+    });
+
+    return el;
   },
 
   /* Fill each of the requestedOptions, fillings can be objects with object.fillAll = true
