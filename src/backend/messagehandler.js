@@ -727,7 +727,6 @@ Tapedeck.Backend.MessageHandler = {
           break;
 
         case "ajax":
-          var msgHandler = Tapedeck.Backend.MessageHandler;
           request.params.success = function(data, textStatus, xhr) {
             var response = Tapedeck.Backend.Utils.newResponse(request,
                                                               { action: 'response',
@@ -742,8 +741,7 @@ Tapedeck.Backend.MessageHandler = {
                                                                 error : "Ajax error" });
             $("#sandbox").get(0).contentWindow.postMessage(response, "*");
           };
-          msgHandler.log("Performing ajax request for Sandbox to '" + request.params.url + "'");
-          $.ajax(request.params);
+          Tapedeck.Backend.Utils.ajax(request.params);
           break;
 
         default:

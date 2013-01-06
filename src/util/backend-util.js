@@ -194,6 +194,45 @@ Tapedeck.Backend.Utils = {
     return $('div').append($(dom)).remove().html();
   },
 
+  ajax : function(params) {
+
+     // Tapedeck.ajax cannot be performed from the Sandbox, relay to background
+    if (typeof(params.isSandbox) != "undefined" && params.isSandbox) {
+
+      Tapedeck.Sandbox.log("Sandbox is calling out for AJAX: " + JSON.stringify(params),
+                           Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
+
+      delete params['isSandbox'];
+
+      var successFn = params.success;
+      var errorFn = params.error;
+      delete params['success'];
+      delete params['error'];
+
+      var handleAjax = function(response) {
+        if (typeof(response.error) == "undefined") {
+          // success callback
+          successFn(response.responseText);
+        }
+        else {
+          // an error happened
+          errorFn(response);
+        }
+      };
+
+      var message = Tapedeck.Sandbox.Utils.newRequest({
+        action : "ajax",
+        params : params
+      }, handleAjax);
+      // callback to params.success or params.error
+      Tapedeck.Sandbox.sendMessage(message);
+    }
+    else {
+      Tapedeck.Backend.MessageHandler.log("Performing ajax to '" + params.url + "'");
+      $.ajax(params);
+    }
+  },
+
   pendingCallbacks: {},
   newRequest: function(object, callback) {
     var request = (object ? object : { });
@@ -269,6 +308,9 @@ Tapedeck.Backend.Utils = {
     }
   }
 };
+
+// ajax is a top-level command for the same call whether on Backend or Sandbox
+Tapedeck.ajax = Tapedeck.Backend.Utils.ajax;
 
 // copied wholesale from prototype.js, props to them
 Function.prototype.curry = function() {

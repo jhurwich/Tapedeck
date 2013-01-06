@@ -201,23 +201,6 @@ Tapedeck.Backend.TemplateManager = {
     });
   },
 
-  assignImages: function(el, images) {
-    var assign = function(index, elem) {
-      var url = chrome.extension.getURL("images/" + images[selector]);
-      if ($(elem).get(0).tagName == "DIV") {
-        url = "url('" + url + "')";
-        $(elem).css("background-image", url);
-      }
-      else if ($(elem).get(0).tagName == "IMG") {
-        $(elem).attr("src", url);
-      }
-    };
-
-    for (var selector in images) {
-      $(el).find(selector).each(assign);
-    }
-  },
-
   removeTemplateCruft: function(el) {
     // first remove the <tapedeck> metadata
     $(el).find("tapedeck").remove();
