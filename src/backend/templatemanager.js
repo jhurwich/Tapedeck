@@ -191,8 +191,25 @@ Tapedeck.Backend.TemplateManager = {
     var view = new viewScript(options);
 
     view.render(function(el) {
-      callback({ el : el, proxyEvents : view.getEvents(), proxyImages : view.getImages() });
+      var proxyEvents = view.getEvents();
+      var proxyImages = view.getImages();
+      el = tMgr.removeTemplateCruft(el);
+
+      callback({ el : el, proxyEvents : proxyEvents, proxyImages : proxyImages });
     });
+  },
+
+  removeTemplateCruft: function(el) {
+    // first remove the <tapedeck> metadata
+    $(el).find("tapedeck").remove();
+
+    // then remove the <template> tags
+    var templateTags = $(el).find("template");
+    templateTags.each(function(index, elem) {
+      $(elem, el).replaceWith($(elem, el).html());
+    });
+
+    return el;
   },
 
   /* Fill each of the requestedOptions, fillings can be objects with object.fillAll = true
