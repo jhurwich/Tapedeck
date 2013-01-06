@@ -804,11 +804,12 @@ Tapedeck.Frontend.Frame = {
      */
     callback: null,
     cleanup: null,
-    show: function(viewString, proxyEvents, aCallback, aCleanup) {
+    show: function(viewString, proxyEvents, proxyImages, aCallback, aCleanup) {
       var modal = Tapedeck.Frontend.Frame.Modal;
 
       Tapedeck.Frontend.Utils.replaceView(viewString,
-                                          proxyEvents);
+                                          proxyEvents,
+                                          proxyImages);
 
       var inputs = $("#modal").find("input[type='text']");
       if (inputs.length > 0) {

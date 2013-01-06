@@ -100,19 +100,22 @@ Tapedeck.Backend.TemplateManager = {
     if (typeof(callback) != "function") {
       tab = pushHollowFirst;
       pushHollowFirst = callback;
-      callback = undefined
+      callback = undefined;
     }
     if (typeof(pushHollowFirst) != "boolean") {
       tab = pushHollowFirst;
       pushHollowFirst = false;
     }
 
-    fullRenderComplete = false;
+    var fullRenderComplete = false;
     if (pushHollowFirst) {
       tMgr.renderViewWithOptions(scriptName, packageName, { }, function(hollowViewData) {
         // hollow view rendered, push here but prevent if main push succeeded
         if (!fullRenderComplete) {
-          Tapedeck.Backend.MessageHandler.pushView(hollowViewData.el, hollowViewData.proxyEvents, tab);
+          Tapedeck.Backend.MessageHandler.pushView(hollowViewData.el,
+                                                   hollowViewData.proxyEvents,
+                                                   hollowViewData.proxyImages,
+                                                   tab);
         }
       });
     }
@@ -123,11 +126,17 @@ Tapedeck.Backend.TemplateManager = {
       // push to the selectedTab, or specified tab if one was given
       if (typeof(tab) == "undefined" || !tab) {
         Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-          Tapedeck.Backend.MessageHandler.pushView(fullViewData.el, fullViewData.proxyEvents, selectedTab);
+          Tapedeck.Backend.MessageHandler.pushView(fullViewData.el,
+                                                   fullViewData.proxyEvents,
+                                                   fullViewData.proxyImages,
+                                                   selectedTab);
         });
       }
       else {
-        Tapedeck.Backend.MessageHandler.pushView(fullViewData.el, fullViewData.proxyEvents, tab);
+        Tapedeck.Backend.MessageHandler.pushView(fullViewData.el,
+                                                 fullViewData.proxyEvents,
+                                                 fullViewData.proxyImages,
+                                                 tab);
       }
 
       if (typeof(callback) != "undefined") {
@@ -182,27 +191,8 @@ Tapedeck.Backend.TemplateManager = {
     var view = new viewScript(options);
 
     view.render(function(el) {
-      tMgr.assignImages(el, view.getImages());
-
-      callback({ el : el, proxyEvents : view.getEvents() });
+      callback({ el : el, proxyEvents : view.getEvents(), proxyImages : view.getImages() });
     });
-  },
-
-  assignImages: function(el, images) {
-    var assign = function(index, elem) {
-      var url = chrome.extension.getURL("images/" + images[selector]);
-      if ($(elem).get(0).tagName == "DIV") {
-        url = "url('" + url + "')";
-        $(elem).css("background-image", url);
-      }
-      else if ($(elem).get(0).tagName == "IMG") {
-        $(elem).attr("src", url);
-      }
-    };
-
-    for (var selector in images) {
-      $(el).find(selector).each(assign);
-    }
   },
 
   /* Fill each of the requestedOptions, fillings can be objects with object.fillAll = true

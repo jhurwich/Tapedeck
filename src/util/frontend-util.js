@@ -15,16 +15,26 @@ var attachTo = function(onObject) {
       this.logLevels = logs;
     },
 
-    replaceView: function(viewStr, proxyEvents) {
+    replaceView: function(viewStr, proxyEvents, proxyImages) {
       var view = $(viewStr);
       var targetID = $(view).first().attr("id");
 
       $("#" + targetID).replaceWith(view);
+
+      // handle proxyEvents
       if (typeof(proxyEvents) != 'undefined' && !jQuery.isEmptyObject(proxyEvents)) {
         onObject.Utils.attachEvents(targetID, proxyEvents);
       }
       else {
         console.error("Replacing view '" + targetID + "' without attaching events");
+      }
+
+      // handle proxyImages
+      if (typeof(proxyImages) != 'undefined') {
+        onObject.Utils.assignImages(targetID, proxyImages);
+      }
+      else {
+        console.error("Replacing view '" + targetID + "' without images provided");
       }
     },
 
@@ -66,6 +76,26 @@ var attachTo = function(onObject) {
           // onreplace actions should happen immediately
           method();
         }
+      }
+    },
+
+    assignImages: function(targetID, images) {
+      var assign = function(index, elem) {
+        var url = chrome.extension.getURL("images/" + images[selector]);
+        if ($(elem).get(0).tagName == "DIV") {
+          url = "url('" + url + "')";
+          $(elem).css("background-image", url);
+        }
+        else if ($(elem).get(0).tagName == "IMG") {
+          $(elem).attr("src", url);
+        }
+      };
+
+      for (var selector in images) {
+        if($("#" + targetID).find(selector).length === 0) {
+          continue;
+        }
+        $("#" + targetID).find(selector).each(assign);
       }
     },
 

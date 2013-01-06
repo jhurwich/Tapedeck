@@ -531,6 +531,7 @@ Tapedeck.Backend.MessageHandler = {
     Tapedeck.Backend.TemplateManager.renderViewWithOptions("BrowseList", options, function(browseView) {
       Tapedeck.Backend.MessageHandler.pushView(browseView.el,
                                                browseView.proxyEvents,
+                                               browseView.proxyImages,
                                                tab);
     });
   },
@@ -638,11 +639,11 @@ Tapedeck.Backend.MessageHandler = {
                                                            handleRendered);
   },
 
-  pushView: function(view, proxyEvents, tab) {
+  pushView: function(view, proxyEvents, proxyImages, tab) {
     var self = Tapedeck.Backend.MessageHandler;
     if (typeof(tab) == "undefined") {
       self.getSelectedTab(function(selectedTab) {
-        self.pushView(view, proxyEvents, selectedTab);
+        self.pushView(view, proxyEvents, proxyImages, selectedTab);
       });
       return;
     }
@@ -654,7 +655,8 @@ Tapedeck.Backend.MessageHandler = {
     var request = Tapedeck.Backend.Utils.newRequest({
       action: "pushView",
       view: viewString,
-      proxyEvents : proxyEvents
+      proxyEvents : proxyEvents,
+      proxyImages : proxyImages
     });
 
     Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);

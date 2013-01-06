@@ -56,7 +56,7 @@ describe("Message Handler", function() {
     var testTab = this.findTestTab();
     expect(testTab).not.toBeNull();
 
-    this.Tapedeck.Backend.MessageHandler.pushView(testDiv, { }, testTab);
+    this.Tapedeck.Backend.MessageHandler.pushView(testDiv, { }, { }, testTab);
 
     this.waitsForElement("#testdiv");
 

@@ -96,7 +96,8 @@ Tapedeck.Frontend.Messenger = {
 
       case "pushView":
         Tapedeck.Frontend.Utils.replaceView(request.view,
-                                            request.proxyEvents);
+                                            request.proxyEvents,
+                                            request.proxyImages);
         break;
 
       case "showModal":
@@ -111,6 +112,7 @@ Tapedeck.Frontend.Messenger = {
 
         Tapedeck.Frontend.Frame.Modal.show(request.view,
                                            request.proxyEvents,
+                                           request.proxyImages,
                                            wrappedCallback,
                                            cleanupCallback);
         break;
