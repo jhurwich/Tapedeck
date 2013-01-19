@@ -727,10 +727,12 @@ Tapedeck.Backend.MessageHandler = {
           break;
 
         case "ajax":
-          request.params.success = function(data, textStatus, xhr) {
+          request.params.success = function(data, textStatus, jqXHR) {
             var response = Tapedeck.Backend.Utils.newResponse(request,
                                                               { action: 'response',
-                                                                responseText: xhr.responseText });
+                                                                data: data,
+                                                                textStatus: textStatus,
+                                                                headers: jqXHR.getAllResponseHeaders() });
             $("#sandbox").get(0).contentWindow.postMessage(response, "*");
           };
 
@@ -738,7 +740,10 @@ Tapedeck.Backend.MessageHandler = {
             console.error("Error performing ajax on behalf of Sandbox");
             var response = Tapedeck.Backend.Utils.newResponse(request,
                                                               { action: 'response',
-                                                                error : "Ajax error" });
+                                                                error : "Ajax error",
+                                                                data: data,
+                                                                textStatus: textStatus,
+                                                                headers: jqXHR.getAllResponseHeaders() });
             $("#sandbox").get(0).contentWindow.postMessage(response, "*");
           };
           Tapedeck.Backend.Utils.ajax(request.params);

@@ -1,6 +1,7 @@
 Tapedeck.Backend.CassetteManager = {
 
   cassettes: [],
+  beforePlayHandlers: { },
   currentCassette: null,
   currPage: 1,
 
@@ -71,6 +72,10 @@ Tapedeck.Backend.CassetteManager = {
                 }
                 else if (typeof(response.report.defaultFeed) != "undefined") {
                   cassetteEntry.feed = response.report.defaultFeed;
+                }
+
+                if (typeof(response.report.beforePlay) != "undefined") {
+                  cMgr.beforePlayHandlers[response.report.name] = response.report.beforePlay;
                 }
 
                 cMgr.log("Loading '" + data.name + "' from the filesystem. #" + cMgr.cassettes.length);
@@ -875,6 +880,51 @@ Tapedeck.Backend.CassetteManager = {
      *  injectMgr.removePostInjectScript(cassettify.tabID,
      *                                   cassettify.captureNextLoad);
      */
+    }
+  },
+
+  hasBeforePlay: function(cassetteName) {
+    console.log(cassetteName + "  -- " + JSON.stringify(Object.keys(Tapedeck.Backend.CassetteManager.beforePlayHandlers)));
+    console.log(typeof(Tapedeck.Backend.CassetteManager.beforePlayHandlers[cassetteName]));
+    return (typeof(Tapedeck.Backend.CassetteManager.beforePlayHandlers[cassetteName]) != "undefined");
+  },
+
+  beforePlay: function(track, callback) {
+    console.log("Doing beforePlay");
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    if(!cMgr.hasBeforePlay(track.get("cassette"))) {
+      console.error("No beforePlay registered for this cassette: " + track.get("cassette"));
+      return;
+    }
+
+    var beforePlayObject = cMgr.beforePlayHandlers[track.get("cassette")];
+    var commands = Object.keys(beforePlayObject);
+    for (var i = 0; i < commands.length; i++) {
+      var command = commands[i];
+      console.log("Executing '" + command + "'");
+      switch (command) {
+        case "cookieCheck":
+          var params = beforePlayObject[command];
+          var urls = Object.keys(params);
+
+          var checkCookie = function(cookie) {
+            for (var x in cookie) {
+              console.log(x + ": " + JSON.stringify(cookie[x]));
+            }
+          };
+
+          for (var j = 0; j < urls.length; j++) {
+            chrome.cookies.getAll({ domain: urls[j] }, checkCookie);
+          }
+
+          break;
+
+        case "otherCase":
+          break;
+
+        default:
+          break;
+      }
     }
   },
 

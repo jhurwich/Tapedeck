@@ -5,6 +5,10 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
     "developerLink" : "www.tape-deck.com"
   },
 
+  beforePlay: {
+    cookieCheck: { "hypem.com" : "banana"}
+  },
+
   // Don't want the interval event
   events: [
     { event  : "pageload",
@@ -71,8 +75,8 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
     Tapedeck.ajax({ type: "GET",
                     url: siteQueryURL,
                     dataType: "text",
-                    success: self.parseHTMLResponse,
-                    error: function (response) {
+                    success: self.parseHTMLResponse.curry(self, callback, errCallback, finalCallback),
+                    error: function (response, status, xhr) {
                       console.error("Ajax error retrieving " + siteQueryURL);
                       errCallback({ message: "CassetteError" });
                     }
@@ -127,9 +131,28 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
     console.log(">>> PlaylistAPI got : " + JSON.stringify(response));
   },
 
-  parseHTMLResponse: function(responseText, textStatus, XMLHttpRequest) {
-    console.log(">>> HTML got : " + responseText);
+  parseHTMLResponse: function(self, callback, errCallback, finalCallback, responseText, textStatus, headers) {
 
+    console.log("hreaders: " + typeof(headers));
+    console.log("2: " + headers);
+
+     var openTagRegex = function(tag) {
+      return new RegExp("<\s*" + tag + "[^<>]*>", "gi");
+    };
+
+    var closeTagRegex = function(tag) {
+      return new RegExp("<\/" + tag + "[^<>]*>", "gi");
+    };
+
+    var openScriptRegex = openTagRegex("script.*id=[\'\"]displayList-data[\'\"]");
+    var closeScriptRegex = closeTagRegex("script");
+
+    var openMatch = openScriptRegex.exec(responseText);
+    var closeMatch = closeScriptRegex.exec(responseText.substring(openMatch.index));
+    var displayListData = JSON.parse(responseText.substring(openMatch.index + openMatch[0].length,
+                                                                openMatch.index + closeMatch.index));
+
+    console.log("DisplayList: " + JSON.stringify(displayListData));
     // 1. parse response text for:
     /*
       <script type="application/json" id="displayList-data">
@@ -173,12 +196,33 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
 } < /script>
     */
 
-    // 2. generate href like : "/serve/play/"+tracks[index].id+"/" + tracks[index].key;"
+    var trackDatas = displayListData.tracks;
+    var tracks = [];
+    for (var i = 0; i < trackDatas.length; i++) {
+      var track = self.parseTrackData(trackDatas[i]);
+      tracks.push(track);
+    }
 
     // 3. parse response for cookie (a la cookie = response.headers.get('Set-Cookie'))
 
     // 4. send cookie with ajax request to href (when you want to listen to track, so somehow store cookie and indicate
     // that it's needed... potentially with track type)
     // consider xhrFields in http://api.jquery.com/jQuery.ajax
+
+    callback({ tracks: tracks });
+    finalCallback({ success: true });
+  },
+
+  parseTrackData: function(trackData) {
+    var track = { trackName  : trackData.song,
+                  artistName : trackData.artist,
+                  type       : "hypem" };
+
+    track.url = this.apiBaseURL + "/serve/play/" + trackData.id + "/" + trackData.key;
+    track.domain = this.siteBaseURL;
+    track.location = trackData.posturl;
+    track.cassette = this.get("name");
+
+    return track;
   }
 });

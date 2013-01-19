@@ -194,6 +194,7 @@ Tapedeck.Backend.Utils = {
     return $('div').append($(dom)).remove().html();
   },
 
+  // TODO document what this provides to success and error fns
   ajax : function(params) {
 
      // Tapedeck.ajax cannot be performed from the Sandbox, relay to background
@@ -212,11 +213,11 @@ Tapedeck.Backend.Utils = {
       var handleAjax = function(response) {
         if (typeof(response.error) == "undefined") {
           // success callback
-          successFn(response.responseText);
+          successFn(response.data, response.textStatus, response.headers);
         }
         else {
           // an error happened
-          errorFn(response);
+          successFn(response.data, response.textStatus, response.headers);
         }
       };
 

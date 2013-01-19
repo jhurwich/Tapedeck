@@ -75,9 +75,25 @@ Tapedeck.Backend.Sequencer = {
       $(this.playerElement).bind("timeupdate", this.handleTimeUpdate.curry(this));
     },
 
-    play: function(track) {
-      Tapedeck.Backend.Sequencer.log("-Play-");
-      this.playerElement.get(0).play();
+    play: function() {
+      var sqcr = Tapedeck.Backend.Sequencer;
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var currentTrack = sqcr.getCurrentTrack();
+
+      var doPlay = function() {
+        sqcr.log("-Play-");
+        this.playerElement.get(0).play();
+      };
+
+      if (cMgr.hasBeforePlay(currentTrack.get("cassette"))) {
+        console.log("before playing =======================");
+        cMgr.beforePlay(currentTrack, doPlay);
+      }
+      else {
+        console.log("not before playin===============");
+        doPlay();
+      }
+
     },
 
     stop: function() {
