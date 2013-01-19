@@ -9,12 +9,13 @@ Tapedeck.Sandbox = {
   // The sandbox div gets blown away on background.html when we append new templates,
   // so init() is called each time to re-establish the Sandbox with things like logLevels.
   init: function() {
-    // we've established Backend for Utils, swing that onto Sandbox
+    // we've established Tapedeck.Backend for Utils, swing that onto Sandbox
     var utils = Tapedeck.Backend.Utils;
 
     Tapedeck.Backend = Tapedeck.Sandbox;
     Tapedeck.Sandbox.Models = { };
     Tapedeck.Sandbox.Cassettes = { };
+
     Tapedeck.Sandbox.Utils = utils;
 
     // we capture and simulate Tapedeck.Backend.MessageHandler.addTracks
@@ -64,6 +65,11 @@ Tapedeck.Sandbox = {
     });
     Tapedeck.Sandbox.sendMessage(request);
 
+    // Tapedeck.ajax should always work
+    Tapedeck.Sandbox.ajax = function(params) {
+      params.isSandbox = true;
+      Tapedeck.Sandbox.Utils.ajax(params);
+    };
     Tapedeck.ajax = Tapedeck.Sandbox.ajax;
   },
 
@@ -312,35 +318,6 @@ Tapedeck.Sandbox = {
     if (response.callbackID in Tapedeck.Sandbox.Utils.pendingCallbacks) {
       Tapedeck.Sandbox.Utils.pendingCallbacks[response.callbackID](response);
     }
-  },
-
-  // Tapedeck.ajax cannot be performed from the Sandbox, relay to background
-  ajax : function(params) {
-    Tapedeck.Sandbox.log("Sandbox is calling out for AJAX: " + JSON.stringify(params),
-                         Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
-
-    var successFn = params.success;
-    var errorFn = params.error;
-    delete params['success'];
-    delete params['error'];
-
-    var handleAjax = function(response) {
-      if (typeof(response.error) == "undefined") {
-        // success callback
-        successFn(response.responseText);
-      }
-      else {
-        // an error happened
-        errorFn(response);
-      }
-    };
-
-    var message = Tapedeck.Sandbox.Utils.newRequest({
-      action : "ajax",
-      params : params
-    }, handleAjax);
-    // callback to params.success or params.error
-    Tapedeck.Sandbox.sendMessage(message);
   },
 
   sendMessage: function(message) {

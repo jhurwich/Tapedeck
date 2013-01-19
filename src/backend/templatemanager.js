@@ -195,7 +195,9 @@ Tapedeck.Backend.TemplateManager = {
       var proxyImages = view.getImages();
       el = tMgr.removeTemplateCruft(el);
 
-      callback({ el : el, proxyEvents : proxyEvents, proxyImages : proxyImages });
+      callback({ el : el,
+                 proxyEvents : proxyEvents,
+                 proxyImages : proxyImages });
     });
   },
 
