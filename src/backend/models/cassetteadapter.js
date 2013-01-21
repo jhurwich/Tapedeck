@@ -24,6 +24,11 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
     if (this.get("isBrowseable")) {
       this.getBrowseList = this.adaptedGetBrowseList;
     }
+
+    // If isBrowseable then this should emulate getBrowseList
+    if (typeof(report.errorHandler) != "undefined") {
+      this.errorHandler = this.adaptedErrorHandler;
+    }
   },
 
   adaptedGetPage: function(pageNum, context, callback, errCallback, finalCallback) {
@@ -34,6 +39,10 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
   adaptedGetBrowseList: function(context, callback, errCallback, finalCallback) {
     var params = { context: context };
     this.proxyMethod("getBrowseList", params, callback, errCallback, finalCallback);
+  },
+
+  adaptedErrorHandler: function(params, successCallback, errCallback) {
+    this.proxyMethod("errorHandler", params, successCallback, errCallback);
   },
 
   // the adapter prevents requests from being repeated to the sandbox, all callbacks get the first's result
@@ -55,18 +64,21 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
     }
 
     var callbackMap = this.requestMap[methodName];
+
+    var callbackObject = { successCallback : successCallback,
+                           errCallback     : errCallback };
+    if (typeof(finalCallback) != "undefined") {
+      callbackObject.finalCallback = finalCallback;
+    }
+
     if (typeof(callbackMap[mapID]) != "undefined") {
       // request already made, allow that to complete and return based on it
-      callbackMap[mapID].push({ successCallback : successCallback,
-                                errCallback     : errCallback,
-                                finalCallback   : finalCallback });
+      callbackMap[mapID].push(callbackObject);
       return;
     }
     else {
       // new request, queue the callbacks and continue to make it
-      callbackMap[mapID] = [{ successCallback : successCallback,
-                              errCallback     : errCallback,
-                              finalCallback   : finalCallback }];
+      callbackMap[mapID] = [callbackObject];
     }
 
     var message = Tapedeck.Backend.Utils.newRequest({

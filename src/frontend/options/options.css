@@ -8,6 +8,13 @@ tapedeck {
   display: none !important;
 }
 
+#flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
 div.container > div {
   position: relative;
   margin: 1px;

@@ -20,7 +20,9 @@ if (typeof(Tapedeck.Options) == "undefined") {
         var key = Tapedeck.Options.rebuildKey(elem);
         options[key] = $(elem).val();
         if (index == inputs.length - 1) {
-          Tapedeck.Frontend.Messenger.saveOptions(options, function() { });
+          Tapedeck.Frontend.Messenger.saveOptions(options, function() {
+            Tapedeck.Options.flash();
+          });
         }
       });
     },
@@ -40,10 +42,13 @@ if (typeof(Tapedeck.Options) == "undefined") {
 
     runtests: function() {
       Tapedeck.Frontend.Messenger.runTests();
+      Tapedeck.Options.flash();
     },
 
     reset: function() {
-      Tapedeck.Frontend.Messenger.clear(function() { });
+      Tapedeck.Frontend.Messenger.clear(function() {
+        Tapedeck.Options.flash();
+      });
     },
 
     selectAll: function() {
@@ -57,7 +62,66 @@ if (typeof(Tapedeck.Options) == "undefined") {
           $(this).removeAttr("is-selected");
         });
       }
-    }
+    },
+
+    flash: function() {
+      /* props to http://www.nixtu.info/2011/08/html5-canvas-gradients-rectangular.html */
+      // ======= utility methods =======
+      function gradient(dir) {
+        var grad = ctx.createLinearGradient(dir[0], dir[1], dir[2], dir[3]);
+
+        grad.addColorStop(0, outerColor);
+        grad.addColorStop(0.05, innerColor);
+        grad.addColorStop(0.95, innerColor);
+        grad.addColorStop(1.0, outerColor);
+
+        return grad;
+      }
+
+      function background() {
+        ctx.fillStyle = gradient([0, 0, 0, h]);
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      function bow() {
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(w, h);
+        ctx.lineTo(w, 0);
+        ctx.lineTo(0, h);
+        ctx.clip();
+
+        ctx.fillStyle = gradient([0, 0, w, 0]);
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.restore();
+      }
+      // ======= end utility methods =======
+
+      var canvas = document.getElementById("flash");
+
+      if (!canvas.hasAttribute("populated")) {
+        $(canvas).hide();
+        var ctx = canvas.getContext("2d");
+
+        var outerColor = 'rgba(188,188,188,1)';
+        var innerColor = 'rgba(188,188,188,0)';
+
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        canvas.width = w;
+        canvas.height = h;
+
+        background();
+        bow();
+        canvas.setAttribute("populated", true);
+      }
+      $(canvas).fadeIn(200, function() {
+        $(canvas).fadeOut(600);
+      });
+    },
   };
 }
 

@@ -26,7 +26,6 @@
                   "https://*/*",
                   "tabs",
                   "storage",
-                  "cookies",
                   "unlimitedStorage"],
 
   "sandbox" : {

@@ -5,10 +5,6 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
     "developerLink" : "www.tape-deck.com"
   },
 
-  beforePlay: {
-    cookieCheck: { "hypem.com" : "banana"}
-  },
-
   // Don't want the interval event
   events: [
     { event  : "pageload",
@@ -128,13 +124,11 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
 */
 
   parsePlaylistAPIResponse: function(response) {
+    // TODO implement or remove
     console.log(">>> PlaylistAPI got : " + JSON.stringify(response));
   },
 
   parseHTMLResponse: function(self, callback, errCallback, finalCallback, responseText, textStatus, headers) {
-
-    console.log("hreaders: " + typeof(headers));
-    console.log("2: " + headers);
 
      var openTagRegex = function(tag) {
       return new RegExp("<\s*" + tag + "[^<>]*>", "gi");
@@ -150,9 +144,8 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
     var openMatch = openScriptRegex.exec(responseText);
     var closeMatch = closeScriptRegex.exec(responseText.substring(openMatch.index));
     var displayListData = JSON.parse(responseText.substring(openMatch.index + openMatch[0].length,
-                                                                openMatch.index + closeMatch.index));
+                                                            openMatch.index + closeMatch.index));
 
-    console.log("DisplayList: " + JSON.stringify(displayListData));
     // 1. parse response text for:
     /*
       <script type="application/json" id="displayList-data">
@@ -210,7 +203,9 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
     // consider xhrFields in http://api.jquery.com/jQuery.ajax
 
     callback({ tracks: tracks });
-    finalCallback({ success: true });
+    if (typeof(finalCallback) != "undefined" && finalCallback != null) {
+      finalCallback({ success: true });
+    }
   },
 
   parseTrackData: function(trackData) {
@@ -224,5 +219,34 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
     track.cassette = this.get("name");
 
     return track;
+  },
+
+  errorHandler: function(params, successCallback, errCallback) {
+    var self = this;
+
+    var idRegex = new RegExp("serve/play/([^\/]*)/");
+    var hypemID = params.track.url.match(idRegex)[1];
+    var trackURL = "http://hypem.com/track/" + hypemID;
+
+    var callback = function(parsed) {
+      var updatedTrack = null;
+      for (var i = 0; i < parsed.tracks.length; i++) {
+        if (parsed.tracks[i].url.indexOf(hypemID) != -1) {
+          updatedTrack = parsed.tracks[i];
+          break;
+        }
+      }
+      successCallback({ track: updatedTrack });
+    };
+
+    Tapedeck.ajax({ type: "GET",
+                    url: trackURL,
+                    dataType: "text",
+                    success: self.parseHTMLResponse.curry(self, callback, errCallback, null),
+                    error: function (response, status, xhr) {
+                      console.error("Ajax error retrieving " + trackURL);
+                      errCallback({ message: "CassetteError" });
+                    }
+                  });
   }
 });

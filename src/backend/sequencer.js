@@ -60,17 +60,20 @@ Tapedeck.Backend.Sequencer = {
               LOAD:   "load" },
     currentState: null,
 
+    playAfterLoading: true,
     currentTrack: null,
     playerElement: null,
     init: function() {
       this.playerElement = $("#audioplayer").first();
       this.currentState = this.STATES.STOP;
 
+      $(this.playerElement).bind("error", this.handleError.curry(this));
       $(this.playerElement).bind("playing", this.handlePlaying.curry(this));
       $(this.playerElement).bind("pause", this.handlePause.curry(this));
       $(this.playerElement).bind("ended", this.handleEnded.curry(this));
       $(this.playerElement).bind("loadstart", this.handleLoadStart.curry(this));
       $(this.playerElement).bind("canplay", this.handleCanPlay.curry(this));
+      $(this.playerElement).bind("canplaythrough", this.handleCanPlayThrough.curry(this));
       $(this.playerElement).bind("durationchange", this.handleDurationChange.curry(this));
       $(this.playerElement).bind("timeupdate", this.handleTimeUpdate.curry(this));
     },
@@ -80,20 +83,8 @@ Tapedeck.Backend.Sequencer = {
       var cMgr = Tapedeck.Backend.CassetteManager;
       var currentTrack = sqcr.getCurrentTrack();
 
-      var doPlay = function() {
-        sqcr.log("-Play-");
-        this.playerElement.get(0).play();
-      };
-
-      if (cMgr.hasBeforePlay(currentTrack.get("cassette"))) {
-        console.log("before playing =======================");
-        cMgr.beforePlay(currentTrack, doPlay);
-      }
-      else {
-        console.log("not before playin===============");
-        doPlay();
-      }
-
+      sqcr.log("-Play-");
+      this.playerElement.get(0).play();
     },
 
     stop: function() {
@@ -155,6 +146,28 @@ Tapedeck.Backend.Sequencer = {
       this.playerElement.get(0).load();
     },
 
+    handleError: function(self) {
+      console.error("Player Error");
+      var cMgr = Tapedeck.Backend.CassetteManager;
+      var sqcr = Tapedeck.Backend.Sequencer;
+
+      if (cMgr.hasErrorHandler(self.currentTrack.get("cassette"))) {
+        cMgr.doErrorHandler(self.currentTrack, function(updatedTrack) {
+          // successCallback
+          console.log("Cassette successfully handled track error.");
+
+          var oldPos = sqcr.queuePosition;
+
+          sqcr.remove(self.currentTrack);
+          sqcr.insertAt(updatedTrack, oldPos, true);
+          sqcr.setQueuePosition(oldPos);
+
+        }, function(error) {
+          // errorCallback
+        });
+      }
+    },
+
     handlePlaying: function(self) {
       self.currentState = self.STATES.PLAY;
       Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
@@ -180,6 +193,14 @@ Tapedeck.Backend.Sequencer = {
       Tapedeck.Backend.Sequencer.log("CanPlay track.");
       self.currentState = self.STATES.READY;
       Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
+    },
+
+    handleCanPlayThrough: function(self) {
+      Tapedeck.Backend.Sequencer.log("CanPlayThrough track.");
+      if (self.playAfterLoading) { // TODO playAfterLoading needs work
+        self.play();
+        self.playAfterLoading = false;
+      }
     },
 
     handleDurationChange: function(self) {
@@ -253,8 +274,8 @@ Tapedeck.Backend.Sequencer = {
   },
 
   playIndex: function(index) {
+    this.Player.playAfterLoading = true;
     this.setQueuePosition(index);
-    this.Player.play();
   },
 
   playNow: function() {

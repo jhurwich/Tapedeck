@@ -1,7 +1,7 @@
 Tapedeck.Backend.CassetteManager = {
 
   cassettes: [],
-  beforePlayHandlers: { },
+  errorHandlers: { },
   currentCassette: null,
   currPage: 1,
 
@@ -74,8 +74,8 @@ Tapedeck.Backend.CassetteManager = {
                   cassetteEntry.feed = response.report.defaultFeed;
                 }
 
-                if (typeof(response.report.beforePlay) != "undefined") {
-                  cMgr.beforePlayHandlers[response.report.name] = response.report.beforePlay;
+                if (typeof(response.report.errorHandler) != "undefined") {
+                  cMgr.errorHandlers[response.report.name] = response.report.errorHandler;
                 }
 
                 cMgr.log("Loading '" + data.name + "' from the filesystem. #" + cMgr.cassettes.length);
@@ -883,49 +883,26 @@ Tapedeck.Backend.CassetteManager = {
     }
   },
 
-  hasBeforePlay: function(cassetteName) {
-    console.log(cassetteName + "  -- " + JSON.stringify(Object.keys(Tapedeck.Backend.CassetteManager.beforePlayHandlers)));
-    console.log(typeof(Tapedeck.Backend.CassetteManager.beforePlayHandlers[cassetteName]));
-    return (typeof(Tapedeck.Backend.CassetteManager.beforePlayHandlers[cassetteName]) != "undefined");
+  hasErrorHandler: function(cassetteName) {
+    return (typeof(Tapedeck.Backend.CassetteManager.errorHandlers[cassetteName]) != "undefined");
   },
 
-  beforePlay: function(track, callback) {
-    console.log("Doing beforePlay");
-    var cMgr = Tapedeck.Backend.CassetteManager;
-    if(!cMgr.hasBeforePlay(track.get("cassette"))) {
-      console.error("No beforePlay registered for this cassette: " + track.get("cassette"));
-      return;
+  // successCallback should receive an updated track object
+  doErrorHandler: function(aTrack, aSuccessCallback, aErrCallback) {
+    var cassette = this.currentCassette;
+    if (cassette.get("name") != aTrack.get("cassette")) {
+      console.error("Cassette Name mismatch for track Errorhandler");
     }
+    var successCallback = function(params) {
+      aSuccessCallback(params.track);
+    };
 
-    var beforePlayObject = cMgr.beforePlayHandlers[track.get("cassette")];
-    var commands = Object.keys(beforePlayObject);
-    for (var i = 0; i < commands.length; i++) {
-      var command = commands[i];
-      console.log("Executing '" + command + "'");
-      switch (command) {
-        case "cookieCheck":
-          var params = beforePlayObject[command];
-          var urls = Object.keys(params);
-
-          var checkCookie = function(cookie) {
-            for (var x in cookie) {
-              console.log(x + ": " + JSON.stringify(cookie[x]));
-            }
-          };
-
-          for (var j = 0; j < urls.length; j++) {
-            chrome.cookies.getAll({ domain: urls[j] }, checkCookie);
-          }
-
-          break;
-
-        case "otherCase":
-          break;
-
-        default:
-          break;
-      }
-    }
+    var errCallback = function(params) {
+      // TODO implement
+      console.error("doErrorHandler -- Throw Error, could not handle");
+      aErrCallback(params);
+    };
+    cassette.errorHandler({ track: aTrack.toJSON() }, successCallback, errCallback);
   },
 
   dumpCollector: function() {

@@ -211,6 +211,24 @@ Tapedeck.Sandbox = {
         });
         break;
 
+      /* deligate track errors to the cassette for handling */
+      case "errorHandler":
+        var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
+        cassette.errorHandler(message.params, function(params) {
+
+          // success callback
+          for (var p in params) {
+            response[p] = params[p];
+          }
+          Tapedeck.Sandbox.sendMessage(response);
+        }, function(error) {
+
+          // error callback
+          response.error = error;
+          Tapedeck.Sandbox.sendMessage(response);
+        });
+        break;
+
       case "setLogs":
         // if we didn't have logs set before, we are newly initialized and should respond
         var newlyInitialized = false;

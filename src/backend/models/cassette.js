@@ -45,19 +45,22 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
      *  }
      */
 
-     var report = {
-       name: this.get("name"),
-       tdID: this.get("tdID"),
-       developer: this.get("developer"),
-       developerLink: this.get("developerLink"),
-       isBrowseable: this.isBrowseable(),
-       isPageable: this.isPageable(),
-       defaultFeed: this.get("defaultFeed"),
-       feeds: this.feeds,
-       beforePlay: this.beforePlay
-     };
+    var report = {
+      name: this.get("name"),
+      tdID: this.get("tdID"),
+      developer: this.get("developer"),
+      developerLink: this.get("developerLink"),
+      isBrowseable: this.isBrowseable(),
+      isPageable: this.isPageable(),
+      defaultFeed: this.get("defaultFeed"),
+      feeds: this.feeds
+    };
 
-     return report;
+    if (typeof(this.errorHandler) != "undefined") {
+      report.errorHandler = true;
+    }
+
+    return report;
   },
 
   // override the toJSON so that isPageable is sent as bool

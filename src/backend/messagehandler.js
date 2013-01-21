@@ -736,12 +736,12 @@ Tapedeck.Backend.MessageHandler = {
             $("#sandbox").get(0).contentWindow.postMessage(response, "*");
           };
 
-          request.params.error = function(data, textStatus, jqXHR) {
-            console.error("Error performing ajax on behalf of Sandbox");
+          request.params.error = function(jqXHR, textStatus, errorString) {
+            console.error("Error performing ajax on behalf of Sandbox : " + textStatus + " - " + errorString);
             var response = Tapedeck.Backend.Utils.newResponse(request,
                                                               { action: 'response',
                                                                 error : "Ajax error",
-                                                                data: data,
+                                                                data: { error: textStatus },
                                                                 textStatus: textStatus,
                                                                 headers: jqXHR.getAllResponseHeaders() });
             $("#sandbox").get(0).contentWindow.postMessage(response, "*");
