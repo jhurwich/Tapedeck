@@ -398,7 +398,7 @@
 
       <template>
         <% if(params.debug > 0) {
-          params.paramSanity("queue", true, params.queue);
+          params.paramSanity("queue", false, params.queue);
         } %>
         <div id="queue" class="tracklist-container" rowdblclick="queueDblClick">
           <!-- we do not want the currentCassette, so make sure the trackList can not find it -->

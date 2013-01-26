@@ -60,7 +60,7 @@ Tapedeck.Backend.Sequencer = {
               LOAD:   "load" },
     currentState: null,
 
-    playAfterLoading: true,
+    playAfterLoading: false,
     currentTrack: null,
     playerElement: null,
     init: function() {

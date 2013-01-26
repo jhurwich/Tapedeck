@@ -254,10 +254,12 @@ Tapedeck.Sandbox = {
 
   render: function(textTemplate, params) {
     Tapedeck.Sandbox.log("Rendering: \n" + textTemplate + "\n with " + JSON.stringify(params),
-                         Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
+                         Tapedeck.Sandbox.Utils.DEBUG_LEVELS.ALL);
     var template = _.template(textTemplate);
 
-    if (Tapedeck.Sandbox.debug > Tapedeck.Backend.Utils.DEBUG_LEVELS.BASIC) {
+    var logLevel = Tapedeck.Sandbox.Utils.logLevels.Backend.Sandbox;
+
+    if (logLevel >= Tapedeck.Sandbox.Utils.DEBUG_LEVELS.BASIC) {
       var debugMethods = {
         paramSanity: function(paramName, necessary, checkValue) {
           var str = ">>>==============> ";
@@ -283,7 +285,7 @@ Tapedeck.Sandbox = {
         }
       };
 
-      params.debug = Tapedeck.Sandbox.debug;
+      params.debug = logLevel;
       _.extend(params, debugMethods);
     }
     else {
