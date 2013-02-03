@@ -307,7 +307,8 @@
               <div class="row-container">
                 <div class="row
                             <% if (track.listened) { print(" listened ") } %>
-                            <% if (track.playing) { print(" playing ") } %>"
+                            <% if (track.playing) { print(" playing ") } %>
+                            <% if (track.error) { print(" error ") } %>"
                      index='<%= i %>'
                      track-id='<%= track.tdID %>'
                      track-type='<% if(typeof(track.type) == "undefined") {
@@ -610,7 +611,8 @@
 
   </head>
   <body>
-    <audio id="audioplayer" preload="auto">
+    <audio id="audioplayer1" preload="auto">
+    <audio id="audioplayer2" preload="auto">
     </audio>
     <div id="dump"> </div>
     <iframe id="sandbox" src="sandbox.html"></iframe>

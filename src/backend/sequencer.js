@@ -53,20 +53,35 @@ Tapedeck.Backend.Sequencer = {
   },
 
   Player: {
+    isPrefetching: true,
+
+    playAfterLoading: false,
+    prefetchComplete: false,
+
     STATES: { PLAY:   "play",
               READY:  "ready",
               PAUSE:  "pause",
               STOP:   "stop",
               LOAD:   "load" },
-    currentState: null,
 
-    playAfterLoading: false,
-    currentTrack: null,
+    playerID: "#audioplayer1",
+    prefetchID: "#audioplayer2",
+
     playerElement: null,
+    prefetchElement: null,
+
+    currentState: null,
+    currentTrack: null,
+
     init: function() {
-      this.playerElement = $("#audioplayer").first();
+      this.playerElement = $(this.playerID).first();
+      this.prefetchElement = $(this.prefetchID).first();
       this.currentState = this.STATES.STOP;
 
+      this.attachEvents();
+    },
+
+    attachEvents: function() {
       $(this.playerElement).bind("error", this.handleError.curry(this));
       $(this.playerElement).bind("playing", this.handlePlaying.curry(this));
       $(this.playerElement).bind("pause", this.handlePause.curry(this));
@@ -76,6 +91,14 @@ Tapedeck.Backend.Sequencer = {
       $(this.playerElement).bind("canplaythrough", this.handleCanPlayThrough.curry(this));
       $(this.playerElement).bind("durationchange", this.handleDurationChange.curry(this));
       $(this.playerElement).bind("timeupdate", this.handleTimeUpdate.curry(this));
+
+      $(this.prefetchElement).bind("error", this.prefetchHandleError.curry(this));
+      $(this.prefetchElement).bind("canplaythrough", this.prefetchHandleCanPlayThrough.curry(this));
+    },
+
+    detachEvents: function() {
+      $(this.playerElement).unbind();
+      $(this.prefetchElement).unbind();
     },
 
     play: function() {
@@ -138,24 +161,77 @@ Tapedeck.Backend.Sequencer = {
       this.seek(time);
     },
 
+    // choose another track to load, clears any prefetching in progress
     loadTrack: function(track) {
-      Tapedeck.Backend.Sequencer.log("Loading new track '" + track.get("trackName") + "'");
       this.currentTrack = track;
       this.currentTrack.set({ currentTime: 0 });
+
+      // the prefetchElement contains the old player if this track was prefetched,
+      // either way blank the prefetchElement then we'll play or load with the playerElement
+      var wasPrefetched = this.prefetchComplete;
+      if (this.isPrefetching || this.prefetchComplete) {
+        this.prefetchComplete = false;
+        this.isPrefetching = false;
+      }
+
+      // if the track is already in the player, it was prefetched.  Go ahead and play it
+      if ($(this.playerElement).attr("src") == this.currentTrack.get("url") &&
+          wasPrefetched) {
+        Tapedeck.Backend.Sequencer.log("Playing prefetched track '" + track.get("trackName") + "'");
+        this.prefetchComplete = false;
+        this.isPrefetching = false;
+        this.play();
+        return;
+      }
+
+      Tapedeck.Backend.Sequencer.log("Loading new track '" + track.get("trackName") + "'");
+
       $(this.playerElement).attr("src", this.currentTrack.get("url"));
       this.playerElement.get(0).load();
     },
 
+    prefetch: function() {
+      var sqcr = Tapedeck.Backend.Sequencer;
+      this.isPrefetching = true;
+      this.prefetchComplete = false;
+
+      // wrap if repeat is on, do nothing otherwise
+      var nextPos = sqcr.getQueuePosition()+ 1;
+      if (nextPos >= sqcr.queue.length) {
+        if (Tapedeck.Backend.Bank.getRepeat()) {
+          nextPos = 0;
+        }
+        else {
+          return;
+        }
+      }
+      var track = sqcr.getAt(nextPos);
+
+      sqcr.log("Prefetching new track '" + track.get("trackName") + "'");
+
+      $(this.prefetchElement).attr("src", track.get("url"));
+      this.prefetchElement.get(0).load();
+    },
+
+    playerSwap: function() {
+      Tapedeck.Backend.Sequencer.log("Switching to prefetched player");
+      this.detachEvents();
+
+      var saved = this.playerID;
+      this.playerID = this.prefetchID;
+      this.prefetchID = saved;
+
+      this.init();
+    },
+
     handleError: function(self) {
-      console.error("Player Error");
       var cMgr = Tapedeck.Backend.CassetteManager;
       var sqcr = Tapedeck.Backend.Sequencer;
+      self.dumpErrors();
 
       if (cMgr.hasErrorHandler(self.currentTrack.get("cassette"))) {
         cMgr.doErrorHandler(self.currentTrack, function(updatedTrack) {
           // successCallback
-          console.log("Cassette successfully handled track error.");
-
           var oldPos = sqcr.queuePosition;
 
           sqcr.remove(self.currentTrack);
@@ -163,9 +239,20 @@ Tapedeck.Backend.Sequencer = {
           sqcr.setQueuePosition(oldPos);
 
         }, function(error) {
-          // errorCallback
+          // errorCallback - could not fix the track
+          console.error("Could not handle error for track: " + self.currentTrack.get("trackName") +
+                        "-" + self.currentTrack.get("url"));
+          self.currentTrack.set({ error: true });
+          sqcr.next();
         });
       }
+    },
+
+    prefetchHandleError: function(self) {
+      var sqcr = Tapedeck.Backend.Sequencer;
+      this.prefetchComplete = false;
+      this.isPrefetching = false;
+      self.dumpErrors(sqcr.prefetchID);
     },
 
     handlePlaying: function(self) {
@@ -179,6 +266,9 @@ Tapedeck.Backend.Sequencer = {
 
     handleEnded: function(self) {
       Tapedeck.Backend.Sequencer.log("Track ended, next please.");
+      if (self.prefetchComplete) {
+        self.playerSwap();
+      }
       Tapedeck.Backend.Sequencer.next();
       Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
     },
@@ -197,10 +287,16 @@ Tapedeck.Backend.Sequencer = {
 
     handleCanPlayThrough: function(self) {
       Tapedeck.Backend.Sequencer.log("CanPlayThrough track.");
-      if (self.playAfterLoading) { // TODO playAfterLoading needs work
+      if (self.playAfterLoading) {
         self.play();
         self.playAfterLoading = false;
       }
+    },
+
+    prefetchHandleCanPlayThrough: function(self) {
+      self.prefetchComplete = true;
+      self.isPrefetching = false;
+      Tapedeck.Backend.Sequencer.log("Prefetch Complete.");
     },
 
     handleDurationChange: function(self) {
@@ -214,14 +310,36 @@ Tapedeck.Backend.Sequencer = {
       var currentTime = self.playerElement.get(0).currentTime;
       self.currentTrack.set({ currentTime : currentTime},
                             { silent      : true       });
+
+      var duration = self.playerElement.get(0).duration;
+      if (duration && currentTime) {
+
+        // start prefetching if we're 90% through the song, have more than 10sec before this track ends,
+        // and aren't > 95% through it (wonkiness happens if you jump to the end of a track)
+        var percent = currentTime / duration;
+        if (percent > 0.9 &&
+            percent <= 0.95 &&
+            percent * duration > 10 &&
+            !self.isPrefetching &&
+            !self.prefetchComplete) {
+          self.prefetch();
+        }
+      }
+
       Tapedeck.Backend.MessageHandler.updateSeekSlider();
     },
 
     // Error Codes from http://www.w3.org/TR/html5/video.html#htmlmediaelement
-    dumpErrors: function() {
-      var err = this.playerElement.get(0).error;
+    // elementID is optional
+    dumpErrors: function(elementID) {
+      if (typeof(elementID) == "undefined") {
+        elementID = this.playerID;
+      }
+      var element = $(elementID).first();
+
+      var err = element.get(0).error;
       if (!err) {
-        console.error("Player has reported no errors in dumpErrors.");
+        console.error(elementID + " has reported no errors in dumpErrors.");
         return;
       }
       var lastError = "";
@@ -244,7 +362,7 @@ Tapedeck.Backend.Sequencer = {
       }
 
       var networkState = "";
-      switch(this.playerElement.get(0).networkState) {
+      switch(element.get(0).networkState) {
         case 0:
           networkState = "Empty";
           break;
@@ -261,7 +379,7 @@ Tapedeck.Backend.Sequencer = {
           networkState = "Unrecognized Network State";
           break;
       }
-      console.error("Player reported last error as '" + lastError +
+      console.error(elementID + " reported last error as '" + lastError +
                     "' and the network state as '" + networkState + "'");
     }
   }, // End Tapedeck.Sequencer.Player
@@ -353,6 +471,12 @@ Tapedeck.Backend.Sequencer = {
       var track = this.getAt(this.queuePosition);
 
       if (track) {
+
+        // skip tracks that are broken
+        if (track.get("error")) {
+          this.setQueuePosition(pos + 1, noLoad);
+          return;
+        }
         this.Player.loadTrack(track);
       }
     }

@@ -8,6 +8,7 @@ Tapedeck.Backend.Bank = {
                               'domain'],
   MINIFY_MAP: { "listened": "l",
                 "playing": "p",
+                "error": "e",
                 "artistName": "aN",
                 "trackName": "tN",
                 "cassette": "c",
@@ -1264,7 +1265,7 @@ Tapedeck.Backend.Bank = {
     }
 
     if (!synchronous) {
-      sync.collector = window.setTimeout(sync.syncCollector, sync.SYNC_WINDOW * 1000);
+      sync.collector = window.setTimeout(sync.syncCollector, sync.SYNC_WINDOW * 1000, callback);
     }
     else {
       sync.syncCollector(callback);
@@ -1311,7 +1312,7 @@ Tapedeck.Backend.Bank = {
 
       if (sync.dirtyMetadata) {
         sync.syncMetadata(function() {
-          sync.syncCollector();
+          sync.syncCollector(callback);
         });
         return;
       }
@@ -1319,6 +1320,10 @@ Tapedeck.Backend.Bank = {
 
       // find all the tracklists for which sync is on
       bank.findKeys(bank.trackListPiece + ".*" + bank.syncOnPostPrefix, true, function(syncKeys) {
+        if (syncKeys.length == 0) {
+          // actually nothing to sync
+          callback();
+        }
         sync.numClean = 0;
 
         var attemptSave =  function(trackList) {

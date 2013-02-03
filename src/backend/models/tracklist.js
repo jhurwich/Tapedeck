@@ -47,7 +47,8 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
 
   TEMP_PROPS: [
     "listened",
-    "playing"
+    "playing",
+    "error"
   ],
   removeTempProperties: function() {
     var tempProps = Tapedeck.Backend.Collections.TrackList.prototype.TEMP_PROPS;

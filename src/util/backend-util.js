@@ -194,7 +194,10 @@ Tapedeck.Backend.Utils = {
     return $('div').append($(dom)).remove().html();
   },
 
-  // TODO document what this provides to success and error fns
+  /* This is a proxy for $.ajax that properly pipes from the Sandbox to the Backend.
+   * params.success and .error will receive:
+   *   (Object data, String textStatus, [jqXHR on Backend | jqXHR.getAllResponseHeaders() in Sandbox])
+   */
   ajax : function(params) {
 
      // Tapedeck.ajax cannot be performed from the Sandbox, relay to background

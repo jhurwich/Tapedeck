@@ -182,6 +182,10 @@ body {
 .tracklist .row:not(.playing) .cell{
   font-weight: normal !important;
 }
+.tracklist .row.error .cell{
+  text-decoration: line-through;
+  opacity : 0.65;
+}
 .tracklist .row.blank {
   padding: 3px;
   cursor: default;
@@ -375,8 +379,7 @@ body {
   width: 200px;
 }
 
-.cassettelist .row,
-.tracklist-container #current-cassette-row {
+.cassettelist .row {
   background-color: #515151;
   height: 20px;
   position: relative;
@@ -402,8 +405,8 @@ body {
 .cassettelist .row.blank {
   border-bottom: 2px solid #424242;
 }
-.cassettelist .cell:first-child,
-.tracklist-container #current-cassette-row .cell:first-child {
+.cassettelist .cassetteName-col,
+.tracklist-container #current-cassette-row .cassetteName-col {
   font-weight: bold;
 }
 .cassettelist .row:last-child .cell{
@@ -523,10 +526,12 @@ body {
 }
 .tracklist-container #current-cassette-row {
   display: table;
-  position: relative;
+  position: absolute;
+  height: 20px;
   width: 326px;
   border: 2px solid #424242;
   border-top-width: 0px;
+  background-color: #515151;
 }
 
 #blackout {
