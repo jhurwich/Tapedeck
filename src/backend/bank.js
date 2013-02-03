@@ -1309,6 +1309,9 @@ Tapedeck.Backend.Bank = {
     syncCollector: function(callback) {
       var bank = Tapedeck.Backend.Bank;
       var sync = bank.Sync;
+      if (bank.getSync() != bank.Sync.STATES.ON) {
+        return;
+      }
 
       if (sync.dirtyMetadata) {
         sync.syncMetadata(function() {

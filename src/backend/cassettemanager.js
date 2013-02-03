@@ -96,9 +96,14 @@ Tapedeck.Backend.CassetteManager = {
         var cassette = new Tapedeck.Backend.Cassettes[CassetteModel]();
         cMgr.log("Loading '" + CassetteModel + "' from memory. #" + cMgr.cassettes.length);
 
+        var cassetteEntry = { cassette: cassette };
+        if (cassette.get("defaultFeed") != "undefined") {
+          cassetteEntry.feed = cassette.get("defaultFeed");
+        }
+
         // for the moment no in-memory cassettes have pages, if this changes
         // this will need to pull a page number and store it here
-        cMgr.cassettes.push({ cassette: cassette });
+        cMgr.cassettes.push(cassetteEntry);
       }
 
       // Confirm that everything was ready to be read in.
