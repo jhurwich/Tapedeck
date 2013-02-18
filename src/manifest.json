@@ -25,6 +25,7 @@
   "permissions": ["http://*/*",
                   "https://*/*",
                   "tabs",
+                  "tts",
                   "storage",
                   "unlimitedStorage"],
 

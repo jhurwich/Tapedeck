@@ -383,6 +383,15 @@ Tapedeck.Frontend.Messenger = {
 
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
+  setPageRange: function(start, end) {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "setPageRange",
+      start   : start,
+      end     : end
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
   browseNextPage: function() {
     var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "browseNextPage"

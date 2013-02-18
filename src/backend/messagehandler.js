@@ -127,6 +127,16 @@ Tapedeck.Backend.MessageHandler = {
         }
         break;
 
+      case "getVoices":
+        chrome.tts.getVoices(function(voices) {
+          var currentVoice = Tapedeck.Backend.Bank.getSpeech();
+          sendResponse({ voices: voices,
+                         currentVoice: currentVoice });
+        });
+        break;
+      case "setSpeech":
+        Tapedeck.Backend.Bank.setSpeech(request.voice);
+        break;
       case "getPackages":
         sendResponse({ packages: Tapedeck.Backend.TemplateManager.getPackages(),
                        currentPackage: Tapedeck.Backend.TemplateManager.currentPackage });
@@ -153,6 +163,10 @@ Tapedeck.Backend.MessageHandler = {
     var self = Tapedeck.Backend.MessageHandler;
     var ports = self.ports;
     var currentTime = new Date();
+    if (typeof(tabID) == "undefined") {
+      console.error("Posting message to undefined tabID.");
+    }
+
     if (typeof(message.action) != "undefined") {
       self.log("(" + currentTime.getTime() + ") Posting action message '" + message.action + "' to tab: " + tabID,
                Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
@@ -161,7 +175,8 @@ Tapedeck.Backend.MessageHandler = {
                Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
     }
 
-    if (typeof(ports[tabID]) != "undefined" &&
+    if (typeof(tabID) != "undefined" &&
+        typeof(ports[tabID]) != "undefined" &&
         ports[tabID] != null) {
       ports[tabID].postMessage(message);
     }
@@ -348,6 +363,9 @@ Tapedeck.Backend.MessageHandler = {
       case "setPage":
         Tapedeck.Backend.CassetteManager.setPage(request.page);
         break;
+      case "setPageRange":
+        Tapedeck.Backend.CassetteManager.setPageRange(request.start, request.end);
+        break;
       case "browseNextPage":
         Tapedeck.Backend.CassetteManager.browseNextPage();
         break;
@@ -429,7 +447,21 @@ Tapedeck.Backend.MessageHandler = {
     var msgHandler = Tapedeck.Backend.MessageHandler;
     var cMgr = Tapedeck.Backend.CassetteManager;
 
-    // Can only add tracis if there's a cassette being browsed
+    // tab and callback are optional
+    if (arguments.length == 2 && typeof(tab) == "function") {
+      callback = tab;
+      tab = undefined;
+    }
+    if (typeof(tab) == "undefined") {
+      msgHandler.getSelectedTab(function(selectedTab) {
+        msgHandler.addTracks(newTracks,
+                             selectedTab,
+                             callback);
+      });
+      return;
+    }
+
+    // Can only add tracks if their cassette is being browsed
     if (typeof(cMgr.currentCassette) == "undefined" || cMgr.currentCassette == null) {
       return;
     }
@@ -441,7 +473,7 @@ Tapedeck.Backend.MessageHandler = {
     }
 
     if (!msgHandler.addTrackAvailable) {
-      // We shifted the new tracks to the queue, and push empty array
+      // We shift the new tracks to the queue, and push empty array
       msgHandler.addTracksQueued = msgHandler.addTracksQueued.concat(newTracks);
       setTimeout(msgHandler.addTracks.curry([], tab, callback),
                  200);
@@ -466,7 +498,7 @@ Tapedeck.Backend.MessageHandler = {
     }
     msgHandler.addTrackAvailable = false;
 
-    Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList){
+    Tapedeck.Backend.Bank.getCachedBrowseList(function(browseList){
       var origLen = browseList.length;
 
       // make sure there isn't already this track in the list
@@ -480,7 +512,7 @@ Tapedeck.Backend.MessageHandler = {
       }
 
       if (browseList.length > origLen) {
-        Tapedeck.Backend.Bank.saveCurrentBrowseList(browseList);
+        Tapedeck.Backend.Bank.cacheCurrentBrowseList(browseList);
       }
       Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
       if (typeof(callback) !="undefined") {
@@ -505,6 +537,7 @@ Tapedeck.Backend.MessageHandler = {
     }
 
     var cMgr = Tapedeck.Backend.CassetteManager;
+    var tMgr = Tapedeck.Backend.TemplateManager;
     var msgHandler = Tapedeck.Backend.MessageHandler;
 
     msgHandler.addTrackAvailable = true;
@@ -519,20 +552,49 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
 
-    var options = {
-      currentCassette : cMgr.currentCassette,
-      currentPage : cMgr.currPage,
-      browseList : browseTrackList
-    };
-    if (typeof(errorString) != "undefined") {
-      options.errorString = errorString;
+    // fill the options besides browseList as normal through the templateManager
+    var viewScript = tMgr.getViewScript("BrowseList");
+    var hollowView = new viewScript({ });
+    var neededOptions = hollowView.getOptions();
+
+    // remove browselist from needed, we already have it
+    delete neededOptions["browseList"];
+
+    tMgr.fillOptions(neededOptions, function(filledOptions) {
+
+      filledOptions.browseList = browseTrackList;
+
+      if (typeof(errorString) != "undefined") {
+        filledOptions.errorString = errorString;
+      }
+
+      tMgr.renderViewWithOptions("BrowseList", filledOptions, function(browseView) {
+        msgHandler.pushView(browseView.el,
+                            browseView.proxyEvents,
+                            browseView.proxyImages,
+                            tab);
+      });
+    });
+  },
+
+  // tab is optional
+  pushBrowseListError: function(errorString, tab) {
+    if (typeof(tab) == "undefined") {
+      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
+        Tapedeck.Backend.MessageHandler.pushBrowseListError(errorString, selectedTab);
+      });
+      return;
+    }
+    var cMgr = Tapedeck.Backend.CassetteManager;
+
+    // Can only push a new browselist if there's a cassette being browsed
+    if (typeof(cMgr.currentCassette) == "undefined" || cMgr.currentCassette == null) {
+      return;
     }
 
-    Tapedeck.Backend.TemplateManager.renderViewWithOptions("BrowseList", options, function(browseView) {
-      Tapedeck.Backend.MessageHandler.pushView(browseView.el,
-                                               browseView.proxyEvents,
-                                               browseView.proxyImages,
-                                               tab);
+    // push the existing browseList with the errorString
+    Tapedeck.Backend.Bank.getCachedBrowseList(function(browseList){
+      Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, errorString, tab);
     });
   },
 
@@ -627,7 +689,8 @@ Tapedeck.Backend.MessageHandler = {
       var request = Tapedeck.Backend.Utils.newRequest({
         action: "showModal",
         view: viewString,
-        proxyEvents: rendered.proxyEvents
+        proxyEvents: rendered.proxyEvents,
+        proxyImages: rendered.proxyImages
       }, finishUp);
 
       Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
@@ -651,6 +714,7 @@ Tapedeck.Backend.MessageHandler = {
     var viewString = $('<div>').append($(view))
                                .remove()
                                .html();
+
 
     var request = Tapedeck.Backend.Utils.newRequest({
       action: "pushView",

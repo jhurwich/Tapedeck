@@ -3,7 +3,8 @@ Tapedeck.Backend.CassetteManager = {
   cassettes: [],
   errorHandlers: { },
   currentCassette: null,
-  currPage: 1,
+  startPage: 1,
+  endPage: -1,
 
   // Prevents any call to readInCassette from changing cMgr.cassettes.
   // This is needed to prevent multiple readIns during initialization.
@@ -64,8 +65,14 @@ Tapedeck.Backend.CassetteManager = {
               Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
                 var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
                 var cassetteEntry = { cassette: newAdapter };
-                if (typeof(data.page) != "undefined") {
-                  cassetteEntry.page = data.page;
+                if (typeof(data.endPage) != "undefined") {
+                  cassetteEntry.endPage = parseInt(data.endPage, 10);
+                }
+                if (typeof(data.startPage) != "undefined") {
+                  cassetteEntry.startPage = parseInt(data.startPage, 10);
+                  if (typeof(cassetteEntry.endPage) == "undefined") {
+                    cassetteEntry.endPage = -1;
+                  }
                 }
                 if (typeof(data.feed) != "undefined") {
                   cassetteEntry.feed = data.feed;
@@ -150,7 +157,8 @@ Tapedeck.Backend.CassetteManager = {
 
   setCassette: function(name) {
     var oldCurrent = this.currentCassette;
-    this.currPage = 1;
+    this.startPage = 1;
+    this.endPage = -1;
     this.currFeed = null;
 
     // Find the specified cassette, or if it was null set the cassette
@@ -167,8 +175,11 @@ Tapedeck.Backend.CassetteManager = {
           this.currentCassette = cassette;
           this.currentCassette.set({ active: "active" });
 
-          if (typeof(this.cassettes[i].page) != "undefined") {
-            this.currPage = parseInt(this.cassettes[i].page, 10);
+          if (typeof(this.cassettes[i].startPage) != "undefined") {
+            this.startPage = parseInt(this.cassettes[i].startPage, 10);
+          }
+          if (typeof(this.cassettes[i].endPage) != "undefined") {
+            this.endPage = parseInt(this.cassettes[i].endPage, 10);
           }
           if (typeof(this.cassettes[i].feed) != "undefined") {
             this.currFeed = this.cassettes[i].feed;
@@ -252,29 +263,32 @@ Tapedeck.Backend.CassetteManager = {
 
   browsePrevPage: function() {
     if (this.currentCassette != null) {
-      this.setPage(this.currPage - 1);
+      this.setPage(this.startPage - 1);
     }
   },
   browseNextPage: function() {
     if (this.currentCassette != null) {
-      this.setPage(this.currPage + 1);
+      this.setPage(this.startPage + 1);
     }
   },
-  setPage: function(page) {
+  setPageRange: function(start, end) {
     var cMgr = Tapedeck.Backend.CassetteManager;
-    if (cMgr.currPage == parseInt(page, 10)) {
+    if (cMgr.endPage == parseInt(end, 10) &&
+        cMgr.startPage == parseInt(start, 10)) {
       return;
     }
-    cMgr.currPage = parseInt(page, 10);
-    if (cMgr.currPage < 1) {
-      cMgr.currPage = 1;
+    cMgr.startPage = parseInt(start, 10);
+    if (cMgr.startPage < 1) {
+      cMgr.startPage = 1;
     }
+    cMgr.endPage = parseInt(end, 10);
 
     // update the page in memory
     for (var i = 0; i < cMgr.cassettes.length; i++) {
       var cassette = cMgr.cassettes[i].cassette;
       if (cassette.get("name") == cMgr.currentCassette.get("name")) {
-        cMgr.cassettes[i].page = cMgr.currPage;
+        cMgr.cassettes[i].startPage = cMgr.startPage;
+        cMgr.cassettes[i].endPage = cMgr.endPage;
       }
     }
 
@@ -282,8 +296,38 @@ Tapedeck.Backend.CassetteManager = {
     Tapedeck.Backend.TemplateManager.renderViewAndPush("BrowseList", true);
 
     // save the page to persist
-    Tapedeck.Backend.Bank.saveCassettePage(cMgr.currentCassette.get("name"),
-                                           cMgr.currPage);
+    Tapedeck.Backend.Bank.saveCassettePages(cMgr.currentCassette.get("name"),
+                                            cMgr.startPage,
+                                            cMgr.endPage);
+  },
+  setPage: function(page) {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    if (cMgr.endPage == -1 && cMgr.startPage == parseInt(page, 10)) {
+      // already set to this page
+      return;
+    }
+    cMgr.startPage = parseInt(page, 10);
+    if (cMgr.startPage < 1) {
+      cMgr.startPage = 1;
+    }
+    cMgr.endPage = -1;
+
+    // update the page in memory
+    for (var i = 0; i < cMgr.cassettes.length; i++) {
+      var cassette = cMgr.cassettes[i].cassette;
+      if (cassette.get("name") == cMgr.currentCassette.get("name")) {
+        cMgr.cassettes[i].startPage = cMgr.startPage;
+        cMgr.cassettes[i].endPage = cMgr.endPage;
+      }
+    }
+
+    // change to the new page in the frontend, in the selected tab, with postPopulate
+    Tapedeck.Backend.TemplateManager.renderViewAndPush("BrowseList", true);
+
+    // save the page to persist
+    Tapedeck.Backend.Bank.saveCassettePages(cMgr.currentCassette.get("name"),
+                                            cMgr.startPage,
+                                            cMgr.endPage);
   },
 
   // cassettify() is called in a series of phases.

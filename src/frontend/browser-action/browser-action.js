@@ -1,21 +1,102 @@
-TapedeckBA = {
+if (typeof Tapedeck == "undefined") {
+  var Tapedeck = { };
+}
+
+Tapedeck.BA = {
   blockList: null,
   onload: function() {
+    // we've established Tapedeck.Frontend for Utils, swing that onto BA
+    var utils = Tapedeck.Frontend.Utils;
+    Tapedeck.Frontend = Tapedeck.BA;
+    Tapedeck.BA.Utils = utils;
+
     var blockButton = document.getElementById("block-button");
-    blockButton.addEventListener('click', TapedeckBA.blockCurrent);
+    blockButton.addEventListener('click', Tapedeck.BA.blockCurrent);
     var blockInput = document.getElementById("block-input");
     blockInput.addEventListener('keydown', function(event) {
-      if (event.keyCode == 13) TapedeckBA.addBlockInput();
+      if (event.keyCode == 13) Tapedeck.BA.addBlockInput();
     });
-    TapedeckBA.loadPackages();
-    TapedeckBA.loadBlockList();
+    Tapedeck.BA.loadVoices();
+    Tapedeck.BA.loadPackages();
+    Tapedeck.BA.loadBlockList();
+  },
+
+  loadVoices: function() {
+    var request = Tapedeck.BA.Utils.newRequest({
+      action: "getVoices"
+    });
+    chrome.extension.sendRequest(request, function(response) {
+      var speechDOM = document.getElementById('speech-select');
+      var voiceArray = response.voices;
+      var hasENUS = false;
+      if (voiceArray.length === 0) {
+        var opt = document.createElement('option');
+        opt.setAttribute('value', "getNewVoices");
+        opt.innerText = "No voices, click here to get some.";
+        speechDOM.appendChild(opt);
+      }
+      else {
+        for (var i = 0; i < voiceArray.length; i++) {
+          var opt = document.createElement('option');
+          var name = voiceArray[i].voiceName;
+          if (name == "US English Female TTS (by Google)") {
+            hasENUS = true;
+          }
+          if (name == response.currentVoice) {
+            opt.setAttribute('selected', '');
+          }
+          opt.setAttribute('value', name);
+          opt.innerText = voiceArray[i].voiceName;
+          speechDOM.appendChild(opt);
+        }
+
+        if (response.currentVoice == "off") {
+          var opt = document.createElement('option');
+          var name = "off";
+          opt.setAttribute('selected', '');
+          opt.setAttribute('value', name);
+          opt.innerText = "Select a voice to activate speech";
+          speechDOM.appendChild(opt);
+        }
+        else {
+          var opt = document.createElement('option');
+          var name = "off";
+          opt.setAttribute('value', name);
+          opt.innerText = "Turn off reading";
+          speechDOM.appendChild(opt);
+        }
+      }
+
+      // and add an entry to get new voices as the last
+      if (!hasENUS) {
+        var opt = document.createElement('option');
+        opt.setAttribute('value', "getNewVoices");
+        opt.innerText = "Download US-English voice";
+        speechDOM.appendChild(opt);
+      }
+      speechDOM.addEventListener('change', Tapedeck.BA.setSpeech, false);
+    });
+  },
+  setSpeech: function() {
+    var speechDOM = document.getElementById('speech-select');
+    var newVoice = speechDOM.options[speechDOM.selectedIndex].getAttribute("value");
+    if (newVoice == "getNewVoices") {
+      chrome.tabs.create({ url: "https://chrome.google.com/webstore/detail/us-english-female-text-to/pkidpnnapnfgjhfhkpmjpbckkbaodldb?hl=en" });
+      return;
+    }
+
+    var request = Tapedeck.BA.Utils.newRequest({
+      action: "setSpeech",
+      voice: newVoice
+    });
+    chrome.extension.sendRequest(request);
   },
 
   loadPackages: function() {
     chrome.tabs.getSelected(undefined, function(tab) {
-      var request = {
+      var request = Tapedeck.BA.Utils.newRequest({
         action: "getPackages"
-      };
+      });
       chrome.extension.sendRequest(request, function(response) {
         var packages = response.packages;
         var selectDOM = document.getElementById("package-select");
@@ -32,7 +113,7 @@ TapedeckBA = {
           selectDOM.appendChild(newOptionDOM);
         }
 
-        selectDOM.addEventListener("change", TapedeckBA.updatePackage);
+        selectDOM.addEventListener("change", Tapedeck.BA.updatePackage);
       });
     });
   },
@@ -41,27 +122,27 @@ TapedeckBA = {
     var selectDOM = document.getElementById("package-select");
     var newPackageName = selectDOM.options[selectDOM.selectedIndex]
                                           .getAttribute("value");
-    var request = {
+    var request = Tapedeck.BA.Utils.newRequest({
       action: "setPackage",
       name: newPackageName
-    };
+    });
     chrome.extension.sendRequest(request);
   },
 
   loadBlockList: function() {
     chrome.tabs.getSelected(undefined, function(tab) {
-      var request = {
+      var request = Tapedeck.BA.Utils.newRequest({
         action: "getBlockList"
-      };
+      });
       chrome.extension.sendRequest(request, function(response) {
         var oldListDOM = document.getElementById("blocklist");
         var newListDOM = document.createElement("div");
         newListDOM.id = oldListDOM.id;
 
-        TapedeckBA.blockList = JSON.parse(response.blockList);
-        for (var i = 0; i < TapedeckBA.blockList.length; i++) {
-          var blockURL = TapedeckBA.blockList[i];
-          var blockRow = TapedeckBA.makeBlockRow(i, blockURL);
+        Tapedeck.BA.blockList = JSON.parse(response.blockList);
+        for (var i = 0; i < Tapedeck.BA.blockList.length; i++) {
+          var blockURL = Tapedeck.BA.blockList[i];
+          var blockRow = Tapedeck.BA.makeBlockRow(i, blockURL);
 
           if (tab.url.match(blockURL) != null) {
             blockRow.className += " active";
@@ -90,7 +171,7 @@ TapedeckBA = {
     if (url.match(/chrome.*\/\//) == null) {
       var remove = document.createElement('div');
       remove.className = "button remove";
-      remove.onclick = TapedeckBA.blockRowRemove;
+      remove.onclick = Tapedeck.BA.blockRowRemove;
       remove.style.backgroundImage = "url('" +
              chrome.extension.getURL("images/rowbutton-remove.png") +
                                      "')";
@@ -104,7 +185,7 @@ TapedeckBA = {
 
   blockCurrent: function() {
     chrome.tabs.getSelected(undefined, function(tab) {
-      TapedeckBA.addToBlockList(tab.url);
+      Tapedeck.BA.addToBlockList(tab.url);
     });
   },
 
@@ -112,14 +193,14 @@ TapedeckBA = {
     var input = document.getElementById("block-input");
     var newPattern = input.value;
     input.value = "";
-    TapedeckBA.addToBlockList(newPattern);
+    Tapedeck.BA.addToBlockList(newPattern);
   },
 
   addToBlockList: function(str) {
-    TapedeckBA.blockList.push(str);
+    Tapedeck.BA.blockList.push(str);
 
-    TapedeckBA.sendBlockListToSave(TapedeckBA.blockList, function() {
-      TapedeckBA.loadBlockList();
+    Tapedeck.BA.sendBlockListToSave(Tapedeck.BA.blockList, function() {
+      Tapedeck.BA.loadBlockList();
     });
   },
 
@@ -132,21 +213,21 @@ TapedeckBA = {
       }
     }
 
-    TapedeckBA.blockList.splice(target.index, 1);
-    TapedeckBA.sendBlockListToSave(TapedeckBA.blockList, function() {
-      TapedeckBA.loadBlockList();
+    Tapedeck.BA.blockList.splice(target.index, 1);
+    Tapedeck.BA.sendBlockListToSave(Tapedeck.BA.blockList, function() {
+      Tapedeck.BA.loadBlockList();
     });
   },
 
   sendBlockListToSave: function(blockList, callback) {
-    var request = {
+    var request = Tapedeck.BA.Utils.newRequest({
       action: "saveBlockList",
       blockList: JSON.stringify(blockList)
-    };
+    });
     chrome.extension.sendRequest(request, function(response) {
       callback(response);
     });
   }
 };
 
-window.onload = TapedeckBA.onload;
+window.onload = Tapedeck.BA.onload;

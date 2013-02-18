@@ -53,13 +53,15 @@ Tapedeck.Backend.Bank = {
   playlistPrefix: /* bankPrefix + trackListPiece + playlistPiece + sync[On|Off]PostPrefix*/ "",
   splitListContinuePrefix: /* bankPrefix + */ "listContinue",
   repeatKey: /* bankPrefix + */ "repeat",
+  speechKey: /* bankPrefix + */ "speech",
   syncKey: /* bankPrefix + */ "sync",
   volumeKey: /* bankPrefix + */ "volume",
   blockKey: /* bankPrefix + */ "block",
   optionsPrefix: /* bankPrefix + */ "options",
   lastSyncWarningKey: /* bankPrefix + */ "lastSyncWarning",
   currentCassetteKey: /* bankPrefix + */ "currentCassette",
-  cassettePagePrefix: /* bankPrefix + */ "cassettePages",
+  cassetteStartPagePrefix: /* bankPrefix + */ "cassetteStartPage",
+  cassetteEndPagePrefix: /* bankPrefix + */ "cassetteEndPage",
   cassetteFeedPrefix: /* bankPrefix + */ "cassetteFeeds",
   syncLogPrefix:  /* bankPrefix + */ "syncLog",
   savedQueueName: "__q",
@@ -81,13 +83,15 @@ Tapedeck.Backend.Bank = {
     // build the keys and prefixes, but first make sure they aren't done yet
     if (bank.repeatKey.indexOf(bank.bankPrefix) == -1) {
       bank.repeatKey = bank.bankPrefix + bank.repeatKey;
+      bank.speechKey = bank.bankPrefix + bank.speechKey;
       bank.syncKey = bank.bankPrefix + bank.syncKey;
       bank.blockKey = bank.bankPrefix + bank.blockKey;
       bank.optionsPrefix = bank.bankPrefix + bank.optionsPrefix;
       bank.lastSyncWarningKey = bank.bankPrefix + bank.lastSyncWarningKey;
 
       bank.currentCassetteKey = bank.bankPrefix + bank.currentCassetteKey;
-      bank.cassettePagePrefix = bank.bankPrefix + bank.cassettePagePrefix;
+      bank.cassetteStartPagePrefix = bank.bankPrefix + bank.cassetteStartPagePrefix;
+      bank.cassetteEndPagePrefix = bank.bankPrefix + bank.cassetteEndPagePrefix;
       bank.cassetteFeedPrefix = bank.bankPrefix + bank.cassetteFeedPrefix;
 
       bank.syncLogPrefix = bank.bankPrefix + bank.syncLogPrefix;
@@ -104,6 +108,9 @@ Tapedeck.Backend.Bank = {
     if (bank.localStorage.getItem(bank.repeatKey) == null) {
       bank.localStorage.setItem(bank.repeatKey, "true");
     }
+    if (bank.localStorage.getItem(bank.speechKey) == null) {
+      bank.localStorage.setItem(bank.speechKey, "off");
+    }
     // initialize the block list if necessary
     if (bank.localStorage.getItem(bank.blockKey) == null) {
       bank.saveBlockList(bank.defaultBlockPatterns);
@@ -117,7 +124,7 @@ Tapedeck.Backend.Bank = {
         bank.PlaylistList.init(function() {
           // Attach events to ensure the browseList is updated and saved properly.
           // Kind of wish there was a better place to do this.
-          Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList) {
+          Tapedeck.Backend.Bank.getCachedBrowseList(function(browseList) {
             browseList.bind("change tracks", function() {
               Tapedeck.Backend.MessageHandler.pushBrowseTrackList(this);
             });
@@ -341,8 +348,10 @@ Tapedeck.Backend.Bank = {
         }, fs.errorHandler.curry("removeCassette2"));
       }, fs.errorHandler.curry("removeCassette1"));
 
-      var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix + name;
-      Tapedeck.Backend.Bank.localStorage.removeItem(pageKey);
+      var startPageKey = Tapedeck.Backend.Bank.cassetteStartPagePrefix + name;
+      var endPageKey = Tapedeck.Backend.Bank.cassetteEndPagePrefix + name;
+      Tapedeck.Backend.Bank.localStorage.removeItem(startPageKey);
+      Tapedeck.Backend.Bank.localStorage.removeItem(endPageKey);
 
       var feedKey = Tapedeck.Backend.Bank.cassetteFeedPrefix + name;
       Tapedeck.Backend.Bank.localStorage.removeItem(feedKey);
@@ -358,10 +367,15 @@ Tapedeck.Backend.Bank = {
         for (var i = 0; i < datas.length; i++) {
           var name = datas[i].name;
 
-          var pageKey = bank.cassettePagePrefix + name;
-          var page = bank.localStorage.getItem(pageKey);
-          if (page != null) {
-            datas[i].page = page;
+          var startPageKey = bank.cassetteStartPagePrefix + name;
+          var endPageKey = bank.cassetteEndPagePrefix + name;
+          var startPage = bank.localStorage.getItem(startPageKey);
+          var endPage = bank.localStorage.getItem(endPageKey);
+          if (startPage != null) {
+            datas[i].startPage = parseInt(startPage, 10);
+          }
+          if (endPage != null) {
+            datas[i].endPage = parseInt(endPage, 10);
           }
 
           var feedKey = bank.cassetteFeedPrefix + name;
@@ -378,10 +392,15 @@ Tapedeck.Backend.Bank = {
           var devData = bank.devCassettes[j];
 
           if (!(devData.name in done)) {
-            var pageKey = bank.cassettePagePrefix + devData.name;
-            var page = bank.localStorage.getItem(pageKey);
-            if (page != null) {
-              devData.page = page;
+            var startPageKey = bank.cassetteStartPagePrefix + devData.name;
+            var endPageKey = bank.cassetteEndPagePrefix + devData.name;
+            var startPage = bank.localStorage.getItem(startPageKey);
+            var endPage = bank.localStorage.getItem(endPageKey);
+            if (startPage != null) {
+              devData.startPage = parseInt(startPage, 10);
+            }
+            if (endPage != null) {
+              devData.endPage = parseInt(endPage, 10);
             }
 
             var feedKey = bank.cassetteFeedPrefix + devData.name;
@@ -1088,9 +1107,10 @@ Tapedeck.Backend.Bank = {
     bank.getSavedTrackList(bank.trackListPrefix + bank.savedQueueName, callback);
   },
 
-  // NOTE, the browselist is only memoized by the Bank, it is not SavedTrackList
-  savedBrowseListName: "__browseList",
-  saveCurrentBrowseList: function(trackList) {
+  // NOTE, the browselist is only memoized by the Bank, it is not a SavedTrackList
+  cacheExpiryData: { expiry: -1 },
+  cachedBrowseListName: "__browseList",
+  cacheCurrentBrowseList: function(trackList) {
     // we only memoize the browseList, we don't persist it in storage
     var bank = Tapedeck.Backend.Bank;
 
@@ -1105,15 +1125,61 @@ Tapedeck.Backend.Bank = {
     };
     trackList.bind("all", browseListChanged);
 
-    bank.Memory.rememberTrackList(bank.savedBrowseListName, trackList);
+    // do the caching here
+    bank.Memory.rememberTrackList(bank.cachedBrowseListName, trackList);
+
+    // fill the options besides browseList as normal through the templateManager to save in the expirydata
+    var viewScript = Tapedeck.Backend.TemplateManager.getViewScript("BrowseList");
+    var hollowView = new viewScript({ });
+    var neededOptions = hollowView.getOptions();
+
+    // remove browselist from needed, we are caching it
+    delete neededOptions["browseList"];
+    Tapedeck.Backend.TemplateManager.fillOptions(neededOptions, function(filledOptions) {
+      bank.cacheExpiryData = filledOptions;
+      bank.cacheExpiryData.expiry = (new Date()).getTime() + (30 * 60 * 1000); // now + 30min
+    });
   },
-  getCurrentBrowseList: function(callback) {
+  // You may get the most recently cached browseList always, but you should use isBrowseListCached
+  // to determine if the browseList is stale or not.
+  getCachedBrowseList: function(callback) {
     var bank = Tapedeck.Backend.Bank;
-    var tracks = bank.Memory.getTrackList(bank.savedBrowseListName);
+
+    var tracks = bank.Memory.getTrackList(bank.cachedBrowseListName);
     if (typeof(tracks) == "undefined" || tracks == null) {
       tracks = new Tapedeck.Backend.Collections.TrackList();
     }
     callback(tracks);
+  },
+  isBrowseListCached: function(callback) {
+    var now = new Date().getTime();
+    if (now > Tapedeck.Backend.Bank.cacheExpiryData.expiry) {
+      // if we're over the expiry time, no need to do more logic, we're not cached
+      console.log("cache is expired");
+      callback(false);
+      return;
+    }
+
+    // if we're in the expiry time, make sure it's the right data
+    var viewScript = Tapedeck.Backend.TemplateManager.getViewScript("BrowseList");
+    var hollowView = new viewScript({ });
+    var neededOptions = hollowView.getOptions();
+
+    // remove browselist from needed, we are caching it
+    delete neededOptions["browseList"];
+    Tapedeck.Backend.TemplateManager.fillOptions(neededOptions, function(filledOptions) {
+      for (var param in Tapedeck.Backend.Bank.cacheExpiryData) {
+        if (param != "expiry" &&
+            Tapedeck.Backend.Bank.cacheExpiryData[param] != filledOptions[param]) {
+          console.log("expiry mismatch on param: " + param);
+          callback(false);
+          return;
+        }
+      }
+      console.log("cache is good");
+      callback(true);
+      return;
+    });
   },
 
   getSavedOptions: function(callback) {
@@ -1155,11 +1221,13 @@ Tapedeck.Backend.Bank = {
     this.localStorage.setItem(this.currentCassetteKey, currentCassette);
   },
 
-  saveCassettePage: function(cassetteName, page) {
-    var pageKey = Tapedeck.Backend.Bank.cassettePagePrefix +
-                  cassetteName;
-    var page = Tapedeck.Backend.Bank.localStorage
-                                    .setItem(pageKey, page);
+  saveCassettePages: function(cassetteName, startPage, endPage) {
+    var startPageKey = Tapedeck.Backend.Bank.cassetteStartPagePrefix +
+                       cassetteName;
+    var endPageKey = Tapedeck.Backend.Bank.cassetteEndPagePrefix +
+                     cassetteName;
+    Tapedeck.Backend.Bank.localStorage.setItem(startPageKey, startPage);
+    Tapedeck.Backend.Bank.localStorage.setItem(endPageKey, endPage);
   },
   saveCassetteFeed: function(cassetteName, feed) {
     var feedKey = Tapedeck.Backend.Bank.cassetteFeedPrefix +
@@ -1187,6 +1255,22 @@ Tapedeck.Backend.Bank = {
     return ((volume != null) ? volume : 1);
   },
 
+  // speech will be "off" if turned-off, the name of a voice otherwise
+  getSpeech: function() {
+    var bank = Tapedeck.Backend.Bank;
+    var speech = bank.localStorage.getItem(this.speechKey);
+    return (speech ? speech : "off");
+  },
+
+  isSpeechOn: function() {
+    var speech = Tapedeck.Backend.Bank.getSpeech();
+    return speech != "off";
+  },
+
+  setSpeech: function(voiceName) {
+    this.localStorage.setItem(this.speechKey, voiceName);
+  },
+
   getSync: function() {
     var bank = Tapedeck.Backend.Bank;
     var sync = bank.localStorage.getItem(this.syncKey);
@@ -1207,7 +1291,6 @@ Tapedeck.Backend.Bank = {
     if (!oldVal || oldVal == bank.Sync.STATES.OFF) {
       newVal = bank.Sync.STATES.ON;
     }
-    bank.localStorage.setItem(bank.syncKey, newVal);
 
     var playlistListUpdated = false;
     var queueUpdated = false;
@@ -1218,6 +1301,8 @@ Tapedeck.Backend.Bank = {
     };
 
     var updateViews = function() {
+      bank.localStorage.setItem(bank.syncKey, newVal); // actually change the setting here
+
       // sync changed so we need to discard the current playlists and get the requested
       bank.generateTrackListPrefixes(newVal);
 
@@ -1241,7 +1326,6 @@ Tapedeck.Backend.Bank = {
     if (newVal == bank.Sync.STATES.OFF) {
       // if we are going from on to off, sync everything immediately one last time
       bank.sync(true, function() {
-        bank.Sync.checkQuota();
         updateViews();
       });
     }
@@ -1310,6 +1394,7 @@ Tapedeck.Backend.Bank = {
       var bank = Tapedeck.Backend.Bank;
       var sync = bank.Sync;
       if (bank.getSync() != bank.Sync.STATES.ON) {
+        console.error("Sync is off but attempting to sync.");
         return;
       }
 
@@ -1323,7 +1408,7 @@ Tapedeck.Backend.Bank = {
 
       // find all the tracklists for which sync is on
       bank.findKeys(bank.trackListPiece + ".*" + bank.syncOnPostPrefix, true, function(syncKeys) {
-        if (syncKeys.length == 0) {
+        if (syncKeys.length === 0) {
           // actually nothing to sync
           callback();
         }
@@ -1558,10 +1643,6 @@ Tapedeck.Backend.Bank = {
       var bank = Tapedeck.Backend.Bank;
       var sync = bank.Sync;
 
-      // no-op if sync is off
-      if (!bank.isSyncOn()) {
-        return;
-      }
       // == warning and clearing values ==
       // MAX_WRITE_OPERATIONS_PER_HOUR
       var warnWritesPerHour = 900;

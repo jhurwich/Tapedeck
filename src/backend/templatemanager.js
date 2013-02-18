@@ -290,7 +290,12 @@ Tapedeck.Backend.TemplateManager = {
     callback(Tapedeck.Backend.CassetteManager.currentCassette);
   },
   getCurrentPage: function(callback) {
-    callback(Tapedeck.Backend.CassetteManager.currPage);
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    var toReturn = "" + cMgr.startPage;  // send as a string
+    if (cMgr.endPage != -1) {
+      toReturn = toReturn + "-" + cMgr.endPage;
+    }
+    callback(toReturn);
   },
   getCurrentFeed: function(callback) {
     var feed = Tapedeck.Backend.CassetteManager.currFeed;
@@ -303,109 +308,155 @@ Tapedeck.Backend.TemplateManager = {
     callback(Tapedeck.Backend.CassetteManager.getCassettes());
   },
   getBrowseList: function(callback, errCallback, tab) {
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    var tMgr = Tapedeck.Backend.TemplateManager;
+    var bank = Tapedeck.Backend.Bank;
+    var msgHandler = Tapedeck.Backend.MessageHandler;
+
     if (typeof(tab) == "undefined") {
-      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Tapedeck.Backend.TemplateManager.getBrowseList(callback, errCallback, selectedTab);
+      msgHandler.getSelectedTab(function(selectedTab) {
+        tMgr.getBrowseList(callback, errCallback, selectedTab);
       });
       return;
     }
-    var cMgr = Tapedeck.Backend.CassetteManager;
 
-    // no current cassette, no browse list
     if (cMgr.currentCassette == "undefined" || !cMgr.currentCassette) {
+      // no current cassette, no browse list
       callback(null);
       return;
     }
-
     var context = Tapedeck.Backend.Utils.getContext(tab);
 
-    var handleResponse = function(response) {
-
-      // Only push the browselist if we are still browsing the
-      // cassette that these tracks belong to
-      if (typeof(cMgr.currentCassette) == "undefined" ||
-          cMgr.currentCassette == null ||
-          typeof(response.tracks) == "undefined" ||
-          (response.tracks.length > 0 &&
-           response.tracks[0].cassette != cMgr.currentCassette.get("name"))) {
-        callback(null);
-        return;
+    bank.isBrowseListCached(function(cached) {
+      console.log("CACHED?: " + cached);
+      if (cached) {
+        bank.getCachedBrowseList(function(cachedBrowseList) {
+          console.log("GETTING A CACHED BROWSELIST IN TEMPLATEMANAGER");
+          var toReturn = { fillAll: true,
+                           browseList: cachedBrowseList,
+                           stillParsing: false };
+          callback(toReturn);
+          return;
+        });
       }
-      var browseTrackList = new Tapedeck.Backend.Collections.TrackList(response.tracks);
-      Tapedeck.Backend.Bank.saveCurrentBrowseList(browseTrackList);
+      else {
+        console.log("GETTING A *new* BROWSELIST IN Tmgr");
+      }
 
-      var toReturn = { fillAll: true,
-                       browseList: browseTrackList,
-                       stillParsing: response.stillParsing };
+      // handleCassetteResponse is for any response from the cassette.  The first response must build the
+      // browselist and return rapidly so that the template can be completed.
+      // Subsequent calles use addTracks to push any new tracks.
+      //
+      // Both callbacks and finalCallbacks to the cassette will go through this function.
+      // finalCallbacks must include response.success or response.final.
+      var orderEnforcer = 0;
+      var handleCassetteResponse = function(pageNum, response) {
+        // pageNum is optional, not present indicates the cassette was not pageable.
+        if (arguments.length == 1) {
+          response = pageNum;
+          pageNum = undefined;
+        }
+        var isFinalCallback = (typeof(response.final) != "undefined") || (typeof(response.success) != "undefined");
 
-      callback(toReturn);
-    };
-
-    var finalCallback = function(response) {
-      var msgHandler = Tapedeck.Backend.MessageHandler;
-
-
-      var continueFinal = function(aResponse) {
-
-        if (!msgHandler.addTrackAvailable) {
-          // We shifted the new tracks to the queue, and push empty array
-          setTimeout(continueFinal, 200, aResponse);
+        if (!isFinalCallback && (typeof(pageNum) == "undefined" || pageNum == orderEnforcer + 1)) {
+          // just got data for the correct page
+          orderEnforcer++;
+        }
+        else if (isFinalCallback && pageNum <= orderEnforcer) {
+          // just got a final callback for a completed page, allow to passthrough
+        }
+        else {
+          // got a callback or finalCallback too early
+          setTimeout(handleCassetteResponse, 200, pageNum, response);
           return;
         }
 
-        Tapedeck.Backend.Bank.getCurrentBrowseList(function(browseList){
-          if (typeof(aResponse.success) == "undefined") {
-            console.error("Got no success");
-            aResponse.success = true;
+        // Only push the browselist if we are still browsing the
+        // cassette that these tracks belong to
+        if (typeof(cMgr.currentCassette) == "undefined" ||
+            cMgr.currentCassette == null) {
+          callback(null);
+          return;
+        }
+
+        // for the non-finalCallback of the first page, build the browselist and return rapidly
+        if ((pageNum == 1 || typeof(pageNum) == "undefined") && !isFinalCallback) {
+          // if tracks are not present, or cassettes mismatch, something went wrong and return null
+          if(typeof(response.tracks) == "undefined" ||
+             (response.tracks.length > 0 &&
+              response.tracks[0].cassette != cMgr.currentCassette.get("name"))) {
+            callback(null);
+            return;
           }
 
-          if (!aResponse.success || aResponse.errorCount > 0) {
-            // some error occurred
-            var errorString = "";
-            if (browseList.length === 0) {
-              errorString = "Sorry, we could not parse the site.";
-              if (aResponse.errorCount > 1) {
-                errorString += " (" + aResponse.errorCount + " errors)";
-              }
-            }
-            else if (aResponse.errorCount > 1) {
-              errorString = "There were " + aResponse.errorCount + " errors when parsing the site.";
-            }
-            else {
-              errorString = "There were errors when parsing the site.";
-            }
-            Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, errorString, tab);
+          // have tracks for the first page, return them as a browselist
+          var browseTrackList = new Tapedeck.Backend.Collections.TrackList(response.tracks);
+          Tapedeck.Backend.Bank.cacheCurrentBrowseList(browseTrackList);
+
+          var toReturn = { fillAll: true,
+                           browseList: browseTrackList,
+                           stillParsing: response.stillParsing };
+          callback(toReturn);
+          return;
+        }
+
+        // having reached here, we know we're not handling the first page, use addTracks.
+        if (typeof(response.tracks) != "undefined" && response.tracks.length > 0) {
+          msgHandler.addTracks(response.tracks);
+
+          if (typeof(response.errorCount) == "undefined") {
+            return;
           }
           else {
-            // success path
-            Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
+            console.error("Errors on returned tracks.  Pushing tracks and errors may collide.  (THIS SHOULD NOT HAPPEN)");
           }
-        }); // end getCurrentBrowseList()
-      }; // end continueFinal()
+        }
 
-      if (typeof(response.tracks) != "undefined" && response.tracks.length > 0) {
-        msgHandler.addTracks(response.tracks, continueFinal.curry(response));
-      }
-      else {
-        continueFinal(response);
-      }
-    }; // end finalCallback()
+        // if the response had tracks, they've been removed.  Now handle .success and .errorCount
+        if (typeof(response.success) == "undefined") {
+          console.error("Got no success");
+          response.success = true;
+        }
 
-    try {
-      if (cMgr.currentCassette.isPageable()) {
-        cMgr.currentCassette.getPage(cMgr.currPage,
-                                     context,
-                                     handleResponse,
-                                     errCallback,
-                                     finalCallback);
+        if (!response.success || response.errorCount > 0) {
+          // some error occurred
+          var errorString = "";
+          if (response.errorCount > 1) {
+            errorString = "There were " + response.errorCount + " errors when parsing the site.";
+          }
+          else {
+            errorString = "There were errors when parsing the site.";
+          }
+          msgHandler.pushBrowseListError(errorString, tab);
+        }
+
+      }; // end handleCassetteResponse
+
+      try {
+        if (cMgr.currentCassette.isPageable()) {
+          // determine the number of pages to request
+          var numPages = 1;
+          if (cMgr.endPage != -1) {
+            numPages = numPages + (cMgr.endPage - cMgr.startPage);
+          }
+
+          // make getPage requests for each page
+          for (var i = 0; i < numPages; i++) {
+            cMgr.currentCassette.getPage(cMgr.startPage + i,
+                                         context,
+                                         handleCassetteResponse.curry(i + 1),
+                                         errCallback,
+                                         handleCassetteResponse.curry(i + 1));
+          }
+        }
+        else {
+          cMgr.currentCassette.getBrowseList(context, handleCassetteResponse, errCallback, handleCassetteResponse);
+        }
       }
-      else {
-        cMgr.currentCassette.getBrowseList(context, handleResponse, errCallback, finalCallback);
+      catch (e) {
+        console.error("GOT ERROR IN BROWSE LIST: " + e.message);
       }
-    }
-    catch (e) {
-      console.error("GOT ERROR IN BROWSE LIST: " + e.message);
-    }
+    }); // end isBrowseListCached
   },
   getQueue: function(callback) {
     callback(Tapedeck.Backend.Sequencer.queue);

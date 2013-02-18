@@ -103,11 +103,19 @@ Tapedeck.Backend.Sequencer = {
 
     play: function() {
       var sqcr = Tapedeck.Backend.Sequencer;
-      var cMgr = Tapedeck.Backend.CassetteManager;
+      var bank = Tapedeck.Backend.Bank;
       var currentTrack = sqcr.getCurrentTrack();
 
       sqcr.log("-Play-");
-      this.playerElement.get(0).play();
+      if (bank.isSpeechOn()) {
+        // say track information
+        Tapedeck.Backend.Utils.speekTrack(currentTrack, function() {
+          sqcr.Player.playerElement.get(0).play();
+        });
+      }
+      else {
+        this.playerElement.get(0).play();
+      }
     },
 
     stop: function() {

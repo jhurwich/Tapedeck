@@ -594,9 +594,20 @@ Tapedeck.Frontend.Frame = {
       $("#current-page").hide();
       $("#set-page").keypress(function(e) {
         if(e.which == 13) {
-          var page = parseInt($("#set-page").val(), 10);
-          if (!isNaN(page) && page > 0) {
-             Tapedeck.Frontend.Messenger.setPage(page);
+          var value = $("#set-page").val();
+          if (value.indexOf("-") != -1) {
+            var words = value.split("-");
+            if (words.length >= 2) {
+              var startPage = parseInt(words[0], 10);
+              var endPage = parseInt(words[1],10);
+              Tapedeck.Frontend.Messenger.setPageRange(startPage, endPage);
+            }
+          }
+          else {
+            var page = parseInt(value, 10);
+            if (!isNaN(page) && page > 0) {
+               Tapedeck.Frontend.Messenger.setPage(page);
+            }
           }
           $("#set-page").blur();
         }

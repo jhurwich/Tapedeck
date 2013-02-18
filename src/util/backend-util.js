@@ -190,6 +190,57 @@ Tapedeck.Backend.Utils = {
     return text;
   },
 
+  isSpeaking: false,
+  speekTrack: function(aTrack, aCallback) {
+    var utils = Tapedeck.Backend.Utils;
+    var bank = Tapedeck.Backend.Bank;
+    if (utils.isSpeaking) {
+      return;
+    }
+
+    var makePhrase = function(track) {
+      var phrase = track.get("trackName");
+      if (typeof(track.get("artistName")) != "undefined") {
+        phrase = phrase + " by " + track.get("artistName");
+      }
+      phrase = phrase.replace(/feat\.*/ig, "featuring");
+      return phrase;
+    };
+    var utterance = makePhrase(aTrack);
+
+    utils.isSpeaking = true;
+
+    var numWords = utterance.split(" ").length;
+    var wordCount = 0;
+    var hasCallbacked = false;
+    var speechEventHandler = function(e) {
+      if (e.type == 'word') {
+        wordCount++;
+        if (!hasCallbacked &&
+            wordCount == numWords - 2) { // start song one word early
+          hasCallbacked = true;
+          aCallback();
+        }
+      }
+      else if (e.type == 'end' || e.type == 'interrupted' || e.type == 'cancelled' || e.type == 'error') {
+        utils.isSpeaking = false;
+        aCallback();
+      }
+    };
+
+    var rate = localStorage['rate'] || 0.80;
+    var pitch = localStorage['pitch'] || 1.0;
+    var volume = localStorage['volume'] || 1.0;
+    var voice = bank.getSpeech();
+    var voiceParams = { voiceName: voice,
+                        rate: parseFloat(rate),
+                        pitch: parseFloat(pitch),
+                        volume: parseFloat(volume),
+                        onEvent: speechEventHandler
+                      };
+    chrome.tts.speak(utterance, voiceParams);
+  },
+
   domToString: function(dom) {
     return $('div').append($(dom)).remove().html();
   },
@@ -220,7 +271,7 @@ Tapedeck.Backend.Utils = {
         }
         else {
           // an error happened
-          successFn(response.data, response.textStatus, response.headers);
+          errorFn(response.data, response.textStatus, response.headers);
         }
       };
 

@@ -14,7 +14,7 @@ describe("Frontend Frame Logic", function() {
       var numTracks = self.testTracks.length;
       var tracksQueued = 0;
 
-      self.Tapedeck.Backend.Bank.saveCurrentBrowseList(testTrackList);
+      self.Tapedeck.Backend.Bank.cacheCurrentBrowseList(testTrackList);
       var testTrackView = self.Tapedeck.Backend.TemplateManager.renderViewWithOptions
                               ("BrowseList",
                                "default",

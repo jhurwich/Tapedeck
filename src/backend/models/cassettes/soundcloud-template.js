@@ -135,7 +135,9 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
         } \
       } \
       else if (typeof(response.length) != "undefined" && response.length > 0) { \
-        var response = JSON.parse(response); \
+        if (typeof(response) != "object") { \
+          response = JSON.parse(response); \
+        } \
         /* parsing a response containing an array of tracks */ \
         for (var i = 0; i < response.length; i++) { \
           var rTrack = response[i]; \

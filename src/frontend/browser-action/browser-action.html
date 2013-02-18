@@ -1,5 +1,6 @@
 <html>
   <head>
+    <script type="text/javascript" src="/util/frontend-util.js"></script>
     <script type="text/javascript" src="browser-action.js"></script>
     <link rel="stylesheet"
           type="text/css"
@@ -7,6 +8,13 @@
   </head>
 
   <body>
+    <label for="speech-select">Speek track info: </label>
+    <select name="speech-select"
+            id="speech-select"
+            onchange="TapedeckBA();"></select>
+
+    <hr />
+
     <label for="package-select">Change skin: </label>
     <select name="package-select"
             id="package-select"

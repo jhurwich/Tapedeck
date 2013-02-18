@@ -1,6 +1,6 @@
-__Jasmine__RUN_ALL_TESTS = true;
+__Jasmine__RUN_ALL_TESTS = false;
 __Jasmine__TESTS_TO_RUN = [
-  "Message Handler"
+  "Bank"
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
