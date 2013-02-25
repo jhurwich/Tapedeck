@@ -48,21 +48,33 @@ describe("Message Handler", function() {
   });
 */
 
-  it("should update the correct view with MessageHandler.pushView *flaky*" , function() {
-    expect($("#tapedeck-frame").contents()).toContain("#cassette-list");
-    expect($("#tapedeck-frame").contents()).not.toContain("#testdiv");
+  it("should update the correct view with MessageHandler.pushView" , function() {
 
-    var testDiv = "<div id='cassette-list'><div id='testdiv'></div></div>";
+    var testDiv = '<div id="cassette-list"><div id="testdiv"></div></div>';
     var testTab = this.findTestTab();
     expect(testTab).not.toBeNull();
 
-    this.Tapedeck.Backend.MessageHandler.pushView(testDiv, { }, { }, testTab);
-
-    this.waitsForElement("#testdiv");
-
+    this.waitsForElement("#cassette-list");
     runs(function() {
       expect($("#tapedeck-frame").contents()).toContain("#cassette-list");
-      expect($("#tapedeck-frame").contents()).toContain("#testdiv");
+      expect($("#tapedeck-frame").contents()).not.toContain("#testdiv");
+
+      var spy = spyOn(this.Tapedeck.Frontend.Utils, "replaceView"); // NOTE: no callthrough
+      this.Tapedeck.Backend.MessageHandler.pushView(testDiv, { }, { }, testTab);
+
+      this.waits(1000);
+
+      runs(function() {
+        expect(spy).toHaveBeenCalled();
+        var foundCall = false;
+        for (var i = 0; i < spy.callCount; i++) {
+          var args = spy.argsForCall[i];
+          if (args[0] == testDiv) {
+            foundCall = true;
+          }
+        }
+        expect(foundCall).toBeTruthy();
+      });
     });
   });
 

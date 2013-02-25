@@ -195,6 +195,10 @@ Tapedeck.Backend.Sequencer = {
       Tapedeck.Backend.Sequencer.log("Loading new track '" + track.get("trackName") + "'");
 
       $(this.playerElement).attr("src", this.currentTrack.get("url"));
+      if (typeof(this.currentTrack.get("url")) == "undefined" ||
+          this.currentTrack.get("url") === "") {
+        console.error("A Track has no url: " + JSON.stringify(track.toJSON()));
+      }
       this.playerElement.get(0).load();
     },
 
@@ -218,6 +222,10 @@ Tapedeck.Backend.Sequencer = {
       sqcr.log("Prefetching new track '" + track.get("trackName") + "'");
 
       $(this.prefetchElement).attr("src", track.get("url"));
+      if (typeof(track.get("url")) == "undefined" ||
+          track.get("url") === "") {
+        console.error("B Track has no url: " + JSON.stringify(track.toJSON()));
+      }
       this.prefetchElement.get(0).load();
     },
 

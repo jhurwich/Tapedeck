@@ -63,17 +63,39 @@ Tapedeck.Backend.CassetteManager = {
                 code: xhr.responseText
               });
               Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
+                console.log("got report: " + JSON.stringify(response.report));
                 var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
                 var cassetteEntry = { cassette: newAdapter };
+
+                // attach pages from saved CassetteData
                 if (typeof(data.endPage) != "undefined") {
+                  console.log(" >> Page recovered from data1");
                   cassetteEntry.endPage = parseInt(data.endPage, 10);
                 }
                 if (typeof(data.startPage) != "undefined") {
+                  console.log(" >> Page recovered from data2");
                   cassetteEntry.startPage = parseInt(data.startPage, 10);
                   if (typeof(cassetteEntry.endPage) == "undefined") {
                     cassetteEntry.endPage = -1;
                   }
                 }
+                // if nothing saved in CassetteData, use the defaultPages from the cassette
+                if (typeof(cassetteEntry.startPage) == "undefined" &&
+                    typeof(response.report.defaultPages) != "undefined") {
+                  var pages = response.report.defaultPages.split("-");
+                  if (pages.length == 1) {
+                    console.log(">> Page recovered from default");
+                    cassetteEntry.startPage = parseInt(pages[0], 10);
+                    cassetteEntry.endPage = -1;
+                  }
+                  else {
+                    console.log(" >> Page recovered from default");
+                    cassetteEntry.startPage = parseInt(pages[0], 10);
+                    cassetteEntry.endPage = parseInt(pages[1], 10);
+                  }
+                }
+
+                // set feed from saved CassetteData, or the default from the cassette
                 if (typeof(data.feed) != "undefined") {
                   cassetteEntry.feed = data.feed;
                 }
@@ -106,6 +128,18 @@ Tapedeck.Backend.CassetteManager = {
         var cassetteEntry = { cassette: cassette };
         if (cassette.get("defaultFeed") != "undefined") {
           cassetteEntry.feed = cassette.get("defaultFeed");
+        }
+        if (typeof(cassette.get("defaultPages")) != "undefined") {
+          console.log(" >> Page recovered from mem");
+          var pages = cassette.get("defaultPages").split("-");
+          if (pages.length == 1) {
+            cassetteEntry.startPage = parseInt(pages[0], 10);
+            cassetteEntry.endPage = -1;
+          }
+          else {
+            cassetteEntry.startPage = parseInt(pages[0], 10);
+            cassetteEntry.endPage = parseInt(pages[1], 10);
+          }
         }
 
         // for the moment no in-memory cassettes have pages, if this changes
@@ -178,8 +212,14 @@ Tapedeck.Backend.CassetteManager = {
           if (typeof(this.cassettes[i].startPage) != "undefined") {
             this.startPage = parseInt(this.cassettes[i].startPage, 10);
           }
+          else {
+            console.log(" >> startPage is undefined");
+          }
           if (typeof(this.cassettes[i].endPage) != "undefined") {
             this.endPage = parseInt(this.cassettes[i].endPage, 10);
+          }
+          else {
+            console.log(" >> endPage is undefined");
           }
           if (typeof(this.cassettes[i].feed) != "undefined") {
             this.currFeed = this.cassettes[i].feed;
@@ -282,6 +322,7 @@ Tapedeck.Backend.CassetteManager = {
       cMgr.startPage = 1;
     }
     cMgr.endPage = parseInt(end, 10);
+    console.log(" >> setPageRange");
 
     // update the page in memory
     for (var i = 0; i < cMgr.cassettes.length; i++) {
@@ -311,6 +352,7 @@ Tapedeck.Backend.CassetteManager = {
       cMgr.startPage = 1;
     }
     cMgr.endPage = -1;
+    console.log(" >> setPage");
 
     // update the page in memory
     for (var i = 0; i < cMgr.cassettes.length; i++) {

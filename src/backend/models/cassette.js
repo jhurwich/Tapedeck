@@ -53,6 +53,7 @@ Tapedeck.Backend.Models.Cassette = Backbone.Model.extend({
       isBrowseable: this.isBrowseable(),
       isPageable: this.isPageable(),
       defaultFeed: this.get("defaultFeed"),
+      defaultPages: this.get("defaultPages"),
       feeds: this.feeds
     };
 

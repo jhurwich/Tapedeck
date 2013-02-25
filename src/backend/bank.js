@@ -38,6 +38,7 @@ Tapedeck.Backend.Bank = {
   MAX_SYNC_STRING_SIZE: 2000,   /* 2048 bytes is actual limit */
   MAX_NUMBER_SPLITS: 25,
   MAX_NUM_SYNC_PLAYLISTS: 10,
+  BROWSELIST_CACHE_TIMEOUT: 30 * 60 * 1000, /* 30 min */
 
   defaultBlockPatterns : [ "chrome://",
                            "chrome-devtools://",
@@ -852,6 +853,7 @@ Tapedeck.Backend.Bank = {
     bank.log("! Bank is Clearing !");
 
     this.localStorage.clear();
+    this.cacheExpiryData = { expiry: -1 };
     this.Memory.clear();
     this.FileSystem.clear();
     this.Sync.clear();
@@ -1137,7 +1139,7 @@ Tapedeck.Backend.Bank = {
     delete neededOptions["browseList"];
     Tapedeck.Backend.TemplateManager.fillOptions(neededOptions, function(filledOptions) {
       bank.cacheExpiryData = filledOptions;
-      bank.cacheExpiryData.expiry = (new Date()).getTime() + (30 * 60 * 1000); // now + 30min
+      bank.cacheExpiryData.expiry = (new Date()).getTime() + bank.BROWSELIST_CACHE_TIMEOUT; // now + BROWSELIST_CACHE_TIMEOUT
     });
   },
   // You may get the most recently cached browseList always, but you should use isBrowseListCached
@@ -1155,7 +1157,6 @@ Tapedeck.Backend.Bank = {
     var now = new Date().getTime();
     if (now > Tapedeck.Backend.Bank.cacheExpiryData.expiry) {
       // if we're over the expiry time, no need to do more logic, we're not cached
-      console.log("cache is expired");
       callback(false);
       return;
     }
@@ -1171,12 +1172,10 @@ Tapedeck.Backend.Bank = {
       for (var param in Tapedeck.Backend.Bank.cacheExpiryData) {
         if (param != "expiry" &&
             Tapedeck.Backend.Bank.cacheExpiryData[param] != filledOptions[param]) {
-          console.log("expiry mismatch on param: " + param);
           callback(false);
           return;
         }
       }
-      console.log("cache is good");
       callback(true);
       return;
     });

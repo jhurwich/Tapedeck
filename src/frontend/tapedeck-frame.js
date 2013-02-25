@@ -539,6 +539,7 @@ Tapedeck.Frontend.Frame = {
 
       switch (trackType) {
         case "soundcloud": // TODO special soundcloud dl handling
+        case "hypem": // TODO special hypem dl handling
         case "mp3":
           tracklists.download($(row).attr("track-id"));
           break;

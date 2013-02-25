@@ -192,15 +192,18 @@ Tapedeck.Sandbox = {
           for (var p in params) {
             response[p] = params[p];
           }
+          console.log(" >> Sandbox respondingd for page: " + message.params.page + " in success");
           Tapedeck.Sandbox.sendMessage(response);
         }, function(error) {
 
           // error callback
+          console.log(" >> Sandbox respondingd for page: " + message.params.page + " in error");
           response.error = error;
           Tapedeck.Sandbox.sendMessage(response);
         }, function(final) {
 
           // final callback
+          console.log(" >> Sandbox respondingd for page: " + message.params.page + " for final");
           var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
           for (var param in final) {
             finalResponse[param] = final[param];

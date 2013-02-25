@@ -1,6 +1,7 @@
-__Jasmine__RUN_ALL_TESTS = false;
+__Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Bank"
+  "Frontend Frame Logic",
+  "Frame View"
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
@@ -8,7 +9,7 @@ __Jasmine__TESTS_TO_SKIP = [
 
 /* Runs initialization before each test.
  * Dramatically slows down test suite and can get crashy.  */
-__Jasmine__DO_FULL_INIT = false;
+__Jasmine__DO_FULL_INIT = true;
 
 beforeEach(function() {
   this.Tapedeck = {};
@@ -39,11 +40,29 @@ beforeEach(function() {
 
 
   /********* Added waitsFor *************/
-  this.waitsForSwitchToBrowseList = function() {
-    this.Tapedeck.Frontend.Messenger.setCassette("Scraper");
-    waitsFor(function() {
-      return ($("#tapedeck-frame").contents().find("#browse-list").length > 0);
-    }, "Waiting for switch to BrowseList mode", 600);
+  this.waitsForSwitchToBrowseList = function(cassetteName) {
+    if (typeof(cassetteName) == "undefined") {
+      cassetteName = "Scraper";
+    }
+
+    // only wait if we are actually changing
+    if (this.Tapedeck.Backend.CassetteManager.currentCassette == null ||
+        this.Tapedeck.Backend.CassetteManager.currentCassette.name != cassetteName) {
+      var spy = spyOn(this.Tapedeck.Backend.TemplateManager, "renderViewAndPush").andCallThrough();
+
+      // change the cassette and wait
+      this.Tapedeck.Frontend.Messenger.setCassette(cassetteName);
+      waitsFor(function() {
+        return (spy.callCount > 0);
+      }, "Waiting for switch to setCassette", 600);
+      runs(function() {
+
+        // make sure the browselist got updated in the view
+        waitsFor(function() {
+          return ($("#tapedeck-frame").contents().find("#browse-list").length > 0);
+        }, "Waiting for switch to BrowseList mode", 2000);
+      });
+    }
   };
 
   this.waitsForBackendInit = function() {
@@ -114,6 +133,33 @@ beforeEach(function() {
                     premadeCassettes: premadeCassettes,
                     logs: logs };
     return options;
+  };
+
+  this.ensureHypeMCassetteIsLoaded = function(callback) {
+    var cassettes = this.Tapedeck.Backend.CassetteManager.cassettes;
+    var found = false;
+    for (var i = 0; i < cassettes.length; i++) {
+      if (cassettes[i].cassette.get("name") == "HypeMachine") {
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      this.Tapedeck.Backend.Bank.setDevCassettes(["hypemcassette.js"], true, callback);
+    } else{
+      callback();
+    }
+  };
+
+  this.waitsForHypeMCheck = function() {
+    var checkComplete = false;
+    waitsFor(function() { return checkComplete; },
+             "Waiting for the HypeM Cassette",
+             1000);
+    this.ensureHypeMCassetteIsLoaded(function() {
+      checkComplete = true;
+    });
   };
 
   this.testTracks = [

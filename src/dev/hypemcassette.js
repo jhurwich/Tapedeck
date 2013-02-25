@@ -3,7 +3,8 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
     "name" : "HypeMachine",
     "developer" : "Jhawk",
     "developerLink" : "www.tape-deck.com",
-    "defaultFeed" : "Popular"
+    "defaultFeed" : "Popular",
+    "defaultPages" : "1-3"
   },
 
   // Don't want the interval event

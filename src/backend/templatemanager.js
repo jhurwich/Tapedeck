@@ -195,6 +195,14 @@ Tapedeck.Backend.TemplateManager = {
       var proxyImages = view.getImages();
       el = tMgr.removeTemplateCruft(el);
 
+      if (typeof(proxyEvents) == "undefined" ||
+          $.isEmptyObject(proxyEvents)) {
+        console.error("ProxyEvents was not populated for : " + scriptName);
+      }
+      if (typeof(proxyImages) == "undefined" ||
+          $.isEmptyObject(proxyImages)) {
+        console.error("ProxyImages was not populated for : " + scriptName);
+      }
       callback({ el : el,
                  proxyEvents : proxyEvents,
                  proxyImages : proxyImages });
@@ -328,19 +336,15 @@ Tapedeck.Backend.TemplateManager = {
     var context = Tapedeck.Backend.Utils.getContext(tab);
 
     bank.isBrowseListCached(function(cached) {
-      console.log("CACHED?: " + cached);
       if (cached) {
         bank.getCachedBrowseList(function(cachedBrowseList) {
-          console.log("GETTING A CACHED BROWSELIST IN TEMPLATEMANAGER");
           var toReturn = { fillAll: true,
                            browseList: cachedBrowseList,
                            stillParsing: false };
           callback(toReturn);
           return;
         });
-      }
-      else {
-        console.log("GETTING A *new* BROWSELIST IN Tmgr");
+        return;
       }
 
       // handleCassetteResponse is for any response from the cassette.  The first response must build the
@@ -349,7 +353,7 @@ Tapedeck.Backend.TemplateManager = {
       //
       // Both callbacks and finalCallbacks to the cassette will go through this function.
       // finalCallbacks must include response.success or response.final.
-      var orderEnforcer = 0;
+      var orderEnforcer = cMgr.startPage;
       var handleCassetteResponse = function(pageNum, response) {
         // pageNum is optional, not present indicates the cassette was not pageable.
         if (arguments.length == 1) {
@@ -357,12 +361,11 @@ Tapedeck.Backend.TemplateManager = {
           pageNum = undefined;
         }
         var isFinalCallback = (typeof(response.final) != "undefined") || (typeof(response.success) != "undefined");
-
-        if (!isFinalCallback && (typeof(pageNum) == "undefined" || pageNum == orderEnforcer + 1)) {
+        if (!isFinalCallback && (typeof(pageNum) == "undefined" || pageNum == orderEnforcer)) {
           // just got data for the correct page
           orderEnforcer++;
         }
-        else if (isFinalCallback && pageNum <= orderEnforcer) {
+        else if (isFinalCallback && pageNum < orderEnforcer) {
           // just got a final callback for a completed page, allow to passthrough
         }
         else {
@@ -370,7 +373,6 @@ Tapedeck.Backend.TemplateManager = {
           setTimeout(handleCassetteResponse, 200, pageNum, response);
           return;
         }
-
         // Only push the browselist if we are still browsing the
         // cassette that these tracks belong to
         if (typeof(cMgr.currentCassette) == "undefined" ||
@@ -380,7 +382,7 @@ Tapedeck.Backend.TemplateManager = {
         }
 
         // for the non-finalCallback of the first page, build the browselist and return rapidly
-        if ((pageNum == 1 || typeof(pageNum) == "undefined") && !isFinalCallback) {
+        if ((typeof(pageNum) == "undefined" || pageNum == cMgr.startPage) && !isFinalCallback) {
           // if tracks are not present, or cassettes mismatch, something went wrong and return null
           if(typeof(response.tracks) == "undefined" ||
              (response.tracks.length > 0 &&
@@ -444,9 +446,9 @@ Tapedeck.Backend.TemplateManager = {
           for (var i = 0; i < numPages; i++) {
             cMgr.currentCassette.getPage(cMgr.startPage + i,
                                          context,
-                                         handleCassetteResponse.curry(i + 1),
+                                         handleCassetteResponse.curry(cMgr.startPage + i),
                                          errCallback,
-                                         handleCassetteResponse.curry(i + 1));
+                                         handleCassetteResponse.curry(cMgr.startPage + i));
           }
         }
         else {
