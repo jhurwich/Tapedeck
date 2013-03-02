@@ -538,15 +538,15 @@ Tapedeck.Frontend.Frame = {
       var trackType = $(row).attr("track-type");
 
       switch (trackType) {
-        case "soundcloud": // TODO special soundcloud dl handling
-        case "hypem": // TODO special hypem dl handling
-        case "mp3":
-          tracklists.download($(row).attr("track-id"));
-          break;
+      case "soundcloud": // TODO special soundcloud dl handling
+      case "hypem": // TODO special hypem dl handling
+      case "mp3":
+        tracklists.download($(row).attr("track-id"));
+        break;
 
-        default:
-          console.error("We cannot download this file");
-          break;
+      default:
+        console.error("We cannot download this file");
+        break;
       }
     },
 

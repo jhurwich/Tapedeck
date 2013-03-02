@@ -20,6 +20,9 @@ describe("The HypeMachine Cassette", function() {
             var div = document.createElement('div');
             div.innerHTML = expectedJSON[attr];
             var decoded = div.firstChild.nodeValue;
+
+            // div can truncate text, remove "%E2%80%A6" = "…"
+            decoded = decoded.replace(decodeURIComponent("%E2%80%A6"), "");
             if (actualJSON[attr].indexOf(decoded) == -1) {
               expect(actualJSON[attr]).toMatch(decoded);
             }

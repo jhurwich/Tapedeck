@@ -14,7 +14,6 @@ Tapedeck.Backend.Cassettes.TestCassette2 = Tapedeck.Backend.Models.Cassette.exte
   getBrowseList: function(context, callback, errCallback) {
     var self = this;
     var handleTracks = function(response, sender, sendResponse) {
-      console.log("----TestCassette2 received tracks" );
 
       if (typeof(response.error) != "undefined") {
         console.error("ERROR IN SCRAPER CASSETTE's PARSING: " + JSON.stringify(response.error));

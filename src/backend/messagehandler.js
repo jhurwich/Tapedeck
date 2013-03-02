@@ -74,7 +74,7 @@ Tapedeck.Backend.MessageHandler = {
             var removedID = requestIDs.shift();
             delete self.requestRegister[removedID];
             registerSize--;
-            console.log("*******too many requests, reduced to " + registerSize);
+            console.error("Too many requests, reduced to: " + registerSize);
           }
         }
         return false;
@@ -93,70 +93,70 @@ Tapedeck.Backend.MessageHandler = {
     self.log(str);
 
     switch (request.action) {
-      case "add_tracks":
-        self.addTracks(request.tracks);
-        break;
+    case "add_tracks":
+      self.addTracks(request.tracks);
+      break;
 
-      case "play_pause":
-        var state = Tapedeck.Backend.Sequencer.getCurrentState();
-        if (state == "play") {
-          Tapedeck.Backend.Sequencer.pause();
-        } else {
-          Tapedeck.Backend.Sequencer.playNow();
-        }
-        break;
-      case "next":
-        Tapedeck.Backend.Sequencer.next();
-        break;
-      case "prev":
-        Tapedeck.Backend.Sequencer.prev();
-        break;
+    case "play_pause":
+      var state = Tapedeck.Backend.Sequencer.getCurrentState();
+      if (state == "play") {
+        Tapedeck.Backend.Sequencer.pause();
+      } else {
+        Tapedeck.Backend.Sequencer.playNow();
+      }
+      break;
+    case "next":
+      Tapedeck.Backend.Sequencer.next();
+      break;
+    case "prev":
+      Tapedeck.Backend.Sequencer.prev();
+      break;
 
-      case "checkDrawer":
-        var open = Tapedeck.Backend.Bank.getDrawerOpened();
-        sendResponse({ opened: open });
-        break;
-      case "setDrawer":
-        Tapedeck.Backend.Bank.setDrawerOpened(request.opened);
+    case "checkDrawer":
+      var open = Tapedeck.Backend.Bank.getDrawerOpened();
+      sendResponse({ opened: open });
+      break;
+    case "setDrawer":
+      Tapedeck.Backend.Bank.setDrawerOpened(request.opened);
 
-        // echo to all tabs
-        for (var tabID in self.ports) {
-          var request = Tapedeck.Backend.Utils.newRequest({ action : "setDrawer",
-                                                            opened : request.opened });
-          chrome.tabs.sendRequest(parseInt(tabID, 10), request);
-        }
-        break;
+      // echo to all tabs
+      for (var tabID in self.ports) {
+        var request = Tapedeck.Backend.Utils.newRequest({ action : "setDrawer",
+                                                          opened : request.opened });
+        chrome.tabs.sendRequest(parseInt(tabID, 10), request);
+      }
+      break;
 
-      case "getVoices":
-        chrome.tts.getVoices(function(voices) {
-          var currentVoice = Tapedeck.Backend.Bank.getSpeech();
-          sendResponse({ voices: voices,
-                         currentVoice: currentVoice });
-        });
-        break;
-      case "setSpeech":
-        Tapedeck.Backend.Bank.setSpeech(request.voice);
-        break;
-      case "getPackages":
-        sendResponse({ packages: Tapedeck.Backend.TemplateManager.getPackages(),
-                       currentPackage: Tapedeck.Backend.TemplateManager.currentPackage });
-        break;
-      case "setPackage":
-        Tapedeck.Backend.TemplateManager.setPackage(request.name);
-        break;
-      case "getBlockList":
-        var blockListStr = JSON.stringify(Tapedeck.Backend.Bank.getBlockList());
-        sendResponse({ blockList: blockListStr });
-        break;
-      case "saveBlockList":
-        Tapedeck.Backend.Bank.saveBlockList(JSON.parse(request.blockList));
-        sendResponse({ });
-        break;
+    case "getVoices":
+      chrome.tts.getVoices(function(voices) {
+        var currentVoice = Tapedeck.Backend.Bank.getSpeech();
+        sendResponse({ voices: voices,
+                       currentVoice: currentVoice });
+      });
+      break;
+    case "setSpeech":
+      Tapedeck.Backend.Bank.setSpeech(request.voice);
+      break;
+    case "getPackages":
+      sendResponse({ packages: Tapedeck.Backend.TemplateManager.getPackages(),
+                     currentPackage: Tapedeck.Backend.TemplateManager.currentPackage });
+      break;
+    case "setPackage":
+      Tapedeck.Backend.TemplateManager.setPackage(request.name);
+      break;
+    case "getBlockList":
+      var blockListStr = JSON.stringify(Tapedeck.Backend.Bank.getBlockList());
+      sendResponse({ blockList: blockListStr });
+      break;
+    case "saveBlockList":
+      Tapedeck.Backend.Bank.saveBlockList(JSON.parse(request.blockList));
+      sendResponse({ });
+      break;
 
-      default:
-        console.error("Unexpected request action '" + request.action + "'");
-        break;
-    }
+    default:
+      console.error("Unexpected request action '" + request.action + "'");
+      break;
+    } // end switch
   },
 
   postMessage: function(tabID, message) {
@@ -207,228 +207,227 @@ Tapedeck.Backend.MessageHandler = {
 
     self.log("Received message: " + request.action + " from tab " + port.sender.tab.id);
 
-    switch(request.action)
-    {
-      case "requestUpdate":
-        var updateType = request.updateType.charAt(0).toUpperCase() +
-                         request.updateType.slice(1);
+    switch(request.action) {
+    case "requestUpdate":
+      var updateType = request.updateType.charAt(0).toUpperCase() +
+                       request.updateType.slice(1);
 
-        // Sliders aren't views, but can be updated specially
-        if (updateType.indexOf("Slider") == -1) {
-          Tapedeck.Backend.TemplateManager.renderViewAndPush(updateType, request.pushHollowFirst, port.sender.tab);
-        }
-        else if (updateType == "SeekSlider") {
-          Tapedeck.Backend.MessageHandler.updateSeekSlider(port.sender.tab);
-        }
-        else if (updateType == "VolumeSlider") {
-          Tapedeck.Backend.MessageHandler.updateVolumeSlider(port.sender.tab);
-        }
-        break;
+      // Sliders aren't views, but can be updated specially
+      if (updateType.indexOf("Slider") == -1) {
+        Tapedeck.Backend.TemplateManager.renderViewAndPush(updateType, request.pushHollowFirst, port.sender.tab);
+      }
+      else if (updateType == "SeekSlider") {
+        Tapedeck.Backend.MessageHandler.updateSeekSlider(port.sender.tab);
+      }
+      else if (updateType == "VolumeSlider") {
+        Tapedeck.Backend.MessageHandler.updateVolumeSlider(port.sender.tab);
+      }
+      break;
 
-      case "download":
-        var callback = function(fileData) {
-          response.url = fileData.url;
-          response.fileName = fileData.fileName;
-          self.postMessage(port.sender.tab.id, response);
-        };
-        bank.FileSystem.download(request.trackID, callback);
-        break;
+    case "download":
+      var callback = function(fileData) {
+        response.url = fileData.url;
+        response.fileName = fileData.fileName;
+        self.postMessage(port.sender.tab.id, response);
+      };
+      bank.FileSystem.download(request.trackID, callback);
+      break;
 
-      case "finishDownload":
-        bank.FileSystem.removeTrack(request.trackID);
-        break;
+    case "finishDownload":
+      bank.FileSystem.removeTrack(request.trackID);
+      break;
 
-      case "queueTracks":
-        var tracks = [];
-        if (typeof(request.trackObjs) != "undefined") {
-          // tracks were sent as crude track objs
-          $.map(request.trackObjs, function(trackObj, i) {
-            var track = bank.getTrack(trackObj.trackID);
-            tracks.push(track);
-          });
-        }
-        else {
-          // tracks were sent as trackIDs
-          $.map(request.trackIDs, function(trackID, i) {
-            var track = bank.getTrack(trackID);
-            tracks.push(track);
-          });
-        }
-
-        if (typeof(request.index) != "undefined") {
-          var index = parseInt(request.index, 10);
-          sqcr.insertSomeAt(tracks, index);
-        }
-        else {
-          var endPos = sqcr.queue.length;
-          sqcr.insertSomeAt(tracks, endPos);
-        }
-        break;
-
-      case "moveTracks":
-        var trackIndexPairs = [];
-        if (typeof(request.trackObjs) == "undefined") {
-          console.error("Cannot moveTracks using only trackIDs, must have each tracks index");
-          return;
-        }
-
+    case "queueTracks":
+      var tracks = [];
+      if (typeof(request.trackObjs) != "undefined") {
+        // tracks were sent as crude track objs
         $.map(request.trackObjs, function(trackObj, i) {
           var track = bank.getTrack(trackObj.trackID);
-          trackIndexPairs.push({ track: track, index: trackObj.index });
+          tracks.push(track);
         });
+      }
+      else {
+        // tracks were sent as trackIDs
+        $.map(request.trackIDs, function(trackID, i) {
+          var track = bank.getTrack(trackID);
+          tracks.push(track);
+        });
+      }
 
-        if (typeof(request.index) != "undefined") {
-          var destination = parseInt(request.index, 10);
-          sqcr.moveSomeTo(trackIndexPairs, destination);
-        }
-        else {
-          var endPos = sqcr.queue.length;
-          sqcr.moveSomeTo(trackIndexPairs, endPos);
-        }
-        break;
-
-      case "removeQueuedAt":
-        sqcr.removeAt(request.pos);
-        break;
-
-      case "playPlaylist":
-        var playlist = bank.getPlaylists().at(request.index);
-        sqcr.playPlaylist(playlist);
-        break;
-
-      case "removePlaylist":
-        var playlist = bank.getPlaylists().at(request.index);
-        bank.removePlaylist(playlist);
-        break;
-
-      case "chooseFeed":
-        var feedName = request.feedName;
-        Tapedeck.Backend.CassetteManager.chooseFeed(feedName);
-        break;
-
-      case "toggleRepeat":
-        bank.toggleRepeat();
-        break;
-
-      case "toggleSync":
-        bank.toggleSync();
-        break;
-
-      case "getCSS":
-        response.cssURL = Tapedeck.Backend.TemplateManager.getCSSURL();
-        self.postMessage(port.sender.tab.id, response);
-        break;
-
-      case "getRepeat":
-        response.repeat = bank.getRepeat();
-        self.postMessage(port.sender.tab.id, response);
-        break;
-
-      case "getSync":
-        response.sync = bank.getSync();
-        self.postMessage(port.sender.tab.id, response);
-        break;
-
-      case "makePlaylist":
-        if (sqcr.queue.length === 0) {
-          return;
-        }
-
-        var playlist = sqcr.queue.makePlaylist(request.playlistName);
-        break;
-
-      case "shuffleQueue":
-        sqcr.shuffle();
-        break;
-
-      case "clearQueue":
-        sqcr.clear();
-        break;
-
-      case "playIndex":
+      if (typeof(request.index) != "undefined") {
         var index = parseInt(request.index, 10);
-        sqcr.playIndex(index);
-        break;
+        sqcr.insertSomeAt(tracks, index);
+      }
+      else {
+        var endPos = sqcr.queue.length;
+        sqcr.insertSomeAt(tracks, endPos);
+      }
+      break;
 
-      case "queueAndPlayNow":
-        var track = bank.getTrack(request.trackID);
-        var nextPos = sqcr.queuePosition + 1;
-        sqcr.insertAt(track, nextPos);
-        sqcr.next();
-        break;
+    case "moveTracks":
+      var trackIndexPairs = [];
+      if (typeof(request.trackObjs) == "undefined") {
+        console.error("Cannot moveTracks using only trackIDs, must have each tracks index");
+        return;
+      }
 
-      case "browsePrevPage":
-        Tapedeck.Backend.CassetteManager.browsePrevPage();
-        break;
-      case "setPage":
-        Tapedeck.Backend.CassetteManager.setPage(request.page);
-        break;
-      case "setPageRange":
-        Tapedeck.Backend.CassetteManager.setPageRange(request.start, request.end);
-        break;
-      case "browseNextPage":
-        Tapedeck.Backend.CassetteManager.browseNextPage();
-        break;
+      $.map(request.trackObjs, function(trackObj, i) {
+        var track = bank.getTrack(trackObj.trackID);
+        trackIndexPairs.push({ track: track, index: trackObj.index });
+      });
 
-      case "setCassette":
-        Tapedeck.Backend.CassetteManager.setCassette(request.cassetteID);
-        break;
+      if (typeof(request.index) != "undefined") {
+        var destination = parseInt(request.index, 10);
+        sqcr.moveSomeTo(trackIndexPairs, destination);
+      }
+      else {
+        var endPos = sqcr.queue.length;
+        sqcr.moveSomeTo(trackIndexPairs, endPos);
+      }
+      break;
 
-      case "removeCassette":
-        Tapedeck.Backend.CassetteManager.removeCassette(request.cassetteID);
-        break;
+    case "removeQueuedAt":
+      sqcr.removeAt(request.pos);
+      break;
 
-      case "cassettify":
-        Tapedeck.Backend.CassetteManager.Cassettify.start();
-        break;
+    case "playPlaylist":
+      var playlist = bank.getPlaylists().at(request.index);
+      sqcr.playPlaylist(playlist);
+      break;
 
-      case "loadLink":
-        var url = request.url.replace("http://", "");
-        chrome.tabs.create({ url: ("http://" + url) });
-        break;
+    case "removePlaylist":
+      var playlist = bank.getPlaylists().at(request.index);
+      bank.removePlaylist(playlist);
+      break;
 
-      case "seek":
-        var percent = request.percent;
-        sqcr.Player.seekPercent(percent);
-        break;
+    case "chooseFeed":
+      var feedName = request.feedName;
+      Tapedeck.Backend.CassetteManager.chooseFeed(feedName);
+      break;
 
-      case "setVolume":
-        sqcr.Player.setVolume(request.percent);
-        bank.saveVolume(request.percent);
-        break;
+    case "toggleRepeat":
+      bank.toggleRepeat();
+      break;
 
-      case "getVolume":
-        response.volume = bank.getVolume();
+    case "toggleSync":
+      bank.toggleSync();
+      break;
+
+    case "getCSS":
+      response.cssURL = Tapedeck.Backend.TemplateManager.getCSSURL();
+      self.postMessage(port.sender.tab.id, response);
+      break;
+
+    case "getRepeat":
+      response.repeat = bank.getRepeat();
+      self.postMessage(port.sender.tab.id, response);
+      break;
+
+    case "getSync":
+      response.sync = bank.getSync();
+      self.postMessage(port.sender.tab.id, response);
+      break;
+
+    case "makePlaylist":
+      if (sqcr.queue.length === 0) {
+        return;
+      }
+
+      var playlist = sqcr.queue.makePlaylist(request.playlistName);
+      break;
+
+    case "shuffleQueue":
+      sqcr.shuffle();
+      break;
+
+    case "clearQueue":
+      sqcr.clear();
+      break;
+
+    case "playIndex":
+      var index = parseInt(request.index, 10);
+      sqcr.playIndex(index);
+      break;
+
+    case "queueAndPlayNow":
+      var track = bank.getTrack(request.trackID);
+      var nextPos = sqcr.queuePosition + 1;
+      sqcr.insertAt(track, nextPos);
+      sqcr.next();
+      break;
+
+    case "browsePrevPage":
+      Tapedeck.Backend.CassetteManager.browsePrevPage();
+      break;
+    case "setPage":
+      Tapedeck.Backend.CassetteManager.setPage(request.page);
+      break;
+    case "setPageRange":
+      Tapedeck.Backend.CassetteManager.setPageRange(request.start, request.end);
+      break;
+    case "browseNextPage":
+      Tapedeck.Backend.CassetteManager.browseNextPage();
+      break;
+
+    case "setCassette":
+      Tapedeck.Backend.CassetteManager.setCassette(request.cassetteID);
+      break;
+
+    case "removeCassette":
+      Tapedeck.Backend.CassetteManager.removeCassette(request.cassetteID);
+      break;
+
+    case "cassettify":
+      Tapedeck.Backend.CassetteManager.Cassettify.start();
+      break;
+
+    case "loadLink":
+      var url = request.url.replace("http://", "");
+      chrome.tabs.create({ url: ("http://" + url) });
+      break;
+
+    case "seek":
+      var percent = request.percent;
+      sqcr.Player.seekPercent(percent);
+      break;
+
+    case "setVolume":
+      sqcr.Player.setVolume(request.percent);
+      bank.saveVolume(request.percent);
+      break;
+
+    case "getVolume":
+      response.volume = bank.getVolume();
+      self.postMessage(port.sender.tab.id, response);
+      break;
+
+    case "clear":
+      Tapedeck.Backend.Bank.clear(function() {
         self.postMessage(port.sender.tab.id, response);
-        break;
+      });
+      break;
 
-      case "clear":
-        Tapedeck.Backend.Bank.clear(function() {
+    case "getLogs":
+      response.logs = Tapedeck.Backend.Utils.logLevels;
+      self.postMessage(port.sender.tab.id, response);
+      break;
+
+    case "saveOptions":
+      Tapedeck.Backend.Bank.saveOptions(request.options, function() {
+        var unflattened = Tapedeck.Backend.OptionsManager.unflatten(request.options);
+        Tapedeck.Backend.OptionsManager.enactOptions(unflattened, function () {
           self.postMessage(port.sender.tab.id, response);
         });
-        break;
+      });
+      break;
 
-      case "getLogs":
-        response.logs = Tapedeck.Backend.Utils.logLevels;
-        self.postMessage(port.sender.tab.id, response);
-        break;
+    case "runTests":
+      var testURL = chrome.extension.getURL("/spec/SpecRunner.html");
+      chrome.tabs.create({ url: testURL });
+      break;
 
-      case "saveOptions":
-        Tapedeck.Backend.Bank.saveOptions(request.options, function() {
-          var unflattened = Tapedeck.Backend.OptionsManager.unflatten(request.options);
-          Tapedeck.Backend.OptionsManager.enactOptions(unflattened, function () {
-            self.postMessage(port.sender.tab.id, response);
-          });
-        });
-        break;
-
-      case "runTests":
-        var testURL = chrome.extension.getURL("/spec/SpecRunner.html");
-        chrome.tabs.create({ url: testURL });
-        break;
-
-      default:
-        throw new Error("MessageHandler's handleMessage was sent an unknown action");
+    default:
+      throw new Error("MessageHandler's handleMessage was sent an unknown action");
     }
   },
 
@@ -767,54 +766,54 @@ Tapedeck.Backend.MessageHandler = {
     else {
       var request = event.data;
       switch (request.action) {
-        case "addTracks":
-          Tapedeck.Backend.MessageHandler.addTracks(request.tracks, request.tab);
-          break;
+      case "addTracks":
+        Tapedeck.Backend.MessageHandler.addTracks(request.tracks, request.tab);
+        break;
 
-        case "getLogLevels":
-          Tapedeck.Backend.MessageHandler.setLogs(Tapedeck.Backend.Utils.logLevels,
-                                                  null,
-                                                  function() { });
-          break;
+      case "getLogLevels":
+        Tapedeck.Backend.MessageHandler.setLogs(Tapedeck.Backend.Utils.logLevels,
+                                                null,
+                                                function() { });
+        break;
 
-        case "sandboxInitialized":
-          Tapedeck.Backend.Bank.sandboxReady = true;
-          break;
+      case "sandboxInitialized":
+        Tapedeck.Backend.Bank.sandboxReady = true;
+        break;
 
-        case "executeScript":
-          var callback = function(response) {
-            response.action = 'response';
-            var sendResponse = Tapedeck.Backend.Utils.newResponse(request, response);
-            $("#sandbox").get(0).contentWindow.postMessage(sendResponse, "*");
-          };
-          Tapedeck.Backend.InjectManager.executeScript(request.tab, request.options, callback, request.testParams, request.prepCode);
-          break;
+      case "executeScript":
+        var callback = function(response) {
+          response.action = 'response';
+          var sendResponse = Tapedeck.Backend.Utils.newResponse(request, response);
+          $("#sandbox").get(0).contentWindow.postMessage(sendResponse, "*");
+        };
+        Tapedeck.Backend.InjectManager.executeScript(request.tab, request.options, callback, request.testParams, request.prepCode);
+        break;
 
-        case "ajax":
-          request.params.success = function(data, textStatus, jqXHR) {
-            var response = Tapedeck.Backend.Utils.newResponse(request,
-                                                              { action: 'response',
-                                                                data: data,
-                                                                textStatus: textStatus,
-                                                                headers: jqXHR.getAllResponseHeaders() });
-            $("#sandbox").get(0).contentWindow.postMessage(response, "*");
-          };
+      case "ajax":
+        request.params.success = function(data, textStatus, jqXHR) {
+          var response = Tapedeck.Backend.Utils.newResponse(request,
+                                                            { action: 'response',
+                                                              data: data,
+                                                              textStatus: textStatus,
+                                                              headers: jqXHR.getAllResponseHeaders() });
+          $("#sandbox").get(0).contentWindow.postMessage(response, "*");
+        };
 
-          request.params.error = function(jqXHR, textStatus, errorString) {
-            console.error("Error performing ajax on behalf of Sandbox : " + textStatus + " - " + errorString);
-            var response = Tapedeck.Backend.Utils.newResponse(request,
-                                                              { action: 'response',
-                                                                error : "Ajax error",
-                                                                data: { error: textStatus },
-                                                                textStatus: textStatus,
-                                                                headers: jqXHR.getAllResponseHeaders() });
-            $("#sandbox").get(0).contentWindow.postMessage(response, "*");
-          };
-          Tapedeck.Backend.Utils.ajax(request.params);
-          break;
+        request.params.error = function(jqXHR, textStatus, errorString) {
+          console.error("Error performing ajax on behalf of Sandbox : " + textStatus + " - " + errorString);
+          var response = Tapedeck.Backend.Utils.newResponse(request,
+                                                            { action: 'response',
+                                                              error : "Ajax error",
+                                                              data: { error: textStatus },
+                                                              textStatus: textStatus,
+                                                              headers: jqXHR.getAllResponseHeaders() });
+          $("#sandbox").get(0).contentWindow.postMessage(response, "*");
+        };
+        Tapedeck.Backend.Utils.ajax(request.params);
+        break;
 
-        default:
-          throw new Error("MessageHandler's sandboxListener was sent an unknown action: '" + request.action + "'");
+      default:
+        throw new Error("MessageHandler's sandboxListener was sent an unknown action: '" + request.action + "'");
       }
     }
   },

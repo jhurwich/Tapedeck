@@ -163,39 +163,38 @@ describe("Options Manager", function() {
         var recovered = self.recoverOptions();
         for (var param in recovered) {
           var value = recovered[param];
-          switch(param)
-          {
-            case "devTemplates":
-              var expectedTemplate = self.testOptions.Development.Skinning["Template in src/dev"];
-              var recoveredFilename = value.url.substring(value.url.lastIndexOf("/") + 1);
-              expect(recoveredFilename).toEqual(expectedTemplate);
-              break;
+          switch(param) {
+          case "devTemplates":
+            var expectedTemplate = self.testOptions.Development.Skinning["Template in src/dev"];
+            var recoveredFilename = value.url.substring(value.url.lastIndexOf("/") + 1);
+            expect(recoveredFilename).toEqual(expectedTemplate);
+            break;
 
-            case "devCSS":
-              var expectedCSS = self.testOptions.Development.Skinning["CSS in src/dev"];
-              var recoveredFilename = value.url.substring(value.url.lastIndexOf("/") + 1);
-              expect(recoveredFilename).toEqual(expectedCSS);
-              break;
+          case "devCSS":
+            var expectedCSS = self.testOptions.Development.Skinning["CSS in src/dev"];
+            var recoveredFilename = value.url.substring(value.url.lastIndexOf("/") + 1);
+            expect(recoveredFilename).toEqual(expectedCSS);
+            break;
 
-            case "devCassettes":
-              var expectedCassettes = self.testOptions.Development.Cassettes["Cassettes in src/dev"];
-              expect(value).toEqual(expectedCassettes);
-              break;
+          case "devCassettes":
+            var expectedCassettes = self.testOptions.Development.Cassettes["Cassettes in src/dev"];
+            expect(value).toEqual(expectedCassettes);
+            break;
 
-            case "premadeCassettes":
-              var expectedPremade = [];
-              expectedPremade.push(self.testOptions["Premade Cassettes"].PremadeCassettified1);
-              expect(value).toEqual(expectedPremade);
-              break;
+          case "premadeCassettes":
+            var expectedPremade = [];
+            expectedPremade.push(self.testOptions["Premade Cassettes"].PremadeCassettified1);
+            expect(value).toEqual(expectedPremade);
+            break;
 
-            case "logs":
-              var expectedLogs = self.testOptions["Logs: 0=None, 1=Basic, 2=All"];
-              expect(value).toEqual(expectedLogs);
-              break;
+          case "logs":
+            var expectedLogs = self.testOptions["Logs: 0=None, 1=Basic, 2=All"];
+            expect(value).toEqual(expectedLogs);
+            break;
 
-            default:
-              expect("Unknown param in options recovered").toEqual("");
-              break;
+          default:
+            expect("Unknown param in options recovered").toEqual("");
+            break;
           }
         }
         testComplete = true;

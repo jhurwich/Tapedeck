@@ -48,7 +48,6 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
   // the adapter prevents requests from being repeated to the sandbox, all callbacks get the first's result
   requestMap: {},
   proxyMethod: function(methodName, params, successCallback, errCallback, finalCallback) {
-    console.log(" >> proxying " + methodName);
     // mapID is the page concatted to the feed, if it exists
     var mapID = 0;
     if (typeof(params.page) != "undefined") {
@@ -86,29 +85,24 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
       params: params,
       tdID: this.get("tdID")
     });
-    console.log(" >> " + mapID + " has a callback (" + methodName + ")");
     Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
       if (typeof(response.error) != "undefined" && response.error) {
         // there was some error
         for (var i = 0; i < callbackMap[mapID].length; i++) {
           callbackMap[mapID][i].errCallback(response.error);
         }
-        console.log(" >> " + mapID + " consumed callback in error (" + methodName + ")");
         delete callbackMap[mapID];
       }
       else if (typeof(response.final) != "undefined" && response.final) {
         // final callback for this interaction
         for (var i = 0; i < callbackMap[mapID].length; i++) {
           if (typeof(callbackMap[mapID][i].finalCallback) != "undefined") {
-            console.log(" >> final");
             callbackMap[mapID][i].finalCallback(response);
           }
         }
-        console.log(" >> " + mapID + " consumed callback by final (" + methodName + ")");
         delete callbackMap[mapID];
       } else {
         // success
-        console.log(" >> " + mapID + " success call (" + methodName + ")");
         for (var i = 0; i < callbackMap[mapID].length; i++) {
           callbackMap[mapID][i].successCallback(response);
         }

@@ -9,6 +9,7 @@ Tapedeck.Sandbox = {
   // The sandbox div gets blown away on background.html when we append new templates,
   // so init() is called each time to re-establish the Sandbox with things like logLevels.
   init: function() {
+    console.log(">>> >>> >>> reinitializing Sandbox");
     // we've established Tapedeck.Backend for Utils, swing that onto Sandbox
     var utils = Tapedeck.Backend.Utils;
 
@@ -90,169 +91,174 @@ Tapedeck.Sandbox = {
     var response = Tapedeck.Sandbox.Utils.newResponse(message);
     Tapedeck.Sandbox.log("Sandbox received message: " + message.action);
 
-    switch(message.action)
-    {
-      case "render":
-      case "template":
-        Tapedeck.Sandbox.log("Rendering '" + message.templateName + "' with params: " + JSON.stringify(Object.keys(message.params)));
+    switch(message.action) {
+    case "render":
+    case "template":
+      Tapedeck.Sandbox.log("Rendering '" + message.templateName + "' with params: " + JSON.stringify(Object.keys(message.params)));
 
-        response.rendered = Tapedeck.Sandbox.render(message.textTemplate, message.params);
-        Tapedeck.Sandbox.sendMessage(response);
-        break;
+      response.rendered = Tapedeck.Sandbox.render(message.textTemplate, message.params);
+      Tapedeck.Sandbox.sendMessage(response);
+      break;
 
-      case "testPattern":
-        Tapedeck.Sandbox.log("Testing pattern '" + message.params.pattern + "'");
-        var code = Tapedeck.Sandbox.render(message.textTemplate, message.params);
-        var testCassetteName = "TestCassette";
-        code = code.replace(/CassetteFromTemplate/g, testCassetteName);
-        code = code.replace(/Unnamed/g, testCassetteName);
+    case "testPattern":
+      Tapedeck.Sandbox.log("Testing pattern '" + message.params.pattern + "'");
+      var code = Tapedeck.Sandbox.render(message.textTemplate, message.params);
+      var testCassetteName = "TestCassette";
+      code = code.replace(/CassetteFromTemplate/g, testCassetteName);
+      code = code.replace(/Unnamed/g, testCassetteName);
 
-        var cleanup = function() {
-          delete Tapedeck.Sandbox.Cassettes[testCassetteName];
-        };
+      var cleanup = function() {
+        delete Tapedeck.Sandbox.Cassettes[testCassetteName];
+      };
 
-        response.success = false;
-        Tapedeck.Sandbox.prepCassette(code, function(report) {
-          var cassette = Tapedeck.Sandbox.cassettes[report.tdID];
-          cassette.getBrowseList(message.context, function(aResponse) {
-            // success callback
+      response.success = false;
+      Tapedeck.Sandbox.prepCassette(code, function(report) {
+        var cassette = Tapedeck.Sandbox.cassettes[report.tdID];
+        cassette.getBrowseList(message.context, function(aResponse) {
+          // success callback
 
-            if (aResponse.tracks.length > 0) {
-              // no error, but make sure we got tracks.  Wait for Soundcloud tracks if not
-              response.success = true;
-              response.report = report;
-              for (var param in aResponse) {
-                response[param] = aResponse[param];
-              }
-
-              cleanup();
-              Tapedeck.Sandbox.sendMessage(response);
+          if (aResponse.tracks.length > 0) {
+            // no error, but make sure we got tracks.  Wait for Soundcloud tracks if not
+            response.success = true;
+            response.report = report;
+            for (var param in aResponse) {
+              response[param] = aResponse[param];
             }
-          }, function(error) {
-            // error callback
 
-            response.success = false;
             cleanup();
             Tapedeck.Sandbox.sendMessage(response);
-          }, function(final) {
+          }
+        }, function(error) {
+          // error callback
 
-            // final callback
-            var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
-            finalResponse.success = final.success;
-            cleanup();
-            Tapedeck.Sandbox.sendMessage(finalResponse);
-          });
-        });
-        break;
-
-      case "prepCassette":
-        Tapedeck.Sandbox.prepCassette(message.code, function(report) {
-          response.report = report;
+          response.success = false;
+          cleanup();
           Tapedeck.Sandbox.sendMessage(response);
-        });
-        break;
+        }, function(final) {
 
-      case "clearCassettes":
-        Tapedeck.Sandbox.clearCassettes();
+          // final callback
+          var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
+          finalResponse.success = final.success;
+          cleanup();
+          Tapedeck.Sandbox.sendMessage(finalResponse);
+        });
+      });
+      break;
+
+    case "prepCassette":
+      Tapedeck.Sandbox.prepCassette(message.code, function(report) {
+        response.report = report;
         Tapedeck.Sandbox.sendMessage(response);
-        break;
+      });
+      break;
 
-      case "getBrowseList":
-        var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
-        cassette.getBrowseList(message.params.context, function(params) {
+    case "clearCassettes":
+      Tapedeck.Sandbox.clearCassettes();
+      Tapedeck.Sandbox.sendMessage(response);
+      break;
 
-          // success callback
-          for (var p in params) {
-            response[p] = params[p];
-          }
-          Tapedeck.Sandbox.sendMessage(response);
-        }, function(error) {
+    case "getBrowseList":
+      var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
+      cassette.getBrowseList(message.params.context, function(params) {
 
-          // error callback
-          response.error = error;
-          Tapedeck.Sandbox.sendMessage(response);
-        }, function(final) {
-
-          // final callback
-          var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
-          for (var p in final) {
-            finalResponse[p] = final[p];
-          }
-          finalResponse.final = true;
-
-          Tapedeck.Sandbox.sendMessage(finalResponse);
-        });
-        break;
-
-      case "getPage":
-        var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
-        cassette.getPage(message.params.page, message.params.context, function(params) {
-
-          // success callback
-          for (var p in params) {
-            response[p] = params[p];
-          }
-          console.log(" >> Sandbox respondingd for page: " + message.params.page + " in success");
-          Tapedeck.Sandbox.sendMessage(response);
-        }, function(error) {
-
-          // error callback
-          console.log(" >> Sandbox respondingd for page: " + message.params.page + " in error");
-          response.error = error;
-          Tapedeck.Sandbox.sendMessage(response);
-        }, function(final) {
-
-          // final callback
-          console.log(" >> Sandbox respondingd for page: " + message.params.page + " for final");
-          var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
-          for (var param in final) {
-            finalResponse[param] = final[param];
-          }
-          finalResponse.final = true;
-
-          Tapedeck.Sandbox.sendMessage(finalResponse);
-        });
-        break;
-
-      /* deligate track errors to the cassette for handling */
-      case "errorHandler":
-        var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
-        cassette.errorHandler(message.params, function(params) {
-
-          // success callback
-          for (var p in params) {
-            response[p] = params[p];
-          }
-          Tapedeck.Sandbox.sendMessage(response);
-        }, function(error) {
-
-          // error callback
-          response.error = error;
-          Tapedeck.Sandbox.sendMessage(response);
-        });
-        break;
-
-      case "setLogs":
-        // if we didn't have logs set before, we are newly initialized and should respond
-        var newlyInitialized = false;
-        if ($.isEmptyObject(Tapedeck.Backend.Utils.logLevels)) {
-          newlyInitialized = true;
+        // success callback
+        for (var p in params) {
+          response[p] = params[p];
         }
+        Tapedeck.Sandbox.sendMessage(response);
+      }, function(error) {
 
-        Tapedeck.Backend.Utils.setLogs(message.logs, true);
-        if (typeof(message.requestID) != "undefined") {
-          var aResponse = Tapedeck.Sandbox.Utils.newResponse(message);
-          Tapedeck.Sandbox.sendMessage(aResponse);
+        // error callback
+        response.error = error;
+        Tapedeck.Sandbox.sendMessage(response);
+      }, function(final) {
+
+        // final callback
+        var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
+        for (var p in final) {
+          finalResponse[p] = final[p];
         }
+        finalResponse.final = true;
 
-        if (newlyInitialized) {
-          Tapedeck.Sandbox.finishInit();
+        Tapedeck.Sandbox.sendMessage(finalResponse);
+      });
+      break;
+
+    case "getPage":
+      var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
+      console.log("banana")
+      if (typeof(cassette) == "undefined") {
+        for (var x in Tapedeck.Sandbox.cassettes) {
+          console.log("> > > > > Undefined cassette, but got : " + x);
         }
-        break;
+      }
+      else {
+        console.log("> > > > > Defined cassette, got : " + message.tdID);
+      }
+      cassette.getPage(message.params.page, message.params.context, function(params) {
 
-      default:
-        throw new Error("Tapedeck.Sandbox was sent an unknown action");
-    }
+        // success callback
+        for (var p in params) {
+          response[p] = params[p];
+        }
+        Tapedeck.Sandbox.sendMessage(response);
+      }, function(error) {
+
+        // error callback
+        response.error = error;
+        Tapedeck.Sandbox.sendMessage(response);
+      }, function(final) {
+
+        // final callback
+        var finalResponse = Tapedeck.Sandbox.Utils.newResponse(message);
+        for (var param in final) {
+          finalResponse[param] = final[param];
+        }
+        finalResponse.final = true;
+
+        Tapedeck.Sandbox.sendMessage(finalResponse);
+      });
+      break;
+
+    /* deligate track errors to the cassette for handling */
+    case "errorHandler":
+      var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
+      cassette.errorHandler(message.params, function(params) {
+
+        // success callback
+        for (var p in params) {
+          response[p] = params[p];
+        }
+        Tapedeck.Sandbox.sendMessage(response);
+      }, function(error) {
+
+        // error callback
+        response.error = error;
+        Tapedeck.Sandbox.sendMessage(response);
+      });
+      break;
+
+    case "setLogs":
+      // if we didn't have logs set before, we are newly initialized and should respond
+      var newlyInitialized = false;
+      if ($.isEmptyObject(Tapedeck.Backend.Utils.logLevels)) {
+        newlyInitialized = true;
+      }
+
+      Tapedeck.Backend.Utils.setLogs(message.logs, true);
+      if (typeof(message.requestID) != "undefined") {
+        var aResponse = Tapedeck.Sandbox.Utils.newResponse(message);
+        Tapedeck.Sandbox.sendMessage(aResponse);
+      }
+
+      if (newlyInitialized) {
+        Tapedeck.Sandbox.finishInit();
+      }
+      break;
+
+    default:
+      throw new Error("Tapedeck.Sandbox was sent an unknown action");
+    } // end switch
   },
 
   render: function(textTemplate, params) {
@@ -260,7 +266,10 @@ Tapedeck.Sandbox = {
                          Tapedeck.Sandbox.Utils.DEBUG_LEVELS.ALL);
     var template = _.template(textTemplate);
 
-    var logLevel = Tapedeck.Sandbox.Utils.logLevels.Backend.Sandbox;
+    var logLevel = 0;
+    if (!($.isEmptyObject(Tapedeck.Sandbox.Utils.logLevels))) {
+      logLevel = Tapedeck.Sandbox.Utils.logLevels.Backend.Sandbox;
+    }
 
     if (logLevel >= Tapedeck.Sandbox.Utils.DEBUG_LEVELS.BASIC) {
       var debugMethods = {
@@ -320,6 +329,7 @@ Tapedeck.Sandbox = {
     if (newCassetteName !== "" && typeof(Tapedeck.Sandbox.Cassettes[newCassetteName]) != "undefined") {
       // Cassette has loaded.  Get a handle on it and return its report
       var newCassette = new Tapedeck.Sandbox.Cassettes[newCassetteName]();
+      console.log("> > > > > > > > Attaching: " + newCassetteName);
       Tapedeck.Sandbox.cassettes[newCassette.get("tdID")] = newCassette;
 
       Tapedeck.Sandbox.log("The new cassette '" + newCassetteName + "' is ready.");

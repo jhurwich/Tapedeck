@@ -71,76 +71,75 @@ Tapedeck.Frontend.Messenger = {
     var response = Tapedeck.Frontend.Utils.newResponse(request);
     self.log("Receiving request: " + request.action);
 
-    switch(request.action)
-    {
-      case "executeScriptInTest":
-        var script = request.script;
-        var scriptFile = script.replace("frontend/scripts/", "");
-        scriptFile = scriptFile.replace(".js", "");
+    switch(request.action) {
+    case "executeScriptInTest":
+      var script = request.script;
+      var scriptFile = script.replace("frontend/scripts/", "");
+      scriptFile = scriptFile.replace(".js", "");
 
-        var words = scriptFile.split("-");
-        var scriptName = "";
-        for (var i = 0; i < words.length; i++) {
-          scriptName += words[i].charAt(0).toUpperCase() +
-                        words[i].slice(1);
-        }
+      var words = scriptFile.split("-");
+      var scriptName = "";
+      for (var i = 0; i < words.length; i++) {
+        scriptName += words[i].charAt(0).toUpperCase() +
+                      words[i].slice(1);
+      }
 
-        self.log("Executing script in test: " + scriptName);
-        if (typeof(request.params) != "undefined") {
-          window.parent.TapedeckInjected[scriptName].start(request.params);
-        }
-        else {
-          window.parent.TapedeckInjected[scriptName].start();
-        }
-        break;
+      self.log("Executing script in test: " + scriptName);
+      if (typeof(request.params) != "undefined") {
+        window.parent.TapedeckInjected[scriptName].start(request.params);
+      }
+      else {
+        window.parent.TapedeckInjected[scriptName].start();
+      }
+      break;
 
-      case "pushView":
-        Tapedeck.Frontend.Utils.replaceView(request.view,
-                                            request.proxyEvents,
-                                            request.proxyImages);
-        break;
+    case "pushView":
+      Tapedeck.Frontend.Utils.replaceView(request.view,
+                                          request.proxyEvents,
+                                          request.proxyImages);
+      break;
 
-      case "showModal":
-        var wrappedCallback = function(params) {
-          response.params = params;
-          self.sendMessage(response);
-        };
-        var cleanupCallback = function() {
-          response.error = true;
-          self.sendMessage(response);
-        };
+    case "showModal":
+      var wrappedCallback = function(params) {
+        response.params = params;
+        self.sendMessage(response);
+      };
+      var cleanupCallback = function() {
+        response.error = true;
+        self.sendMessage(response);
+      };
 
-        Tapedeck.Frontend.Frame.Modal.show(request.view,
-                                           request.proxyEvents,
-                                           request.proxyImages,
-                                           wrappedCallback,
-                                           cleanupCallback);
-        break;
+      Tapedeck.Frontend.Frame.Modal.show(request.view,
+                                         request.proxyEvents,
+                                         request.proxyImages,
+                                         wrappedCallback,
+                                         cleanupCallback);
+      break;
 
-      case "loadComplete":
-        Tapedeck.Frontend.Frame.onLoadComplete();
-        break;
+    case "loadComplete":
+      Tapedeck.Frontend.Frame.onLoadComplete();
+      break;
 
-      case "updateSeekSlider":
-        Tapedeck.Frontend.Frame.Player.SeekSlider.updateSlider
-                                                 (request.currentTime,
-                                                  request.duration);
-        break;
-      case "updateVolumeSlider":
-        Tapedeck.Frontend.Frame.Player.VolumeSlider.updateSlider
-                                                   (request.volume);
-        break;
+    case "updateSeekSlider":
+      Tapedeck.Frontend.Frame.Player.SeekSlider.updateSlider
+                                               (request.currentTime,
+                                                request.duration);
+      break;
+    case "updateVolumeSlider":
+      Tapedeck.Frontend.Frame.Player.VolumeSlider.updateSlider
+                                                 (request.volume);
+      break;
 
-      case "forceCheckSync":
-        Tapedeck.Frontend.Frame.checkSync();
-        break;
+    case "forceCheckSync":
+      Tapedeck.Frontend.Frame.checkSync();
+      break;
 
-      case "setLogs":
-        Tapedeck.Frontend.Utils.setLogs(request.logs);
-        break;
+    case "setLogs":
+      Tapedeck.Frontend.Utils.setLogs(request.logs);
+      break;
 
-      default:
-        throw new Error("Messenger's handleRequest was sent an unknown action '" + request.action + "'");
+    default:
+      throw new Error("Messenger's handleRequest was sent an unknown action '" + request.action + "'");
     }
   },
 

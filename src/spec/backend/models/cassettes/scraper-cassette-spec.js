@@ -81,7 +81,7 @@ describe("The Scraper Cassette", function() {
         // soundcloud playlist this can contain more than one track.
         spy = spyOn(this.Tapedeck.Backend.MessageHandler, "addTracks").andCallThrough();
         waitsFor(function() {
-          return spy.callCount == numPostLoads;
+          return spy.callCount >= numPostLoads;
         }, "Timed out waiting for add_tracks tracks", 5000);
       }
 

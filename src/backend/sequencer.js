@@ -360,40 +360,40 @@ Tapedeck.Backend.Sequencer = {
       }
       var lastError = "";
       switch (err.code) {
-        case 1:
-          lastError = "Aborted";
-          break;
-        case 2:
-          lastError = "Network Error";
-          break;
-        case 3:
-          lastError = "Decode Error";
-          break;
-        case 4:
-          lastError = "Src Not Supported";
-          break;
-        default:
-          lastError = "Unrecognized MediaError code";
-          break;
+      case 1:
+        lastError = "Aborted";
+        break;
+      case 2:
+        lastError = "Network Error";
+        break;
+      case 3:
+        lastError = "Decode Error";
+        break;
+      case 4:
+        lastError = "Src Not Supported";
+        break;
+      default:
+        lastError = "Unrecognized MediaError code";
+        break;
       }
 
       var networkState = "";
       switch(element.get(0).networkState) {
-        case 0:
-          networkState = "Empty";
-          break;
-        case 1:
-          networkState = "Idle";
-          break;
-        case 2:
-          networkState = "Loading";
-          break;
-        case 3:
-          networkState = "No Source";
-          break;
-        default:
-          networkState = "Unrecognized Network State";
-          break;
+      case 0:
+        networkState = "Empty";
+        break;
+      case 1:
+        networkState = "Idle";
+        break;
+      case 2:
+        networkState = "Loading";
+        break;
+      case 3:
+        networkState = "No Source";
+        break;
+      default:
+        networkState = "Unrecognized Network State";
+        break;
       }
       console.error(elementID + " reported last error as '" + lastError +
                     "' and the network state as '" + networkState + "'");

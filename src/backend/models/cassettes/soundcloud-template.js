@@ -29,9 +29,6 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
 \
     getPage: function(pageNum, context, callback, errCallback, finalCallback) { \
       var self = this; \
-      if (typeof(finalCallback) != "undefined") { \
-        self.finalCallback = finalCallback; \
-      } \
 \
       var queryURL = "http://api.soundcloud.com"; \
       if (self.isGroup) { \
@@ -60,9 +57,10 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
             foundTracks[i].cassette = self.get("name"); \
           } \
         } \
-        console.log(" >> SC " + pageNum + " returning1"); \
         callback({ tracks: foundTracks }); \
-        self.finalCallback({ success: true }); \
+        if (typeof(finalCallback) != "undefined") { \
+          finalCallback({ success: true }); \
+        } \
         return; \
       } \
 \
@@ -73,10 +71,11 @@ Tapedeck.Backend.CassetteManager.SoundcloudTemplate = {
           errCallback(params.error); \
         } \
         else { \
-          console.log(" >> SC " + pageNum + " returning2"); \
           self.saveTracksForURL(queryURL, params.tracks); \
           callback(params); \
-          self.finalCallback({ success: true }); \
+          if (typeof(finalCallback) != "undefined") { \
+            finalCallback({ success: true }); \
+          } \
         } \
       }; \
 \

@@ -1,15 +1,17 @@
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Frontend Frame Logic",
-  "Frame View"
+  "The HypeMachine Cassette",
+  "Frontend Frame Logic"
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
+  "Bank",
+  "Options Manager"
 ];
 
 /* Runs initialization before each test.
  * Dramatically slows down test suite and can get crashy.  */
-__Jasmine__DO_FULL_INIT = true;
+__Jasmine__DO_FULL_INIT = false;
 
 beforeEach(function() {
   this.Tapedeck = {};

@@ -25,40 +25,39 @@ if (typeof(TapedeckInjected) == "undefined") {
 
       chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 
-        switch(request.action)
-        {
-          case "executeScriptAgain":
-            var script = request.script;
-            var scriptFile = script.replace("frontend/scripts/", "");
-            scriptFile = scriptFile.replace(".js", "");
+        switch(request.action) {
+        case "executeScriptAgain":
+          var script = request.script;
+          var scriptFile = script.replace("frontend/scripts/", "");
+          scriptFile = scriptFile.replace(".js", "");
 
-            var words = scriptFile.split("-");
-            var scriptName = "";
-            for (var i = 0; i < words.length; i++) {
-              scriptName += words[i].charAt(0).toUpperCase() +
-                            words[i].slice(1);
-            }
+          var words = scriptFile.split("-");
+          var scriptName = "";
+          for (var i = 0; i < words.length; i++) {
+            scriptName += words[i].charAt(0).toUpperCase() +
+                          words[i].slice(1);
+          }
 
-            if (typeof(request.params) != "undefined") {
-              TapedeckInjected[scriptName].start(request.params);
-            }
-            else {
-              TapedeckInjected[scriptName].start();
-            }
-            break;
+          if (typeof(request.params) != "undefined") {
+            TapedeckInjected[scriptName].start(request.params);
+          }
+          else {
+            TapedeckInjected[scriptName].start();
+          }
+          break;
 
-          case "setDrawer":
-            if (request.opened) {
-              TapedeckInjected.openDrawer();
-            }
-            else {
-              TapedeckInjected.closeDrawer();
-            }
-            break;
+        case "setDrawer":
+          if (request.opened) {
+            TapedeckInjected.openDrawer();
+          }
+          else {
+            TapedeckInjected.closeDrawer();
+          }
+          break;
 
-          default:
-            console.error("TapedeckInjected's requestHandler was sent an unknown action '" + request.action + "'");
-            break;
+        default:
+          console.error("TapedeckInjected's requestHandler was sent an unknown action '" + request.action + "'");
+          break;
         }
       });
 
