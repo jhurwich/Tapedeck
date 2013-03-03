@@ -266,6 +266,14 @@ Tapedeck.Backend.CassetteManager = {
     return new Tapedeck.Backend.Collections.CassetteList(cassettes);
   },
 
+  checkSandboxCassettes: function(callback) {
+    var request = Tapedeck.Backend.Utils.newRequest({
+      action: "checkCassettes"
+    });
+
+    Tapedeck.Backend.MessageHandler.messageSandbox(request, callback);
+  },
+
   chooseFeed: function(feedName) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     if (typeof(cMgr.currFeed) != "undefined" && cMgr.currFeed != null && cMgr.currFeed == feedName) {
@@ -310,6 +318,7 @@ Tapedeck.Backend.CassetteManager = {
       cMgr.startPage = 1;
     }
     cMgr.endPage = parseInt(end, 10);
+    cMgr.log("Changing current pages to " + start + "-" + end + ".");
 
     // update the page in memory
     for (var i = 0; i < cMgr.cassettes.length; i++) {
@@ -339,6 +348,7 @@ Tapedeck.Backend.CassetteManager = {
       cMgr.startPage = 1;
     }
     cMgr.endPage = -1;
+    cMgr.log("Changing current page to " + page + ".");
 
     // update the page in memory
     for (var i = 0; i < cMgr.cassettes.length; i++) {

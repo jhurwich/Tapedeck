@@ -94,7 +94,7 @@ Tapedeck.Backend.MessageHandler = {
 
     switch (request.action) {
     case "add_tracks":
-      self.addTracks(request.tracks);
+      self.addTracks(request.pageNum, request.tracks);
       break;
 
     case "play_pause":
@@ -442,18 +442,19 @@ Tapedeck.Backend.MessageHandler = {
   // Basic mutex.  Push tracks to queue if lock is held.
   addTrackAvailable: true,
   addTracksQueued: [ ],
-  addTracks: function(newTracks, tab, callback) {
+  addTracks: function(pageNum, newTracks, tab, callback) {
     var msgHandler = Tapedeck.Backend.MessageHandler;
     var cMgr = Tapedeck.Backend.CassetteManager;
 
     // tab and callback are optional
-    if (arguments.length == 2 && typeof(tab) == "function") {
+    if (arguments.length == 3 && typeof(tab) == "function") {
       callback = tab;
       tab = undefined;
     }
     if (typeof(tab) == "undefined") {
       msgHandler.getSelectedTab(function(selectedTab) {
-        msgHandler.addTracks(newTracks,
+        msgHandler.addTracks(pageNum,
+                             newTracks,
                              selectedTab,
                              callback);
       });
@@ -468,6 +469,17 @@ Tapedeck.Backend.MessageHandler = {
         newTracks[0].cassette != cMgr.currentCassette.get("name")) {
       console.error("Received tracks for '" + newTracks[0].cassette +
                     "' when currentCassette is '" + cMgr.currentCassette.get("name") + "'");
+      return;
+    }
+    // only add tracks if we're still browsing that page
+    if ((cMgr.endPage == -1 && cMgr.startPage != pageNum) ||
+        (cMgr.endPage < pageNum) ||
+        (cMgr.startPage > pageNum)) {
+      var pages = "" + cMgr.startPage;
+      if (cMgr.endPage != -1) {
+        pages = pages + "-" + cMgr.endPage;
+      }
+      console.error("Received tracks for page " + pageNum + " when browsing " + pages + ".");
       return;
     }
 
@@ -709,6 +721,8 @@ Tapedeck.Backend.MessageHandler = {
       });
       return;
     }
+    var targetID = $(view).first().attr("id");
+    self.log("Pushing view to target: " + targetID);
 
     var viewString = $('<div>').append($(view))
                                .remove()
@@ -767,7 +781,7 @@ Tapedeck.Backend.MessageHandler = {
       var request = event.data;
       switch (request.action) {
       case "addTracks":
-        Tapedeck.Backend.MessageHandler.addTracks(request.tracks, request.tab);
+        Tapedeck.Backend.MessageHandler.addTracks(request.pageNum, request.tracks, request.tab);
         break;
 
       case "getLogLevels":

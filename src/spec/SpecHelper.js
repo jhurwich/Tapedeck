@@ -1,11 +1,12 @@
+// JSLint commands
+/*global __Jasmine__RUN_ALL_TESTS:true, __Jasmine__TESTS_TO_RUN:true, __Jasmine__TESTS_TO_SKIP:true, __Jasmine__DO_FULL_INIT:true*/
+
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "The HypeMachine Cassette",
-  "Frontend Frame Logic"
+  "The Scraper Cassette"
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
-  "Bank",
   "Options Manager"
 ];
 
@@ -49,8 +50,8 @@ beforeEach(function() {
 
     // only wait if we are actually changing
     if (this.Tapedeck.Backend.CassetteManager.currentCassette == null ||
-        this.Tapedeck.Backend.CassetteManager.currentCassette.name != cassetteName) {
-      var spy = spyOn(this.Tapedeck.Backend.TemplateManager, "renderViewAndPush").andCallThrough();
+        this.Tapedeck.Backend.CassetteManager.currentCassette.get("name") != cassetteName) {
+      var spy = spyOn(this.Tapedeck.Backend.TemplateManager, "getBrowseList").andCallThrough();
 
       // change the cassette and wait
       this.Tapedeck.Frontend.Messenger.setCassette(cassetteName);
@@ -138,20 +139,50 @@ beforeEach(function() {
   };
 
   this.ensureHypeMCassetteIsLoaded = function(callback) {
-    var cassettes = this.Tapedeck.Backend.CassetteManager.cassettes;
-    var found = false;
-    for (var i = 0; i < cassettes.length; i++) {
-      if (cassettes[i].cassette.get("name") == "HypeMachine") {
-        found = true;
-        break;
-      }
-    }
+    var self = this;
+    var cMgr = self.Tapedeck.Backend.CassetteManager;
 
-    if (!found) {
-      this.Tapedeck.Backend.Bank.setDevCassettes(["hypemcassette.js"], true, callback);
-    } else{
-      callback();
-    }
+    var checkCMGR = function(aCallback) {
+      var cassettes = cMgr.cassettes;
+      for (var i = 0; i < cassettes.length; i++) {
+        if (cassettes[i].cassette.get("name") == "HypeMachine") {
+          aCallback(true);
+          return;
+        }
+      }
+      aCallback(false);
+    };
+    var checkSandbox = function(aCallback) {
+      cMgr.checkSandboxCassettes(function(response) {
+        for (var tdID in response.cassettes) {
+          var sandboxCassette = response.cassettes[tdID];
+          if (sandboxCassette.name == "HypeMachine") {
+            aCallback(true);
+            return;
+          }
+        }
+        aCallback(false);
+      });
+    };
+
+
+    checkCMGR(function(foundInCMGR) {
+      if (foundInCMGR) {
+        checkSandbox(function(foundInSandbox) {
+          if (foundInSandbox) {
+            callback();
+            return;
+          }
+          else {
+            setTimeout(self.ensureHypeMCassetteIsLoaded, 100, callback);
+            return;
+          }
+        });
+      }
+      else {
+        this.Tapedeck.Backend.Bank.setDevCassettes(["hypemcassette.js"], true, self.ensureHypeMCassetteIsLoaded.curry(callback));
+      }
+    });
   };
 
   this.waitsForHypeMCheck = function() {

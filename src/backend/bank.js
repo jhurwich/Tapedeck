@@ -1110,9 +1110,12 @@ Tapedeck.Backend.Bank = {
   },
 
   // NOTE, the browselist is only memoized by the Bank, it is not a SavedTrackList
+  /* cacheData is optional and manually specifies
+   * { "currentCassette": __ , "currentPage": __ ,"currentFeed": __ }
+   */
   cacheExpiryData: { expiry: -1 },
   cachedBrowseListName: "__browseList",
-  cacheCurrentBrowseList: function(trackList) {
+  cacheCurrentBrowseList: function(trackList, cacheData) {
     // we only memoize the browseList, we don't persist it in storage
     var bank = Tapedeck.Backend.Bank;
 
@@ -1127,20 +1130,28 @@ Tapedeck.Backend.Bank = {
     };
     trackList.bind("all", browseListChanged);
 
-    // do the caching here
-    bank.Memory.rememberTrackList(bank.cachedBrowseListName, trackList);
-
-    // fill the options besides browseList as normal through the templateManager to save in the expirydata
-    var viewScript = Tapedeck.Backend.TemplateManager.getViewScript("BrowseList");
-    var hollowView = new viewScript({ });
-    var neededOptions = hollowView.getOptions();
-
-    // remove browselist from needed, we are caching it
-    delete neededOptions["browseList"];
-    Tapedeck.Backend.TemplateManager.fillOptions(neededOptions, function(filledOptions) {
-      bank.cacheExpiryData = filledOptions;
+    // if we were specified cacheData, use that
+    if (typeof(cacheData) != "undefined") {
+      bank.cacheExpiryData = cacheData;
       bank.cacheExpiryData.expiry = (new Date()).getTime() + bank.BROWSELIST_CACHE_TIMEOUT; // now + BROWSELIST_CACHE_TIMEOUT
-    });
+      bank.Memory.rememberTrackList(bank.cachedBrowseListName, trackList);
+    }
+    else {
+      // fill the options besides browseList as normal through the templateManager to save in the expirydata
+      var viewScript = Tapedeck.Backend.TemplateManager.getViewScript("BrowseList");
+      var hollowView = new viewScript({ });
+      var neededOptions = hollowView.getOptions();
+
+      // remove browselist from needed, we are caching it
+      delete neededOptions["browseList"];
+      Tapedeck.Backend.TemplateManager.fillOptions(neededOptions, function(filledOptions) {
+        bank.cacheExpiryData = filledOptions;
+        bank.cacheExpiryData.expiry = (new Date()).getTime() + bank.BROWSELIST_CACHE_TIMEOUT; // now + BROWSELIST_CACHE_TIMEOUT
+
+        // do the caching
+        bank.Memory.rememberTrackList(bank.cachedBrowseListName, trackList);
+      });
+    }
   },
   // You may get the most recently cached browseList always, but you should use isBrowseListCached
   // to determine if the browseList is stale or not.

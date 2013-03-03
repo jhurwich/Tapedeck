@@ -107,13 +107,15 @@ describe("Frontend Frame Logic", function() {
 
     self.waitsForSwitchToBrowseList("HypeMachine");
     runs(function() {
+      cacheSpy.callCount = 0;
       // get the second page's tracks
       cMgr.setPage(2);
     });
 
     // get tracks from page 2 and save them
-    waitsFor(function() { return cacheSpy.callCount > 1; }, "Waiting for page2 BrowseList from HypeMachine.", 5000);
+    waitsFor(function() { return cacheSpy.callCount >= 1; }, "Waiting for page2 BrowseList from HypeMachine.", 5000);
     runs(function() {
+      cacheSpy.callCount = 0;
       tMgr.getBrowseList(function(secondParams) {
         secondPageTracks = secondParams.browseList;
         cMgr.setPage(1);
@@ -123,10 +125,11 @@ describe("Frontend Frame Logic", function() {
     });
 
     // get tracks from page 1, check them against page 2, and save them
-    waitsFor(function() { return cacheSpy.callCount > 2; }, "Waiting for page1 BrowseList from HypeMachine.", 2000);
+    waitsFor(function() { return cacheSpy.callCount > 0; }, "Waiting for page1 BrowseList from HypeMachine.", 5000);
     runs(function() {
-      tMgr.getBrowseList(function(firstParams) {
+      cacheSpy.callCount = 0;
 
+      tMgr.getBrowseList(function(firstParams) {
         // make sure the second page's tracks are different from the first's
         firstPageTracks = firstParams.browseList;
         for (var i = 0; i < firstPageTracks.length; i++) {
@@ -141,7 +144,7 @@ describe("Frontend Frame Logic", function() {
     });
 
     // get tracks from page 2 again and compare them against page 2's first results
-    waitsFor(function() { return cacheSpy.callCount > 3; }, "Waiting for page2 (again) BrowseList from HypeMachine.", 5000);
+    waitsFor(function() { return cacheSpy.callCount > 0; }, "Waiting for page2 (again) BrowseList from HypeMachine.", 5000);
     runs(function() {
 
       tMgr.getBrowseList(function(secondParamsAgain) {
@@ -171,8 +174,9 @@ describe("Frontend Frame Logic", function() {
     });
 
     // get tracks from the pages and save them.  Three pages should mean three cache calls
-    waitsFor(function() { return cacheSpy.callCount > 3; }, "Waiting for pages 1-3 BrowseList from HypeMachine.", 5000);
+    waitsFor(function() { return cacheSpy.callCount >= 3; }, "Waiting for pages 1-3 BrowseList from HypeMachine.", 5000);
     runs(function() {
+      cacheSpy.callCount = 0;
       tMgr.getBrowseList(function(pageRangeParams) {
         pageRangeTracks = pageRangeParams.browseList;
         cMgr.setPage(1);
@@ -182,8 +186,9 @@ describe("Frontend Frame Logic", function() {
     });
 
     // get tracks from page 1, check them against the range, and save them
-    waitsFor(function() { return cacheSpy.callCount > 4; }, "Waiting for page1 BrowseList from HypeMachine.", 2000);
+    waitsFor(function() { return cacheSpy.callCount > 0; }, "Waiting for page1 BrowseList from HypeMachine.", 2000);
     runs(function() {
+      cacheSpy.callCount = 0;
       tMgr.getBrowseList(function(firstParams) {
 
         // make sure the second page's tracks are different from the first's
@@ -201,7 +206,7 @@ describe("Frontend Frame Logic", function() {
     });
 
     // get tracks from page 2 again and compare them against page 2's first results
-    waitsFor(function() { return cacheSpy.callCount > 7; }, "Waiting for page2 (again) BrowseList from HypeMachine.", 5000);
+    waitsFor(function() { return cacheSpy.callCount >= 3; }, "Waiting for pages 1-3 (again) BrowseList from HypeMachine.", 5000);
     runs(function() {
 
       tMgr.getBrowseList(function(pageRangeParamsAgain) {

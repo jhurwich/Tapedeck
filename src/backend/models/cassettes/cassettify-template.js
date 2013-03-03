@@ -103,13 +103,13 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                            context      : $(pageDump), \
                                            callback     : callback, \
-                                           moreCallback : self.addMoreCallback.curry(self, url), \
+                                           moreCallback : self.addMoreCallback.curry(self, page, url), \
                                            finalCallback: self.finish.curry(self) }); \
     }, \
  \
-    addMoreCallback: function(self, url, tracks) { \
+    addMoreCallback: function(self, pageNum, url, tracks) { \
       self.saveMoreTracksForURL(url, tracks); \
-      Tapedeck.Backend.MessageHandler.addTracks(tracks); \
+      Tapedeck.Backend.MessageHandler.addTracks(pageNum, tracks); \
     }, \
  \
     finish: function(self, params) { \

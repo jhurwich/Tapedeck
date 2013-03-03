@@ -9,7 +9,6 @@ Tapedeck.Sandbox = {
   // The sandbox div gets blown away on background.html when we append new templates,
   // so init() is called each time to re-establish the Sandbox with things like logLevels.
   init: function() {
-    console.log(">>> >>> >>> reinitializing Sandbox");
     // we've established Tapedeck.Backend for Utils, swing that onto Sandbox
     var utils = Tapedeck.Backend.Utils;
 
@@ -21,13 +20,14 @@ Tapedeck.Sandbox = {
 
     // we capture and simulate Tapedeck.Backend.MessageHandler.addTracks
     Tapedeck.Backend.MessageHandler = {
-      addTracks: function(tracks, tab) {
+      addTracks: function(pageNum, tracks, tab) {
         Tapedeck.Sandbox.log("Sandbox is adding tracks: " + JSON.stringify(tracks),
                              Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
 
         var message = {
           action : "addTracks",
-          tracks : tracks
+          tracks : tracks,
+          pageNum: pageNum
         };
         if (typeof(tab) != "undefined") {
           message.tab = tab;
@@ -152,6 +152,14 @@ Tapedeck.Sandbox = {
       });
       break;
 
+    case "checkCassettes":
+      response.cassettes = { };
+      for (var tdID in Tapedeck.Sandbox.cassettes) {
+        response.cassettes[tdID] = Tapedeck.Sandbox.cassettes[tdID].generateReport();
+      }
+      Tapedeck.Sandbox.sendMessage(response);
+      break;
+
     case "clearCassettes":
       Tapedeck.Sandbox.clearCassettes();
       Tapedeck.Sandbox.sendMessage(response);
@@ -186,15 +194,6 @@ Tapedeck.Sandbox = {
 
     case "getPage":
       var cassette = Tapedeck.Sandbox.cassettes[message.tdID];
-      console.log("banana")
-      if (typeof(cassette) == "undefined") {
-        for (var x in Tapedeck.Sandbox.cassettes) {
-          console.log("> > > > > Undefined cassette, but got : " + x);
-        }
-      }
-      else {
-        console.log("> > > > > Defined cassette, got : " + message.tdID);
-      }
       cassette.getPage(message.params.page, message.params.context, function(params) {
 
         // success callback
@@ -329,7 +328,6 @@ Tapedeck.Sandbox = {
     if (newCassetteName !== "" && typeof(Tapedeck.Sandbox.Cassettes[newCassetteName]) != "undefined") {
       // Cassette has loaded.  Get a handle on it and return its report
       var newCassette = new Tapedeck.Sandbox.Cassettes[newCassetteName]();
-      console.log("> > > > > > > > Attaching: " + newCassetteName);
       Tapedeck.Sandbox.cassettes[newCassette.get("tdID")] = newCassette;
 
       Tapedeck.Sandbox.log("The new cassette '" + newCassetteName + "' is ready.");

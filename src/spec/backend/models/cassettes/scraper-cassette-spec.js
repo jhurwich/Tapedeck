@@ -95,7 +95,7 @@ describe("The Scraper Cassette", function() {
         // pull them out and add them to the actualTracks.
         if (spy != null) {
           runs(function() {
-            var postLoadTracks = spy.mostRecentCall.args[0];
+            var postLoadTracks = spy.mostRecentCall.args[1];
             if (postLoadTracks.length > 0) {
               $.extend(params.tracks, postLoadTracks);
               self.verifyTracks(params.tracks,

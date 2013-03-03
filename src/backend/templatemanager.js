@@ -393,7 +393,15 @@ Tapedeck.Backend.TemplateManager = {
 
           // have tracks for the first page, return them as a browselist
           var browseTrackList = new Tapedeck.Backend.Collections.TrackList(response.tracks);
-          Tapedeck.Backend.Bank.cacheCurrentBrowseList(browseTrackList);
+
+          var pages = "" + cMgr.startPage;
+          if (cMgr.endPage != -1) {
+            pages = pages + "-" + cMgr.endPage;
+          }
+          var cacheData = { "currentCassette": cMgr.currentCassette.get("name"),
+                            "currentPage": pages ,
+                            "currentFeed": cMgr.currFeed };
+          Tapedeck.Backend.Bank.cacheCurrentBrowseList(browseTrackList, cacheData);
 
           var toReturn = { fillAll: true,
                            browseList: browseTrackList,
@@ -404,7 +412,7 @@ Tapedeck.Backend.TemplateManager = {
 
         // having reached here, we know we're not handling the first page, use addTracks.
         if (typeof(response.tracks) != "undefined" && response.tracks.length > 0) {
-          msgHandler.addTracks(response.tracks);
+          msgHandler.addTracks(pageNum, response.tracks);
 
           if (typeof(response.errorCount) == "undefined") {
             return;
@@ -565,7 +573,7 @@ Tapedeck.Backend.TemplateManager = {
           var original = remapMatch[1];
           var remapping = remapMatch[2];
           html = html.replace(new RegExp(original, "g"), remapping);
-         }
+        }
       }
       tMgr.templatesInProgress[templateName].subtemplatesComplete++;
 
@@ -592,7 +600,7 @@ Tapedeck.Backend.TemplateManager = {
       tMgr.log("Subtemplate of '" + templateName + "' found, populating '" + subtemplateName + "'", Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
 
       // got the template, we still need to fold the <tapedeck> portion in
-     this.getTemplate(subtemplateName, subtemplatePackage, populateSubTemplate); // end getTemplate for subtemplate
+      this.getTemplate(subtemplateName, subtemplatePackage, populateSubTemplate); // end getTemplate for subtemplate
     }
     if (typeof(tMgr.templatesInProgress[templateName]) != "undefined" &&
         tMgr.templatesInProgress[templateName].subtemplatesComplete >= tMgr.templatesInProgress[templateName].numSubtemplates) {

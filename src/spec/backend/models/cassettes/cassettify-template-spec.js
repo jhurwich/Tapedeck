@@ -68,7 +68,7 @@ describe("Cassettification", function() {
 
     this.waitsForFrontendInit();
   });
-/*
+
   it("should make a new cassette for the current page", function() {
 
     var testComplete = false;
@@ -112,7 +112,6 @@ describe("Cassettification", function() {
     });
 
   });
-*/
 
   it("should make a new cassette from a pattern input", function() {
 
