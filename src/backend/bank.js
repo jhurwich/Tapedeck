@@ -1118,6 +1118,7 @@ Tapedeck.Backend.Bank = {
   cacheCurrentBrowseList: function(trackList, cacheData) {
     // we only memoize the browseList, we don't persist it in storage
     var bank = Tapedeck.Backend.Bank;
+    var cMgr = Tapedeck.Backend.CassetteManager;
 
     var browseListChanged = function (eventName) {
       // we only care about the greater 'change' event.  The "change:__" events are ignored.
@@ -1133,7 +1134,13 @@ Tapedeck.Backend.Bank = {
     // if we were specified cacheData, use that
     if (typeof(cacheData) != "undefined") {
       bank.cacheExpiryData = cacheData;
-      bank.cacheExpiryData.expiry = (new Date()).getTime() + bank.BROWSELIST_CACHE_TIMEOUT; // now + BROWSELIST_CACHE_TIMEOUT
+
+      var requestedDuration = bank.BROWSELIST_CACHE_TIMEOUT;
+      if (typeof(cMgr.currentCassette.get("cacheDuration")) != "undefined") {
+        requestedDuration = parseInt(cMgr.currentCassette.get("cacheDuration"), 10);
+      }
+      bank.cacheExpiryData.expiry = (new Date()).getTime() + requestedDuration;
+
       bank.Memory.rememberTrackList(bank.cachedBrowseListName, trackList);
     }
     else {
@@ -1146,7 +1153,12 @@ Tapedeck.Backend.Bank = {
       delete neededOptions["browseList"];
       Tapedeck.Backend.TemplateManager.fillOptions(neededOptions, function(filledOptions) {
         bank.cacheExpiryData = filledOptions;
-        bank.cacheExpiryData.expiry = (new Date()).getTime() + bank.BROWSELIST_CACHE_TIMEOUT; // now + BROWSELIST_CACHE_TIMEOUT
+
+        var requestedDuration = bank.BROWSELIST_CACHE_TIMEOUT;
+        if (typeof(cMgr.currentCassette.get("cacheDuration")) != "undefined") {
+          requestedDuration = parseInt(cMgr.currentCassette.get("cacheDuration"), 10);
+        }
+        bank.cacheExpiryData.expiry = (new Date()).getTime() + requestedDuration;
 
         // do the caching
         bank.Memory.rememberTrackList(bank.cachedBrowseListName, trackList);

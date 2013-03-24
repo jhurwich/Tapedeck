@@ -472,9 +472,9 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
     // only add tracks if we're still browsing that page
-    if ((cMgr.endPage == -1 && cMgr.startPage != pageNum) ||
-        (cMgr.endPage < pageNum) ||
-        (cMgr.startPage > pageNum)) {
+    if (!(typeof(pageNum) == "undefined" && cMgr.endPage == -1 && cMgr.startPage == 1) &&
+        !(cMgr.endPage == -1 && cMgr.startPage == pageNum) &&
+        !(cMgr.endPage >= pageNum && cMgr.startPage <= pageNum)) {
       var pages = "" + cMgr.startPage;
       if (cMgr.endPage != -1) {
         pages = pages + "-" + cMgr.endPage;
