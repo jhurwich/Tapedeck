@@ -6,560 +6,87 @@ body {
   width: 100%;
   height: 100%;
   display: block !important; /* necessary so that the frame appears when css ready */
-  background-color: darkslategrey;
+  background-color: #333333;
+  font-family: Tahoma, "FreeSans", sans-serif;
 }
 
-#frame {
-  position: relative;
-  padding: 4px;
+.player-window {
+  width: 311px;
+  height: 77px;
+  background-color: #FDF2D8;
+  margin: 6px 15px;
+  box-shadow: inset 3px 3px 3px rgba(0,0,0,1),
+              3px 3px 3px rgba(256,256,256,0.5);
 }
 
-#player {
+.track-info {
   position: relative;
-  margin-bottom: 15px;
+  margin: 0 6px;
+  width: 275px;
+  height: 55px;
+  top: 6px;
 }
-#banner-region {
-  position: relative;
-  display: block;
-  padding-right: 25px;
-}
-#banner {
-  position: relative;
-  height: 40px;
-  width: 100%;
-  border: solid 2px #424242;
-  margin-bottom: 10px;
-  padding: 0 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.track-info span {
   float: left;
-}
-.slider-track {
-  background-repeat: no-repeat;
-  background-color: transparent;
-}
-#volume-slider {
-  position: absolute;
-  top: 2px;
-  right: 3px;
-  width: 9px;
-  height: 40px;
-}
-#volume-slider #track-top {
-  position: relative;
-  height: 3px;
-}
-#volume-slider #track-bottom {
-  position: relative;
-  height: 37px;
-  margin-left: 2px;
-}
-#volume-slider #handle {
-  display: block;
-}
-#volume-slider #handle-image {
-  width: 9px;
-  height: 9px;
-  margin-left: 2px;
-}
-#seek-slider {
-  clear: both;
-  width: 305px;
-  margin: auto;
-}
-#seek-slider .slider-track {
-  height: 9px;
-}
-.slider.disabled {
-  opacity : 0.4;
-}
-#track-left {
-  width: 5px;
-  float: left;
-}
-#track-right {
-  margin-left: 5px;
-}
-#handle {
-  position: relative;
-  width: 9px;
-  height: 9px;
-  margin-left: -4px;
-}
-#handle-image {
-  height: 12px;
-  margin-top: -3px;
-}
-#handle-val {
-  display: none;
-  top: -10px;
-  position: absolute;
-  font: 10px arial, sans-serif;
-}
-#player #duration {
-  position: absolute;
-  right: 20px;
-  height: 12px;
-  width: 12px;
-  font: 10px arial, sans-serif;
-}
-
-#browse-list {
-  height: 330px;
-}
-#queue {
-  max-height: 280px;
-}
-#queue-region {
-   max-height: 300px;
-   height: 300px;
-}
-.region-header {
-  font: bold 18px arial, sans-serif;
-  height: 22px;
-}
-.tracklist {
-  max-height: 256px;
-  width: 345px;
-}
-.tracklist,
-.cassettellist-container {
-  position: relative;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-.tracklist-container,
-.cassettelist {
-  border-right: none;
-  overflow: hidden;
-}
-.tracklist .row-container,
-.cassettelist .row-container {
-  position: relative;
-  -khtml-user-select: none;
-  width: 100%;
-  max-width: 326px;
-  overflow: hidden;
-  border-left: solid 2px #424242;
-  border-right: solid 2px #424242;
-}
-.tracklist .row-container:first-child {
-  border-top: solid 2px #424242;
-}
-.tracklist .row-container:last-child {
-  border-bottom: solid 2px #424242;
-}
-.tracklist .row,
-.cassettelist .row{
-  background-color: #E9E9E9;
-  position: relative;
-  min-width: 330px;
-  height: 16px;
-  z-index: 3;
-}
-.tracklist .row:not(.blank):hover {
-  background-color: #d0d0d0;
-  cursor: pointer;
-}
-.tracklist .row.selected {
-  background-color: #b6b6b6;
-}
-.tracklist .row.selected:hover {
-  background-color: #9d9d9d;
-}
-.tracklist .row.listened {
-  opacity : 0.65;
-}
-.tracklist .row.playing .cell{
-  font-weight: bold;
-}
-.tracklist .row:not(.playing) .cell{
-  font-weight: normal !important;
-}
-.tracklist .row.blank {
-  padding: 3px;
-  cursor: default;
-}
-.tracklist .spinner.loading,
-.cassettelist .spinner.loading {
-  height: 12px;
-  width: 16px;
-  position: absolute;
-  left: 50%;
-  top: 3px;
-  margin-left: -8px;
-  background-repeat: no-repeat;
-}
-.tracklist .error-msg,
-.cassettelist .error-msg {
-  color: red;
-}
-.tracklist-container .cell,
-.cassettelist .cell {
-  position: relative;
-  display: table-cell;
-  -webkit-user-select: none;
-  user-select: none;
-  min-height: 16px;
-  float: left;
-  font: 14px arial,sans-serif;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-right: solid 1px #3299BB;
-  border-bottom: solid 1px #3299BB;
-  padding-left: 2px;
-}
-.tracklist .row-container:last-child .cell{
-  border-bottom: none;
-}
-.tracklist .row.drag-target .cell{
-  border-bottom: solid 2px #ff9900;
-}
-.tracklist .cell.trackName-col {
-  width: 150px;
-}
-.tracklist .cell.artistName-col {
-  width: 100px;
-}
-.tracklist .cell.cassette-col {
-  border-right: none;
-  width: 71px;
-}
-.tracklist .trackName-span:hover {
-  text-decoration: underline;
-  cursor: pointer;
-}
-.tracklist-container .row-buttons,
-.cassettelist .row-buttons {
-  position: absolute;
-  top: 0px;
-  right: 2px;
-  margin: 1px;
-}
-.tracklist .row-indicators {
-  display: inline-block;
-  position: absolute;
-  right: 2px;
-  margin: 1px;
-}
-.tracklist .row-buttons > .button,
-.tracklist .row-indicators > #download-spinner,
-.cassettelist .row-buttons > .button {
-  display: inline-block;
-  height: 12px;
-  width: 12px;
-  float: left;
-  border: 1px solid black;
-  background-position: center;
-  margin-left: 1px;
-}
-.tracklist .row .row-buttons,
-.cassettelist .row .row-buttons {
-  display: none;
-}
-.tracklist .row:hover .row-buttons,
-.cassettelist .row:hover .row-buttons {
-  display: inline-block;
-}
-.cassettelist .row-buttons .button {
-  border: none;
-  margin: 2px;
-}
-.cassettelist .row[cassette-name='Scraper'] .button.remove {
-  display: none;
-}
-#browse-list .row .row-buttons > .button.remove {
-  display: none;
-}
-#queue .row .row-buttons > .button.queue {
-  display: none;
-}
-.tracklist .row[download="downloading"] .row-buttons > .button.download {
-  visibility: hidden;
-}
-.tracklist .row .row-indicators > #download-spinner {
-  display: none;
-}
-.tracklist .row[download="downloading"] .row-indicators > #download-spinner {
-  display: inline-block;
-  border: 1px solid transparent;
-}
-#playback-button-box {
-  float: right;
-  padding-top: 2px;
-  padding-right: 18px;
-}
-.playback-button {
-  cursor: pointer;
-  width: 20px;
-}
-.tracklist #hidden-droprow {
-  max-height: 3px;
-  min-height: 3px;
-}
-.tracklist #hidden-droprow .cell {
-  max-height: 3px;
-  min-height: 3px;
-  background-color: #E9E9E9 !important;
-}
-.tracklist #hidden-droprow .cell {
-  border-bottom: transparent !important;
-}
-.tracklist #hidden-droprow.drag-target .cell {
-  background-color: #ff9900 !important;
-}
-
-#queue-buttons {
-  margin-bottom: 4px;
-  height: 26px;
-}
-
-#playlist-list {
-  position: relative;
-}
-#playlist-list #playlist-list-header {
-  width: 90px;
-  border: 2px solid #424242;
-  background-color: #f2f2f2;
-  margin: 3px;
-  float: left;
-  text-align: center;
-  font-size: 14px;
-}
-#playlist-list #playlist-list-content {
-  display: none;
-  position: absolute;
-  top: 22px;
-  left: 3px;
-  border: solid 2px #424242;
-  background-color: #f2f2f2;
-  z-index: 50;
-}
-#playlist-list-content .row:hover {
-  background-color: #d0d0d0;
-  cursor: pointer;
-}
-#playlist-list .row,
-#playlist-list .blank-row {
-  display: table-row;
-  -khtml-user-select: none;
-  min-height: 16px;
-}
-#playlist-list .row .row-buttons > .button {
-  height: 14px;
-  width: 14px;
-  margin: 1px;
-  background-position: center;
-}
-#playlist-list .cell {
-  display: table-cell;
-  min-height: 16px;
-  float: left;
-  font: 14px arial,sans-serif;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-bottom: solid 1px #3299BB;
-}
-#playlist-list .row:last-child .cell{
-  border-bottom: none;
-}
-#playlist-list .cell.playlistName-col {
-  width: 200px;
-}
-
-.cassettelist .row,
-.tracklist-container #current-cassette-row {
-  background-color: #515151;
-  height: 20px;
-  position: relative;
-}
-.cassettelist .row:not(.blank):hover {
-  background-color: #2f2f2f;
-  cursor: pointer;
-}
-.cassettelist .row.active {
-  background-color: #272727 !important;
-}
-.cassettelist .cell,
-.tracklist-container #current-cassette-row .cell {
-  min-height: 20px;
-  border-right: solid 2px #424242;
-  border-bottom: solid 2px #424242;
-  font: 16px arial,sans-serif;
-  color: #eeeeee;
-}
-.cassettelist .row-container:first-child .row {
-  border-top: 2px solid #424242;
-}
-.cassettelist .row.blank {
-  border-bottom: 2px solid #424242;
-}
-.cassettelist .cell:first-child,
-.tracklist-container #current-cassette-row .cell:first-child {
-  font-weight: bold;
-}
-.cassettelist .row:last-child .cell{
-
-}
-.cassettelist .cell.cassetteName-col {
-  width: 168px;
-}
-.cassettelist .cell.developerName-col {
-  width: 155px;
-  border-right: none;
-}
-.developer-link:hover {
-  color: #3299BB;
-}
-
-#add-cassettes-menu {
-  postion: relative;
-  margin-right: 12px;
-}
-#add-cassettes-button {
-  float: right;
-  height: 20px;
-  width: 20px;
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-#add-cassettes-menu[visible] #add-cassettes-button {
-  background-color: #F2F2F2;
-  border: 1px solid #424242;
-  cursor: pointer;
-}
-#add-cassettes-content {
-  display: none;
-  position: relative;
-  float: right;
   clear: right;
-  margin-top: -1px;
-  width: 235px;
-  border: 1px solid #424242;
-  background-color: #F2F2F2;
 }
-#add-cassettes-content .menu-row {
-  border-bottom: 1px solid #424242;
-  padding-left: 4px;
-  -khtml-user-select: none;
+.track-name {
+  font: 24px Tahoma, "FreeSans", sans-serif;
+  line-height: 28px;
 }
-#add-cassettes-content .menu-row.coming-soon {
-  opacity : 0.4;
-  cursor: default;
-}
-#add-cassettes-content .menu-row:last-child {
-  border-bottom: none;
-}
-#add-cassettes-content .menu-row:not(.coming-soon):hover {
-  background-color: #d0d0d0;
-  cursor: pointer;
+.artist-name {
+  font: 20px Tahoma, "FreeSans", sans-serif;
+  line-height: 24px;
 }
 
-
-.tracklist-container #current-cassette-row .cell {
-  border: none;
+.seek-slider-track {
+  height: 2px;
+  width: 280px;
+  background-color: #333333;
+  margin: 13px auto;
 }
-.tracklist-container #current-cassette-row #feed-switcher {
-  width: 100px;
-  font-size: 14px;
-  display: inline-block;
-  float: left;
-  margin: 0 7px 0 0;
-}
-.tracklist-container #current-cassette-row #feed-switcher .feed-row {
-  float: left;
+.handle {
   position: relative;
-  padding: 2px 0 0 6px;
-  font-size: 14px;
-  background-color: #181818;
-  min-height: 18px;
-  width: 100%;
-  z-index: 50;
+  left: 100px; /* TODO revert to 0px */
+  top: -14px;
 }
-.tracklist-container #current-cassette-row #feed-switcher #feed-switcher-header.feed-row {
-  cursor: default;
+.handle-image {
+  margin: -2px 0;
 }
-.tracklist-container #current-cassette-row #feed-switcher #feed-switcher-content {
-  display: none;
-}
-.tracklist-container #current-cassette-row #feed-switcher #feed-switcher-content .feed-row:hover {
-  cursor: pointer;
-  color: #ff9900;
-}
-.tracklist-container #current-cassette-row .row-buttons > .button {
-  display: inline-block;
-  margin: 0 1px;
-  height: 18px;
-  width: 16px;
-  float: left;
-  border: 1px solid black;
-  background-position: center;
-  background-color: #181818;
-  cursor: pointer;
-}
-.tracklist-container #current-cassette-row .button.current-page {
-  display: inline-block;
-  font: bold 16px arial, sans-serif;
-  text-align: center;
-  width: 24px;
-  max-width: 24px;
-  padding-right: 1px;
-  color: #EEE;
-}
-.tracklist-container #current-cassette-row #set-page {
-  width: 19px;
-  border: none;
-  float: left;
-  margin: 1px;
-  padding-left: 5px;
-}
-.tracklist-container #current-cassette-row {
-  display: table;
-  position: relative;
-  width: 326px;
-  border: 2px solid #424242;
-  border-top-width: 0px;
+.handle-val {
+  font: 14px Tahoma, "FreeSans", sans-serif;
+  line-height: 14px;
+  margin: 0 -8px;
 }
 
-#blackout {
-  position: fixed;
-  top:0;
-  left: 0;
-  width: 500px;
-  height: 100%;
-  background-color: black;
-  opacity: .4;
-  z-index: 100;
-}
-#modal-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  margin-left: -150px;
-  margin-top: -100px;
-  width: 300px;
-  height: 200px;
-  background-color: #E9E9E9;
-  z-index: 101;
-  padding: 8px 6px;
-  border-radius: 7px;
-}
-#modal-container #close-button {
+.play-info {
   position: absolute;
-  top: 0;
-  right: 0;
-  height: 14px;
-  width: 14px;
-  margin: 3px;
-  cursor: pointer;
+  top: 14px;
+  right: 20px;
 }
-#modal-container #modal-title {
-  text-decoration: underline;
-  font-size: 20px;
+.status-box {
+  width: 26px;
+  float: left;
 }
-#modal-container .field-row.info {
-  margin-top: 5px;
+.status-box img {
+  margin: 1px 2px 2px 2px;
+}
+.volume-slider-track {
+  height: 40px;
+  width: 2px;
+  position: relative;
+  float: right;
+  background-color: #333333;
+}
+.volume-slider-handle {
+  position: relative;
+  margin: 0 -2px;
+  top: 10px; /* TODO revert to 0px */
+}
+
+.duration {
+  position: relative;
+  top: -4px;
+  font: 14px Tahoma, "FreeSans", sans-serif;
+  float: right;
 }

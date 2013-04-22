@@ -40,6 +40,10 @@ var attachTo = function(onObject) {
 
     attachEvents: function(id, events) {
       for (var key in events) {
+        var match = key.match(/^(\S+)\s*(.*)$/);
+        var eventName = match[1];
+        var selector = match[2];
+
         var methodPieces = events[key].split(".");
         var method = Tapedeck.Frontend.Frame;
 
@@ -56,10 +60,6 @@ var attachTo = function(onObject) {
             typeof(method) == "undefined") {
           console.error("Event " + JSON.stringify(methodPieces) + " does not exist");
         }
-
-        var match = key.match(/^(\S+)\s*(.*)$/);
-        var eventName = match[1];
-        var selector = match[2];
 
         if (eventName.indexOf("onreplace") == -1) {
           if (selector === '') {

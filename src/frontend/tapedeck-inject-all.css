@@ -5,18 +5,25 @@
   position: fixed !important;
   top: 0 !important;
   left: auto !important;
-  right: 0 !important;
-  width: 350px !important;
-  min-width: 350px !important;
-  max-width: 350px !important;
+  right: -340px !important;
+  width: 340px !important;
+  min-width: 340px !important;
+  max-width: 340px !important;
   height: 100% !important;
   min-height: 100% !important;
   max-height: 100% !important;
-  background-color: rgb(188,188,188) !important;
-  border: 2px ridge rgb(188,188,188) !important;
-  padding: 0px !important;
-  margin: 0px !important;
+  background-color: #333333 !important;
+  border: 0;
+  box-shadow: -3px 0 7px 0 rgba(0,0,0,0.6);
+  padding: 0 !important;
+  margin: 0 !important;
   z-index: 9999; /* we might need to increase this so no !important */
+
+  -webkit-transition: right 700ms ease-in-out;
+}
+
+#tapedeck-frame.open {
+  right: 0 !important;
 }
 
 body[tapedeck-opened] {
@@ -26,22 +33,29 @@ body[tapedeck-opened] {
 tapedeck-buttonbox#tapedeck-injected-buttons {
   display: block;
   position: fixed;
-  top: 35px;
-  right: 0px;
-  width: 20px;
-  height: 120px;
+  top: 0;
+  right: 0;
+  width: 25px;
+  height: 90px;
+  background-color: #333333;
+  box-shadow: -3px 0 7px 0 rgba(0,0,0,0.6);
   z-index: 9999;
+  padding: 2px 0;
+
+  -webkit-transition: right 700ms ease-in-out;
 }
 
 .tapedeck-injected-button {
   display: inline-block !important;
   position: static !important;
-  margin: 0 0 10px 0 !important;
+  right: 0;
+  margin: 2px 3px !important;
   padding: 0 !important;
-  width: 20px !important;
-  height: 20px !important;
-  background-size: 20px 20px !important;
+  width: 18px !important;
+  height: 18px !important;
+  background-size: 18px 18px !important;
   clear: both !important;
+  float: right;
 }
 
 .tapedeck-injected-button:hover {

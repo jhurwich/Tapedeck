@@ -42,5 +42,4 @@ describe("Cassette Manager", function() {
     this.cassetteMgr.setCassette(cassette.get("name"));
     expect(this.cassetteMgr.currentCassette.get("name")).toEqual("Scraper");
   });
-
 });

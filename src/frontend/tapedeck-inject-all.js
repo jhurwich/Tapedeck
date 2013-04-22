@@ -16,7 +16,6 @@ if (typeof(TapedeckInjected) == "undefined") {
       TapedeckInjected.tapedeckFrame.src =
         chrome.extension.getURL("frontend/tapedeck-frame.html");
       TapedeckInjected.tapedeckFrame.id = "tapedeck-frame";
-      TapedeckInjected.tapedeckFrame.setAttribute("hidden", true);
 
       htmlDOM.appendChild(TapedeckInjected.tapedeckFrame);
 
@@ -78,26 +77,11 @@ if (typeof(TapedeckInjected) == "undefined") {
       var sideButtons = document.createElement('tapedeck-buttonbox');
       sideButtons.id = 'tapedeck-injected-buttons';
 
-      var drawerOpen = document.createElement('tapedeck-button');
-      drawerOpen.id = 'tapedeck-injected-draweropen';
-      drawerOpen.className = 'tapedeck-injected-button';
-      drawerOpen.style.backgroundImage =
-        "url('" + chrome.extension.getURL("images/draweropen-button.png") + "')";
-      drawerOpen.onclick = TapedeckInjected.setDrawerOpened;
-
-      var drawerClose = document.createElement('tapedeck-button');
-      drawerClose.id = 'tapedeck-injected-drawerclose';
-      drawerClose.className = 'tapedeck-injected-button';
-      drawerClose.style.backgroundImage =
-        "url('" + chrome.extension.getURL("images/drawerclose-button.png") + "')";
-      drawerClose.onclick = TapedeckInjected.setDrawerClosed;
-      drawerClose.setAttribute("hidden", true);
-
       var play = document.createElement('tapedeck-button');
       play.id = 'tapedeck-injected-play';
       play.className = 'tapedeck-injected-button';
       play.style.backgroundImage =
-        "url('" + chrome.extension.getURL("images/play-pause-button.png") + "')";
+        "url('" + chrome.extension.getURL("images/play-button.png") + "')";
       play.onclick = TapedeckInjected.playPause;
 
       var next = document.createElement('tapedeck-button');
@@ -114,11 +98,26 @@ if (typeof(TapedeckInjected) == "undefined") {
         "url('" + chrome.extension.getURL("images/prev-button.png") + "')";
       prev.onclick = TapedeckInjected.prev;
 
-      sideButtons.appendChild(drawerOpen);
-      sideButtons.appendChild(drawerClose);
+      var drawerOpen = document.createElement('tapedeck-button');
+      drawerOpen.id = 'tapedeck-injected-draweropen';
+      drawerOpen.className = 'tapedeck-injected-button';
+      drawerOpen.style.backgroundImage =
+        "url('" + chrome.extension.getURL("images/draweropen-button.png") + "')";
+      drawerOpen.onclick = TapedeckInjected.setDrawerOpened;
+
+      var drawerClose = document.createElement('tapedeck-button');
+      drawerClose.id = 'tapedeck-injected-drawerclose';
+      drawerClose.className = 'tapedeck-injected-button';
+      drawerClose.style.backgroundImage =
+        "url('" + chrome.extension.getURL("images/drawerclose-button.png") + "')";
+      drawerClose.onclick = TapedeckInjected.setDrawerClosed;
+      drawerClose.setAttribute("hidden", true);
+
       sideButtons.appendChild(play);
       sideButtons.appendChild(next);
       sideButtons.appendChild(prev);
+      sideButtons.appendChild(drawerOpen);
+      sideButtons.appendChild(drawerClose);
 
       htmlDOM.appendChild(sideButtons);
     },
@@ -136,14 +135,16 @@ if (typeof(TapedeckInjected) == "undefined") {
       $("#tapedeck-injected-buttons").css("z-index", maxZ + 1);
     },
 
-    toolbarWidth: 351,
+    toolbarWidth: -1,
     openDrawer: function() {
-      if (!TapedeckInjected.tapedeckFrame.getAttribute("hidden")) {
+      if ($(TapedeckInjected.tapedeckFrame).hasClass("open")) {
         // already opened, abort
         return;
       }
 
-      TapedeckInjected.tapedeckFrame.removeAttribute("hidden");
+      if (TapedeckInjected.toolbarWidth == -1) {
+        TapedeckInjected.toolbarWidth = TapedeckInjected.tapedeckFrame.offsetWidth;
+      }
 
       var drawerOpen = document.getElementById("tapedeck-injected-draweropen");
       drawerOpen.setAttribute("hidden", true);
@@ -155,15 +156,14 @@ if (typeof(TapedeckInjected) == "undefined") {
       bodyDOM.setAttribute("tapedeck-opened", true);
 
       TapedeckInjected.moveFixedElements();
+      $(TapedeckInjected.tapedeckFrame).addClass("open");
     },
 
     closeDrawer: function() {
-      if (TapedeckInjected.tapedeckFrame.getAttribute("hidden")) {
+      if (!$(TapedeckInjected.tapedeckFrame).hasClass("open")) {
         // already closed, abort
         return;
       }
-
-      TapedeckInjected.tapedeckFrame.setAttribute("hidden", true);
 
       var drawerClose = document.getElementById("tapedeck-injected-drawerclose");
       drawerClose.setAttribute("hidden", true);
@@ -175,6 +175,7 @@ if (typeof(TapedeckInjected) == "undefined") {
       bodyDOM.removeAttribute("tapedeck-opened");
 
       TapedeckInjected.resetFixedElements();
+      $(TapedeckInjected.tapedeckFrame).removeClass("open");
     },
 
     checkDrawerOpened: function() {

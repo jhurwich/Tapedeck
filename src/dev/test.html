@@ -4,20 +4,17 @@
     <script id="Frame-test-template" type="text/template">
       <tapedeck>
         <events>
-          "click #queue-save"    : "PlaylistList.makePlaylist",
-          "click #sync"          : "toggleSync",
-          "click #repeat"        : "toggleRepeat",
-          "click #queue-shuffle" : "shuffleQueue",
-          "click #queue-clear"   : "clearQueue",
+          "onreplace": "onFrameRender"
         </events>
+
         <options>
-          <!-- "tabID" : "tabID" -->
         </options>
+
         <images>
-          "#sync"          : "sync-disabled.png"
-          "#repeat"        : "repeat.png",
-          "#queue-shuffle" : "shuffle.png",
-          "#queue-clear"   : "trash.png"
+          ".status-icon"  : "load-spinner.gif",
+          ".sound-icon"   : "sound-on.png",
+          ".handle-image" : "seek-slider-handle.png"
+          ".volume-slider-handle": "volume-slider-handle.png"
         </images>
       </tapedeck>
 
@@ -26,32 +23,51 @@
           /* nothing to check */
         } %>
 
-        <template ref="BrowseRegion-test-template" />
-
-        <div id="queue-region" class="region">
-          <div id="queue" class="tracklist">
-            <template ref="Queue-test-template" />
-          </div>
-
-          <div id="queue-buttons">
-            <div id="playlist-list">
-              <template ref="PlaylistList-test-template" />
-            </div>
-
-            <button id="queue-save" type="button">
-              Save
-            </button>
-            <div id="playback-button-box">
-              <img id="sync" class="playback-button"></img>
-              <img id="repeat" class="playback-button"></img>
-              <img id="queue-shuffle" class="playback-button"></img>
-              <img id="queue-clear" class="playback-button"></img>
-            </div>
-          </div>
-        </div>
         <div id="player">
-          <template ref="Player-test-template" />
+          <div class="player-window">
+            <div class="track-info">
+              <span class="track-name">Pardon My French</span>
+              <span class="artist-name">Pierce Fulton</span>
+            </div>
+
+            <div class="play-info">
+              <div class="status-box">
+                <img class="status-icon"></img>
+                <img class="sound-icon"></img>
+              </div>
+              <div class="volume-slider-track">
+                <img class="volume-slider-handle"></img>
+              </div>
+            </div>
+
+            <div class="duration">4:14</div>
+            <div class="seek-slider">
+              <div class="seek-slider-track">
+                <div class="handle">
+                  <div class="handle-val">1:18</div>
+                  <img class="handle-image"></img>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+
+        </div>
+
+        <div id="queue" class="track-list">
+
+        </div>
+
+        <div id="queue-buttons">
+
+        </div>
+
+        <div id="browse-region">
+          <div id="browse-list" class="track-list">
+          </div>
+        </div>
+
       </template>
     </script>
 

@@ -38,7 +38,8 @@
     "frontend/tapedeck-frame.html",
     "images/draweropen-button.png",
     "images/drawerclose-button.png",
-    "images/play-pause-button.png",
+    "images/play-button.png",
+    "images/pause-button.png",
     "images/next-button.png",
     "images/prev-button.png"
   ]

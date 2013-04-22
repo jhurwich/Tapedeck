@@ -76,7 +76,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                              context      : $(pageDump), \
                                              callback     : saveClearAndCallback, \
-                                             moreCallback : self.addMoreCallback.curry(self, pageURL), \
+                                             moreCallback : self.addMoreCallback.curry(self, pageNum, pageURL), \
                                              finalCallback: self.finish.curry(self) }); \
       } \
     }, \
