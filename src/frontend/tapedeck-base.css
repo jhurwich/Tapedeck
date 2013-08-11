@@ -6,4 +6,5 @@ tapedeck {
 }
 body {
   display: none;
+  min-width: 100%;
 }

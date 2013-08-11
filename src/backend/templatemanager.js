@@ -245,8 +245,13 @@ Tapedeck.Backend.TemplateManager = {
 
     var options = {};
     var optionCount = Object.keys(requestedOptions).length;
-    var filledCount = 0;
 
+    if (optionCount <= 0) {
+      callback(options);
+      return;
+    }
+
+    var filledCount = 0;
     var scoped = function(param, filler) {
       // call the filler
       filler(function(filling) {

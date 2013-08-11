@@ -6,8 +6,56 @@ body {
   width: 100%;
   height: 100%;
   display: block !important; /* necessary so that the frame appears when css ready */
-  background-color: #333333;
   font-family: Tahoma, "FreeSans", sans-serif;
+}
+
+.onscreen-buttonbox {
+  display: block;
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 25px;
+  height: 90px;
+  background-color: #333333;
+  box-shadow: -3px 0 7px 0 rgba(0,0,0,0.6);
+  z-index: 9999;
+  padding: 2px 0;
+  float: left;
+
+  -webkit-transition: right 700ms ease-in-out;
+}
+
+.onscreen-button {
+  display: inline-block !important;
+  position: static !important;
+  right: 0;
+  margin: 2px 3px !important;
+  padding: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  background-size: 18px 18px !important;
+  clear: both !important;
+  float: right;
+}
+
+.onscreen-button:hover {
+  cursor: pointer;
+}
+
+.onscreen-button[hidden] {
+  display: none !important;
+}
+
+.frame-box {
+  display: block;
+  float: left;
+  clear: right;
+  position: relative;
+  background-color: #333333;
+  width: 340px;
+  min-width: 340px;
+  max-width: 340px;
+  height: 100%;
 }
 
 .player-window {

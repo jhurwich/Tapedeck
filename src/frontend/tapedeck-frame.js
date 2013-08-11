@@ -7,6 +7,24 @@ if (typeof(Tapedeck.Frontend.Frame) != "undefined") {
 }
 
 Tapedeck.Frontend.Frame = {
+  OnscreenButtons : {
+    playPause: function() {
+      Tapedeck.Frontend.Messenger.playPause();
+    },
+    next: function() {
+      Tapedeck.Frontend.Messenger.next();
+    },
+    prev: function() {
+      Tapedeck.Frontend.Messenger.prev();
+    },
+    setDrawerOpened: function() {
+      Tapedeck.Frontend.Frame.openDrawer();
+    },
+    setDrawerClosed: function() {
+      Tapedeck.Frontend.Frame.closeDrawer();
+    }
+  },
+
   Player : {
     VolumeSlider : {
       currentVolume: -1,
@@ -722,6 +740,40 @@ Tapedeck.Frontend.Frame = {
     },
   },
 
+  drawerWidth: -1,
+  openDrawer: function(animate) {
+    if (typeof(animate) == "undefined") {
+      animate = true;
+    }
+    var frame = Tapedeck.Frontend.Frame;
+
+    if (frame.drawerWidth == -1) {
+      frame.drawerWidth = $(".frame-box").width();
+    }
+
+    $(".draweropen-onscreen").attr("hidden", true);
+    $(".drawerclose-onscreen").removeAttr("hidden");
+
+    // reflect the command to move all elements on screen off the backend
+    Tapedeck.Frontend.Messenger.setDrawer(frame.drawerWidth, animate, function() {
+      // open complete here
+    });
+  },
+  closeDrawer: function(animate) {
+    if (typeof(animate) == "undefined") {
+      animate = true;
+    }
+
+    $(".draweropen-onscreen").removeAttr("hidden");
+    $(".drawerclose-onscreen").attr("hidden", "true");
+
+    // reflect the command to reset all moved elements off the backend
+    Tapedeck.Frontend.Messenger.setDrawer(0, animate, function() {
+      // close complete here
+    });
+  },
+
+
   toggleRepeat: function() {
     Tapedeck.Frontend.Messenger.toggleRepeat();
     Tapedeck.Frontend.Frame.checkRepeat();
@@ -772,6 +824,16 @@ Tapedeck.Frontend.Frame = {
     Tapedeck.Frontend.Messenger.requestUpdate("VolumeSlider");
   },
 
+  checkDrawer: function() {
+    Tapedeck.Frontend.Messenger.checkDrawer(function(response) {
+      if (response.opened) {
+        Tapedeck.Frontend.Frame.openDrawer(true); // animate every time
+      }
+      else {
+        Tapedeck.Frontend.Frame.closeDrawer(true); // animate every time
+      }
+    });
+  },
   checkRepeat: function() {
     Tapedeck.Frontend.Messenger.getRepeat(function(response) {
       if (response.repeat) {
@@ -879,10 +941,13 @@ Tapedeck.Frontend.Frame = {
     var frame = Tapedeck.Frontend.Frame;
 
     frame.getCSS();
-    frame.forceSeekSliderUpdate();
-    frame.forceVolumeSliderUpdate();
-    frame.checkRepeat();
-    frame.checkSync();
+    setTimeout(function() {
+      frame.forceSeekSliderUpdate();
+      frame.forceVolumeSliderUpdate();
+      frame.checkRepeat();
+      frame.checkSync();
+      frame.checkDrawer();
+    }, 40); // defer so that the CSS can kick-in
   },
 
   onLoadComplete: function() {

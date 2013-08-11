@@ -4,7 +4,12 @@
     <script id="Frame-test-template" type="text/template">
       <tapedeck>
         <events>
-          "onreplace": "onFrameRender"
+          "onreplace": "onFrameRender",
+          "click .play-onscreen" : "OnscreenButtons.playPause",
+          "click .next-onscreen" : "OnscreenButtons.next",
+          "click .prev-onscreen" : "OnscreenButtons.prev",
+          "click .draweropen-onscreen" : "OnscreenButtons.setDrawerOpened",
+          "click .drawerclose-onscreen" : "OnscreenButtons.setDrawerClosed"
         </events>
 
         <options>
@@ -14,7 +19,12 @@
           ".status-icon"  : "load-spinner.gif",
           ".sound-icon"   : "sound-on.png",
           ".handle-image" : "seek-slider-handle.png"
-          ".volume-slider-handle": "volume-slider-handle.png"
+          ".volume-slider-handle": "volume-slider-handle.png",
+          ".play-onscreen" : "play-button.png",
+          ".next-onscreen" : "next-button.png",
+          ".prev-onscreen" : "prev-button.png",
+          ".draweropen-onscreen" : "draweropen-button.png",
+          ".drawerclose-onscreen" : "drawerclose-button.png"
         </images>
       </tapedeck>
 
@@ -22,52 +32,60 @@
         <% if(params.debug > 0) {
           /* nothing to check */
         } %>
+        <div class="onscreen-buttonbox">
+          <div class="play-onscreen onscreen-button"></div>
+          <div class="next-onscreen onscreen-button"></div>
+          <div class="prev-onscreen onscreen-button"></div>
+          <div class="draweropen-onscreen onscreen-button"></div>
+          <div class="drawerclose-onscreen onscreen-button" hidden=true></div>
+        </div>
 
-        <div id="player">
-          <div class="player-window">
-            <div class="track-info">
-              <span class="track-name">Pardon My French</span>
-              <span class="artist-name">Pierce Fulton</span>
-            </div>
-
-            <div class="play-info">
-              <div class="status-box">
-                <img class="status-icon"></img>
-                <img class="sound-icon"></img>
+        <div class="frame-box">
+          <div id="player">
+            <div class="player-window">
+              <div class="track-info">
+                <span class="track-name">Pardon My French</span>
+                <span class="artist-name">Pierce Fulton</span>
               </div>
-              <div class="volume-slider-track">
-                <img class="volume-slider-handle"></img>
-              </div>
-            </div>
 
-            <div class="duration">4:14</div>
-            <div class="seek-slider">
-              <div class="seek-slider-track">
-                <div class="handle">
-                  <div class="handle-val">1:18</div>
-                  <img class="handle-image"></img>
+              <div class="play-info">
+                <div class="status-box">
+                  <img class="status-icon"></img>
+                  <img class="sound-icon"></img>
+                </div>
+                <div class="volume-slider-track">
+                  <img class="volume-slider-handle"></img>
+                </div>
+              </div>
+
+              <div class="duration">4:14</div>
+              <div class="seek-slider">
+                <div class="seek-slider-track">
+                  <div class="handle">
+                    <div class="handle-val">1:18</div>
+                    <img class="handle-image"></img>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
 
-        </div>
+          </div>
 
-        <div id="queue" class="track-list">
+          <div id="queue" class="track-list">
 
-        </div>
+          </div>
 
-        <div id="queue-buttons">
+          <div id="queue-buttons">
 
-        </div>
+          </div>
 
-        <div id="browse-region">
-          <div id="browse-list" class="track-list">
+          <div id="browse-region">
+            <div id="browse-list" class="track-list">
+            </div>
           </div>
         </div>
-
       </template>
     </script>
 

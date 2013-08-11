@@ -97,36 +97,6 @@ Tapedeck.Backend.MessageHandler = {
       self.addTracks(request.pageNum, request.tracks);
       break;
 
-    case "play_pause":
-      var state = Tapedeck.Backend.Sequencer.getCurrentState();
-      if (state == "play") {
-        Tapedeck.Backend.Sequencer.pause();
-      } else {
-        Tapedeck.Backend.Sequencer.playNow();
-      }
-      break;
-    case "next":
-      Tapedeck.Backend.Sequencer.next();
-      break;
-    case "prev":
-      Tapedeck.Backend.Sequencer.prev();
-      break;
-
-    case "checkDrawer":
-      var open = Tapedeck.Backend.Bank.getDrawerOpened();
-      sendResponse({ opened: open });
-      break;
-    case "setDrawer":
-      Tapedeck.Backend.Bank.setDrawerOpened(request.opened);
-
-      // echo to all tabs
-      for (var tabID in self.ports) {
-        var request = Tapedeck.Backend.Utils.newRequest({ action : "setDrawer",
-                                                          opened : request.opened });
-        chrome.tabs.sendRequest(parseInt(tabID, 10), request);
-      }
-      break;
-
     case "getVoices":
       chrome.tts.getVoices(function(voices) {
         var currentVoice = Tapedeck.Backend.Bank.getSpeech();
@@ -222,6 +192,41 @@ Tapedeck.Backend.MessageHandler = {
       else if (updateType == "VolumeSlider") {
         Tapedeck.Backend.MessageHandler.updateVolumeSlider(port.sender.tab);
       }
+      break;
+
+    case "playPause":
+      var state = Tapedeck.Backend.Sequencer.getCurrentState();
+      if (state == "play") {
+        Tapedeck.Backend.Sequencer.pause();
+      } else {
+        Tapedeck.Backend.Sequencer.playNow();
+      }
+      break;
+    case "next":
+      Tapedeck.Backend.Sequencer.next();
+      break;
+    case "prev":
+      Tapedeck.Backend.Sequencer.prev();
+      break;
+
+    case "checkDrawer":
+      var open = Tapedeck.Backend.Bank.getDrawerOpened();
+      response.opened = open;
+      self.postMessage(port.sender.tab.id, response);
+      break;
+    case "setDrawer":
+      Tapedeck.Backend.Bank.setDrawerOpened(request.width > 0);
+
+      // relect the move command to the frontend, outside of the frame
+      var reflectRequest = Tapedeck.Backend.Utils.newRequest({
+        action: "setDrawer",
+        width: request.width,
+        animate: request.animate
+      });
+
+      chrome.tabs.sendRequest(port.sender.tab.id, reflectRequest, function() {
+        self.postMessage(port.sender.tab.id, response);
+      });
       break;
 
     case "download":
@@ -427,7 +432,7 @@ Tapedeck.Backend.MessageHandler = {
       break;
 
     default:
-      throw new Error("MessageHandler's handleMessage was sent an unknown action");
+      throw new Error("MessageHandler's handleMessage was sent an unknown action: " + JSON.stringify(request));
     }
   },
 
@@ -617,6 +622,11 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
     var track = Tapedeck.Backend.Sequencer.getCurrentTrack();
+
+    if (typeof(track) == "undefined" || !track) {
+      // no current track to update the slider for
+      return;
+    }
 
     var request = Tapedeck.Backend.Utils.newRequest({
       action: "updateSeekSlider",

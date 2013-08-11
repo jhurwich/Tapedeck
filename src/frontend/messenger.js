@@ -164,6 +164,57 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
+  playPause: function() {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "playPause"
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  next: function() {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "next"
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  prev: function() {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "prev"
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  checkDrawer: function(callback) {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "checkDrawer",
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  setDrawer: function(width, animate, callback) {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "setDrawer",
+      animate : animate,
+      width   : width
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
+  moveFixedElements: function(width, callback) {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "moveFixedElements",
+      width   : width
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
   seekPercent: function(percent) {
     var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "seek",
