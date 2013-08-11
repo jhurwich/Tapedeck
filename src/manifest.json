@@ -15,7 +15,7 @@
   },
 
   "browser_action": {
-    "default_icon": "images/browseraction-cassette.png",
+    "default_icon": "images/browseraction-cassette-disabled.png",
     "default_title": "Tapedeck",
     "default_popup": "frontend/browser-action/browser-action.html"
   },
@@ -41,6 +41,8 @@
     "images/play-button.png",
     "images/pause-button.png",
     "images/next-button.png",
-    "images/prev-button.png"
+    "images/prev-button.png",
+    "images/browseraction-cassette.png",
+    "images/browseraction-cassette-disabled.png"
   ]
 }

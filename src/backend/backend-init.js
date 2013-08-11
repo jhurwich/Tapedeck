@@ -16,57 +16,61 @@ Tapedeck.Backend.init = function(callback) {
     Tapedeck.Backend.Utils.log("Initialization", str, level);
   };
 
-  if (typeof(chrome.extension) == 'undefined') {
-    // we beat the extension APIs to loading, defer for a moment
-    log("<( Defering Initialization )>");
-    setTimeout(Tapedeck.Backend.init, 500);
-    return;
-  }
-  log("<( Initialization begun )>");
+  var path = chrome.extension.getURL("images/browseraction-cassette-disabled.png");
+  chrome.browserAction.setIcon({ path: path }, function() {
+    if (typeof(chrome.extension) == 'undefined') {
+      // we beat the extension APIs to loading, defer for a moment
+      log("<( Defering Initialization )>");
+      setTimeout(Tapedeck.Backend.init, 500);
+      return;
+    }
+    log("<( Initialization begun )>");
 
-  Tapedeck.Backend.MessageHandler.init(); // other inits, like CassetteMgr, need MsgHandler
-  log("MessageHandler initialized.  Next is Bank...");
+    Tapedeck.Backend.MessageHandler.init(); // other inits, like CassetteMgr, need MsgHandler
+    log("MessageHandler initialized.  Next is Bank...");
 
-  Tapedeck.Backend.Bank.init(function() { // other inits, like OptionsMgr, need Bank
-    log("Bank initialized.  Next is OptionsManager...");
+    Tapedeck.Backend.Bank.init(function() { // other inits, like OptionsMgr, need Bank
+      log("Bank initialized.  Next is OptionsManager...");
 
-    Tapedeck.Backend.OptionsManager.init(function() {
-      log("OptionsManager initialized. Next is Sandbox...");
+      Tapedeck.Backend.OptionsManager.init(function() {
+        log("OptionsManager initialized. Next is Sandbox...");
 
-      // we just wait for the sandbox to tell us that it's ready
-      var delay = 250; // ms
-      var postSandboxInit = function() {
-        if (!Tapedeck.Backend.Bank.sandboxReady) {
-          log("  Sandbox not ready yet, delaying...");
-          setTimeout(postSandboxInit, delay);
-          return;
-        }
-        log("Sandbox initialized. Next is CassetteManager...");
+        // we just wait for the sandbox to tell us that it's ready
+        var delay = 250; // ms
+        var postSandboxInit = function() {
+          if (!Tapedeck.Backend.Bank.sandboxReady) {
+            log("  Sandbox not ready yet, delaying...");
+            setTimeout(postSandboxInit, delay);
+            return;
+          }
+          log("Sandbox initialized. Next is CassetteManager...");
 
-        Tapedeck.Backend.CassetteManager.init(function() {
-          log("CassetteManager initialized. Next is TemplateManager...");
+          Tapedeck.Backend.CassetteManager.init(function() {
+            log("CassetteManager initialized. Next is TemplateManager...");
 
-          Tapedeck.Backend.TemplateManager.init(function() {
-            log("TemplateManager initialized.  Next is InjectManager...");
+            Tapedeck.Backend.TemplateManager.init(function() {
+              log("TemplateManager initialized.  Next is InjectManager...");
 
-            Tapedeck.Backend.InjectManager.init();
-            log("InjectManager initialized.  Next is Sequencer...");
+              Tapedeck.Backend.InjectManager.init();
+              log("InjectManager initialized.  Next is Sequencer...");
 
-            Tapedeck.Backend.Sequencer.init();
-            log("Sequencer initialized.  Complete init.");
+              Tapedeck.Backend.Sequencer.init();
+              log("Sequencer initialized.  Complete init.");
 
-            if (typeof(callback) != "undefined") {
-              callback();
-            }
-            log("<( Initialization complete )>");
+              path = chrome.extension.getURL("images/browseraction-cassette.png");
+              chrome.browserAction.setIcon({ path: path }, function() {
+                if (typeof(callback) != "undefined") {
+                  callback();
+                }
+              });
+              log("<( Initialization complete )>");
+            });
           });
-        });
-      };
-      setTimeout(postSandboxInit, delay);
+        };
+        setTimeout(postSandboxInit, delay);
+      });
     });
   });
-
-
 };
 
 $(function() {
