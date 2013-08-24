@@ -711,16 +711,6 @@ Tapedeck.Frontend.Frame = {
       Tapedeck.Frontend.Messenger.playPlaylist(index);
     },
 
-    showPlaylistList: function() {
-      var content = $("#playlist-list-content");
-      $(content).css("display", "table");
-    },
-
-    hidePlaylistList: function() {
-      var content = $("#playlist-list-content");
-      $(content).css("display", "none");
-    },
-
     makePlaylist: function() {
       var playlistName = prompt("Please enter a playlist name");
       if (playlistName == null) {
@@ -837,18 +827,18 @@ Tapedeck.Frontend.Frame = {
   checkRepeat: function() {
     Tapedeck.Frontend.Messenger.getRepeat(function(response) {
       if (response.repeat) {
-        $("#repeat").attr("src", chrome.extension.getURL("images/repeat-active.png"));
+        $("#repeat").attr("src", chrome.extension.getURL("images/repeat-on.png"));
       }
       else {
-        $("#repeat").attr("src", chrome.extension.getURL("images/repeat.png"));
+        $("#repeat").attr("src", chrome.extension.getURL("images/repeat-off.png"));
       }
     });
   },
   checkSync: function() {
     Tapedeck.Frontend.Messenger.getSync(function(response) {
-      var imgPath = "images/sync-disabled.png";
+      var imgPath = "images/sync-off.png";
       if (response.sync == "on") {
-        imgPath = "images/sync-active.png";
+        imgPath = "images/sync-on.png";
       }
       else if (response.sync == "warn") {
         imgPath = "images/sync-warning.png";

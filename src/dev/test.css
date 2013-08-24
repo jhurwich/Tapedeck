@@ -153,17 +153,25 @@ body {
   box-shadow: inset 3px 3px 3px rgba(0,0,0,1),
               3px 3px 3px rgba(256,256,256,0.5);
 }
+.tracklist {
+  max-height: 250px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid black;
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+}
 .tracklist #hidden-droprow {
   max-height: 6px;
   min-height: 6px;
-  border: 1px solid transparent;
+  border-bottom: none;
 }
 .tracklist #hidden-droprow .cell {
   max-height: 6px;
   min-height: 6px;
 }
 .tracklist #hidden-droprow.drag-target .cell {
-  background-color: #ff9900 !important;
+  background-color: #ff8100 !important;
 }
 .tracklist .row-container,
 .cassettelist .row-container {
@@ -186,7 +194,7 @@ body {
   cursor: pointer;
 }
 .tracklist .row:not(.blank):not(#hidden-droprow):hover .cell.trackName-col {
-  padding-left: 2px;
+  padding-left: 1px;
 }
 .tracklist .row.selected {
   background-color: pink;
@@ -227,10 +235,10 @@ body {
   border-right: 2px solid #333;
 }
 .tracklist .row.drag-target {
-  border-bottom: solid 2px #ff9900;
+  border-bottom: solid 2px #ff8100;
 }
 .tracklist .cell.trackName-col {
-  padding-left: 6px;
+  padding-left: 5px;
   width: 148px;
 }
 .tracklist .cell.artistName-col {
@@ -249,10 +257,68 @@ body {
 }
 
 #queue-buttons {
-  background-color: yellow;
   width: 328px;
-  height: 30px;
+  height: 26px;
   margin: auto;
+}
+
+#playlist-list {
+  width: 18px;
+  max-width: 228px;
+  min-height: 18px;
+  max-height: 18px;
+  float: left;
+  margin: 3px 0 0 4px;
+  border: 1px dashed #999;
+  overflow: hidden;
+  background-color: #333333;
+
+  font-size: 14px;
+  white-space: nowrap;
+
+  -webkit-transition: width 600ms linear,
+                      max-height 600ms linear,
+                      background-color 600ms ease-out;
+}
+#playlist-list:hover {
+  width: 228px;
+  max-height: 400px;
+  background-color: #E5E5E5;
+}
+#playlist-list .row {
+  display: block;
+  width: 100%;
+  height: 20px;
+  max-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid #999;
+}
+#playlist-list .row:hover {
+  background-color: #CCCCCC;
+  cursor: pointer;
+}
+#playlist-list #playlist-list-icon {
+  float: left;
+}
+#playlist-list #new-playlist-text {
+  padding-top: 1px;
+}
+#playlist-list #playlist-list-content {
+  min-width: 228px;
+}
+#playlist-list #playlist-list-content .row {
+  padding-left: 4px;
+}
+
+#playback-button-box {
+  float: right;
+  padding-top: 3px;
+}
+.playback-button {
+  cursor: pointer;
+  float: left;
+  margin-left: 2px;
 }
 
 #browse-list {

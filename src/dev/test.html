@@ -9,7 +9,12 @@
           "click .next-onscreen" : "OnscreenButtons.next",
           "click .prev-onscreen" : "OnscreenButtons.prev",
           "click .draweropen-onscreen" : "OnscreenButtons.setDrawerOpened",
-          "click .drawerclose-onscreen" : "OnscreenButtons.setDrawerClosed"
+          "click .drawerclose-onscreen" : "OnscreenButtons.setDrawerClosed",
+          "click #queue-save"    : "PlaylistList.makePlaylist",
+          "click #sync"          : "toggleSync",
+          "click #repeat"        : "toggleRepeat",
+          "click #queue-shuffle" : "shuffleQueue",
+          "click #queue-clear"   : "clearQueue"
         </events>
 
         <options>
@@ -24,7 +29,11 @@
           ".next-onscreen" : "next-button.png",
           ".prev-onscreen" : "prev-button.png",
           ".draweropen-onscreen" : "draweropen-button.png",
-          ".drawerclose-onscreen" : "drawerclose-button.png"
+          ".drawerclose-onscreen" : "drawerclose-button.png",
+          "#sync"          : "sync-off.png"
+          "#repeat"        : "repeat-off.png",
+          "#queue-shuffle" : "shuffle.png",
+          "#queue-clear"   : "trash.png"
         </images>
       </tapedeck>
 
@@ -50,7 +59,16 @@
           </div>
 
           <div id="queue-buttons">
+            <div id="playlist-list">
+              <template ref="PlaylistList-test-template" />
+            </div>
 
+            <div id="playback-button-box">
+              <img id="sync" class="playback-button"></img>
+              <img id="repeat" class="playback-button"></img>
+              <img id="queue-shuffle" class="playback-button"></img>
+              <img id="queue-clear" class="playback-button"></img>
+            </div>
           </div>
 
           <div id="browse-region">
@@ -191,7 +209,28 @@
           params.trackList = [{ tdID: 1, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
                               { tdID: 2, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
                               { tdID: 3, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 4, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"}];
+                              { tdID: 4, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
+                              { tdID: 5, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 6, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
+                              { tdID: 7, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 8, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
+                              { tdID: 9, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 10, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
+                              { tdID: 11, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 12, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
+                              { tdID: 13, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 14, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
+                              { tdID: 15, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 16, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
+                              { tdID: 17, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
+                              { tdID: 18, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 19, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
+                              { tdID: 20, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 21, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
+                              { tdID: 22, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 23, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
+                              { tdID: 24, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
+                              { tdID: 25, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"}];
 
           %>
           <% if((typeof(params.stillParsing) != "undefined" && params.stillParsing) ||
@@ -368,8 +407,6 @@
     <script id="PlaylistList-test-template" type="text/template">
       <tapedeck>
         <events>
-          "mouseover #playlist-list-header"   : "PlaylistList.showPlaylistList",
-          "mouseleave #playlist-list"         : "PlaylistList.hidePlaylistList",
           "click #playlist-list-content .row" : "PlaylistList.playPlaylist",
           "click #playlist-list-content .removePlaylist" : "PlaylistList.removePlaylist",
         </events>
@@ -377,6 +414,7 @@
           "playlistList" : "playlistList",
         </options>
         <images>
+          "#playlist-list-icon"    : "playlist-icon999.png",
           ".button.removePlaylist" : "rowbutton-remove.png",
         </images>
       </tapedeck>
@@ -385,11 +423,14 @@
         <% if(params.debug > 0) {
           params.paramSanity("playlistList", false, params.playlistList);
         } %>
-        <div id="playlist-list-header">Load a playlist</div>
+        <div id="new-playlist-row" class="row">
+          <img id="playlist-list-icon"></img>
+          <div id="new-playlist-text"> Create new playlist. </div>
+        </div>
         <div id="playlist-list-content">
           <% if (typeof(params.playlistList) == "undefined" || !params.playlistList || params.playlistList.length == 0) { %>
-              <div class="blank-row">
-                You do not have any saved playlists.
+              <div class="row">
+                No saved playlists.
               </div>
           <% }
           else { %>
