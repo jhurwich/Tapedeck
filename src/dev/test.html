@@ -72,8 +72,7 @@
           </div>
 
           <div id="browse-region">
-            <div id="browse-list" class="tracklist-container">
-            </div>
+            <template ref="BrowseRegion-test-template" />
           </div>
         </div>
       </template>
@@ -92,7 +91,7 @@
         <% if(params.debug > 0) {
           params.paramSanity("currentCassette", false, params.currentCassette);
         } %>
-        <div id="browse-region" class="region">
+        <div id="browse-region">
           <% if(typeof(params.currentCassette) != "undefined" && params.currentCassette != null) { %>
             <template ref="BrowseList-test-template" />
           <% }
@@ -178,10 +177,6 @@
           "click #current-cassette-row .button.current-page" : "TrackLists.setCurrentPage",
           "click #current-cassette-row .button.next-page"    : "TrackLists.nextPage",
           "click #current-cassette-row .button.eject"        : "TrackLists.eject"
-
-          "mouseover #feed-switcher-header"   : "TrackLists.showFeedSwitcher",
-          "mouseleave #feed-switcher"         : "TrackLists.hideFeedSwitcher",
-          "click #feed-switcher-content .row" : "TrackLists.chooseFeed",
         </events>
         <options>
         </options>
@@ -191,10 +186,6 @@
           ".button.queue" : "rowbutton-queue.png",
           ".button.download" : "rowbutton-download.png",
           ".spinner.download" : "download-spinner.gif",
-
-          ".button.prev-page" : "prev-page.png",
-          ".button.next-page" : "next-page.png",
-          ".button.eject" : "cassettebutton-eject.png",
 
           ".tracklist .spinner.loading" : "blue-on-light-loader.gif",
         </images>
@@ -315,39 +306,6 @@
             <% } %>
           <% } %>
         </div>
-        <% if (typeof(params.currentCassette) != "undefined" && params.currentCassette) { %>
-          <div id="current-cassette-row" class="row">
-            <div class="cell cassetteName-col">
-              <%= params.currentCassette.name.replace(/_/g, " ") %>
-            </div>
-            <div class="row-buttons">
-              <% if (typeof(params.currentCassette.feeds) != "undefined" &&
-                     Object.keys(params.currentCassette.feeds).length > 1 &&
-                     typeof(params.currentFeed) != "undefined") { %>
-                <div id="feed-switcher">
-                  <div class="cell feed-row" id="feed-switcher-header"><%= params.currentFeed %></div>
-                  <div id="feed-switcher-content">
-                    <% for (var feedName in params.currentCassette.feeds) {
-                      if (feedName != params.currentFeed) { %>
-                        <div class="cell row feed-row" feedName='<%= feedName %>' >
-                          <%= feedName %>
-                        </div>
-                      <% } %>
-                    <% } %>
-                  </div>
-                </div>
-              <% } %>
-              <% if (params.currentCassette.isPageable && typeof(params.currentPage) != "undefined") { %>
-                <div class="button prev-page"></div>
-                <div id="current-page" class="button current-page">
-                  <%= params.currentPage %>
-                </div>
-                <div class="button next-page"></div>
-              <% } %>
-              <div class="button eject"></div>
-            </div>
-          </div>
-        <% } %>
       </template>
     </script>
 
@@ -382,6 +340,10 @@
         <events>
           "dragstart #browse-list .row" : "TrackLists.rowDragStart",
           "dragend #browse-list .row"   : "TrackLists.rowDragEnd",
+
+          "mouseover #feed-switcher-header"   : "TrackLists.showFeedSwitcher",
+          "mouseleave #feed-switcher"         : "TrackLists.hideFeedSwitcher",
+          "click #feed-switcher-content .row" : "TrackLists.chooseFeed",
         </events>
         <options>
           "currentCassette" : "currentCassette",
@@ -389,6 +351,11 @@
           "currentFeed" : "currentFeed",
           "browseList" : "browseList"
         </options>
+        <images>
+          ".button.prev-page" : "prev-page.png",
+          ".button.next-page" : "next-page.png",
+          ".button.eject" : "eject.png",
+        </images>
       </tapedeck>
 
       <template>
@@ -400,6 +367,30 @@
         } %>
         <div id="browse-list" class="tracklist-container" rowdblclick="browseDblClick">
           <template ref="TrackList-test-template" remap="params.trackList:params.browseList" />
+          <div id="current-cassette-row" class="row">
+            <div class="cassetteName">
+              CassetteName
+            </div>
+            <div id="feed-switcher">
+              <div class="feed-row" id="feed-switcher-header">Last week</div>
+              <div id="feed-switcher-content">
+                <div class="row feed-row" feedName='Last Week' >
+                  Last Week
+                </div>
+                <div class="row feed-row" feedName='Popular' >
+                  Popular
+                </div>
+              </div>
+            </div>
+            <div class="row-buttons">
+                <div class="button prev-page"></div>
+                <div id="current-page" class="button current-page">
+                  1-3
+                </div>
+                <div class="button next-page"></div>
+              <div class="button eject"></div>
+            </div>
+          </div>
         </div>
       </template>
     </script>
@@ -414,7 +405,7 @@
           "playlistList" : "playlistList",
         </options>
         <images>
-          "#playlist-list-icon"    : "playlist-icon999.png",
+          "#playlist-list-icon"    : "playlist-icon.png",
           ".button.removePlaylist" : "rowbutton-remove.png",
         </images>
       </tapedeck>
@@ -480,55 +471,53 @@
           params.paramSanity("cassetteList", false, params.cassetteList);
         } %>
         <div id="cassette-list">
-          <div class="cassettelist">
-            <% if(typeof(params.cassetteList) == "undefined" || params.cassetteList == null) { %>
-              <div class="row-container">
-                <div class="row blank">
-                  <div class="spinner loading"
-                       id="loading-spinner"></div>
-                  <div class="row-buttons">
-                    <div class="button eject"></div>
-                  </div>
+          <% if(typeof(params.cassetteList) == "undefined" || params.cassetteList == null) { %>
+            <div class="row-container">
+              <div class="row blank">
+                <div class="spinner loading"
+                     id="loading-spinner"></div>
+                <div class="row-buttons">
+                  <div class="button eject"></div>
                 </div>
               </div>
-            <% }
-            else { %>
-              <% for (var i=0; i < params.cassetteList.length; i++) {
-                var cassette = params.cassetteList[i];
-                var displayName = cassette.name.replace(/_/g, " ");
-              %>
-                <div class="row-container">
-                  <div class="row <% if (cassette.active) { print(" active "); } %>"
-                       index='<%= i %>'
-                       cassette-name='<%= cassette.name %>' >
-                    <div class="cell cassetteName-col" title='<%= displayName %>'> <%= displayName %> </div>
-                    <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
-                      <span class="developer-link"
-                            url='<%= cassette.developerLink %>' >
-                        <%= cassette.developer %>
-                      </span>
-                      <div class="row-buttons">
-                        <div class="button removeCassette"></div>
-                      </div>
+            </div>
+          <% }
+          else { %>
+            <% for (var i=0; i < params.cassetteList.length; i++) {
+              var cassette = params.cassetteList[i];
+              var displayName = cassette.name.replace(/_/g, " ");
+            %>
+              <div class="row-container">
+                <div class="row <% if (cassette.active) { print(" active "); } %>"
+                     index='<%= i %>'
+                     cassette-name='<%= cassette.name %>' >
+                  <div class="cassetteName" title='<%= displayName %>'> <%= displayName %> </div>
+                  <div class="developerName" title='<%= cassette.developerLink %>'>
+                    <span class="developer-link"
+                          url='<%= cassette.developerLink %>' >
+                      <%= cassette.developer %>
+                    </span>
+                    <div class="row-buttons">
+                      <div class="button removeCassette"></div>
                     </div>
                   </div>
                 </div>
-              <% } %>
+              </div>
             <% } %>
-          </div>
-          <div id="add-cassettes-menu">
-            <div id="add-cassettes-button" class="button"></div>
-            <div id="add-cassettes-content">
-              <div class="menu-row coming-soon">
-                Get more cassettes (coming soon)
-              </div>
-              <div class="menu-row cassettify">
-                Cassettify
-              </div>
-              <!-- DEBUG quick-cassette maker -->
-              <div class="menu-row tbe"> Quick-create Debug Cassette </div>
-               <!-- END_DEBUG -->
+          <% } %>
+        </div>
+        <div id="add-cassettes-menu">
+          <div id="add-cassettes-button" class="button"></div>
+          <div id="add-cassettes-content">
+            <div class="menu-row coming-soon">
+              Get more cassettes (coming soon)
             </div>
+            <div class="menu-row cassettify">
+              Cassettify
+            </div>
+            <!-- DEBUG quick-cassette maker -->
+            <div class="menu-row tbe"> Quick-create Debug Cassette </div>
+             <!-- END_DEBUG -->
           </div>
         </div>
       </template>

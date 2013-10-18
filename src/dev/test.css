@@ -154,6 +154,7 @@ body {
               3px 3px 3px rgba(256,256,256,0.5);
 }
 .tracklist {
+  height: 100%;
   max-height: 250px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -173,16 +174,14 @@ body {
 .tracklist #hidden-droprow.drag-target .cell {
   background-color: #ff8100 !important;
 }
-.tracklist .row-container,
-.cassettelist .row-container {
+.tracklist .row-container {
   position: relative;
   -khtml-user-select: none;
   width: 100%;
   max-width: 324px;
   overflow: hidden;
 }
-.tracklist .row,
-.cassettelist .row{
+.tracklist .row {
   position: relative;
   min-width: 324px;
   height: 18px;
@@ -219,8 +218,7 @@ body {
   padding: 3px;
   cursor: default;
 }
-.tracklist-container .cell,
-.cassettelist .cell {
+.tracklist-container .cell {
   position: relative;
   display: table-cell;
   -webkit-user-select: none;
@@ -239,13 +237,13 @@ body {
 }
 .tracklist .cell.trackName-col {
   padding-left: 5px;
-  width: 148px;
+  width: 143px;
 }
 .tracklist .cell.artistName-col {
   width: 96px;
 }
 .tracklist .cell.cassette-col {
-  width: 66px;
+  width: 71px;
   border-right: none;
 }
 .tracklist .trackName-span:hover {
@@ -262,6 +260,98 @@ body {
   margin: auto;
 }
 
+#current-cassette-row,
+#cassette-list .row {
+  position: relative;
+  z-index: 4;
+  height: 22px;
+  margin-top: -2px;
+  padding: 2px 0 2px 4px;
+
+  background-color: #1A1A1A;
+  color: white;
+  border: 1px solid black;
+  box-shadow: 3px 2px 3px rgba(256,256,256,0.25),
+              0px -2px 2px rgba(0,0,0,0.6);
+
+}
+#current-cassette-row .cassetteName,
+#cassette-list .row .cassetteName {
+  position: relative;
+  font-size: 18px;
+  float: left;
+  width: 146px;
+  margin-top: -1px;
+}
+#current-cassette-row #feed-switcher {
+  position: relative;
+  width: 94px;
+  display: inline-block;
+  float: left;
+  padding-left: 4px;
+  background-color: black;
+}
+.tracklist-container #current-cassette-row #feed-switcher .feed-row {
+  position: relative;
+  font-size: 14px;
+  min-height: 22px;
+  width: 100%;
+}
+#current-cassette-row #feed-switcher #feed-switcher-content {
+  display: none;
+}
+#current-cassette-row .row-buttons {
+  width: 72px;
+  position: relative;
+  display: block;
+  float: left;
+  margin-left: 2px;
+}
+#current-cassette-row .row-buttons .button {
+  display: inline-block;
+  height: 100%;
+  width: 16px;
+  float: left;
+  cursor: pointer;
+  background-color: black;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+#current-cassette-row .row-buttons .current-page {
+  width: 20px;
+  max-width: 20px;
+  font: bold 13px arial, sans-serif;
+  text-align: center;
+}
+#current-cassette-row .row-buttons #set-page {
+  width: 20px;
+  max-width: 20px;
+  border: none;
+  float: left;
+  padding: 0 1px;
+  text-align: center;
+}
+#current-cassette-row .row-buttons .eject {
+  width: 17px;
+  border-left: 2px solid #1A1A1A;
+}
+
+#cassette-list .row {
+  margin: 4px 2px;
+  box-shadow: 3px 3px 3px rgba(0,0,0,0.5);
+}
+
+#cassette-list .row .cassetteName {
+  width: 200px;
+}
+
+#cassette-list .row .developerName {
+  background-color: black;
+  width: 120px;
+  float: left;
+  padding: 0 4px;
+}
+
 #playlist-list {
   width: 18px;
   max-width: 228px;
@@ -272,6 +362,8 @@ body {
   border: 1px dashed #999;
   overflow: hidden;
   background-color: #333333;
+  z-index: 1;
+  position: absolute;
 
   font-size: 14px;
   white-space: nowrap;
@@ -284,6 +376,7 @@ body {
   width: 228px;
   max-height: 400px;
   background-color: #E5E5E5;
+  z-index: 5;
 }
 #playlist-list .row {
   display: block;
@@ -293,6 +386,9 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   border-bottom: 1px solid #999;
+}
+#playlist-list .row:last-child {
+  border-bottom: none;
 }
 #playlist-list .row:hover {
   background-color: #CCCCCC;
