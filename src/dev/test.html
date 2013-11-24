@@ -463,6 +463,9 @@
           ".button.eject"         : "cassettebutton-eject.png",
 
           ".cassettelist .spinner.loading" : "blue-on-dark-loader.gif",
+
+          ".button.find .spyglass.icon" : "spyglass.png",
+          ".button.cassettify .cassettify.icon" : "cassettify.png",
         </images>
       </tapedeck>
 
@@ -506,19 +509,22 @@
             <% } %>
           <% } %>
         </div>
-        <div id="add-cassettes-menu">
-          <div id="add-cassettes-button" class="button"></div>
-          <div id="add-cassettes-content">
-            <div class="menu-row coming-soon">
-              Get more cassettes (coming soon)
+        <div id="add-cassettes-buttons">
+            <div class="button find">
+              <div class="button-content">
+                <div class="spyglass icon"></div>
+                <div class="text-content">Find</div>
+              </div>
             </div>
-            <div class="menu-row cassettify">
-              Cassettify
+            <div class="button cassettify">
+              <div class="button-content">
+                <div class="cassettify icon"></div>
+                <div class="text-content">Build</div>
+              </div>
             </div>
             <!-- DEBUG quick-cassette maker -->
             <div class="menu-row tbe"> Quick-create Debug Cassette </div>
-             <!-- END_DEBUG -->
-          </div>
+            <!-- END_DEBUG -->
         </div>
       </template>
     </script>

@@ -261,7 +261,8 @@ body {
 }
 
 #current-cassette-row,
-#cassette-list .row {
+#cassette-list .row,
+#add-cassettes-buttons .button {
   position: relative;
   z-index: 4;
   height: 22px;
@@ -340,16 +341,40 @@ body {
   margin: 4px 2px;
   box-shadow: 3px 3px 3px rgba(0,0,0,0.5);
 }
-
 #cassette-list .row .cassetteName {
   width: 200px;
 }
-
 #cassette-list .row .developerName {
   background-color: black;
   width: 120px;
   float: left;
   padding: 0 4px;
+}
+
+#add-cassettes-buttons .button {
+  margin: 0 2px;
+  width: 164px;
+  float: left;
+  padding: 0 0 2px 0;
+  box-shadow: 3px 3px 3px rgba(0,0,0,0.5);
+}
+#add-cassettes-buttons .button-content {
+  margin: 0 auto;
+  font-size: 18px;
+  height: 100%;
+  max-width: 40%;
+}
+#add-cassettes-buttons .button:last-child {
+  clear: right;
+}
+#add-cassettes-buttons .button-content .icon {
+  height: 16px;
+  width: 20px;
+  display: inline-block;
+}
+#add-cassettes-buttons .button-content .text-content {
+  display: inline-block;
+  height: 22px;
 }
 
 #playlist-list {
