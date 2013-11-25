@@ -21,10 +21,6 @@
         </options>
 
         <images>
-          ".status-icon"  : "load-spinner.gif",
-          ".sound-icon"   : "sound-on.png",
-          ".handle-image" : "seek-slider-handle.png"
-          ".volume-slider-handle": "volume-slider-handle.png",
           ".play-onscreen" : "play-button.png",
           ".next-onscreen" : "next-button.png",
           ".prev-onscreen" : "prev-button.png",
@@ -105,11 +101,11 @@
     <script id="Player-test-template" type="text/template">
       <tapedeck>
         <events>
-          "mouseover #seek-slider #handle": "Player.SeekSlider.mouseoverHandle",
-          "mouseleave #seek-slider #handle": "Player.SeekSlider.mouseleaveHandle",
-          "mousedown #seek-slider #handle": "Player.SeekSlider.downOnHandle",
+          "mouseover .seek-slider .handle": "Player.SeekSlider.mouseoverHandle",
+          "mouseleave .seek-slider .handle": "Player.SeekSlider.mouseleaveHandle",
+          "mousedown .seek-slider .handle": "Player.SeekSlider.downOnHandle",
 
-          "mousedown #volume-slider #handle": "Player.VolumeSlider.downOnHandle",
+          "mousedown .volume-slider .handle": "Player.VolumeSlider.downOnHandle",
 
           "mouseup": "Player.mouseUp",
           "onreplace": "onFrameRender"
@@ -119,13 +115,15 @@
           "currentTrack" : "track"
         </options>
         <images>
-          "#seek-slider #track-left"     : "seekslider-track-left.png",
-          "#seek-slider #track-right"    : "seekslider-track-right.png",
-          "#seek-slider #handle-image"   : "seekslider-handle.png",
+          ".status-icon.ready"  : "in-player-pause.png",
+          ".status-icon.load"  : "in-player-load.gif",
+          ".status-icon.stop"  : "in-player-pause.png",
+          ".status-icon.pause"  : "in-player-pause.png",
+          ".status-icon.play"  : "in-player-play.png",
 
-          "#volume-slider #track-top"    : "volumeslider-track-top.png",
-          "#volume-slider #track-bottom" : "volumeslider-track-bottom.png",
-          "#volume-slider #handle-image" : "volumeslider-handle.png"
+          ".sound-icon"   : "sound-on.png",
+          ".handle-image" : "seek-slider-handle.png"
+          ".volume-slider .handle": "volume-slider-handle.png",
         </images>
       </tapedeck>
 
@@ -135,28 +133,40 @@
           params.paramSanity("currentTrack", false, params.track);
         } %>
         <div class="player-window">
+          <% if (typeof(params.state) == "undefined" || !params.state) {
+            params.state = 'stop';
+          } %>
+
           <div class="track-info">
-            <span class="track-name">Pardon My French</span>
-            <span class="artist-name">Pierce Fulton</span>
+            <% if (typeof(params.track) != "undefined" && params.track != null) {
+              if (typeof(params.track.trackName) != "undefined") { %>
+                <div class="track-name" title='<%= params.track.trackName %>'>
+                  <%= params.track.trackName %>
+                </div>
+              <% }
+              if (typeof(params.track.artistName) != "undefined") { %>
+                <div class="artist-name" title='<%= params.track.artistName %>'>
+                  <%= params.track.artistName %>
+                </div>
+              <% }
+            } %>
           </div>
 
           <div class="play-info">
             <div class="status-box">
-              <img class="status-icon"></img>
+              <img class="status-icon <%= params.state %>"></img>
               <img class="sound-icon"></img>
             </div>
-            <div class="volume-slider-track">
-              <img class="volume-slider-handle"></img>
+            <div class="volume-slider">
+              <img class="handle"></img>
             </div>
+            <div class="duration"></div>
           </div>
 
-          <div class="duration">4:14</div>
           <div class="seek-slider">
-            <div class="seek-slider-track">
-              <div class="handle">
-                <div class="handle-val">1:18</div>
-                <img class="handle-image"></img>
-              </div>
+            <div class="handle">
+              <div class="handle-val"></div>
+              <img class="handle-image"></img>
             </div>
           </div>
         </div>
@@ -196,34 +206,6 @@
           /* nothing to check */
         } %>
         <div class="tracklist">
-          <%
-          params.trackList = [{ tdID: 1, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 2, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
-                              { tdID: 3, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 4, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
-                              { tdID: 5, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 6, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
-                              { tdID: 7, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 8, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
-                              { tdID: 9, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 10, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
-                              { tdID: 11, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 12, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
-                              { tdID: 13, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 14, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
-                              { tdID: 15, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 16, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
-                              { tdID: 17, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
-                              { tdID: 18, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 19, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
-                              { tdID: 20, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 21, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"},
-                              { tdID: 22, trackName: "Pardon My French", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 23, trackName: "Back to School Mix", artistName: "Kap Slap", cassette: "Kap Slap"},
-                              { tdID: 24, trackName: "The Cell", artistName: "Pierce Fulton", cassette: "HypeMachine"},
-                              { tdID: 25, trackName: "This Is What It Feels Like", artistName: "Armin Van Buren", cassette: "AudioCred"}];
-
-          %>
           <% if((typeof(params.stillParsing) != "undefined" && params.stillParsing) ||
                  typeof(params.trackList) == "undefined" ||
                  params.trackList == null) { %>
@@ -443,16 +425,15 @@
     <script id="CassetteList-test-template" type="text/template">
       <tapedeck>
         <events>
-          "click .cassettelist .row"            : "CassetteList.rowClick",
+          "click #cassette-list .row"            : "CassetteList.rowClick",
           "mouseover #add-cassettes-button"     : "CassetteList.showCassetteMenu",
           "mouseleave #add-cassettes-menu"      : "CassetteList.hideCassetteMenu",
-          "click .cassettelist .developer-link" : "CassetteList.loadDeveloperLink",
-          "click .cassettelist .removeCassette"         : "CassetteList.rowButtonRemove",
+          "click #cassette-list .developer-link" : "CassetteList.loadDeveloperLink",
+          "click #cassette-list .removeCassette"         : "CassetteList.rowButtonRemove",
           "click #current-cassette-row .button.eject"        : "TrackLists.eject"
 
           "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
           "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
-          "click #add-cassettes-menu .menu-row.tbe"         : "CassetteList.tbeCassettify",
         </events>
         <options>
           "cassetteList" : "cassetteList",
@@ -462,7 +443,7 @@
           ".button.removeCassette"        : "cassetteremove.png",
           ".button.eject"         : "cassettebutton-eject.png",
 
-          ".cassettelist .spinner.loading" : "blue-on-dark-loader.gif",
+          "#cassette-list .spinner.loading" : "blue-on-dark-loader.gif",
 
           ".button.find .spyglass.icon" : "spyglass.png",
           ".button.cassettify .cassettify.icon" : "cassettify.png",
@@ -508,23 +489,20 @@
               </div>
             <% } %>
           <% } %>
-        </div>
-        <div id="add-cassettes-buttons">
-            <div class="button find">
-              <div class="button-content">
-                <div class="spyglass icon"></div>
-                <div class="text-content">Find</div>
+          <div id="add-cassettes-buttons">
+              <div class="button find">
+                <div class="button-content">
+                  <div class="spyglass icon"></div>
+                  <div class="text-content">Find</div>
+                </div>
               </div>
-            </div>
-            <div class="button cassettify">
-              <div class="button-content">
-                <div class="cassettify icon"></div>
-                <div class="text-content">Build</div>
+              <div class="button cassettify">
+                <div class="button-content">
+                  <div class="cassettify icon"></div>
+                  <div class="text-content">Build</div>
+                </div>
               </div>
-            </div>
-            <!-- DEBUG quick-cassette maker -->
-            <div class="menu-row tbe"> Quick-create Debug Cassette </div>
-            <!-- END_DEBUG -->
+          </div>
         </div>
       </template>
     </script>

@@ -32,9 +32,14 @@ Tapedeck.Frontend.Frame = {
       dragging: false,
       startY: 0,
       offsetY: 0,
+      sliderBuffer: 1, // 1px at the top of the slider is not used
 
       setHandle: function(offset) {
-        $("#volume-slider #handle").css('top', offset);
+        var slider = Tapedeck.Frontend.Frame.Player.VolumeSlider;
+        if (offset <= slider.sliderBuffer) {
+          offset = slider.sliderBuffer; // prevent the slider from exceeding the buffer
+        }
+        $(".volume-slider .handle").first().css('top', offset);
       },
 
       updateSlider: function(volumePercent) {
@@ -48,7 +53,7 @@ Tapedeck.Frontend.Frame = {
         var slider = Tapedeck.Frontend.Frame.Player.VolumeSlider;
 
         var target = e.target;
-        while($(target).attr('id') != "handle") {
+        while(!($(target).hasClass('handle'))) {
           target = $(target).parent();
           if (target == null || !target) {
             console.error("Couldn't locate handle");
@@ -56,7 +61,7 @@ Tapedeck.Frontend.Frame = {
           }
         }
 
-        if ($("#volume-slider").hasClass("disabled")) {
+        if ($(".volume-slider").first().hasClass("disabled")) {
           return;
         }
 
@@ -100,8 +105,8 @@ Tapedeck.Frontend.Frame = {
           newOffset = 0;
         }
 
-        var sliderHeight = parseInt($("#volume-slider").css("height"), 10);
-        var maxOffset = sliderHeight - 5; // 5px less looks nice
+        var sliderHeight = parseInt($(".volume-slider").first().css("height"), 10);
+        var maxOffset = sliderHeight;
         if (newOffset > maxOffset) {
           newOffset = maxOffset;
         }
@@ -110,14 +115,19 @@ Tapedeck.Frontend.Frame = {
       },
 
       offsetPercent: function(offset) {
-        var sliderHeight = parseInt($("#volume-slider").css("height"), 10);
-        var maxOffset = sliderHeight - 5; // 5px less looks nice
+        var slider = Tapedeck.Frontend.Frame.Player.VolumeSlider;
+        if (offset <= slider.sliderBuffer) {
+          offset = slider.sliderBuffer; // prevent the slider from exceeding the buffer
+        }
+
+        var sliderHeight = parseInt($(".volume-slider").first().css("height"), 10);
+        var maxOffset = sliderHeight;
 
         return (offset/maxOffset);
       },
       percentOffset: function(percent) {
-        var sliderHeight = parseInt($("#volume-slider").css("height"), 10);
-        var maxOffset = sliderHeight - 5; // 5px less looks nice
+        var sliderHeight = parseInt($(".volume-slider").first().css("height"), 10);
+        var maxOffset = sliderHeight;
         return maxOffset * (1 - percent);
       },
     },
@@ -128,11 +138,12 @@ Tapedeck.Frontend.Frame = {
       offsetX: 0,
       currentTime: -1,
       duration: -1,
+      sliderBuffer: 6, // 6px to the right of the slider is not used
 
       downOnHandle: function(e) {
         var slider = Tapedeck.Frontend.Frame.Player.SeekSlider;
         var target = e.target;
-        while($(target).attr('id') != "handle") {
+        while(!($(target).hasClass('handle'))) {
           target = $(target).parent();
           if (target == null || !target) {
             console.error("Couldn't locate handle");
@@ -140,7 +151,7 @@ Tapedeck.Frontend.Frame = {
           }
         }
 
-        if ($("#seek-slider").hasClass("disabled")) {
+        if ($(".seek-slider").first().hasClass("disabled")) {
           return;
         }
 
@@ -183,8 +194,8 @@ Tapedeck.Frontend.Frame = {
           newOffset = 0;
         }
 
-        var sliderWidth = parseInt($("#seek-slider").css("width"), 10);
-        var maxOffset = sliderWidth - 15; // 15px less looks nice
+        var sliderWidth = parseInt($(".seek-slider").first().css("width"), 10);
+        var maxOffset = sliderWidth - slider.sliderBuffer;
         if (newOffset > maxOffset) {
           newOffset = maxOffset;
         }
@@ -198,8 +209,8 @@ Tapedeck.Frontend.Frame = {
         slider.duration = duration;
 
         var prettyDuration = slider.prettifyTime(duration);
-        if ($("#duration").html() != prettyDuration) {
-          $("#duration").html(prettyDuration);
+        if ($(".duration").first().html() != prettyDuration) {
+          $(".duration").first().html(prettyDuration);
         }
 
         if (slider.dragging) {
@@ -209,6 +220,7 @@ Tapedeck.Frontend.Frame = {
         this.setHandle(offset);
       },
 
+      // use displayTime bool to force displaying the time over the handle
       setHandle: function(offset, displayTime) {
         if (typeof(displayTime) == "undefined") {
           displayTime = false;
@@ -218,28 +230,39 @@ Tapedeck.Frontend.Frame = {
         var positionPercent = slider.offsetPercent(offset);
         var timeAtPosition = positionPercent * slider.duration;
 
-        var handle = $("#seek-slider #handle");
-        var handleVal = $("#seek-slider #handle-val");
+        var handle = $(".seek-slider .handle").first();
+        var handleVal = $(".seek-slider .handle-val").first();
         $(handle).css('left', offset);
         $(handleVal).html(slider.prettifyTime(timeAtPosition));
 
-        if (displayTime) {
+        // show the time if forced, or if the user is hovering over the handle.
+        if (displayTime || $(handle).hasClass("hover")) {
           $(handleVal).css("display", "block");
+
+          // hide the duration to make room for the handle's time, if < 28px from the right
+          var sliderWidth = parseInt($(".seek-slider").first().css("width"), 10);
+          if (sliderWidth - offset <= 28) {
+            $(".duration").hide();
+          }
+          else {
+            $(".duration").show();
+          }
         }
-        else if (!($(handleVal).hasClass("hover"))) {
+        else {
           $(handleVal).css("display", "none");
+          $(".duration").show();
         }
       },
 
       offsetPercent: function(offset) {
-        var sliderWidth = parseInt($("#seek-slider").css("width"), 10);
-        var maxOffset = sliderWidth - 15; // 15px less looks nice
+        var sliderWidth = parseInt($(".seek-slider").first().css("width"), 10);
+        var maxOffset = sliderWidth - Tapedeck.Frontend.Frame.Player.SeekSlider.sliderBuffer;
 
         return (offset/maxOffset);
       },
       calculateOffset: function() {
-        var sliderWidth = parseInt($("#seek-slider").css("width"), 10);
-        var maxOffset = sliderWidth - 15; // 15px less looks nice
+        var sliderWidth = parseInt($(".seek-slider").first().css("width"), 10);
+        var maxOffset = sliderWidth - Tapedeck.Frontend.Frame.Player.SeekSlider.sliderBuffer;
 
         return Math.floor((this.currentTime/this.duration) * maxOffset);
       },
@@ -253,22 +276,22 @@ Tapedeck.Frontend.Frame = {
       },
 
       mouseoverHandle: function(e) {
-        if ($("#seek-slider").hasClass("disabled")) {
+        if ($(".seek-slider").first().hasClass("disabled")) {
           return;
         }
 
-        var handleVal = $("#seek-slider #handle-val");
+        $(".seek-slider .handle").first().addClass("hover");
+
+        // display time immmediately
+        var handleVal = $(".seek-slider .handle-val").first();
         $(handleVal).css("display", "block");
-        $(handleVal).addClass("hover");
       },
       mouseleaveHandle: function(e) {
-        if ($("#seek-slider").hasClass("disabled")) {
+        if ($(".seek-slider").first().hasClass("disabled")) {
           return;
         }
 
-        var handleVal = $("#seek-slider #handle-val");
-        $(handleVal).removeClass("hover");
-        $(handleVal).css("display", "none");
+        $(".seek-slider .handle").first().removeClass("hover");
       },
     }, // End Tapedeck.Frontend.Frame.Player.SeekSlider
 
@@ -281,7 +304,7 @@ Tapedeck.Frontend.Frame = {
         document.onselectstart = null;
         seekslider.dragging = false;
 
-        var offset = parseInt($("#seek-slider #handle").css('left'), 10);
+        var offset = parseInt($(".seek-slider .handle").first().css('left'), 10);
         var percent = seekslider.offsetPercent(offset);
 
         Tapedeck.Frontend.Messenger.seekPercent(percent);
@@ -297,10 +320,9 @@ Tapedeck.Frontend.Frame = {
 
         // We calculate percent from the top of the slider,
         // that's the opposite of the desired volume percentage.
-        var offset = parseInt($("#volume-slider #handle").css('top'), 10);
+        var offset = parseInt($(".volume-slider .handle").first().css('top'), 10);
         volumeslider.currentOffset = offset;
         volumeslider.currentVolume = (1 - volumeslider.offsetPercent(offset));
-
 
         Tapedeck.Frontend.Messenger.setVolume(volumeslider.currentVolume);
       }
@@ -625,7 +647,7 @@ Tapedeck.Frontend.Frame = {
           else {
             var page = parseInt(value, 10);
             if (!isNaN(page) && page > 0) {
-               Tapedeck.Frontend.Messenger.setPage(page);
+              Tapedeck.Frontend.Messenger.setPage(page);
             }
           }
           $("#set-page").blur();
@@ -805,7 +827,7 @@ Tapedeck.Frontend.Frame = {
   },
 
   forceSeekSliderUpdate: function() {
-    if (!($("#seek-slider").hasClass("disabled"))) {
+    if (!($(".seek-slider").first().hasClass("disabled"))) {
       Tapedeck.Frontend.Messenger.requestUpdate("SeekSlider");
     }
   },
