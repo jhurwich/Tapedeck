@@ -351,25 +351,32 @@
           <template ref="TrackList-test-template" remap="params.trackList:params.browseList" />
           <div id="current-cassette-row" class="row">
             <div class="cassetteName">
-              CassetteName
+              <%= params.currentCassette.name.replace(/_/g, " ") %>
             </div>
-            <div id="feed-switcher">
-              <div class="feed-row" id="feed-switcher-header">Last week</div>
-              <div id="feed-switcher-content">
-                <div class="row feed-row" feedName='Last Week' >
-                  Last Week
-                </div>
-                <div class="row feed-row" feedName='Popular' >
-                  Popular
+            <% if (typeof(params.currentCassette.feeds) != "undefined" &&
+                   Object.keys(params.currentCassette.feeds).length > 1 &&
+                   typeof(params.currentFeed) != "undefined") { %>
+              <div id="feed-switcher">
+                <div class="cell feed-row" id="feed-switcher-header"><%= params.currentFeed %></div>
+                <div id="feed-switcher-content">
+                  <% for (var feedName in params.currentCassette.feeds) {
+                    if (feedName != params.currentFeed) { %>
+                      <div class="cell row feed-row" feedName='<%= feedName %>' >
+                        <%= feedName %>
+                      </div>
+                    <% } %>
+                  <% } %>
                 </div>
               </div>
-            </div>
+            <% } %>
             <div class="row-buttons">
+              <% if (params.currentCassette.isPageable && typeof(params.currentPage) != "undefined") { %>
                 <div class="button prev-page"></div>
                 <div id="current-page" class="button current-page">
-                  1-3
+                  <%= params.currentPage %>
                 </div>
                 <div class="button next-page"></div>
+              <% } %>
               <div class="button eject"></div>
             </div>
           </div>
@@ -426,25 +433,20 @@
       <tapedeck>
         <events>
           "click #cassette-list .row"            : "CassetteList.rowClick",
+          "click #cassette-list .developerName" : "CassetteList.loadLink",
+
+          "click .button.find" : "CassetteList.findCassettes",
+          "click .button.cassettify" : "CassetteList.cassettify",
+
           "mouseover #add-cassettes-button"     : "CassetteList.showCassetteMenu",
-          "mouseleave #add-cassettes-menu"      : "CassetteList.hideCassetteMenu",
-          "click #cassette-list .developer-link" : "CassetteList.loadDeveloperLink",
           "click #cassette-list .removeCassette"         : "CassetteList.rowButtonRemove",
           "click #current-cassette-row .button.eject"        : "TrackLists.eject"
-
-          "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
-          "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
         </events>
         <options>
           "cassetteList" : "cassetteList",
         </options>
         <images>
-          "#add-cassettes-button" : "plusbutton.png",
-          ".button.removeCassette"        : "cassetteremove.png",
-          ".button.eject"         : "cassettebutton-eject.png",
-
-          "#cassette-list .spinner.loading" : "blue-on-dark-loader.gif",
-
+          ".button.eject" : "eject.png",
           ".button.find .spyglass.icon" : "spyglass.png",
           ".button.cassettify .cassettify.icon" : "cassettify.png",
         </images>
@@ -476,14 +478,13 @@
                      index='<%= i %>'
                      cassette-name='<%= cassette.name %>' >
                   <div class="cassetteName" title='<%= displayName %>'> <%= displayName %> </div>
-                  <div class="developerName" title='<%= cassette.developerLink %>'>
-                    <span class="developer-link"
-                          url='<%= cassette.developerLink %>' >
-                      <%= cassette.developer %>
-                    </span>
-                    <div class="row-buttons">
-                      <div class="button removeCassette"></div>
-                    </div>
+                  <div class="developerName"
+                       title='<%= cassette.developerLink %>'
+                       url='<%= cassette.developerLink %>' >
+                    <%= cassette.developer %>
+                  </div>
+                  <div class="row-buttons">
+                    <div class="button removeCassette"></div>
                   </div>
                 </div>
               </div>
@@ -535,23 +536,23 @@
                   <span class="info"><%= field.text %></span>
                 <% } else if (field.type == "input") { %>
                   <span class="input"><%= field.text %></span>
-                  <input callbackParam="<%= field.callbackParam %>"
-                         type="text"
-                         <% if (typeof(field.width) != "undefined") print("style='width: " + field.width + "px;'"); %> >
+                  <input callbackParam="<%= field.callbackParam %>" type="text" />
                 <% } %>
               </div>
             <% } %>
-            <% if (typeof(params.submitButtons) == "undefined") { %>
-              <input type="button" class="submit-button" value="Ok" />
-            <% } else {
-              for (var i=0; i < params.submitButtons.length; i++) {
-                var button = params.submitButtons[i]; %>
-                <input type="button"
-                       class="submit-button"
-                       callbackParam="<%= button.callbackParam %>"
-                       value="<%= button.text %>" />
-              <% }
-            } %>
+            <div class="button-box">
+              <% if (typeof(params.submitButtons) == "undefined") { %>
+                <input type="button" class="submit-button" value="Ok" />
+              <% } else {
+                for (var i=0; i < params.submitButtons.length; i++) {
+                  var button = params.submitButtons[i]; %>
+                  <input type="button"
+                         class="submit-button"
+                         callbackParam="<%= button.callbackParam %>"
+                         value="<%= button.text %>" />
+                <% }
+              } %>
+            </div>
           </form>
         </div>
       </template>

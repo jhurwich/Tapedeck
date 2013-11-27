@@ -454,6 +454,13 @@ Tapedeck.Frontend.Messenger = {
     this.setCassette("");
   },
 
+  findCassettes: function() {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "cassetteStore"
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
   cassettify: function() {
     var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "cassettify"

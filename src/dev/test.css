@@ -334,7 +334,7 @@ body {
   width: 72px;
   position: relative;
   display: block;
-  float: left;
+  float: right;
   margin-left: 2px;
 }
 #current-cassette-row .row-buttons .button {
@@ -379,6 +379,8 @@ body {
   float: left;
   padding: 3px 4px 0 4px;
   line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #add-cassettes-buttons .button {
@@ -472,5 +474,65 @@ body {
   margin-left: 2px;
 }
 
-#browse-list {
+#modal {
+  position: absolute;
+  top: 0px;
+  left: 24px;
+  width: 340px;
+  height: 100%;
+}
+#blackout {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  opacity: .4;
+  z-index: 100;
+}
+#modal-container {
+  position: relative;
+  top: 30%;
+  margin: 0 auto;
+  width: 270px;
+  min-height: 150px;
+  z-index: 101;
+  padding: 2px 6px;
+
+  background-color: #FDF2D8;
+  border: 3px solid #1A1A1A;
+  border-radius: 7px;
+  box-shadow: 4px 4px 6px rgba(0,0,0,0.5);
+}
+#modal-container #close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 14px;
+  width: 14px;
+  margin: 8px;
+  cursor: pointer;
+}
+#modal-container #modal-title {
+  font-size: 22px;
+  color: #333;
+}
+#modal-container #modal-form {
+  margin: 0 0 36px 0;
+}
+#modal-container input[type='text'] {
+  width: 266px;
+  margin: 4px 0 0 2px;
+}
+#modal-container .button-box {
+  width: 270px;
+  position: absolute;
+  bottom: 6px;
+}
+#modal-container .submit-button {
+  color:#FFFFFF;
+  font: 14px Tahoma, "FreeSans", sans-serif;
+  background-color:#333333;
+  border: 1px solid black;
+  box-shadow: 2px 2px 2px rgba(0,0,0,0.4);
+  cursor: pointer;
 }

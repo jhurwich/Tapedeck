@@ -382,6 +382,9 @@ Tapedeck.Backend.MessageHandler = {
       Tapedeck.Backend.CassetteManager.removeCassette(request.cassetteID);
       break;
 
+    case "cassetteStore":
+      Tapedeck.Backend.CassetteManager.CassetteStore.open();
+      break;
     case "cassettify":
       Tapedeck.Backend.CassetteManager.Cassettify.start();
       break;

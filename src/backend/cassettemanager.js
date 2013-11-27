@@ -368,6 +368,16 @@ Tapedeck.Backend.CassetteManager = {
                                             cMgr.endPage);
   },
 
+  CassetteStore: {
+    open: function() {
+      Tapedeck.Backend.MessageHandler.showModal({
+        fields: [{ type : "info",
+                   text : "The Cassette Store is under development and not yet available." }],
+        title: "Find New Cassettes"
+      });
+    }
+  },
+
   // cassettify() is called in a series of phases.
   // The 'start' phase will always begin the cassettify process,
   // potentially cancelling a previous cassettify in progress.
@@ -434,7 +444,6 @@ Tapedeck.Backend.CassetteManager = {
                    text          : "Please enter a site to cassettify." },
                  { type          : "input",
                    text          : "",
-                   width         : "300",
                    callbackParam : "url" }],
         submitButtons : [{ text: "Submit",
                            callbackParam: "submit" },
@@ -495,12 +504,11 @@ Tapedeck.Backend.CassetteManager = {
 
       msgHandler.showModal({
         fields: [{ type          : "info",
-                   text          : "Please enter the url for a site with '$#' for the page number." },
+                   text          : "Enter the site with '$#' for the page." },
                  { type          : "info",
-                   text          : "For example: theburningear.com/page/$#" },
+                   text          : "e.g. theburningear.com/page/$#" },
                  { type          : "input",
                    text          : "",
-                   width         : "300",
                    callbackParam : "pattern" }],
         title: "Advanced Cassettify"
       }, self.handlePatternInput, self.postLoadCleanup);
@@ -640,19 +648,16 @@ Tapedeck.Backend.CassetteManager = {
           fields: [{ type          : "info",
                      text          : "Couldn't find '$#' please try again." },
                    { type          : "info",
-                     text          : "Please enter the url for a site with '$#' for the page number." },
+                     text          : "Enter the site with '$#' for the page." },
                    { type          : "info",
-                     text          : "For example: theburningear.com/page/$#" },
+                     text          : "e.g. theburningear.com/page/$#" },
                    { type          : "input",
                      text          : "",
-                     width         : "300",
                      callbackParam : "pattern" }],
           submitButtons : [{ text: "Submit pattern",
                              callbackParam: "submit" },
                            { text: "Try another site",
-                             callbackParam: "anotherSite" },
-                           { text: "Advanced",
-                             callbackParam: "advanced" }],
+                             callbackParam: "anotherSite" }],
           title: "Advanced Cassettify"
         }, self.handlePatternInput, self.postLoadCleanup);
         return;
@@ -866,7 +871,7 @@ Tapedeck.Backend.CassetteManager = {
           fields: modalFields,
           submitButtons : [{ text: "Submit",
                              callbackParam: "submit" },
-                           { text: "Try another site",
+                           { text: "Other site",
                              callbackParam: "anotherSite" },
                            { text: "Advanced",
                              callbackParam: "advanced" }],

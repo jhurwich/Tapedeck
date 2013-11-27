@@ -699,7 +699,7 @@ Tapedeck.Frontend.Frame = {
       Tapedeck.Frontend.Messenger.removeCassette($(target).attr("cassette-name"));
     },
 
-    loadDeveloperLink: function(e) {
+    loadLink: function(e) {
       if (e.stopPropagation) {
         e.stopPropagation();
       }
@@ -716,6 +716,10 @@ Tapedeck.Frontend.Frame = {
       $("#add-cassettes-menu").removeAttr("visible");
       var content = $("#add-cassettes-content");
       $(content).css("display", "none");
+    },
+
+    findCassettes: function(e) {
+      Tapedeck.Frontend.Messenger.findCassettes();
     },
 
     cassettify: function(e) {
@@ -759,8 +763,14 @@ Tapedeck.Frontend.Frame = {
     }
     var frame = Tapedeck.Frontend.Frame;
 
-    if (frame.drawerWidth == -1) {
+    if (frame.drawerWidth <= 0) {
       frame.drawerWidth = $(".frame-box").width();
+
+      // sometimes we beat the frame to loading, yield to it loading
+      if (frame.drawerWidth <= 0) {
+        setTimeout(frame.openDrawer, 0, animate);
+        return;
+      }
     }
 
     $(".draweropen-onscreen").attr("hidden", true);
