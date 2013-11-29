@@ -5,6 +5,7 @@ Tapedeck.Backend.TemplateManager = {
   cssForPackages: { },
   requiredScripts: [
     "Frame",
+    "Onscreen",
     "Player",
     "PlaylistList",
     "Queue",
@@ -238,6 +239,7 @@ Tapedeck.Backend.TemplateManager = {
       "playlistList" : tMgr.getPlaylistList,
       "playerState" : tMgr.getPlayerState,
       "currentTrack" : tMgr.getCurrentTrack,
+      "drawerOpen" : tMgr.getDrawerOpen,
       "tabID" : tMgr.getTabID,
       "options": tMgr.getOptions
     };
@@ -484,6 +486,9 @@ Tapedeck.Backend.TemplateManager = {
   },
   getCurrentTrack: function(callback) {
     callback(Tapedeck.Backend.Sequencer.getCurrentTrack());
+  },
+  getDrawerOpen: function(callback) {
+    callback(Tapedeck.Backend.Bank.drawerOpen);
   },
   getTabID: function(callback) {
     Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {

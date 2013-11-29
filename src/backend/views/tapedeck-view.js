@@ -74,15 +74,18 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
   },
 
   getEvents: function() {
-    return Tapedeck.Backend.Utils.extractTagAsObject(this.textTemplate, "events");
+    var events = Tapedeck.Backend.Utils.extractTagAsObject(this.textTemplate, "events");
+    return events;
   },
 
   getOptions: function() {
-    return Tapedeck.Backend.Utils.extractTagAsObject(this.textTemplate, "options");
+    var options = Tapedeck.Backend.Utils.extractTagAsObject(this.textTemplate, "options");
+    return options;
   },
 
   getImages: function() {
-    return Tapedeck.Backend.Utils.extractTagAsObject(this.textTemplate, "images");
+    var images = Tapedeck.Backend.Utils.extractTagAsObject(this.textTemplate, "images");
+    return images;
   },
 
   // TapedeckView's log is controlled by the Template Manager's debug setting

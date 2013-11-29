@@ -274,10 +274,12 @@ Tapedeck.Backend.Sequencer = {
     handlePlaying: function(self) {
       self.currentState = self.STATES.PLAY;
       Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("Onscreen");
     },
 
     handlePause: function(self) {
       Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("Onscreen");
     },
 
     handleEnded: function(self) {
@@ -287,6 +289,7 @@ Tapedeck.Backend.Sequencer = {
       }
       Tapedeck.Backend.Sequencer.next();
       Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("Onscreen");
     },
 
     handleLoadStart: function(self) {

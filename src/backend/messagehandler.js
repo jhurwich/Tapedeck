@@ -225,6 +225,9 @@ Tapedeck.Backend.MessageHandler = {
       });
 
       chrome.tabs.sendRequest(port.sender.tab.id, reflectRequest, function() {
+        // update onscreen buttons to reflect the drawer state
+        Tapedeck.Backend.TemplateManager.renderViewAndPush("Onscreen");
+
         self.postMessage(port.sender.tab.id, response);
       });
       break;

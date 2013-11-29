@@ -7,7 +7,7 @@ if (typeof(Tapedeck.Frontend.Frame) != "undefined") {
 }
 
 Tapedeck.Frontend.Frame = {
-  OnscreenButtons : {
+  Onscreen : {
     playPause: function() {
       Tapedeck.Frontend.Messenger.playPause();
     },
@@ -773,9 +773,6 @@ Tapedeck.Frontend.Frame = {
       }
     }
 
-    $(".draweropen-onscreen").attr("hidden", true);
-    $(".drawerclose-onscreen").removeAttr("hidden");
-
     // reflect the command to move all elements on screen off the backend
     Tapedeck.Frontend.Messenger.setDrawer(frame.drawerWidth, animate, function() {
       // open complete here
@@ -785,9 +782,6 @@ Tapedeck.Frontend.Frame = {
     if (typeof(animate) == "undefined") {
       animate = true;
     }
-
-    $(".draweropen-onscreen").removeAttr("hidden");
-    $(".drawerclose-onscreen").attr("hidden", "true");
 
     // reflect the command to reset all moved elements off the backend
     Tapedeck.Frontend.Messenger.setDrawer(0, animate, function() {
