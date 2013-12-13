@@ -622,7 +622,7 @@ Tapedeck.Frontend.Frame = {
       if (e.stopPropagation) {
         e.stopPropagation();
       }
-      var target = $(e.target).closest(".row");
+      var target = $(e.target).closest(".feed-row");
       var feedName = $(target).attr("feedName");
       Tapedeck.Frontend.Messenger.chooseFeed(feedName);
     },
