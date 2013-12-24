@@ -114,6 +114,12 @@ body {
   background-color: #333333;
   margin: 0px auto;
 }
+.seek-slider.disabled {
+  opacity : 0.4;
+}
+.seek-slider.disabled > .handle {
+  cursor: default;
+}
 .seek-slider .handle {
   position: relative;
   top: 0px;
@@ -220,6 +226,7 @@ body {
 .tracklist .row:not(.blank):not(#hidden-droprow):hover {
   background-color: #dfd3b5;
   cursor: pointer;
+
   -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
   border-right-width: 0px;
   border-left-width: 4px;
@@ -233,10 +240,25 @@ body {
   padding-left: 1px;
 }
 .tracklist .row.selected {
-  background-color: pink;
+  background-color: #fadc97;
+
+  -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
+  border-right-width: 0px;
+  border-left-width: 4px;
+  border-top-width: 0px;
+  border-bottom-width: 0px;
+}
+.tracklist .row.selected .cell.trackName-col {
+  padding-left: 1px;
 }
 .tracklist .row.selected:hover {
-  background-color: purple;
+  background-color: #cab786 !important;
+
+  -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
+  border-right-width: 0px;
+  border-left-width: 4px;
+  border-top-width: 0px;
+  border-bottom-width: 0px;
 }
 .tracklist .row.listened {
   opacity : 0.65;

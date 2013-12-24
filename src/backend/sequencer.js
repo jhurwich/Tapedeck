@@ -33,8 +33,9 @@ Tapedeck.Backend.Sequencer = {
         var updateQueue = function(eventName) {
           // we only care about the greater 'change' event.  The "change:__" events are ignored.
           if (eventName.indexOf("change:") == -1) {
-            sqcr.log("Rendering and pushing queue", Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
+            sqcr.log("Rendering and pushing queue and player", Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
             Tapedeck.Backend.TemplateManager.renderViewAndPush("Queue");
+            Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
           }
         };
         sqcr.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
@@ -284,12 +285,12 @@ Tapedeck.Backend.Sequencer = {
 
     handleEnded: function(self) {
       Tapedeck.Backend.Sequencer.log("Track ended, next please.");
+      clearTimeout(self.endedCheck);
+
       if (self.prefetchComplete) {
         self.playerSwap();
       }
       Tapedeck.Backend.Sequencer.next();
-      Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
-      Tapedeck.Backend.TemplateManager.renderViewAndPush("Onscreen");
     },
 
     handleLoadStart: function(self) {
@@ -346,6 +347,15 @@ Tapedeck.Backend.Sequencer = {
       }
 
       Tapedeck.Backend.MessageHandler.updateSeekSlider();
+
+      clearTimeout(self.endedCheck);
+      self.endedCheck = setTimeout(function() {
+        if (self.currentState != "stop" && self.currentState != "pause") {
+          console.error("'Ended' was not sent by the audioplayer, triggering manually.");
+          self.playerElement.trigger("ended");
+        }
+      }, 1000);
+
     },
 
     // Error Codes from http://www.w3.org/TR/html5/video.html#htmlmediaelement

@@ -153,7 +153,9 @@
           } %>
 
           <div class="track-info">
-            <% if (typeof(params.track) != "undefined" && params.track != null) {
+            <% if (params.state != "stop" &&
+                   typeof(params.track) != "undefined" &&
+                   params.track != null) {
               if (typeof(params.track.trackName) != "undefined") { %>
                 <div class="track-name" title='<%= params.track.trackName %>'>
                   <%= params.track.trackName %>
@@ -178,7 +180,10 @@
             <div class="duration"></div>
           </div>
 
-          <div class="seek-slider">
+          <div class="seek-slider
+                      <% if (params.state != "play" && params.state != "pause" && params.state != "ready") {
+                        print(" disabled ");
+                      }%>" >
             <div class="handle">
               <div class="handle-val"></div>
               <img class="handle-image"></img>
