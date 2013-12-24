@@ -207,16 +207,30 @@ body {
   width: 100%;
   max-width: 324px;
   overflow: hidden;
+  border-bottom: 1px solid #333;
+}
+.tracklist .row-container.blank {
+  border-bottom-width: 0px !important;
 }
 .tracklist .row {
   position: relative;
   min-width: 324px;
   height: 19px;
-  border-bottom: 1px solid #333;
 }
 .tracklist .row:not(.blank):not(#hidden-droprow):hover {
   background-color: #dfd3b5;
   cursor: pointer;
+  -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
+  border-right-width: 0px;
+  border-left-width: 4px;
+  border-top-width: 0px;
+  border-bottom-width: 0px;
+}
+.tracklist .row-container:hover {
+  border-bottom: 1px solid black;
+}
+.tracklist .row:not(.blank):not(#hidden-droprow):hover .cell.trackName-col {
+  padding-left: 1px;
 }
 .tracklist .row.selected {
   background-color: pink;
@@ -395,6 +409,16 @@ body {
   line-height: 20px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.tracklist .spinner.loading,
+#cassette-list .spinner.loading {
+  height: 12px;
+  width: 16px;
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  margin-left: -8px;
+  background-repeat: no-repeat;
 }
 
 #add-cassettes-buttons .button {

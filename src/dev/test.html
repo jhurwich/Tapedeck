@@ -236,7 +236,7 @@
           ".button.download" : "rowbutton-download.png",
           ".spinner.download" : "download-spinner.gif",
 
-          ".tracklist .spinner.loading" : "blue-on-light-loader.gif",
+          ".tracklist .spinner.loading" : "dark-on-peach-loader.gif",
         </images>
       </tapedeck>
 
@@ -249,7 +249,7 @@
           <% if((typeof(params.stillParsing) != "undefined" && params.stillParsing) ||
                  typeof(params.trackList) == "undefined" ||
                  params.trackList == null) { %>
-            <div class="row-container">
+            <div class="row-container blank">
               <div class="row blank">
                 <div class="spinner loading"
                      id="loading-spinner"></div>
@@ -263,7 +263,7 @@
                 </div>
               </div>
             <% } else if (params.trackList.length == 0) { %>
-              <div class="row-container">
+              <div class="row-container blank">
                 <div class="row blank">
                   <% if (params.trackList.destination == "Queue") { %>
                     There are no tracks in your queue.
@@ -275,7 +275,7 @@
               </div>
             <% }
             if (params.trackList.length > 0) { %>
-              <div class="row-container">
+              <div class="row-container blank">
                 <div class="row" id="hidden-droprow" index="-1">
                   <div class="cell trackName-col"></div>
                   <div class="cell artistName-col"></div>
@@ -489,6 +489,7 @@
           ".button.eject" : "eject.png",
           ".button.find .spyglass.icon" : "spyglass.png",
           ".button.cassettify .cassettify.icon" : "cassettify.png",
+           "#cassette-list .spinner.loading" : "grey-on-dark-loader.gif",
         </images>
       </tapedeck>
 
@@ -498,7 +499,7 @@
         } %>
         <div id="cassette-list">
           <% if(typeof(params.cassetteList) == "undefined" || params.cassetteList == null) { %>
-            <div class="row-container">
+            <div class="row-container blank">
               <div class="row blank">
                 <div class="spinner loading"
                      id="loading-spinner"></div>
