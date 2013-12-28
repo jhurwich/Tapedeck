@@ -293,8 +293,7 @@
       <template>
         <% if(params.debug > 0) {
           /* nothing to check */
-        }
-        %>
+        } %>
         <div class="tracklist">
           <% if(typeof(params.trackList) == "undefined" ||
                 params.trackList == null ||
@@ -307,14 +306,14 @@
             </div>
           <% } else {
             if (typeof(params.errorString) != "undefined" && params.errorString.length > 0) { %>
-              <div class="row-container">
-                <div class="row blank cell">
-                  <span class="error-msg"><%= params.errorString %></span>
+              <div class="row-container message">
+                <div class="row message">
+                  <%= params.errorString %>
                 </div>
               </div>
             <% } else if (params.trackList.length == 0) { %>
-              <div class="row-container blank">
-                <div class="row blank">
+              <div class="row-container message">
+                <div class="row message">
                   <% if (params.trackList.destination == "Queue") { %>
                     There are no tracks in your queue.
                   <% }
@@ -326,7 +325,7 @@
             <% }
             if (params.trackList.length > 0) { %>
               <div class="row-container blank">
-                <div class="row
+                <div class="row blank
                             <% if (params.trackList[0].listened) { print(" listened ") } %>"
                      id="hidden-droprow" index="-1">
                   <div class="cell trackName-col"></div>

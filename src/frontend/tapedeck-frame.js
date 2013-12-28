@@ -345,8 +345,8 @@ Tapedeck.Frontend.Frame = {
 
       var row = $(e.target).closest(".row");
 
-      // make sure it's not supposed to be a blank row
-      if ($(row).hasClass("blank")) {
+      // make sure it's not supposed to be a blank or message row
+      if ($(row).hasClass("blank") || $(row).hasClass("message")) {
         return;
       }
 

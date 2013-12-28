@@ -46,7 +46,9 @@ Tapedeck.Backend.Collections.SavedTrackList =
 
     try {
       var key = this.getPrefix() + this.id;
-      var listStr = this.serialize()[0];
+
+      // serialize, but without temp properties
+      var listStr = this.serialize(false)[0];
 
       bank.localStorage.setItem(key, listStr);
       bank.Memory.rememberTrackList(key, this);

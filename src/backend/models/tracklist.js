@@ -1,7 +1,7 @@
 Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
   model: Tapedeck.Backend.Models.Track,
 
-  serialize: function(maxSize) {
+  serialize: function(includeTemp, maxSize) {
     var self = this;
     var bank = Tapedeck.Backend.Bank;
     if (typeof(maxSize) == "undefined") {
@@ -32,7 +32,7 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
 
     for (var i = 0; i < self.length; i++) {
       var model = self.at(i);
-      currArray.push(model.serialize());
+      currArray.push(model.serialize(includeTemp));
 
       if (maxSize > 0 && estimateSize(currArray, result.length) > maxSize) {
         var lastAdded = currArray.pop();
@@ -45,23 +45,8 @@ Tapedeck.Backend.Collections.TrackList = Backbone.Collection.extend({
     return result;
   },
 
-  TEMP_PROPS: [
-    "listened",
-    "playing",
-    "error"
-  ],
-  removeTempProperties: function() {
-    var tempProps = Tapedeck.Backend.Collections.TrackList.prototype.TEMP_PROPS;
-    this.each(function(track) {
-      for (var i = 0; i < tempProps.length; i++) {
-        track.unset(tempProps[i], { silent: true });
-      }
-    });
-  },
-
   makePlaylist: function(id) {
     var playlist = new Tapedeck.Backend.Collections.Playlist(this.models, { id: id });
-    playlist.removeTempProperties(); // TODO do we need this
 
     return playlist;
   },

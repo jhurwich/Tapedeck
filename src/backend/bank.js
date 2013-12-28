@@ -1,11 +1,5 @@
 Tapedeck.Backend.Bank = {
 
-  // constants for track modifying in preparation to save
-  DONT_SERIALIZE_PROPERTIES: ['description',
-                              'location',
-                              'downloading',
-                              'currentTime',
-                              'domain'],
   MINIFY_MAP: { "listened": "l",
                 "playing": "p",
                 "error": "e",
@@ -1449,8 +1443,8 @@ Tapedeck.Backend.Bank = {
           console.log("'" + trackList.id +  "' is dirty, writing to sync"); /* ALLOWED */
 
           // trackList is dirty, upload to sync
-          // serialize the strings such that none is greater than MAX_SYNC_STRING_SIZE
-          var serialized = trackList.serialize(bank.MAX_SYNC_STRING_SIZE);
+          // serialize the strings without temp props and such that none is greater than MAX_SYNC_STRING_SIZE
+          var serialized = trackList.serialize(false, bank.MAX_SYNC_STRING_SIZE);
 
           if (serialized.length > bank.MAX_NUMBER_SPLITS) {
             // Don't do splits this large, just give up

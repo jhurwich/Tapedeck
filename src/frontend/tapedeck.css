@@ -224,7 +224,7 @@ body {
   height: 19px;
   border: 0px;
 }
-.tracklist .row:not(.blank):not(#hidden-droprow):hover {
+.tracklist .row:not(.blank):not(.message):not(#hidden-droprow):hover {
   background-color: #F8E5B8;
   cursor: pointer;
 
@@ -234,7 +234,7 @@ body {
 .tracklist .row-container:hover {
   border-bottom: 1px solid black;
 }
-.tracklist .row:not(.blank):not(#hidden-droprow):hover .cell.trackName-col {
+.tracklist .row:not(.blank):not(.message):not(#hidden-droprow):hover .cell.trackName-col {
   padding-left: 1px;
 }
 .tracklist .row.selected {
@@ -266,28 +266,30 @@ body {
   opacity : 0.65;
 }
 .tracklist .row.blank {
-  padding: 3px;
   cursor: default;
 }
-.tracklist-container .cell {
+.tracklist-container .cell,
+.tracklist-container .row.message {
   position: relative;
   display: table-cell;
   -webkit-user-select: none;
   user-select: none;
   min-height: 16px;
-  float: left;
   font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.tracklist-container .cell {
+  float: left;
   padding-left: 2px;
   border-right: 2px solid #333;
 }
-.tracklist .row-container:not(.blank).drag-target {
+.tracklist .row-container:not(.blank):not(.message).drag-target {
   border-bottom: solid 2px #D99939;
   height: 18px;
 }
-.tracklist .row:not(.blank).drag-target {
+.tracklist .row:not(.blank):not(.message).drag-target {
   border-bottom-width: 0;
 }
 .tracklist .cell.trackName-col {
@@ -304,6 +306,10 @@ body {
 .tracklist .trackName-span:hover {
   text-decoration: underline;
   cursor: pointer;
+}
+.tracklist .row.message {
+  padding: 3px 0 0 5px;
+  cursor: default;
 }
 
 #queue {
