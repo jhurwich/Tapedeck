@@ -110,14 +110,23 @@ Tapedeck.Backend.TemplateManager = {
 
     var fullRenderComplete = false;
     if (pushHollowFirst) {
-      tMgr.renderViewWithOptions(scriptName, packageName, { }, function(hollowViewData) {
-        // hollow view rendered, push here but prevent if main push succeeded
-        if (!fullRenderComplete) {
-          Tapedeck.Backend.MessageHandler.pushView(hollowViewData.el,
-                                                   hollowViewData.proxyEvents,
-                                                   hollowViewData.proxyImages,
-                                                   tab);
-        }
+      // generate the view with no options to know what it needs
+      var viewScript = tMgr.getViewScript(scriptName);
+      var hollowView = new viewScript({ });
+
+      // fill all options that don't aren't blocking
+      tMgr.fillOptions(false, hollowView.getOptions(), function(filledOptions) {
+
+        tMgr.renderViewWithOptions(scriptName, packageName, filledOptions, function(hollowViewData) {
+
+          // hollow view rendered, push here but prevent if main push succeeded
+          if (!fullRenderComplete) {
+            Tapedeck.Backend.MessageHandler.pushView(hollowViewData.el,
+                                                     hollowViewData.proxyEvents,
+                                                     hollowViewData.proxyImages,
+                                                     tab);
+          }
+        });
       });
     }
 
@@ -171,13 +180,14 @@ Tapedeck.Backend.TemplateManager = {
         return;
       }
 
-      tMgr.fillOptions(hollowView.getOptions(), function(filledOptions) {
+      tMgr.fillOptions(true, hollowView.getOptions(), function(filledOptions) {
         tMgr.renderViewWithOptions(scriptName, packageName, filledOptions, callback);
       });
     };
     completeRender();
   },
 
+  // Beware!  Templates often require certain options, this will not check that those are provided.
   renderViewWithOptions: function(scriptName, packageName, options, callback) {
     var tMgr = Tapedeck.Backend.TemplateManager;
     if (packageName && typeof(packageName) != "string") {
@@ -227,7 +237,7 @@ Tapedeck.Backend.TemplateManager = {
    * to fold multiple values into the options to callback.  Otherwise, all params of options will
    * be keys in the fillMap
    */
-  fillOptions: function(requestedOptions, callback) {
+  fillOptions: function(blocking, requestedOptions, callback) {
     var tMgr = Tapedeck.Backend.TemplateManager;
     var fillMap = {
       "currentCassette" : tMgr.getCurrentCassette,
@@ -256,7 +266,7 @@ Tapedeck.Backend.TemplateManager = {
     var filledCount = 0;
     var scoped = function(param, filler) {
       // call the filler
-      filler(function(filling) {
+      filler(blocking, function(filling) {
         // if filling.fillAll, then fold all params from filling into options
         if (filling &&
             typeof(filling) == "object" &&
@@ -301,10 +311,10 @@ Tapedeck.Backend.TemplateManager = {
   },
 
 
-  getCurrentCassette: function(callback) {
+  getCurrentCassette: function(blocking, callback) {
     callback(Tapedeck.Backend.CassetteManager.currentCassette);
   },
-  getCurrentPage: function(callback) {
+  getCurrentPage: function(blocking, callback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     var toReturn = "" + cMgr.startPage;  // send as a string
     if (cMgr.endPage != -1) {
@@ -312,17 +322,17 @@ Tapedeck.Backend.TemplateManager = {
     }
     callback(toReturn);
   },
-  getCurrentFeed: function(callback) {
+  getCurrentFeed: function(blocking, callback) {
     var feed = Tapedeck.Backend.CassetteManager.currFeed;
     if (typeof(feed) == "undefined" || !feed) {
       feed = undefined;
     }
     callback(feed);
   },
-  getCassettes: function(callback) {
+  getCassettes: function(blocking, callback) {
     callback(Tapedeck.Backend.CassetteManager.getCassettes());
   },
-  getBrowseList: function(callback, errCallback, tab) {
+  getBrowseList: function(blocking, callback, errCallback, tab) {
     var cMgr = Tapedeck.Backend.CassetteManager;
     var tMgr = Tapedeck.Backend.TemplateManager;
     var bank = Tapedeck.Backend.Bank;
@@ -330,7 +340,7 @@ Tapedeck.Backend.TemplateManager = {
 
     if (typeof(tab) == "undefined") {
       msgHandler.getSelectedTab(function(selectedTab) {
-        tMgr.getBrowseList(callback, errCallback, selectedTab);
+        tMgr.getBrowseList(blocking, callback, errCallback, selectedTab);
       });
       return;
     }
@@ -352,6 +362,8 @@ Tapedeck.Backend.TemplateManager = {
           return;
         });
         return;
+      } else if (!blocking) {
+        callback({ fillAll: true, browseList: null, stillParsing: true });
       }
 
       // handleCassetteResponse is for any response from the cassette.  The first response must build the
@@ -372,7 +384,7 @@ Tapedeck.Backend.TemplateManager = {
           // just got data for the correct page
           orderEnforcer++;
         }
-        else if (isFinalCallback && pageNum < orderEnforcer) {
+        else if (isFinalCallback && pageNum <= orderEnforcer) {
           // just got a final callback for a completed page, allow to passthrough
         }
         else {
@@ -380,6 +392,7 @@ Tapedeck.Backend.TemplateManager = {
           setTimeout(handleCassetteResponse, 200, pageNum, response);
           return;
         }
+
         // Only push the browselist if we are still browsing the
         // cassette that these tracks belong to
         if (typeof(cMgr.currentCassette) == "undefined" ||
@@ -413,6 +426,7 @@ Tapedeck.Backend.TemplateManager = {
           var toReturn = { fillAll: true,
                            browseList: browseTrackList,
                            stillParsing: response.stillParsing };
+
           callback(toReturn);
           return;
         }
@@ -475,27 +489,27 @@ Tapedeck.Backend.TemplateManager = {
       }
     }); // end isBrowseListCached
   },
-  getQueue: function(callback) {
+  getQueue: function(blocking, callback) {
     callback(Tapedeck.Backend.Sequencer.queue);
   },
-  getPlaylistList: function(callback) {
+  getPlaylistList: function(blocking, callback) {
     callback(Tapedeck.Backend.Bank.getPlaylists());
   },
-  getPlayerState: function(callback) {
+  getPlayerState: function(blocking, callback) {
     callback(Tapedeck.Backend.Sequencer.getCurrentState());
   },
-  getCurrentTrack: function(callback) {
+  getCurrentTrack: function(blocking, callback) {
     callback(Tapedeck.Backend.Sequencer.getCurrentTrack());
   },
-  getDrawerOpen: function(callback) {
+  getDrawerOpen: function(blocking, callback) {
     callback(Tapedeck.Backend.Bank.drawerOpen);
   },
-  getTabID: function(callback) {
+  getTabID: function(blocking, callback) {
     Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
       callback(selectedTab.id);
     });
   },
-  getOptions: function(callback) {
+  getOptions: function(blocking, callback) {
     Tapedeck.Backend.OptionsManager.getOptions(callback);
   },
 

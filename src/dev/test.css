@@ -94,7 +94,7 @@ body {
   max-width: 275px;
   display: block;
   float: left;
-  clear: right;
+  clear: both;
   overflow: hidden;
   white-space:nowrap;
   text-overflow: ellipsis;
@@ -205,7 +205,7 @@ body {
   min-height: 6px;
 }
 .tracklist #hidden-droprow.drag-target .cell {
-  background-color: #ff8100 !important;
+  background-color: #D99939 !important;
 }
 .tracklist .row-container {
   position: relative;
@@ -222,16 +222,14 @@ body {
   position: relative;
   min-width: 324px;
   height: 19px;
+  border: 0px;
 }
 .tracklist .row:not(.blank):not(#hidden-droprow):hover {
-  background-color: #dfd3b5;
+  background-color: #F8E5B8;
   cursor: pointer;
 
   -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
-  border-right-width: 0px;
   border-left-width: 4px;
-  border-top-width: 0px;
-  border-bottom-width: 0px;
 }
 .tracklist .row-container:hover {
   border-bottom: 1px solid black;
@@ -240,25 +238,19 @@ body {
   padding-left: 1px;
 }
 .tracklist .row.selected {
-  background-color: #fadc97;
+  background-color: #E9D9B4;
 
   -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
-  border-right-width: 0px;
   border-left-width: 4px;
-  border-top-width: 0px;
-  border-bottom-width: 0px;
 }
 .tracklist .row.selected .cell.trackName-col {
   padding-left: 1px;
 }
 .tracklist .row.selected:hover {
-  background-color: #cab786 !important;
+  background-color: #E0CEA3 !important;
 
   -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
-  border-right-width: 0px;
   border-left-width: 4px;
-  border-top-width: 0px;
-  border-bottom-width: 0px;
 }
 .tracklist .row.listened {
   opacity : 0.65;
@@ -291,8 +283,12 @@ body {
   padding-left: 2px;
   border-right: 2px solid #333;
 }
-.tracklist .row.drag-target {
-  border-bottom: solid 2px #ff8100;
+.tracklist .row-container:not(.blank).drag-target {
+  border-bottom: solid 2px #D99939;
+  height: 18px;
+}
+.tracklist .row:not(.blank).drag-target {
+  border-bottom-width: 0;
 }
 .tracklist .cell.trackName-col {
   padding-left: 5px;
@@ -579,9 +575,16 @@ body {
 #modal-container #modal-form {
   margin: 0 0 36px 0;
 }
+#modal-container ul {
+  margin: 0 0 0 0;
+  padding-left: 20px;
+}
 #modal-container input[type='text'] {
   width: 266px;
   margin: 4px 0 0 2px;
+}
+#modal-container .space {
+  height: 4px;
 }
 #modal-container .button-box {
   width: 270px;

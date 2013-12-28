@@ -582,7 +582,7 @@ Tapedeck.Backend.MessageHandler = {
     // remove browselist from needed, we already have it
     delete neededOptions["browseList"];
 
-    tMgr.fillOptions(neededOptions, function(filledOptions) {
+    tMgr.fillOptions(true, neededOptions, function(filledOptions) {
 
       filledOptions.browseList = browseTrackList;
 

@@ -372,7 +372,12 @@ Tapedeck.Backend.CassetteManager = {
     open: function() {
       Tapedeck.Backend.MessageHandler.showModal({
         fields: [{ type : "info",
-                   text : "The Cassette Store is under development and not yet available." }],
+                   text : "The Cassette Store is under development and not yet available." },
+                 { type : "space" },
+                 { type : "info",
+                   text : "Meanwhile, Tapedeck is designed to work on many websites, including:" },
+                 { type : "list",
+                   list : ["any music blog that includes tracks", "any Soundcloud page", "the HypeMachine"] }],
         title: "Find New Cassettes"
       });
     }

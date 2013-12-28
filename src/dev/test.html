@@ -251,9 +251,9 @@
         }
         %>
         <div class="tracklist">
-          <% if((typeof(params.stillParsing) != "undefined" && params.stillParsing) ||
-                 typeof(params.trackList) == "undefined" ||
-                 params.trackList == null) { %>
+          <% if(typeof(params.trackList) == "undefined" ||
+                params.trackList == null ||
+                (params.trackList.destination != "Queue" && typeof(params.stillParsing) != "undefined" && params.stillParsing)) { %>
             <div class="row-container blank">
               <div class="row blank">
                 <div class="spinner loading"
@@ -281,7 +281,9 @@
             <% }
             if (params.trackList.length > 0) { %>
               <div class="row-container blank">
-                <div class="row" id="hidden-droprow" index="-1">
+                <div class="row
+                            <% if (params.trackList[0].listened) { print(" listened ") } %>"
+                     id="hidden-droprow" index="-1">
                   <div class="cell trackName-col"></div>
                   <div class="cell artistName-col"></div>
                   <div class="cell cassette-col"></div>
@@ -580,10 +582,18 @@
               <div class="field-row row <%= field.type %>">
                 <% if (field.type == "info") { %>
                   <span class="info"><%= field.text %></span>
+                <% } else if (field.type == "list") { %>
+                  <ul>
+                    <% for (var i = 0; i < field.list.length; i++) { %>
+                      <li><%= field.list[i] %></li>
+                    <% } %>
+                  </ul>
                 <% } else if (field.type == "input") { %>
                   <span class="input"><%= field.text %></span>
                   <input callbackParam="<%= field.callbackParam %>" type="text" />
-                <% } %>
+                <% } else if (field.type == "space") { %>
+                  <div class="space"></div>
+                <% }%>
               </div>
             <% } %>
             <div class="button-box">

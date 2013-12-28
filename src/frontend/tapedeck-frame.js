@@ -487,15 +487,18 @@ Tapedeck.Frontend.Frame = {
     rowDragEnter: function(e) {
       var target = $(e.target).closest(".row");
       $(target).addClass("drag-target");
+      $(target).closest(".row-container").addClass("drag-target");
     },
     rowDragLeave: function(e) {
       var target = $(e.target).closest(".row");
       $(target).removeClass("drag-target");
+      $(target).closest(".row-container").removeClass("drag-target");
     },
     rowDragEnd: function(e) {
       $(".drag-target").each(function(index, dragTarget) {
         $(dragTarget).removeClass("drag-target");
       });
+      Tapedeck.Frontend.Frame.TrackLists.rowDrag.tracks = [];
     },
     rowDragOver: function(e) {
       if (e.preventDefault) {
