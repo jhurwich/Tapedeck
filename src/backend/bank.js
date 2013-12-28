@@ -1151,7 +1151,7 @@ Tapedeck.Backend.Bank = {
 
       // remove browselist from needed, we are caching it
       delete neededOptions["browseList"];
-      Tapedeck.Backend.TemplateManager.fillOptions(neededOptions, function(filledOptions) {
+      Tapedeck.Backend.TemplateManager.fillOptions(true, neededOptions, function(filledOptions) {
         bank.cacheExpiryData = filledOptions;
 
         var requestedDuration = bank.BROWSELIST_CACHE_TIMEOUT;
@@ -1191,7 +1191,7 @@ Tapedeck.Backend.Bank = {
 
     // remove browselist from needed, we are caching it
     delete neededOptions["browseList"];
-    Tapedeck.Backend.TemplateManager.fillOptions(neededOptions, function(filledOptions) {
+    Tapedeck.Backend.TemplateManager.fillOptions(true, neededOptions, function(filledOptions) {
       for (var param in Tapedeck.Backend.Bank.cacheExpiryData) {
         if (param != "expiry" &&
             Tapedeck.Backend.Bank.cacheExpiryData[param] != filledOptions[param]) {

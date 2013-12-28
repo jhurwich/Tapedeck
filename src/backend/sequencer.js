@@ -348,13 +348,19 @@ Tapedeck.Backend.Sequencer = {
 
       Tapedeck.Backend.MessageHandler.updateSeekSlider();
 
+      // sometimes the "ended" event isn't triggered.  If the track hangs we force the ended event here
       clearTimeout(self.endedCheck);
-      self.endedCheck = setTimeout(function() {
-        if (self.currentState != "stop" && self.currentState != "pause") {
-          console.error("'Ended' was not sent by the audioplayer, triggering manually.");
-          self.playerElement.trigger("ended");
-        }
-      }, 1000);
+      if (self.currentState == "play") {
+        var hungTrackName = self.currentTrack.get("trackName");
+        self.endedCheck = setTimeout(function() {
+
+          // make sure the same track is still playing, if so trigger the ended
+          if (self.currentState == "play" && self.currentTrack.get("trackName") == hungTrackName) {
+            console.error("'Ended' was not sent by the audioplayer, triggering manually.");
+            self.playerElement.trigger("ended");
+          }
+        }, 2000);
+      }
 
     },
 

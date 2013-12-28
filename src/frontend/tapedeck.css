@@ -1,177 +1,256 @@
-/* lightblue: #3299BB;
- * gold: ; #F90
- * tracklist hover: #D0D0D0;
- *
- */
-
+/* Frame and Onscreen Buttons */
 body {
   margin: 0;
   overflow-x: hidden;
   overflow-y: auto;
   position: absolute;
-  width: 100%;
+  width: 365px;
   height: 100%;
   display: block !important; /* necessary so that the frame appears when css ready */
+  font-family: Tahoma, "FreeSans", sans-serif;
 }
 
-#frame {
-  position: relative;
-  padding: 4px;
-}
-
-#player {
-  position: relative;
-  margin-bottom: 15px;
-}
-#banner-region {
-  position: relative;
+#frame-gutter {
   display: block;
-  padding-right: 25px;
-}
-#banner {
   position: relative;
-  height: 40px;
-  width: 100%;
-  border: solid 2px #424242;
-  margin-bottom: 10px;
-  padding: 0 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   float: left;
+  width: 24px;
+  height: 90px;
+  z-index: 9999;
 }
-.slider-track {
-  background-repeat: no-repeat;
-  background-color: transparent;
+
+#onscreen {
+  width: 100%;
+  height: 100%;
+  padding: 2px 0;
+  background-color: #333333;
+  box-shadow: -3px 0 7px 0 rgba(0,0,0,0.6);
+  border-right: 1px solid #222;
+
+  -webkit-transition: right 700ms ease-in-out;
 }
-#volume-slider {
-  position: absolute;
-  top: 2px;
-  right: 3px;
-  width: 9px;
-  height: 40px;
+
+.onscreen-button {
+  display: inline-block !important;
+  position: static !important;
+  right: 0;
+  margin: 2px 2px !important;
+  padding: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  background-size: 18px 18px !important;
+  clear: both !important;
+  float: right;
 }
-#volume-slider #track-top {
-  position: relative;
-  height: 3px;
+
+.onscreen-button.pause {
+  width: 17px !important;
+  margin-left: 1px;
 }
-#volume-slider #track-bottom {
-  position: relative;
-  height: 37px;
-  margin-left: 2px;
+
+.onscreen-button:hover {
+  cursor: pointer;
 }
-#volume-slider #handle {
+
+.onscreen-button[hidden] {
+  display: none !important;
+}
+
+.frame-box {
   display: block;
+  float: left;
+  clear: right;
+  position: relative;
+  background-color: #333333;
+  width: 340px;
+  min-width: 340px;
+  max-width: 340px;
+  height: 100%;
+
+  box-shadow: -3px 0 7px 0 rgba(0,0,0,0.6);
 }
-#volume-slider #handle-image {
-  width: 9px;
-  height: 9px;
-  margin-left: 2px;
+
+/* The Player */
+.player-window {
+  width: 311px;
+  height: 77px;
+  background-color: #FDF2D8;
+  margin: 6px 15px 12px 13px;
+  box-shadow: inset 3px 3px 3px rgba(0,0,0,1),
+              3px 3px 3px rgba(256,256,256,0.5);
 }
-#seek-slider {
+
+.track-info {
+  position: relative;
+  margin: 0 6px 13px 6px;
+  width: 275px;
+  height: 55px;
+  top: 6px;
+  cursor: default;
+
+  -webkit-user-select: none;
+}
+.track-info > div {
+  max-width: 275px;
+  display: block;
+  float: left;
   clear: both;
-  width: 305px;
-  margin: auto;
+  overflow: hidden;
+  white-space:nowrap;
+  text-overflow: ellipsis;
 }
-#seek-slider .slider-track {
-  height: 9px;
+.track-name {
+  font: 24px Tahoma, "FreeSans", sans-serif;
+  line-height: 28px;
 }
-.slider.disabled {
+.artist-name {
+  font: 20px Tahoma, "FreeSans", sans-serif;
+  line-height: 24px;
+}
+
+.seek-slider {
+  height: 2px;
+  width: 280px;
+  background-color: #333333;
+  margin: 0px auto;
+}
+.seek-slider.disabled {
   opacity : 0.4;
 }
-#track-left {
-  width: 5px;
-  float: left;
+.seek-slider.disabled > .handle {
+  cursor: default;
 }
-#track-right {
-  margin-left: 5px;
-}
-#handle {
+.seek-slider .handle {
   position: relative;
-  width: 9px;
-  height: 9px;
-  margin-left: -4px;
+  top: 0px;
+  cursor: pointer;
 }
-#handle-image {
-  height: 12px;
-  margin-top: -3px;
+.handle-image {
+  margin: -2px 0;
 }
-#handle-val {
-  display: none;
-  top: -10px;
+.handle-val {
+  font: 12px Tahoma, "FreeSans", sans-serif;
+  line-height: 14px;
+
   position: absolute;
-  font: 10px arial, sans-serif;
-}
-#player #duration {
-  position: absolute;
-  right: 20px;
-  height: 12px;
-  width: 12px;
-  font: 10px arial, sans-serif;
+  top: -13px;
+  left: -7px;
 }
 
-#browse-list {
-  height: 330px;
+.play-info {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+
+  -webkit-user-select: none;
 }
-#queue {
-  max-height: 280px;
+.status-box {
+  width: 26px;
+  float: left;
 }
-#queue-region {
-   max-height: 300px;
-   height: 300px;
+.status-box img {
+  margin: 1px 2px 2px 2px;
 }
-.region-header {
-  font: bold 18px arial, sans-serif;
-  height: 22px;
+.status-box .sound-icon {
+  position: absolute;
+  right: 6px;
+  top: 21px;
+}
+.volume-slider {
+  height: 40px;
+  width: 2px;
+  position: relative;
+  float: right;
+  background-color: #333333;
+}
+.volume-slider .handle {
+  position: relative;
+  margin: 0 -2px;
+  top: 1px;
+  cursor: pointer;
+}
+
+.duration {
+  position: absolute;
+  top: 45px;
+  right: 0px;
+  font: 12px Tahoma, "FreeSans", sans-serif;
+}
+
+/* TrackLists */
+.tracklist-container {
+  width: 324px;
+  height: 250px;
+  margin: 4px auto;
+  background-color: #FDF2D8;
+  box-shadow: inset 3px 3px 3px rgba(0,0,0,1),
+              3px 3px 3px rgba(256,256,256,0.5);
 }
 .tracklist {
-  max-height: 256px;
-  width: 345px;
-}
-.tracklist,
-.cassettellist-container {
-  position: relative;
+  height: 100%;
+  max-height: 250px;
   overflow-x: hidden;
   overflow-y: auto;
+  border: 1px solid black;
+  border-bottom-color: transparent;
+  border-right-color: #333333;
 }
-.tracklist-container,
-.cassettelist {
-  border-right: none;
-  overflow: hidden;
+.tracklist #hidden-droprow {
+  max-height: 6px;
+  min-height: 6px;
+  border-bottom: none;
 }
-.tracklist .row-container,
-.cassettelist .row-container {
+.tracklist #hidden-droprow .cell {
+  max-height: 6px;
+  min-height: 6px;
+}
+.tracklist #hidden-droprow.drag-target .cell {
+  background-color: #D99939 !important;
+}
+.tracklist .row-container {
   position: relative;
   -khtml-user-select: none;
   width: 100%;
-  max-width: 326px;
+  max-width: 324px;
   overflow: hidden;
-  border-left: solid 2px #424242;
-  border-right: solid 2px #424242;
+  border-bottom: 1px solid #333;
 }
-.tracklist .row-container:first-child {
-  border-top: solid 2px #424242;
+.tracklist .row-container.blank {
+  border-bottom-width: 0px !important;
 }
-.tracklist .row-container:last-child {
-  border-bottom: solid 2px #424242;
-}
-.tracklist .row,
-.cassettelist .row{
-  background-color: #E9E9E9;
+.tracklist .row {
   position: relative;
-  min-width: 330px;
-  height: 16px;
-  z-index: 3;
+  min-width: 324px;
+  height: 19px;
+  border: 0px;
 }
-.tracklist .row:not(.blank):hover {
-  background-color: #d0d0d0;
+.tracklist .row:not(.blank):not(#hidden-droprow):hover {
+  background-color: #F8E5B8;
   cursor: pointer;
+
+  -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
+  border-left-width: 4px;
+}
+.tracklist .row-container:hover {
+  border-bottom: 1px solid black;
+}
+.tracklist .row:not(.blank):not(#hidden-droprow):hover .cell.trackName-col {
+  padding-left: 1px;
 }
 .tracklist .row.selected {
-  background-color: #b6b6b6;
+  background-color: #E9D9B4;
+
+  -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
+  border-left-width: 4px;
+}
+.tracklist .row.selected .cell.trackName-col {
+  padding-left: 1px;
 }
 .tracklist .row.selected:hover {
-  background-color: #9d9d9d;
+  background-color: #E0CEA3 !important;
+
+  -webkit-border-image: -webkit-gradient(linear, 0 0, 100% 0, color-stop(0, black), color-stop(1, transparent)) 0 100%;
+  border-left-width: 4px;
 }
 .tracklist .row.listened {
   opacity : 0.65;
@@ -190,370 +269,295 @@ body {
   padding: 3px;
   cursor: default;
 }
-.tracklist .spinner.loading,
-.cassettelist .spinner.loading {
-  height: 12px;
-  width: 16px;
-  position: absolute;
-  left: 50%;
-  top: 3px;
-  margin-left: -8px;
-  background-repeat: no-repeat;
-}
-.tracklist .error-msg,
-.cassettelist .error-msg {
-  color: red;
-}
-.tracklist-container .cell,
-.cassettelist .cell {
+.tracklist-container .cell {
   position: relative;
   display: table-cell;
   -webkit-user-select: none;
   user-select: none;
   min-height: 16px;
   float: left;
-  font: 14px arial,sans-serif;
+  font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-right: solid 1px #3299BB;
-  border-bottom: solid 1px #3299BB;
   padding-left: 2px;
+  border-right: 2px solid #333;
 }
-.tracklist .row-container:last-child .cell{
-  border-bottom: none;
+.tracklist .row-container:not(.blank).drag-target {
+  border-bottom: solid 2px #D99939;
+  height: 18px;
 }
-.tracklist .row.drag-target .cell{
-  border-bottom: solid 2px #ff9900;
+.tracklist .row:not(.blank).drag-target {
+  border-bottom-width: 0;
 }
 .tracklist .cell.trackName-col {
-  width: 150px;
+  padding-left: 5px;
+  width: 143px;
 }
 .tracklist .cell.artistName-col {
-  width: 100px;
+  width: 96px;
 }
 .tracklist .cell.cassette-col {
-  border-right: none;
   width: 71px;
+  border-right: none;
 }
 .tracklist .trackName-span:hover {
   text-decoration: underline;
   cursor: pointer;
 }
-.tracklist-container .row-buttons,
-.cassettelist .row-buttons {
-  position: absolute;
-  top: 0px;
-  right: 2px;
-  margin: 1px;
-}
-.tracklist .row-indicators {
-  display: inline-block;
-  position: absolute;
-  right: 2px;
-  margin: 1px;
-}
-.tracklist .row-buttons > .button,
-.tracklist .row-indicators > #download-spinner,
-.cassettelist .row-buttons > .button {
-  display: inline-block;
-  height: 12px;
-  width: 12px;
-  float: left;
-  border: 1px solid black;
-  background-position: center;
-  margin-left: 1px;
-}
-.tracklist .row .row-buttons,
-.cassettelist .row .row-buttons {
-  display: none;
-}
-.tracklist .row:hover .row-buttons,
-.cassettelist .row:hover .row-buttons {
-  display: inline-block;
-}
-.cassettelist .row-buttons .button {
-  border: none;
-  margin: 2px;
-}
-.cassettelist .row[cassette-name='Scraper'] .button.remove {
-  display: none;
-}
-#browse-list .row .row-buttons > .button.remove {
-  display: none;
-}
-#queue .row .row-buttons > .button.queue {
-  display: none;
-}
-.tracklist .row[download="downloading"] .row-buttons > .button.download {
-  visibility: hidden;
-}
-.tracklist .row .row-indicators > #download-spinner {
-  display: none;
-}
-.tracklist .row[download="downloading"] .row-indicators > #download-spinner {
-  display: inline-block;
-  border: 1px solid transparent;
-}
-#playback-button-box {
-  float: right;
-  padding-top: 2px;
-  padding-right: 18px;
-}
-.playback-button {
-  cursor: pointer;
-  width: 20px;
-}
-.tracklist #hidden-droprow {
-  max-height: 3px;
-  min-height: 3px;
-}
-.tracklist #hidden-droprow .cell {
-  max-height: 3px;
-  min-height: 3px;
-  background-color: #E9E9E9 !important;
-}
-.tracklist #hidden-droprow .cell {
-  border-bottom: transparent !important;
-}
-.tracklist #hidden-droprow.drag-target .cell {
-  background-color: #ff9900 !important;
+
+#queue {
 }
 
 #queue-buttons {
-  margin-bottom: 4px;
+  width: 328px;
   height: 26px;
+  margin: auto;
 }
 
-#playlist-list {
-  position: relative;
+#cassette-list {
+  width: 334px;
+  margin: 0 auto;
 }
-#playlist-list #playlist-list-header {
-  width: 90px;
-  border: 2px solid #424242;
-  background-color: #f2f2f2;
-  margin: 3px;
+
+#current-cassette-row,
+#cassette-list .row,
+#add-cassettes-buttons .button {
+  position: relative;
+  z-index: 4;
+  height: 22px;
+  margin-top: -2px;
+  padding: 2px 0 2px 4px;
+
+  background-color: #1A1A1A;
+  color: white;
+  border: 1px solid black;
+  box-shadow: inset 2px -2px 2px rgba(0,0,0,0.5),
+              3px 1px 3px rgba(256,256,256,0.5),
+              0px -2px 2px rgba(0,0,0,0.6);
+
+}
+#cassette-list .row:hover,
+#add-cassettes-buttons .button:hover {
+  background-color: #121212;
+  cursor: pointer;
+}
+#current-cassette-row .cassetteName,
+#cassette-list .row .cassetteName {
+  position: relative;
+  font-size: 18px;
   float: left;
-  text-align: center;
-  font-size: 14px;
-}
-#playlist-list #playlist-list-content {
-  display: none;
-  position: absolute;
-  top: 22px;
-  left: 3px;
-  border: solid 2px #424242;
-  background-color: #f2f2f2;
-  z-index: 50;
-}
-#playlist-list-content .row:hover {
-  background-color: #d0d0d0;
-  cursor: pointer;
-}
-#playlist-list .row,
-#playlist-list .blank-row {
-  display: table-row;
-  -khtml-user-select: none;
-  min-height: 16px;
-}
-#playlist-list .row .row-buttons > .button {
-  height: 14px;
-  width: 14px;
-  margin: 1px;
-  background-position: center;
-}
-#playlist-list .cell {
-  display: table-cell;
-  min-height: 16px;
-  float: left;
-  font: 14px arial,sans-serif;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-bottom: solid 1px #3299BB;
-}
-#playlist-list .row:last-child .cell{
-  border-bottom: none;
-}
-#playlist-list .cell.playlistName-col {
-  width: 200px;
-}
-
-.cassettelist .row {
-  background-color: #515151;
-  height: 20px;
-  position: relative;
-}
-.cassettelist .row:not(.blank):hover {
-  background-color: #2f2f2f;
-  cursor: pointer;
-}
-.cassettelist .row.active {
-  background-color: #272727 !important;
-}
-.cassettelist .cell,
-.tracklist-container #current-cassette-row .cell {
-  min-height: 20px;
-  border-right: solid 2px #424242;
-  border-bottom: solid 2px #424242;
-  font: 16px arial,sans-serif;
-  color: #eeeeee;
-}
-.cassettelist .row-container:first-child .row {
-  border-top: 2px solid #424242;
-}
-.cassettelist .row.blank {
-  border-bottom: 2px solid #424242;
-}
-.tracklist-container #current-cassette-row .cassetteName-col {
-  font-weight: bold;
-  top: 2px;
-}
-.cassettelist .cell.cassetteName-col {
-  width: 168px;
-  font-weight: bold;
-}
-.cassettelist .cell.developerName-col {
-  width: 155px;
-  border-right: none;
-}
-.developer-link:hover {
-  color: #3299BB;
-}
-
-#add-cassettes-menu {
-  postion: relative;
-  margin-right: 12px;
-}
-#add-cassettes-button {
-  float: right;
-  height: 20px;
-  width: 20px;
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-#add-cassettes-menu[visible] #add-cassettes-button {
-  background-color: #F2F2F2;
-  border: 1px solid #424242;
-  cursor: pointer;
-}
-#add-cassettes-content {
-  display: none;
-  position: relative;
-  float: right;
-  clear: right;
+  width: 146px;
   margin-top: -1px;
-  width: 235px;
-  border: 1px solid #424242;
-  background-color: #F2F2F2;
 }
-#add-cassettes-content .menu-row {
-  border-bottom: 1px solid #424242;
-  padding-left: 4px;
-  -khtml-user-select: none;
-}
-#add-cassettes-content .menu-row.coming-soon {
-  opacity : 0.4;
-  cursor: default;
-}
-#add-cassettes-content .menu-row:last-child {
-  border-bottom: none;
-}
-#add-cassettes-content .menu-row:not(.coming-soon):hover {
-  background-color: #d0d0d0;
-  cursor: pointer;
-}
-
-
-.tracklist-container #current-cassette-row .cell {
-  border: none;
-}
-.tracklist-container #current-cassette-row #feed-switcher {
-  width: 100px;
-  font-size: 14px;
+#current-cassette-row #feed-switcher {
+  position: relative;
+  width: 94px;
   display: inline-block;
   float: left;
-  margin: 0 7px 0 0;
+  background-color: black;
 }
 .tracklist-container #current-cassette-row #feed-switcher .feed-row {
-  float: left;
   position: relative;
-  padding: 2px 0 0 6px;
   font-size: 14px;
-  background-color: #181818;
-  min-height: 18px;
+  min-height: 22px;
   width: 100%;
-  z-index: 50;
+  cursor: pointer;
+  padding: 1px 0 1px 4px;
+  -webkit-box-sizing: border-box;
 }
-.tracklist-container #current-cassette-row #feed-switcher #feed-switcher-header.feed-row {
-  cursor: default;
+.tracklist-container #current-cassette-row #feed-switcher .feed-row:hover {
+  background-color: #121212;
+  border: 1px solid black;
+  padding: 0 0 0 3px;
 }
-.tracklist-container #current-cassette-row #feed-switcher #feed-switcher-content {
+#current-cassette-row #feed-switcher #feed-switcher-content {
   display: none;
 }
-.tracklist-container #current-cassette-row #feed-switcher #feed-switcher-content .feed-row:hover {
-  cursor: pointer;
-  color: #ff9900;
+#current-cassette-row .row-buttons {
+  width: 72px;
+  position: relative;
+  display: block;
+  float: right;
+  margin-left: 2px;
 }
-.tracklist-container #current-cassette-row .row-buttons > .button {
+#current-cassette-row .row-buttons .button {
   display: inline-block;
-  margin: 0 1px;
-  height: 18px;
+  height: 100%;
   width: 16px;
-  float: left;
-  border: 1px solid black;
-  background-position: center;
-  background-color: #181818;
+  float: right;
   cursor: pointer;
+  background-color: black;
+  background-position: center;
+  background-repeat: no-repeat;
 }
-.tracklist-container #current-cassette-row .button.current-page {
-  display: inline-block;
-  font: bold 16px arial, sans-serif;
+#current-cassette-row .row-buttons .current-page {
+  width: 20px;
+  max-width: 20px;
+  font: bold 13px arial, sans-serif;
   text-align: center;
-  width: 24px;
-  max-width: 24px;
-  padding-right: 1px;
-  color: #EEE;
+  line-height: 20px;
 }
-.tracklist-container #current-cassette-row #set-page {
-  width: 19px;
+#current-cassette-row .row-buttons #set-page {
+  width: 20px;
+  max-width: 20px;
   border: none;
-  float: left;
-  margin: 1px;
+  float: right;
   padding: 0 1px;
   text-align: center;
 }
-.tracklist-container #current-cassette-row {
-  display: table;
-  position: absolute;
-  height: 20px;
-  width: 326px;
-  border: 2px solid #424242;
-  background-color: #515151;
+#current-cassette-row .row-buttons .eject {
+  width: 17px;
+  border-left: 2px solid #1A1A1A;
+  margin-right: 1px;
 }
 
+#cassette-list .row {
+  margin: 4px 2px;
+  box-shadow: 3px 3px 3px rgba(0,0,0,0.5);
+}
+#cassette-list .row .cassetteName {
+  width: 200px;
+}
+#cassette-list .row .developerName {
+  background-color: black;
+  width: 110px;
+  float: left;
+  padding: 3px 4px 0 4px;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tracklist .spinner.loading,
+#cassette-list .spinner.loading {
+  height: 12px;
+  width: 16px;
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  margin-left: -8px;
+  background-repeat: no-repeat;
+}
+
+#add-cassettes-buttons .button {
+  margin: 0 2px;
+  width: 161px;
+  float: left;
+  padding: 0 0 2px 0;
+  box-shadow: 3px 3px 3px rgba(0,0,0,0.5);
+}
+#add-cassettes-buttons .button-content {
+  margin: 0 auto;
+  font-size: 18px;
+  height: 100%;
+  max-width: 42%;
+}
+#add-cassettes-buttons .button:last-child {
+  clear: right;
+}
+#add-cassettes-buttons .button-content .icon {
+  height: 16px;
+  width: 20px;
+  display: inline-block;
+}
+#add-cassettes-buttons .button-content .text-content {
+  display: inline-block;
+  height: 22px;
+}
+
+#playlist-list {
+  width: 18px;
+  max-width: 228px;
+  min-height: 18px;
+  max-height: 18px;
+  float: left;
+  margin: 3px 0 0 4px;
+  border: 1px dashed #999;
+  overflow: hidden;
+  background-color: #333333;
+  z-index: 1;
+  position: absolute;
+
+  font-size: 14px;
+  white-space: nowrap;
+
+  -webkit-transition: width 600ms linear,
+                      max-height 600ms linear,
+                      background-color 600ms ease-out;
+}
+#playlist-list:hover {
+  width: 228px;
+  max-height: 400px;
+  background-color: #E5E5E5;
+  z-index: 5;
+}
+#playlist-list .row {
+  display: block;
+  width: 100%;
+  height: 20px;
+  max-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid #999;
+}
+#playlist-list .row:last-child {
+  border-bottom: none;
+}
+#playlist-list .row:hover {
+  background-color: #CCCCCC;
+  cursor: pointer;
+}
+#playlist-list #playlist-list-icon {
+  float: left;
+}
+#playlist-list #new-playlist-text {
+  padding-top: 1px;
+}
+#playlist-list #playlist-list-content {
+  min-width: 228px;
+}
+#playlist-list #playlist-list-content .row {
+  padding-left: 4px;
+}
+
+#playback-button-box {
+  float: right;
+  padding-top: 3px;
+}
+.playback-button {
+  cursor: pointer;
+  float: left;
+  margin-left: 2px;
+}
+
+#modal {
+  position: absolute;
+  top: 0px;
+  left: 24px;
+  width: 340px;
+  height: 100%;
+}
 #blackout {
-  position: fixed;
-  top:0;
-  left: 0;
-  width: 500px;
+  position: absolute;
+  width: 100%;
   height: 100%;
   background-color: black;
   opacity: .4;
   z-index: 100;
 }
 #modal-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  margin-left: -150px;
-  margin-top: -100px;
-  width: 300px;
-  height: 200px;
-  background-color: #E9E9E9;
+  position: relative;
+  top: 30%;
+  margin: 0 auto;
+  width: 270px;
+  min-height: 150px;
   z-index: 101;
-  padding: 8px 6px;
+  padding: 2px 6px;
+
+  background-color: #FDF2D8;
+  border: 3px solid #1A1A1A;
   border-radius: 7px;
+  box-shadow: 4px 4px 6px rgba(0,0,0,0.5);
 }
 #modal-container #close-button {
   position: absolute;
@@ -561,13 +565,37 @@ body {
   right: 0;
   height: 14px;
   width: 14px;
-  margin: 3px;
+  margin: 8px;
   cursor: pointer;
 }
 #modal-container #modal-title {
-  text-decoration: underline;
-  font-size: 20px;
+  font-size: 22px;
+  color: #333;
 }
-#modal-container .field-row.info {
-  margin-top: 5px;
+#modal-container #modal-form {
+  margin: 0 0 36px 0;
+}
+#modal-container ul {
+  margin: 0 0 0 0;
+  padding-left: 20px;
+}
+#modal-container input[type='text'] {
+  width: 266px;
+  margin: 4px 0 0 2px;
+}
+#modal-container .space {
+  height: 4px;
+}
+#modal-container .button-box {
+  width: 270px;
+  position: absolute;
+  bottom: 6px;
+}
+#modal-container .submit-button {
+  color:#FFFFFF;
+  font: 14px Tahoma, "FreeSans", sans-serif;
+  background-color:#333333;
+  border: 1px solid black;
+  box-shadow: 2px 2px 2px rgba(0,0,0,0.4);
+  cursor: pointer;
 }

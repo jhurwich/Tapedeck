@@ -102,6 +102,7 @@ Tapedeck.Backend.InjectManager = {
       }
       Tapedeck.Backend.TemplateManager.renderViewAndPush("Frame", function(rendered) {
         // nothing to do, already pushed
+        console.log("Frame pushed on selection change");
       });
     });
   },
