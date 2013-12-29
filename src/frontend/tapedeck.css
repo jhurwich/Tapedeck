@@ -343,6 +343,19 @@ body {
   display: none;
   margin-right: 2px;
 }
+#cassette-list .row .row-buttons > .button {
+  display: inline-block;
+  height: 20px;
+  width: 20px;
+  float: left;
+  margin: 1px;
+  background-position: center;
+  background-repeat: no-repeat;
+  float: right;
+}
+#cassette-list .row[preload="true"] .row-buttons {
+  display: none;
+}
 
 .tracklist .row[download="downloading"] .row-buttons > .button.download {
   display: none;
@@ -468,7 +481,7 @@ body {
   box-shadow: 3px 3px 3px rgba(0,0,0,0.5);
 }
 #cassette-list .row .cassetteName {
-  width: 200px;
+  width: 184px;
 }
 #cassette-list .row .developerName {
   background-color: black;

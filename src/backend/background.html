@@ -538,6 +538,7 @@
         </options>
         <images>
           ".button.eject" : "eject.png",
+          ".button.removeCassette" : "remove-cassette.png",
           ".button.find .spyglass.icon" : "spyglass.png",
           ".button.cassettify .cassettify.icon" : "cassettify.png",
            "#cassette-list .spinner.loading" : "grey-on-dark-loader.gif",
@@ -568,7 +569,10 @@
               <div class="row-container">
                 <div class="row <% if (cassette.active) { print(" active "); } %>"
                      index='<%= i %>'
-                     cassette-name='<%= cassette.name %>' >
+                     cassette-name='<%= cassette.name %>'
+                     <% if (typeof(cassette.preload) != "undefined") { %>
+                       preload="<%= cassette.preload %>"
+                     <% } %> >
                   <div class="cassetteName" title='<%= displayName %>'> <%= displayName %> </div>
                   <div class="developerName"
                        title='<%= cassette.developerLink %>'

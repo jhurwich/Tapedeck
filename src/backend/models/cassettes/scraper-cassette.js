@@ -4,6 +4,7 @@ Tapedeck.Backend.Cassettes.ScraperCassette = Tapedeck.Backend.Models.Cassette.ex
     "developer" : "Jhawk",
     "developerLink" : "www.tape-deck.com",
     "cacheDuration" : 0,
+    "preload" : true
   },
 
   // Don't want the interval event

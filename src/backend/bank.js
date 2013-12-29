@@ -352,7 +352,7 @@ Tapedeck.Backend.Bank = {
       Tapedeck.Backend.Bank.localStorage.removeItem(feedKey);
     },
 
-    // Returns cassetteDatas of the form - name: "", contents: "", url: "" (, page: num)
+    // Returns cassetteDatas of the form - name: "", contents: "", url: "" (, page: num, preload: bool)
     getCassettes: function(aCallback) {
       var bank = Tapedeck.Backend.Bank;
 
@@ -403,6 +403,9 @@ Tapedeck.Backend.Bank = {
             if (feed != null) {
               devData.feed = feed;
             }
+
+            // all dev cassettes are preloads
+            devData.preload = true;
 
             datas.push(devData);
             done[devData.name] = true;

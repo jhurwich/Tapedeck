@@ -64,6 +64,11 @@ Tapedeck.Backend.CassetteManager = {
               });
               Tapedeck.Backend.MessageHandler.messageSandbox(message, function(response) {
                 var newAdapter = new Tapedeck.Backend.Models.CassetteAdapter(response.report);
+
+                if (typeof(data.preload) != "undefined") {
+                  newAdapter.set({ "preload": data.preload });
+                }
+
                 var cassetteEntry = { cassette: newAdapter };
 
                 // attach pages from saved CassetteData
