@@ -307,6 +307,51 @@ body {
   text-decoration: underline;
   cursor: pointer;
 }
+
+.tracklist .row-buttons > .button,
+.tracklist .row-indicators > div {
+  display: inline-block;
+  height: 17px;
+  width: 17px;
+  float: left;
+  margin: 1px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.tracklist .row:hover .cassette-col,
+.tracklist .row[download="downloading"] .cassette-col {
+  padding-left: 0;
+}
+.tracklist .row:hover .cassette-col > .cassette-span,
+.tracklist .row[download="downloading"] .cassette-col > .cassette-span {
+  display: none;
+}
+.tracklist .row .row-buttons,
+.tracklist .row .row-indicators > div {
+  display: none;
+  float: left;
+}
+.tracklist .row:hover .row-buttons,
+.tracklist .row[download="downloading"] .row-buttons {
+  display: inline-block;
+}
+#browse-list .row .row-buttons > .button.remove {
+  display: none;
+  margin-right: 2px;
+}
+#queue .row .row-buttons > .button.queue {
+  display: none;
+  margin-right: 2px;
+}
+
+.tracklist .row[download="downloading"] .row-buttons > .button.download {
+  display: none;
+}
+.tracklist .row[download="downloading"] .row-indicators > .download {
+  display: inline-block !important;
+
+}
+
 .tracklist .row.message {
   padding: 3px 0 0 5px;
   cursor: default;

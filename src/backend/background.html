@@ -280,10 +280,10 @@
         <options>
         </options>
         <images>
-          ".button.playnow" : "rowbutton-playnow.png",
-          ".button.remove" : "rowbutton-remove.png",
-          ".button.queue" : "rowbutton-queue.png",
-          ".button.download" : "rowbutton-download.png",
+          ".button.playnow" : "play-rowbutton.png",
+          ".button.remove" : "remove-rowbutton.png",
+          ".button.queue" : "queue-rowbutton.png",
+          ".button.download" : "download-rowbutton.png",
           ".spinner.download" : "download-spinner.gif",
 
           ".tracklist .spinner.loading" : "dark-on-peach-loader.gif",
@@ -361,7 +361,7 @@
                       <%= track.artistName %>
                     </div>
                     <div class="cell cassette-col" title='<%= track.cassette.replace(/_/g, " ") %>'>
-                      <%= track.cassette.replace(/_/g, " ") %>
+                      <span class="cassette-span"><%= track.cassette.replace(/_/g, " ") %></span>
                       <div class="row-buttons">
                         <div class="button playnow"></div>
                         <div class="button remove"></div>
