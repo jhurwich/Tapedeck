@@ -249,6 +249,9 @@ Tapedeck.Backend.TemplateManager = {
       "playlistList" : tMgr.getPlaylistList,
       "playerState" : tMgr.getPlayerState,
       "currentTrack" : tMgr.getCurrentTrack,
+      "duration" : tMgr.getDuration,
+      "currentTime" : tMgr.getCurrentTime,
+      "volume" : tMgr.getVolume,
       "drawerOpen" : tMgr.getDrawerOpen,
       "tabID" : tMgr.getTabID,
       "options": tMgr.getOptions
@@ -500,6 +503,15 @@ Tapedeck.Backend.TemplateManager = {
   },
   getCurrentTrack: function(blocking, callback) {
     callback(Tapedeck.Backend.Sequencer.getCurrentTrack());
+  },
+  getDuration: function(blocking, callback) {
+    callback(Tapedeck.Backend.Sequencer.getDuration());
+  },
+  getCurrentTime: function(blocking, callback) {
+    callback(Tapedeck.Backend.Sequencer.getCurrentTime());
+  },
+  getVolume: function(blocking, callback) {
+    callback(Tapedeck.Backend.Sequencer.getVolume());
   },
   getDrawerOpen: function(blocking, callback) {
     callback(Tapedeck.Backend.Bank.drawerOpen);

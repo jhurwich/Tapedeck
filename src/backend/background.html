@@ -172,7 +172,10 @@
         </events>
         <options>
           "playerState" : "state",
-          "currentTrack" : "track"
+          "currentTrack" : "track",
+          "duration" : "duration",
+          "currentTime" : "currentTime",
+          "volume" : "volume".
         </options>
         <images>
           ".status-icon.ready"  : "in-player-pause.png",
@@ -191,12 +194,14 @@
         <% if(params.debug > 0) {
           params.paramSanity("playerState", false, params.state);
           params.paramSanity("currentTrack", false, params.track);
+          params.paramSanity("volume", false, params.volume);
+          params.paramSanity("duration", false, params.duration);
+          params.paramSanity("currentTime", false, params.currentTime);
         } %>
         <div class="player-window">
           <% if (typeof(params.state) == "undefined" || !params.state) {
             params.state = 'stop';
           } %>
-
           <div class="track-info">
             <% if (params.state != "stop" &&
                    typeof(params.track) != "undefined" &&
@@ -214,22 +219,52 @@
             } %>
           </div>
 
+          <%
+          var prettifyTime = function(inSeconds) {
+            var minutes = (Math.floor(inSeconds / 60)).toString();
+            var seconds = Math.floor((inSeconds % 60)).toString();
+            if (seconds.length == 1) {
+              seconds = "0" + seconds;
+            }
+            return "" + minutes + ":" + seconds;
+          };
+          %>
+
           <div class="play-info">
             <div class="status-box">
               <img class="status-icon <%= params.state %>"></img>
               <img class="sound-icon"></img>
             </div>
             <div class="volume-slider">
-              <img class="handle"></img>
+              <%
+              var offset = 0;
+              if (params.volume > 0) {
+                var maxOffset = 40; /* slider height set by css to 40px */
+                offset = maxOffset * (1 - params.volume);
+              }
+              %>
+              <img class="handle"
+                <% if (offset > 0) {
+                  print("style='top: " + offset + "px;'");
+                }%>
+                ></img>
             </div>
-            <div class="duration"></div>
+            <div class="duration"><%= (params.duration != null ? prettifyTime(params.duration) : "" ) %></div>
           </div>
 
           <div class="seek-slider
                       <% if (params.state != "play" && params.state != "pause" && params.state != "ready") {
                         print(" disabled ");
                       }%>" >
-            <div class="handle">
+            <div class="handle"
+              <%
+              if (params.duration != null && params.currentTime > 0) {
+                var sliderWidth = 290;
+                var maxOffset = sliderWidth - 6;
+                offset = Math.floor((params.currentTime/params.duration) * maxOffset);
+                print("style='left: " + offset + "px;'");
+              }
+              %> >
               <div class="handle-val"></div>
               <img class="handle-image"></img>
             </div>
@@ -664,9 +699,8 @@
 
   </head>
   <body>
-    <audio id="audioplayer1" preload="auto">
-    <audio id="audioplayer2" preload="auto">
-    </audio>
+    <audio id="audioplayer1" preload="auto"></audio>
+    <audio id="audioplayer2" preload="auto"></audio>
     <div id="dump"> </div>
     <iframe id="sandbox" src="sandbox.html"></iframe>
   </body>

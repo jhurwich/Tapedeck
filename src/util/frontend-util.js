@@ -19,6 +19,27 @@ var attachTo = function(onObject) {
       var view = $(viewStr);
       var targetID = $(view).first().attr("id");
 
+      // remove all whitespace and attrs that are dependent on others like class to see if the views are actually the same
+      var existingView = $("#" + targetID)[0].outerHTML.replace(/\s+/g, '');
+      var newView = viewStr.replace(/\s+/g, '').replace(/src=['|"].*?['|"]/g, '').replace(/style=['|"].*?['|"]/g, '');
+
+      var dependentAttrs = ["src", "style"];
+      for (var i = 0; i < dependentAttrs.length; i++) {
+        var attrRegex = new RegExp(dependentAttrs[i] + "=[\'|\"].*?[\'|\"]", "g");
+        existingView = existingView.replace(attrRegex, '');
+        newView = newView.replace(attrRegex, '');
+      }
+
+      // times are special cases where HTML is updated in the frame.js, ignore them
+      existingView = existingView.replace(/\d+:\d\d/g, "");
+      newView = newView.replace(/\d+:\d\d/g, "");
+
+      // don't place in new views that are the same as existing views
+      var areSame = existingView == newView;
+      if (areSame) {
+        return;
+      }
+
       $("#" + targetID).replaceWith(view);
 
       // handle proxyEvents

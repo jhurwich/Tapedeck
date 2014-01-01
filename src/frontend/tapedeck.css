@@ -82,7 +82,7 @@ body {
 
 .track-info {
   position: relative;
-  margin: 0 6px 13px 6px;
+  margin: 0 6px 13px 10px;
   width: 275px;
   height: 55px;
   top: 6px;
@@ -110,7 +110,7 @@ body {
 
 .seek-slider {
   height: 2px;
-  width: 280px;
+  width: 290px;
   background-color: #333333;
   margin: 0px auto;
 }
@@ -129,11 +129,11 @@ body {
   margin: -2px 0;
 }
 .handle-val {
-  font: 12px Tahoma, "FreeSans", sans-serif;
+  font: 11px Tahoma, "FreeSans", sans-serif;
   line-height: 14px;
 
   position: absolute;
-  top: -13px;
+  top: -14px;
   left: -7px;
 }
 
@@ -172,9 +172,9 @@ body {
 
 .duration {
   position: absolute;
-  top: 45px;
+  top: 46px;
   right: 0px;
-  font: 12px Tahoma, "FreeSans", sans-serif;
+  font: 11px Tahoma, "FreeSans", sans-serif;
 }
 
 /* TrackLists */

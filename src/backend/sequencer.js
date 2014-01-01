@@ -9,8 +9,7 @@ Tapedeck.Backend.Sequencer = {
     }
 
     sqcr.prepareQueue(function() {
-      var volume = Tapedeck.Backend.Bank.getVolume();
-      sqcr.Player.setVolume(volume);
+
     });
   },
 
@@ -78,6 +77,9 @@ Tapedeck.Backend.Sequencer = {
       this.playerElement = $(this.playerID).first();
       this.prefetchElement = $(this.prefetchID).first();
       this.currentState = this.STATES.STOP;
+
+      var volume = Tapedeck.Backend.Bank.getVolume();
+      this.setVolume(volume);
 
       this.attachEvents();
     },
@@ -319,6 +321,19 @@ Tapedeck.Backend.Sequencer = {
       Tapedeck.Backend.Sequencer.log("Prefetch Complete.");
     },
 
+    getDuration: function() {
+      if(isNaN(this.playerElement.get(0).duration)) {
+        return null;
+      }
+      else {
+        return this.playerElement.get(0).duration;
+      }
+    },
+
+    getCurrentTime: function() {
+      return this.playerElement.get(0).currentTime;
+    },
+
     handleDurationChange: function(self) {
       var duration = self.playerElement.get(0).duration;
       Tapedeck.Backend.Sequencer.log("Duration update '" + duration + "'...");
@@ -424,6 +439,15 @@ Tapedeck.Backend.Sequencer = {
   },
   getCurrentTrack: function() {
     return this.Player.currentTrack;
+  },
+  getDuration: function() {
+    return this.Player.getDuration();
+  },
+  getCurrentTime: function() {
+    return this.Player.getCurrentTime();
+  },
+  getVolume: function() {
+    return this.Player.getVolume();
   },
 
   playIndex: function(index) {

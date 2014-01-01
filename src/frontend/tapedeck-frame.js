@@ -239,9 +239,9 @@ Tapedeck.Frontend.Frame = {
         if (displayTime || $(handle).hasClass("hover")) {
           $(handleVal).css("display", "block");
 
-          // hide the duration to make room for the handle's time, if < 28px from the right
+          // hide the duration to make room for the handle's time, if < 25px from the right
           var sliderWidth = parseInt($(".seek-slider").first().css("width"), 10);
-          if (sliderWidth - offset <= 28) {
+          if (sliderWidth - offset <= 25) {
             $(".duration").hide();
           }
           else {
