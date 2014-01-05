@@ -146,7 +146,7 @@ describe("Bank", function() {
     var toggleComplete = false;
     self.bank.toggleSync(function() { toggleComplete = true; });
 
-    waitsFor(function() { return toggleComplete; }, "Waiting for sync to toggle #1.", 1000);
+    waitsFor(function() { return toggleComplete; }, "Waiting for sync to toggle #1.", 3000);
     runs(function() {
       expect(self.bank.isSyncOn()).toBeTruthy();
 

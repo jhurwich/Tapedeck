@@ -20,7 +20,10 @@ var attachTo = function(onObject) {
       var targetID = $(view).first().attr("id");
 
       // remove all whitespace and attrs that are dependent on others like class to see if the views are actually the same
-      var existingView = $("#" + targetID)[0].outerHTML.replace(/\s+/g, '');
+      var existingView = "";
+      if ($("#" + targetID).length > 0) {
+        existingView = $("#" + targetID)[0].outerHTML.replace(/\s+/g, '');
+      }
       var newView = viewStr.replace(/\s+/g, '').replace(/src=['|"].*?['|"]/g, '').replace(/style=['|"].*?['|"]/g, '');
 
       var dependentAttrs = ["src", "style"];

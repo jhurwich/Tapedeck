@@ -155,7 +155,7 @@ describe("Template Manager", function() {
 
         // we've changed to the test package, let's make sure we get its templates now
         var textTemplate = self.tMgr.getTemplate("Frame", function(textTemplate) {
-          expect($(textTemplate).find("#this-is-the-spec-template").length > 0).toBeTruthy();
+          expect(textTemplate.indexOf("this-is-the-spec-template")).not.toEqual(-1);
           testComplete = true;
         });
       });

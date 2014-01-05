@@ -21,8 +21,11 @@ describe("The HypeMachine Cassette", function() {
             div.innerHTML = expectedJSON[attr];
             var decoded = div.firstChild.nodeValue;
 
-            // div can truncate text, remove "%E2%80%A6" = "…"
-            decoded = decoded.replace(decodeURIComponent("%E2%80%A6"), "");
+            // div can truncate text, remove "%E2%80%A6" = "…" and "..." and only compare to actual at truncated length
+            decoded = decoded.replace(decodeURIComponent("%E2%80%A6"), "").replace("...", "");
+            actualJSON[attr] = actualJSON[attr].replace(decodeURIComponent("%E2%80%A6"), "").replace("...", "");
+
+            decoded = decoded.substring(0, actualJSON[attr].length);
             if (actualJSON[attr].indexOf(decoded) == -1) {
               expect(actualJSON[attr]).toMatch(decoded);
             }
@@ -56,8 +59,21 @@ describe("The HypeMachine Cassette", function() {
       }, "Timed out waiting for track parsing", 5000);
     };
 
-    this.waitsForFrontendInit();
-    this.waitsForHypeMCheck();
+    // make sure the full init happens if we're set to not usually
+    if (!__Jasmine__DO_FULL_INIT) {
+      this.waitsForBackendInit();
+    }
+    runs(function() {
+      this.waitsForFrontendInit();
+
+      runs(function() {
+        this.waitsForHypeMCheck();
+
+        runs(function() {
+          // HypeM Ready
+        });
+      });
+    });
   }); // end beforeEach
 
   afterEach(function() {
@@ -94,15 +110,15 @@ describe("The HypeMachine Cassette", function() {
 
     };
 
-    $.ajax({ type: "GET",
-             url: "http://hypem.com/popular/lastweek/page/1",
-             dataType: "text",
-             success: parseHypeM,
-             error: function (response, status, xhr) {
-               console.error("Ajax error retrieving http://hypem.com/popular/lastweek/page/1");
-               expect("Could not request HypeM homepage").toBe(false);
-               self.testComplete = true;
-             }
+    $.ajax({  type: "GET",
+              url: "http://hypem.com/popular/lastweek/page/1",
+              dataType: "text",
+              success: parseHypeM,
+              error: function (response, status, xhr) {
+                console.error("Ajax error retrieving http://hypem.com/popular/lastweek/page/1");
+                expect("Could not request HypeM homepage").toBe(false);
+                self.testComplete = true;
+              }
            });
     // 1 ajax hypem pop
     // 2 extract track information
@@ -111,7 +127,7 @@ describe("The HypeMachine Cassette", function() {
 
     waitsFor(function() {
       return self.testComplete;
-    }, "Timed out waiting for track parsing", 5000);
+    }, "Timed out waiting for track parsing", 10000);
     runs(function() {
       expect(self.testComplete).toBeTruthy();
     });

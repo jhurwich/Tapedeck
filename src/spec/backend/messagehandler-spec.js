@@ -16,7 +16,7 @@ describe("Message Handler", function() {
 
     runs(function() {
       expect($(replaceSpy.mostRecentCall.args[0])).toHaveId("frame");
-    })
+    });
   });
 
 /* Flaky and won't fix, decommissioning 1-29-12
@@ -50,13 +50,13 @@ describe("Message Handler", function() {
 
   it("should update the correct view with MessageHandler.pushView" , function() {
 
-    var testDiv = '<div id="cassette-list"><div id="testdiv"></div></div>';
+    var testDiv = '<div id="browse-list"><div id="testdiv"></div></div>';
     var testTab = this.findTestTab();
     expect(testTab).not.toBeNull();
 
-    this.waitsForElement("#cassette-list");
+    this.waitsForElement("#browse-list");
     runs(function() {
-      expect($("#tapedeck-frame").contents()).toContain("#cassette-list");
+      expect($("#tapedeck-frame").contents()).toContain("#browse-list");
       expect($("#tapedeck-frame").contents()).not.toContain("#testdiv");
 
       var spy = spyOn(this.Tapedeck.Frontend.Utils, "replaceView"); // NOTE: no callthrough

@@ -3,11 +3,11 @@
 
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "The Scraper Cassette"
+  "The HypeMachine Cassette"
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
-  "Options Manager"
+  "Bank"
 ];
 
 /* Runs initialization before each test.
@@ -189,7 +189,7 @@ beforeEach(function() {
     var checkComplete = false;
     waitsFor(function() { return checkComplete; },
              "Waiting for the HypeM Cassette",
-             1000);
+             2000);
     this.ensureHypeMCassetteIsLoaded(function() {
       checkComplete = true;
     });

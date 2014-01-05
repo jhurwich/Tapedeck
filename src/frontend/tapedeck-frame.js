@@ -760,8 +760,9 @@ Tapedeck.Frontend.Frame = {
   },
 
   drawerWidth: -1,
-  openDrawer: function(animate) {
-    if (typeof(animate) == "undefined") {
+  openDrawer: function(animate, callback) {
+    if (typeof(animate) != "boolean") {
+      callback = animate;
       animate = true;
     }
     var frame = Tapedeck.Frontend.Frame;
@@ -771,7 +772,7 @@ Tapedeck.Frontend.Frame = {
 
       // sometimes we beat the frame to loading, yield to it loading
       if (frame.drawerWidth <= 0) {
-        setTimeout(frame.openDrawer, 0, animate);
+        setTimeout(frame.openDrawer, 0, animate, callback);
         return;
       }
     }
@@ -779,16 +780,23 @@ Tapedeck.Frontend.Frame = {
     // reflect the command to move all elements on screen off the backend
     Tapedeck.Frontend.Messenger.setDrawer(frame.drawerWidth, animate, function() {
       // open complete here
+      if (typeof(callback) != "undefined") {
+        callback();
+      }
     });
   },
-  closeDrawer: function(animate) {
-    if (typeof(animate) == "undefined") {
+  closeDrawer: function(animate, callback) {
+    if (typeof(animate) != "boolean") {
+      callback = animate;
       animate = true;
     }
 
     // reflect the command to reset all moved elements off the backend
     Tapedeck.Frontend.Messenger.setDrawer(0, animate, function() {
       // close complete here
+      if (typeof(callback) != "undefined") {
+        callback();
+      }
     });
   },
 

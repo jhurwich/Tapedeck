@@ -1,15 +1,7 @@
 describe("After content-scripts are injected", function() {
 
   beforeEach(function() {
-  });
-
-  it("should have the sidebar buttons", function() {
-    expect($('#tapedeck-injected-buttons')).toExist();
-    expect($('#tapedeck-injected-draweropen')).toExist();
-    expect($('#tapedeck-injected-drawerclose')).toExist();
-    expect($('#tapedeck-injected-play')).toExist();
-    expect($('#tapedeck-injected-next')).toExist();
-    expect($('#tapedeck-injected-prev')).toExist();
+    this.waitsForFrontendInit();
   });
 
   it("should have the tapedeck iframe", function() {
@@ -18,40 +10,39 @@ describe("After content-scripts are injected", function() {
 
   it("should render the Frame view into the iframe", function() {
     // we need to give Tapedeck.Frontend.init time to run
-    this.waitsForFrontendInit();
     runs(function() {
       expect($("#tapedeck-frame").contents()).toContain("#player");
     });
   });
 
-  it("should open the drawer when draweropen is clicked", function() {
-    expect($("#tapedeck-injected-draweropen")).toExist();
-    $("#tapedeck-injected-draweropen").click();
-
-    expect($("body").attr("tapedeck-opened")).toBeTruthy();
-
-    expect($("#tapedeck-frame")).toExist();
-    expect($("#tapedeck-frame")).not.toBeHidden();
-
-    expect($("#tapedeck-injected-draweropen")).toBeHidden();
-
-    expect($("#tapedeck-injected-drawerclose")).toExist();
-    expect($("#tapedeck-injected-drawerclose")).not.toBeHidden();
-  });
-
-  it("should close the drawer when drawerclose is clicked", function() {
-    expect($("#tapedeck-injected-drawerclose")).toExist();
-    $("#tapedeck-injected-drawerclose").click();
+  it("should open the drawer", function() {
+    var testComplete = false;
 
     expect($("body").attr("tapedeck-opened")).not.toBeTruthy();
+    this.Tapedeck.Frontend.Frame.openDrawer(function() {
+      expect($("body").attr("tapedeck-opened")).toBeTruthy();
+      testComplete = true;
+    });
 
-    expect($("#tapedeck-frame")).toExist();
-    expect($("#tapedeck-frame")).toBeHidden();
+    waitsFor(function() { return testComplete; }, "Waiting for opening", 2000);
+    runs(function() {
+      expect(testComplete).toBeTruthy();
+    });
+  });
 
-    expect($("#tapedeck-injected-drawerclose")).toBeHidden();
+  it("should close the drawer", function() {
+    var testComplete = false;
 
-    expect($("#tapedeck-injected-draweropen")).toExist();
-    expect($("#tapedeck-injected-draweropen")).not.toBeHidden();
+    expect($("body").attr("tapedeck-opened")).toBeTruthy();
+    this.Tapedeck.Frontend.Frame.closeDrawer(function() {
+      expect($("body").attr("tapedeck-opned")).not.toBeTruthy();
+      testComplete = true;
+    });
+
+    waitsFor(function() { return testComplete; }, "Waiting for closing", 2000);
+    runs(function() {
+      expect(testComplete).toBeTruthy();
+    });
   });
 });
 
