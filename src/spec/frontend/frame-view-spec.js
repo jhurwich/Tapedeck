@@ -14,8 +14,4 @@ describe("Frame View", function() {
     expect($("#tapedeck-frame").contents()).toContain("#queue");
   });
 
-  it("should render the CassetteList when rendered (flaky?)", function() {
-    expect($("#tapedeck-frame").contents()).toContain("#cassette-list");
-  });
-
 });

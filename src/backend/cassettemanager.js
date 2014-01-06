@@ -476,7 +476,7 @@ Tapedeck.Backend.CassetteManager = {
       var self = cMgr.Cassettify;
       var msgHandler = Tapedeck.Backend.MessageHandler;
       if (typeof(params.submitButton) != "undefined" && params.submitButton != "submit") {
-         if (params.submitButton == "advanced") {
+        if (params.submitButton == "advanced") {
           cMgr.Cassettify.byPattern();
           return;
         }

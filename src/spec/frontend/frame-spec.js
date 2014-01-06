@@ -4,6 +4,7 @@ describe("Frontend Frame Logic", function() {
     this.waitsForFrontendInit();
   });
 
+/*
   it("should queue a browse-track when it is double-clicked *flaky*", function() {
 
     var self = this;
@@ -95,7 +96,7 @@ describe("Frontend Frame Logic", function() {
       });
     });
   });
-
+*/
   it("should change to a single page (needs HypeM cassette)", function() {
     var self = this;
     var cMgr = self.Tapedeck.Backend.CassetteManager;

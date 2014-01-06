@@ -9,55 +9,43 @@ describe("Cassettification", function() {
     this.cassetteName = "TestCassette";
 
     this.makeTestCassette = function() {
-      runs(function() {
+      var request = null;
+
+      // trigger cassettification with the known-bad "steam.com", waiting for failure
+      this.waitsForPostMessage({ action: "showModal", timeoutStr: "steam.com" }, function() {
         // start Cassettify in test mode so we can fake the currentURL (use steam.com to ensure no tracks on that site)
         var options = { isTest: true, testURL: "www.steam.com" };
         self.cMgr.Cassettify.start(options);
+      }, function(aRequest) {
+        request = aRequest;
+        return $(request.view).find("#modal-title").html() == "Cassettify Failed";
       });
 
-      // wait for steam.com to fail
-      waitsFor(function() {
-        var modal = $("#tapedeck-frame").contents().find("#modal");
-        return $(modal).find("#modal-title").html() == "Cassettify Failed";
-      }, "Waiting for modal to appear", 500);
-
-      // switch to site entry
-      runs(function() {
-        var modal = $("#tapedeck-frame").contents().find("#modal");
-        $(modal).find("input[callbackparam='anotherSite']")[0].click();
+      // trigger "anotherSite" Cassettification and wait for url input
+      this.waitsForPostMessage({ action: "showModal", timeoutStr: "anotherSite" }, function() {
+        var response = this.Tapedeck.Frontend.Utils.newResponse(request);
+        response.params = { submitButton: "anotherSite" };
+        this.Tapedeck.Frontend.Messenger.sendMessage(response);
+      }, function(aRequest) {
+        request = aRequest;
+        return $(request.view).find("input[callbackparam='url']").length > 0;
       });
 
-      // find the input for a url
-      waitsFor(function() {
-        var modal = $("#tapedeck-frame").contents().find("#modal");
-        return $(modal).find("input[callbackparam='url']").length > 0;
-      }, "Waiting for modal to change to pattern entry", 500);
-
-      // input the test url
-      runs(function() {
-        var modal = $("#tapedeck-frame").contents().find("#modal");
-        var input = $(modal).find("input[callbackparam='url']").first();
-
-        $(input).val(self.testURL);
-        $(modal).find("input[callbackparam='submit']").first().click();
+      // specify the desired url and wait for the naming request
+      this.waitsForPostMessage({ action: "showModal", delay: 60000, timeoutStr: "name cassette"  }, function() {
+        var response = this.Tapedeck.Frontend.Utils.newResponse(request);
+        response.params = { "url" : self.testURL };
+        this.Tapedeck.Frontend.Messenger.sendMessage(response);
+      }, function(aRequest) {
+        request = aRequest;
+        return $(request.view).find("input[callbackparam='cassetteName']").length > 0;
       });
-
-      // find the naming input
-      waitsFor(function() {
-        var modal = $("#tapedeck-frame").contents().find("#modal");
-        return $(modal).find("input[callbackparam='cassetteName']").length > 0;
-      }, "Waiting for modal to change to cassette naming", 2000);
 
       // name the cassette
       runs(function() {
-        var modal = $("#tapedeck-frame").contents().find("#modal");
-        // Name the Cassette when it's ready
-        $(modal).find("input[callbackparam='cassetteName']")
-                .first()
-                .val(this.cassetteName);
-
-        // Begin the Cassette save
-        $(modal).find("input[type='button']").first().click();
+        var response = this.Tapedeck.Frontend.Utils.newResponse(request);
+        response.params = { "cassetteName" : this.cassetteName };
+        this.Tapedeck.Frontend.Messenger.sendMessage(response);
       });
     };
 
@@ -72,28 +60,33 @@ describe("Cassettification", function() {
   it("should make a new cassette for the current page", function() {
 
     var testComplete = false;
+    var postSpy = spyOn(this.Tapedeck.Backend.MessageHandler, "postMessage");
+    var request = null;
 
     runs(function() {
       // start Cassettify in test mode so we can fake the currentURL
       var options = { isTest: true, testURL: this.testURL };
       this.cMgr.Cassettify.start(options);
 
+      // Intercept the showModal commands and spoof the user's responses
       waitsFor(function() {
-        var modal = $("#tapedeck-frame").contents().find("#modal");
-        return $(modal).find("input[callbackparam='cassetteName']").length > 0;
+        if (postSpy.callCount > 0) {
+          request = postSpy.mostRecentCall.args[1];
+          if (request.action == "showModal") {
+            var view = request.view;
+            return $(view).find("input[callbackparam='cassetteName']").length > 0;
+          }
+        }
+        return false;
       }, "Waiting for modal to change to cassette naming", 20000);
 
       var origCassetteNum = this.cMgr.cassettes.length;
 
       runs(function() {
-        // Name the Cassette when it's ready
-        var modal = $("#tapedeck-frame").contents().find("#modal");
-        $(modal).find("input[callbackparam='cassetteName']")
-                .first()
-                .val(this.cassetteName);
-
-        // Begin the Cassette save
-        $(modal).find("input[type='button']").first().click();
+        // now generate a response with the cassetteName
+        var response = this.Tapedeck.Frontend.Utils.newResponse(request);
+        response.params = { cassetteName: this.cassetteName };
+        this.Tapedeck.Frontend.Messenger.sendMessage(response);
       });
 
       waitsFor(function() { return this.cMgr.cassettes.length == (origCassetteNum + 1); },

@@ -19,8 +19,13 @@ describe("PlaylistList View", function() {
 
     var view = new viewScript({ playlistList: playlistList });
     view.render(function(listDOM) {
+
+      // cleanup the tempalte cruft and look for the playlist rows
+      listDOM = this.Tapedeck.Backend.TemplateManager.removeTemplateCruft(listDOM);
       var rows  = $(listDOM).find(".row");
-      expect(rows.length).toEqual(1);
+
+      // the new-playlist-row is always present so look for 2
+      expect(rows.length).toEqual(2);
 
       playlistList = new this.Tapedeck
                              .Backend
@@ -29,9 +34,12 @@ describe("PlaylistList View", function() {
 
       view = new viewScript({ playlistList: playlistList });
       view.render(function(doubleListDOM) {
-
+        var doubleListDOM = this.Tapedeck.Backend.TemplateManager.removeTemplateCruft(doubleListDOM);
         var rows  = $(doubleListDOM).find(".row");
-        expect(rows.length).toEqual(2);
+
+
+        // the new-playlist-row is always present so look for 3
+        expect(rows.length).toEqual(3);
         testComplete = true;
       });
 

@@ -3,7 +3,7 @@
 
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "The HypeMachine Cassette"
+  "Cassettification"
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
@@ -47,23 +47,33 @@ beforeEach(function() {
     if (typeof(cassetteName) == "undefined") {
       cassetteName = "Scraper";
     }
+    this.cMgr = this.Tapedeck.Backend.CassetteManager;
 
     // only wait if we are actually changing
-    if (this.Tapedeck.Backend.CassetteManager.currentCassette == null ||
-        this.Tapedeck.Backend.CassetteManager.currentCassette.get("name") != cassetteName) {
-      var spy = spyOn(this.Tapedeck.Backend.TemplateManager, "getBrowseList").andCallThrough();
+    if (this.cMgr.currentCassette == null ||
+        this.cMgr.currentCassette.get("name") != cassetteName) {
+
+      // determine number of pages requested for this cassette to know how long to wait for
+      var numPages = 0;
+      for (var i = 0; i < this.cMgr.cassettes.length; i++) {
+        var cassette = this.cMgr.cassettes[i].cassette;
+        if (cassette.get("name") == name) {
+          var numPages = 1 + parseInt(this.cMgr.cassettes[i].endPage, 10) - parseInt(this.cMgr.cassettes[i].startPage, 10);
+        }
+      }
 
       // change the cassette and wait
-      this.Tapedeck.Frontend.Messenger.setCassette(cassetteName);
-      waitsFor(function() {
-        return (spy.callCount > 0);
-      }, "Waiting for switch to setCassette", 600);
-      runs(function() {
-
-        // make sure the browselist got updated in the view
-        waitsFor(function() {
-          return ($("#tapedeck-frame").contents().find("#browse-list").length > 0);
-        }, "Waiting for switch to BrowseList mode", 2000);
+      this.waitsForPostMessage({ action: "pushView", callCount: numPages }, function() {
+        this.Tapedeck.Frontend.Messenger.setCassette(cassetteName);
+      }, function(request) {
+        if (typeof(request.length) != "undefined" && request.length > 1) {
+          // request is actually an array of all the requests
+        } else {
+          // request is a single request
+          var targetID = $(request.view).first().attr("id");
+          console.log("TARGETID : " + targetID);
+          return (targetID == "browse-region");
+        }
       });
     }
   };
@@ -72,7 +82,7 @@ beforeEach(function() {
     var initComplete = false;
     waitsFor(function() { return initComplete; },
              "Waiting for Backend.init()",
-             1000);
+             2000);
     this.Tapedeck.Backend.init(function() {
       initComplete = true;
     });
@@ -193,6 +203,58 @@ beforeEach(function() {
     this.ensureHypeMCassetteIsLoaded(function() {
       checkComplete = true;
     });
+  };
+
+  // params must include an "action, "delay" and "callCount" are optional
+  // if params.callCount > 1 will return an array of returned requests, otherwise the single request is returned
+  //
+  // checkFn is used for each request and the final array returned, make sure it can handle a single
+  // object and an array if callCount > 1.  checkFn will be called more than once.
+  this.waitsForPostMessage = function(params, triggerFn, checkFn) {
+    if (typeof(params) == "string") {
+      var str = params;
+      params = { action: str };
+    }
+    if (typeof(params.delay) == "undefined") {
+      params.delay = 2000;
+    }
+    if (typeof(params.callCount) == "undefined") {
+      params.callCount = 1;
+    }
+    if (typeof(params.timeoutStr) == "undefined") {
+      params.timeoutStr = "";
+    }
+
+    if (typeof(this.postSpy) == "undefined" || this.postSpy == null) {
+      this.postSpy = spyOn(this.Tapedeck.Backend.MessageHandler, "postMessage");
+    } else {
+      this.postSpy.reset();
+    }
+    runs(triggerFn);
+
+    var request = null;
+    var savedRequests = [];
+    var lastSeenCount = 0;
+    waitsFor(function() {
+      if (this.postSpy.callCount > lastSeenCount) {
+        lastSeenCount = this.postSpy.callCount;
+
+        var request = this.postSpy.mostRecentCall.args[1];
+        if (request.action == params.action && checkFn(request)) {
+          savedRequests.push(request);
+        }
+        if (savedRequests.length >= params.callCount) {
+          if (savedRequests.length == 1) {
+            return checkFn(request);
+          } else {
+            return checkFn(savedRequests);
+          }
+        }
+      }
+      return false;
+    },
+    "Waiting for post message with action: " + params.action + " - " + params.timeoutStr,
+    params.delay);
   };
 
   this.testTracks = [
