@@ -3,7 +3,7 @@
 
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Cassettification"
+  "Frontend Frame Logic"
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
@@ -57,7 +57,7 @@ beforeEach(function() {
       var numPages = 0;
       for (var i = 0; i < this.cMgr.cassettes.length; i++) {
         var cassette = this.cMgr.cassettes[i].cassette;
-        if (cassette.get("name") == name) {
+        if (cassette.get("name") == cassetteName) {
           var numPages = 1 + parseInt(this.cMgr.cassettes[i].endPage, 10) - parseInt(this.cMgr.cassettes[i].startPage, 10);
         }
       }
@@ -66,12 +66,23 @@ beforeEach(function() {
       this.waitsForPostMessage({ action: "pushView", callCount: numPages }, function() {
         this.Tapedeck.Frontend.Messenger.setCassette(cassetteName);
       }, function(request) {
-        if (typeof(request.length) != "undefined" && request.length > 1) {
+
+        var time = new Date().getTime();
+        if (typeof(request.length) != "undefined" && request.length == numPages) {
           // request is actually an array of all the requests
+          var requests = request;
+          for (var i = 0; i < requests.length; i++) {
+            request = requests[i];
+            var targetID = $(request.view).first().attr("id");
+            if (targetID != "browse-region") {
+              return false;
+            }
+          }
+          return true;
+
         } else {
           // request is a single request
           var targetID = $(request.view).first().attr("id");
-          console.log("TARGETID : " + targetID);
           return (targetID == "browse-region");
         }
       });
@@ -97,6 +108,85 @@ beforeEach(function() {
     waitsFor(function() {
       return ($("#tapedeck-frame").contents().find(selector).length > 0);
     }, "Timedout waiting for '" + selector + "' to populate", 2000);
+  };
+
+  // params must include an "action, ["delay", "callCount", "checkUntilTrue"] are optional
+  // if params.callCount > 1 will return an array of returned requests, otherwise the single request is returned
+  // params.callCount > 0 and params.checkUntilTrue are incompatible, params.callCount == -1 is the same as checkUntilTrue == true
+  //
+  // checkFn is used for each request and the final array returned, make sure it can handle a single
+  // object and an array if callCount > 1.  checkFn will be called more than once.
+  this.waitsForPostMessage = function(params, triggerFn, checkFn) {
+    if (typeof(params) == "string") {
+      var str = params;
+      params = { action: str };
+    }
+    if (typeof(params.delay) == "undefined") {
+      params.delay = 2000;
+    }
+    if (typeof(params.callCount) == "undefined") {
+      if (typeof(params.checkUntilTrue) != "undefined" && params.checkUntilTrue) {
+        params.callCount = -1;
+      } else {
+        params.callCount = 1;
+      }
+    }
+    if (typeof(params.timeoutStr) == "undefined") {
+      params.timeoutStr = "";
+    }
+
+    if (typeof(this.postSpy) == "undefined" || this.postSpy == null) {
+      this.postSpy = spyOn(this.Tapedeck.Backend.MessageHandler, "postMessage");
+    } else {
+      this.postSpy.reset();
+    }
+    runs(triggerFn);
+
+    var request = null;
+    var savedRequests = [];
+    var lastSeenCount = 0;
+    waitsFor(function() {
+      if (this.postSpy.callCount > lastSeenCount) {
+
+        var numNewCalls = this.postSpy.callCount - lastSeenCount;
+
+        for (var i = 0; i < numNewCalls; i++) {
+          var pos = lastSeenCount + i;
+          var request = this.postSpy.argsForCall[pos][1];
+          if (request.action == params.action && checkFn(request)) {
+            savedRequests.push(request);
+          }
+
+          // fork based on checkUntilTrue, same as callCount == -1
+          if (params.callCount == -1) {
+            if (checkFn(request)) {
+              return true;
+            }
+          }
+          else if (savedRequests.length >= params.callCount) {
+            if (savedRequests.length == 1) {
+              return checkFn(request);
+            } else {
+              return checkFn(savedRequests);
+            }
+          }
+        }
+        lastSeenCount = this.postSpy.callCount;
+      }
+      return false;
+    },
+    "Waiting for post message with action: " + params.action + " - " + params.timeoutStr,
+    params.delay);
+  };
+
+  this.waitsForHypeMCheck = function() {
+    var checkComplete = false;
+    waitsFor(function() { return checkComplete; },
+             "Waiting for the HypeM Cassette",
+             2000);
+    this.ensureHypeMCassetteIsLoaded(function() {
+      checkComplete = true;
+    });
   };
 
 
@@ -193,68 +283,6 @@ beforeEach(function() {
         this.Tapedeck.Backend.Bank.setDevCassettes(["hypemcassette.js"], true, self.ensureHypeMCassetteIsLoaded.curry(callback));
       }
     });
-  };
-
-  this.waitsForHypeMCheck = function() {
-    var checkComplete = false;
-    waitsFor(function() { return checkComplete; },
-             "Waiting for the HypeM Cassette",
-             2000);
-    this.ensureHypeMCassetteIsLoaded(function() {
-      checkComplete = true;
-    });
-  };
-
-  // params must include an "action, "delay" and "callCount" are optional
-  // if params.callCount > 1 will return an array of returned requests, otherwise the single request is returned
-  //
-  // checkFn is used for each request and the final array returned, make sure it can handle a single
-  // object and an array if callCount > 1.  checkFn will be called more than once.
-  this.waitsForPostMessage = function(params, triggerFn, checkFn) {
-    if (typeof(params) == "string") {
-      var str = params;
-      params = { action: str };
-    }
-    if (typeof(params.delay) == "undefined") {
-      params.delay = 2000;
-    }
-    if (typeof(params.callCount) == "undefined") {
-      params.callCount = 1;
-    }
-    if (typeof(params.timeoutStr) == "undefined") {
-      params.timeoutStr = "";
-    }
-
-    if (typeof(this.postSpy) == "undefined" || this.postSpy == null) {
-      this.postSpy = spyOn(this.Tapedeck.Backend.MessageHandler, "postMessage");
-    } else {
-      this.postSpy.reset();
-    }
-    runs(triggerFn);
-
-    var request = null;
-    var savedRequests = [];
-    var lastSeenCount = 0;
-    waitsFor(function() {
-      if (this.postSpy.callCount > lastSeenCount) {
-        lastSeenCount = this.postSpy.callCount;
-
-        var request = this.postSpy.mostRecentCall.args[1];
-        if (request.action == params.action && checkFn(request)) {
-          savedRequests.push(request);
-        }
-        if (savedRequests.length >= params.callCount) {
-          if (savedRequests.length == 1) {
-            return checkFn(request);
-          } else {
-            return checkFn(savedRequests);
-          }
-        }
-      }
-      return false;
-    },
-    "Waiting for post message with action: " + params.action + " - " + params.timeoutStr,
-    params.delay);
   };
 
   this.testTracks = [

@@ -5,7 +5,10 @@ describe("Cassette Manager", function() {
                            .Backend
                            .CassetteManager;
 
-    this.waitsForBackendInit();
+    // CassetteManager needs a full init, so do it if we didn't already
+    if (!__Jasmine__DO_FULL_INIT) {
+      this.waitsForBackendInit();
+    }
   });
 
   it("should instantiate all cassette models on init", function() {
