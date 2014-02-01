@@ -275,6 +275,7 @@ body {
   -webkit-user-select: none;
   user-select: none;
   min-height: 16px;
+  line-height: 19px;
   font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
