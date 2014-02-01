@@ -4,18 +4,20 @@
     <script id="Frame-test-template" type="text/template">
       <tapedeck>
         <events>
+          "onreplace": "onFrameRender",
           "click #queue-save"    : "PlaylistList.makePlaylist",
           "click #sync"          : "toggleSync",
           "click #repeat"        : "toggleRepeat",
           "click #queue-shuffle" : "shuffleQueue",
-          "click #queue-clear"   : "clearQueue",
+          "click #queue-clear"   : "clearQueue"
         </events>
+
         <options>
-          <!-- "tabID" : "tabID" -->
         </options>
+
         <images>
-          "#sync"          : "sync-disabled.png"
-          "#repeat"        : "repeat.png",
+          "#sync"          : "sync-off.png"
+          "#repeat"        : "repeat-off.png",
           "#queue-shuffle" : "shuffle.png",
           "#queue-clear"   : "trash.png"
         </images>
@@ -25,11 +27,18 @@
         <% if(params.debug > 0) {
           /* nothing to check */
         } %>
+        <div id="frame-gutter">
+          <div id="onscreen">
+            <template ref="Onscreen-test-template" />
+          </div>
+        </div>
 
-        <template ref="BrowseRegion-test-template" />
+        <div class="frame-box">
+          <div id="player">
+            <template ref="Player-test-template" />
+          </div>
 
-        <div id="queue-region" class="region">
-          <div id="queue" class="tracklist">
+          <div id="queue" class="tracklist-container">
             <template ref="Queue-test-template" />
           </div>
 
@@ -38,9 +47,6 @@
               <template ref="PlaylistList-test-template" />
             </div>
 
-            <button id="queue-save" type="button">
-              Save
-            </button>
             <div id="playback-button-box">
               <img id="sync" class="playback-button"></img>
               <img id="repeat" class="playback-button"></img>
@@ -48,9 +54,176 @@
               <img id="queue-clear" class="playback-button"></img>
             </div>
           </div>
+
+          <div id="browse-region">
+            <template ref="BrowseRegion-test-template" />
+          </div>
         </div>
-        <div id="player">
-          <template ref="Player-test-template" />
+      </template>
+    </script>
+
+    <script id="Onscreen-test-template" type="text/template">
+      <tapedeck>
+        <events>
+          "click .onscreen-button.play"  : "Onscreen.playPause",
+          "click .onscreen-button.pause" : "Onscreen.playPause",
+          "click .onscreen-button.next"  : "Onscreen.next",
+          "click .onscreen-button.prev"  : "Onscreen.prev",
+          "click .onscreen-button.draweropen" : "Onscreen.setDrawerOpened",
+          "click .onscreen-button.drawerclose" : "Onscreen.setDrawerClosed",
+        </events>
+        <options>
+          "playerState" : "state",
+          "drawerOpen" : "drawerOpen",
+        </options>
+        <images>
+          ".onscreen-button.play" : "play-button.png",
+          ".onscreen-button.pause" : "pause-button.png",
+          ".onscreen-button.next" : "next-button.png",
+          ".onscreen-button.prev" : "prev-button.png",
+          ".onscreen-button.draweropen" : "draweropen-button.png",
+          ".onscreen-button.drawerclose" : "drawerclose-button.png",
+        </images>
+      </tapedeck>
+
+      <template>
+        <% if(params.debug > 0) {
+          params.paramSanity("playerState", false, params.state);
+          params.paramSanity("drawerOpen", true, params.drawerOpen);
+        } %>
+        <% if (typeof(params.state) == "undefined" || !params.state) {
+            params.state = 'stop';
+          }
+
+          if (params.state == "ready" ||
+              params.state == "stop" ||
+              params.state == "pause") { %>
+            <div class="play onscreen-button"></div>
+          <% } else { %>
+            <div class="pause onscreen-button"></div>
+          <% }
+        %>
+        <div class="next onscreen-button"></div>
+        <div class="prev onscreen-button"></div>
+        <% if (params.drawerOpen) { %>
+          <div class="drawerclose onscreen-button"></div>
+        <% } else { %>
+          <div class="draweropen onscreen-button"></div>
+        <% } %>
+      </template>
+    </script>
+
+    <script id="Player-test-template" type="text/template">
+      <tapedeck>
+        <events>
+          "mouseover .seek-slider .handle": "Player.SeekSlider.mouseoverHandle",
+          "mouseleave .seek-slider .handle": "Player.SeekSlider.mouseleaveHandle",
+          "mousedown .seek-slider .handle": "Player.SeekSlider.downOnHandle",
+
+          "mousedown .volume-slider .handle": "Player.VolumeSlider.downOnHandle",
+
+          "mouseup": "Player.mouseUp",
+          "onreplace": "onFrameRender"
+        </events>
+        <options>
+          "playerState" : "state",
+          "currentTrack" : "track",
+          "duration" : "duration",
+          "currentTime" : "currentTime",
+          "volume" : "volume".
+        </options>
+        <images>
+          ".status-icon.ready"  : "in-player-pause.png",
+          ".status-icon.load"  : "in-player-load.gif",
+          ".status-icon.stop"  : "in-player-pause.png",
+          ".status-icon.pause"  : "in-player-pause.png",
+          ".status-icon.play"  : "in-player-play.png",
+
+          ".sound-icon"   : "sound-on.png",
+          ".handle-image" : "seek-slider-handle.png"
+          ".volume-slider .handle": "volume-slider-handle.png",
+        </images>
+      </tapedeck>
+
+      <template>
+        <% if(params.debug > 0) {
+          params.paramSanity("playerState", false, params.state);
+          params.paramSanity("currentTrack", false, params.track);
+          params.paramSanity("volume", false, params.volume);
+          params.paramSanity("duration", false, params.duration);
+          params.paramSanity("currentTime", false, params.currentTime);
+        } %>
+        <div class="player-window">
+          <% if (typeof(params.state) == "undefined" || !params.state) {
+            params.state = 'stop';
+          } %>
+          <div class="track-info">
+            <% if (params.state != "stop" &&
+                   typeof(params.track) != "undefined" &&
+                   params.track != null) {
+              if (typeof(params.track.trackName) != "undefined") { %>
+                <div class="track-name" title='<%= params.track.trackName %>'>
+                  <%= params.track.trackName %>
+                </div>
+              <% }
+              if (typeof(params.track.artistName) != "undefined") { %>
+                <div class="artist-name" title='<%= params.track.artistName %>'>
+                  <%= params.track.artistName %>
+                </div>
+              <% }
+            } %>
+          </div>
+
+          <%
+          var prettifyTime = function(inSeconds) {
+            var minutes = (Math.floor(inSeconds / 60)).toString();
+            var seconds = Math.floor((inSeconds % 60)).toString();
+            if (seconds.length == 1) {
+              seconds = "0" + seconds;
+            }
+            return "" + minutes + ":" + seconds;
+          };
+          %>
+
+          <div class="play-info">
+            <div class="status-box">
+              <img class="status-icon <%= params.state %>"></img>
+              <img class="sound-icon"></img>
+            </div>
+            <div class="volume-slider">
+              <%
+              var offset = 0;
+              if (params.volume > 0) {
+                var maxOffset = 40; /* slider height set by css to 40px */
+                offset = maxOffset * (1 - params.volume);
+              }
+              %>
+              <img class="handle"
+                <% if (offset > 0) {
+                  print("style='top: " + offset + "px;'");
+                }%>
+                ></img>
+            </div>
+            <div class="duration"><%= (params.duration != null ? prettifyTime(params.duration) : "" ) %></div>
+          </div>
+
+          <div class="seek-slider
+                      <% if (params.state != "play" && params.state != "pause" && params.state != "ready") {
+                        print(" disabled ");
+                      }%>" >
+            <div class="handle"
+              <%
+              if (params.duration != null && params.currentTime > 0) {
+                var sliderWidth = 290;
+                var maxOffset = sliderWidth - 6;
+                offset = Math.floor((params.currentTime/params.duration) * maxOffset);
+                print("style='left: " + offset + "px;'");
+              }
+              %> >
+              <div class="handle-val"></div>
+              <img class="handle-image"></img>
+            </div>
+          </div>
         </div>
       </template>
     </script>
@@ -68,7 +241,7 @@
         <% if(params.debug > 0) {
           params.paramSanity("currentCassette", false, params.currentCassette);
         } %>
-        <div id="browse-region" class="region">
+        <div id="browse-region">
           <% if(typeof(params.currentCassette) != "undefined" && params.currentCassette != null) { %>
             <template ref="BrowseList-test-template" />
           <% }
@@ -76,97 +249,6 @@
             <template ref="CassetteList-test-template" />
           <% } %>
         </div>
-      </template>
-    </script>
-
-    <script id="Player-test-template" type="text/template">
-      <tapedeck>
-        <events>
-          "mouseover #seek-slider #handle": "Player.SeekSlider.mouseoverHandle",
-          "mouseleave #seek-slider #handle": "Player.SeekSlider.mouseleaveHandle",
-          "mousedown #seek-slider #handle": "Player.SeekSlider.downOnHandle",
-
-          "mousedown #volume-slider #handle": "Player.VolumeSlider.downOnHandle",
-
-          "mouseup": "Player.mouseUp",
-          "onreplace": "onFrameRender"
-        </events>
-        <options>
-          "playerState" : "state",
-          "currentTrack" : "track"
-        </options>
-        <images>
-          "#seek-slider #track-left"     : "seekslider-track-left.png",
-          "#seek-slider #track-right"    : "seekslider-track-right.png",
-          "#seek-slider #handle-image"   : "seekslider-handle.png",
-
-          "#volume-slider #track-top"    : "volumeslider-track-top.png",
-          "#volume-slider #track-bottom" : "volumeslider-track-bottom.png",
-          "#volume-slider #handle-image" : "volumeslider-handle.png"
-        </images>
-      </tapedeck>
-
-      <template>
-        <% if(params.debug > 0) {
-          params.paramSanity("playerState", false, params.state);
-          params.paramSanity("currentTrack", false, params.track);
-        } %>
-        <div id="banner-region">
-          <div id="banner">
-            <%
-            if (typeof(params.state) == "undefined" || !params.state) {
-              params.state = 'stop';
-            }
-
-            var bannerStr = "";
-
-            if (params.state != "stop" &&
-                typeof(params.track) != "undefined" &&
-                params.track) {
-              if (typeof(params.track.artistName) != "undefined") {
-                bannerStr += params.track.artistName;
-              }
-              if (typeof(params.track.trackName) != "undefined") {
-                if (bannerStr.length > 0) {
-                  bannerStr += " &ndash; ";
-                }
-                bannerStr += params.track.trackName;
-              }
-            }
-
-            if (params.state == "load") {
-              bannerStr += "<br />(Loading)";
-            }
-            else if (params.state == "pause") {
-              bannerStr += "<br />(Paused)";
-            }
-            print(bannerStr);
-            %>
-          </div>
-          <div id="volume-slider" class="slider">
-            <div id="track-top" class="slider-track"></div>
-            <div id="track-bottom" class="slider-track">
-              <div id="handle">
-                <img id="handle-image"></img>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="seek-slider"
-             class="slider
-                    <% if (params.state != "play" && params.state != "pause" && params.state != "ready") {
-                      print(" disabled ");
-                    }%>" >
-          <div id="track-left" class="slider-track"></div>
-          <div id="track-right" class="slider-track">
-            <div id="handle">
-              <div id="handle-val"></div>
-              <img id="handle-image"></img>
-            </div>
-          </div>
-        </div>
-        <div id="duration"></div>
       </template>
     </script>
 
@@ -184,25 +266,17 @@
           "click #current-cassette-row .button.current-page" : "TrackLists.setCurrentPage",
           "click #current-cassette-row .button.next-page"    : "TrackLists.nextPage",
           "click #current-cassette-row .button.eject"        : "TrackLists.eject"
-
-          "mouseover #feed-switcher-header"   : "TrackLists.showFeedSwitcher",
-          "mouseleave #feed-switcher"         : "TrackLists.hideFeedSwitcher",
-          "click #feed-switcher-content .row" : "TrackLists.chooseFeed",
         </events>
         <options>
         </options>
         <images>
-          ".button.playnow" : "rowbutton-playnow.png",
-          ".button.remove" : "rowbutton-remove.png",
-          ".button.queue" : "rowbutton-queue.png",
-          ".button.download" : "rowbutton-download.png",
+          ".button.playnow" : "play-rowbutton.png",
+          ".button.remove" : "remove-rowbutton.png",
+          ".button.queue" : "queue-rowbutton.png",
+          ".button.download" : "download-rowbutton.png",
           ".spinner.download" : "download-spinner.gif",
 
-          ".button.prev-page" : "prev-page.png",
-          ".button.next-page" : "next-page.png",
-          ".button.eject" : "cassettebutton-eject.png",
-
-          ".tracklist .spinner.loading" : "blue-on-light-loader.gif",
+          ".tracklist .spinner.loading" : "dark-on-peach-loader.gif",
         </images>
       </tapedeck>
 
@@ -211,10 +285,10 @@
           /* nothing to check */
         } %>
         <div class="tracklist">
-          <% if((typeof(params.stillParsing) != "undefined" && params.stillParsing) ||
-                 typeof(params.trackList) == "undefined" ||
-                 params.trackList == null) { %>
-            <div class="row-container">
+          <% if(typeof(params.trackList) == "undefined" ||
+                params.trackList == null ||
+                (params.trackList.destination != "Queue" && typeof(params.stillParsing) != "undefined" && params.stillParsing)) { %>
+            <div class="row-container blank">
               <div class="row blank">
                 <div class="spinner loading"
                      id="loading-spinner"></div>
@@ -222,14 +296,14 @@
             </div>
           <% } else {
             if (typeof(params.errorString) != "undefined" && params.errorString.length > 0) { %>
-              <div class="row-container">
-                <div class="row blank cell">
-                  <span class="error-msg"><%= params.errorString %></span>
+              <div class="row-container message">
+                <div class="row message">
+                  <%= params.errorString %>
                 </div>
               </div>
             <% } else if (params.trackList.length == 0) { %>
-              <div class="row-container">
-                <div class="row blank">
+              <div class="row-container message">
+                <div class="row message">
                   <% if (params.trackList.destination == "Queue") { %>
                     There are no tracks in your queue.
                   <% }
@@ -240,8 +314,10 @@
               </div>
             <% }
             if (params.trackList.length > 0) { %>
-              <div class="row-container">
-                <div class="row" id="hidden-droprow" index="-1">
+              <div class="row-container blank">
+                <div class="row blank
+                            <% if (params.trackList[0].listened) { print(" listened ") } %>"
+                     id="hidden-droprow" index="-1">
                   <div class="cell trackName-col"></div>
                   <div class="cell artistName-col"></div>
                   <div class="cell cassette-col"></div>
@@ -275,7 +351,7 @@
                       <%= track.artistName %>
                     </div>
                     <div class="cell cassette-col" title='<%= track.cassette.replace(/_/g, " ") %>'>
-                      <%= track.cassette.replace(/_/g, " ") %>
+                      <span class="cassette-span"><%= track.cassette.replace(/_/g, " ") %></span>
                       <div class="row-buttons">
                         <div class="button playnow"></div>
                         <div class="button remove"></div>
@@ -293,39 +369,6 @@
             <% } %>
           <% } %>
         </div>
-        <% if (typeof(params.currentCassette) != "undefined" && params.currentCassette) { %>
-          <div id="current-cassette-row" class="row">
-            <div class="cell cassetteName-col">
-              <%= params.currentCassette.name.replace(/_/g, " ") %>
-            </div>
-            <div class="row-buttons">
-              <% if (typeof(params.currentCassette.feeds) != "undefined" &&
-                     Object.keys(params.currentCassette.feeds).length > 1 &&
-                     typeof(params.currentFeed) != "undefined") { %>
-                <div id="feed-switcher">
-                  <div class="cell feed-row" id="feed-switcher-header"><%= params.currentFeed %></div>
-                  <div id="feed-switcher-content">
-                    <% for (var feedName in params.currentCassette.feeds) {
-                      if (feedName != params.currentFeed) { %>
-                        <div class="cell row feed-row" feedName='<%= feedName %>' >
-                          <%= feedName %>
-                        </div>
-                      <% } %>
-                    <% } %>
-                  </div>
-                </div>
-              <% } %>
-              <% if (params.currentCassette.isPageable && typeof(params.currentPage) != "undefined") { %>
-                <div class="button prev-page"></div>
-                <div id="current-page" class="button current-page">
-                  <%= params.currentPage %>
-                </div>
-                <div class="button next-page"></div>
-              <% } %>
-              <div class="button eject"></div>
-            </div>
-          </div>
-        <% } %>
       </template>
     </script>
 
@@ -360,6 +403,10 @@
         <events>
           "dragstart #browse-list .row" : "TrackLists.rowDragStart",
           "dragend #browse-list .row"   : "TrackLists.rowDragEnd",
+
+          "mouseover #feed-switcher-header"   : "TrackLists.showFeedSwitcher",
+          "mouseleave #feed-switcher"         : "TrackLists.hideFeedSwitcher",
+          "click #feed-switcher-content .feed-row" : "TrackLists.chooseFeed",
         </events>
         <options>
           "currentCassette" : "currentCassette",
@@ -367,6 +414,11 @@
           "currentFeed" : "currentFeed",
           "browseList" : "browseList"
         </options>
+        <images>
+          ".button.prev-page" : "prev-page.png",
+          ".button.next-page" : "next-page.png",
+          ".button.eject" : "eject.png",
+        </images>
       </tapedeck>
 
       <template>
@@ -378,6 +430,37 @@
         } %>
         <div id="browse-list" class="tracklist-container" rowdblclick="browseDblClick">
           <template ref="TrackList-test-template" remap="params.trackList:params.browseList" />
+          <div id="current-cassette-row" class="row">
+            <div class="cassetteName">
+              <%= params.currentCassette.name.replace(/_/g, " ") %>
+            </div>
+            <% if (typeof(params.currentCassette.feeds) != "undefined" &&
+                   Object.keys(params.currentCassette.feeds).length > 1 &&
+                   typeof(params.currentFeed) != "undefined") { %>
+              <div id="feed-switcher">
+                <div class="feed-row" id="feed-switcher-header"><%= params.currentFeed %></div>
+                <div id="feed-switcher-content">
+                  <% for (var feedName in params.currentCassette.feeds) {
+                    if (feedName != params.currentFeed) { %>
+                      <div class="feed-row" feedName='<%= feedName %>' >
+                        <%= feedName %>
+                      </div>
+                    <% } %>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+            <div class="row-buttons">
+              <div class="button eject"></div>
+              <% if (params.currentCassette.isPageable && typeof(params.currentPage) != "undefined") { %>
+                <div class="button next-page"></div>
+                <div id="current-page" class="button current-page">
+                  <%= params.currentPage %>
+                </div>
+                <div class="button prev-page"></div>
+              <% } %>
+            </div>
+          </div>
         </div>
       </template>
     </script>
@@ -385,8 +468,6 @@
     <script id="PlaylistList-test-template" type="text/template">
       <tapedeck>
         <events>
-          "mouseover #playlist-list-header"   : "PlaylistList.showPlaylistList",
-          "mouseleave #playlist-list"         : "PlaylistList.hidePlaylistList",
           "click #playlist-list-content .row" : "PlaylistList.playPlaylist",
           "click #playlist-list-content .removePlaylist" : "PlaylistList.removePlaylist",
         </events>
@@ -394,6 +475,7 @@
           "playlistList" : "playlistList",
         </options>
         <images>
+          "#playlist-list-icon"    : "playlist-icon.png",
           ".button.removePlaylist" : "rowbutton-remove.png",
         </images>
       </tapedeck>
@@ -402,11 +484,14 @@
         <% if(params.debug > 0) {
           params.paramSanity("playlistList", false, params.playlistList);
         } %>
-        <div id="playlist-list-header">Load a playlist</div>
+        <div id="new-playlist-row" class="row">
+          <img id="playlist-list-icon"></img>
+          <div id="new-playlist-text"> Create new playlist. </div>
+        </div>
         <div id="playlist-list-content">
           <% if (typeof(params.playlistList) == "undefined" || !params.playlistList || params.playlistList.length == 0) { %>
-              <div class="blank-row">
-                You do not have any saved playlists.
+              <div class="row">
+                No saved playlists.
               </div>
           <% }
           else { %>
@@ -428,26 +513,25 @@
     <script id="CassetteList-test-template" type="text/template">
       <tapedeck>
         <events>
-          "click .cassettelist .row"            : "CassetteList.rowClick",
-          "mouseover #add-cassettes-button"     : "CassetteList.showCassetteMenu",
-          "mouseleave #add-cassettes-menu"      : "CassetteList.hideCassetteMenu",
-          "click .cassettelist .developer-link" : "CassetteList.loadDeveloperLink",
-          "click .cassettelist .removeCassette"         : "CassetteList.rowButtonRemove",
-          "click #current-cassette-row .button.eject"        : "TrackLists.eject"
+          "click #cassette-list .row"            : "CassetteList.rowClick",
+          "click #cassette-list .developerName" : "CassetteList.loadLink",
 
-          "click #add-cassettes-menu #add-cassettes-button" : "CassetteList.cassettify",
-          "click #add-cassettes-menu .menu-row.cassettify"  : "CassetteList.cassettify",
-          "click #add-cassettes-menu .menu-row.tbe"         : "CassetteList.tbeCassettify",
+          "click .button.find" : "CassetteList.findCassettes",
+          "click .button.cassettify" : "CassetteList.cassettify",
+
+          "mouseover #add-cassettes-button"     : "CassetteList.showCassetteMenu",
+          "click #cassette-list .removeCassette"         : "CassetteList.rowButtonRemove",
+          "click #current-cassette-row .button.eject"        : "TrackLists.eject"
         </events>
         <options>
           "cassetteList" : "cassetteList",
         </options>
         <images>
-          "#add-cassettes-button" : "plusbutton.png",
-          ".button.removeCassette"        : "cassetteremove.png",
-          ".button.eject"         : "cassettebutton-eject.png",
-
-          ".cassettelist .spinner.loading" : "blue-on-dark-loader.gif",
+          ".button.eject" : "eject.png",
+          ".button.removeCassette" : "remove-cassette.png",
+          ".button.find .spyglass.icon" : "spyglass.png",
+          ".button.cassettify .cassettify.icon" : "cassettify.png",
+           "#cassette-list .spinner.loading" : "grey-on-dark-loader.gif",
         </images>
       </tapedeck>
 
@@ -456,55 +540,55 @@
           params.paramSanity("cassetteList", false, params.cassetteList);
         } %>
         <div id="cassette-list">
-          <div class="cassettelist">
-            <% if(typeof(params.cassetteList) == "undefined" || params.cassetteList == null) { %>
-              <div class="row-container">
-                <div class="row blank">
-                  <div class="spinner loading"
-                       id="loading-spinner"></div>
-                  <div class="row-buttons">
-                    <div class="button eject"></div>
-                  </div>
+          <% if(typeof(params.cassetteList) == "undefined" || params.cassetteList == null) { %>
+            <div class="row-container blank">
+              <div class="row blank">
+                <div class="spinner loading"
+                     id="loading-spinner"></div>
+                <div class="row-buttons">
+                  <div class="button eject"></div>
                 </div>
               </div>
-            <% }
-            else { %>
-              <% for (var i=0; i < params.cassetteList.length; i++) {
-                var cassette = params.cassetteList[i];
-                var displayName = cassette.name.replace(/_/g, " ");
-              %>
-                <div class="row-container">
-                  <div class="row <% if (cassette.active) { print(" active "); } %>"
-                       index='<%= i %>'
-                       cassette-name='<%= cassette.name %>' >
-                    <div class="cell cassetteName-col" title='<%= displayName %>'> <%= displayName %> </div>
-                    <div class="cell developerName-col" title='<%= cassette.developerLink %>'>
-                      <span class="developer-link"
-                            url='<%= cassette.developerLink %>' >
-                        <%= cassette.developer %>
-                      </span>
-                      <div class="row-buttons">
-                        <div class="button removeCassette"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              <% } %>
-            <% } %>
-          </div>
-          <div id="add-cassettes-menu">
-            <div id="add-cassettes-button" class="button"></div>
-            <div id="add-cassettes-content">
-              <div class="menu-row coming-soon">
-                Get more cassettes (coming soon)
-              </div>
-              <div class="menu-row cassettify">
-                Cassettify
-              </div>
-              <!-- DEBUG quick-cassette maker -->
-              <div class="menu-row tbe"> Quick-create Debug Cassette </div>
-               <!-- END_DEBUG -->
             </div>
+          <% }
+          else { %>
+            <% for (var i=0; i < params.cassetteList.length; i++) {
+              var cassette = params.cassetteList[i];
+              var displayName = cassette.name.replace(/_/g, " ");
+            %>
+              <div class="row-container">
+                <div class="row <% if (cassette.active) { print(" active "); } %>"
+                     index='<%= i %>'
+                     cassette-name='<%= cassette.name %>'
+                     <% if (typeof(cassette.preload) != "undefined") { %>
+                       preload="<%= cassette.preload %>"
+                     <% } %> >
+                  <div class="cassetteName" title='<%= displayName %>'> <%= displayName %> </div>
+                  <div class="developerName"
+                       title='<%= cassette.developerLink %>'
+                       url='<%= cassette.developerLink %>' >
+                    <%= cassette.developer %>
+                  </div>
+                  <div class="row-buttons">
+                    <div class="button removeCassette"></div>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+          <% } %>
+          <div id="add-cassettes-buttons">
+              <div class="button find">
+                <div class="button-content">
+                  <div class="spyglass icon"></div>
+                  <div class="text-content">Find</div>
+                </div>
+              </div>
+              <div class="button cassettify">
+                <div class="button-content">
+                  <div class="cassettify icon"></div>
+                  <div class="text-content">Build</div>
+                </div>
+              </div>
           </div>
         </div>
       </template>
@@ -536,25 +620,33 @@
               <div class="field-row row <%= field.type %>">
                 <% if (field.type == "info") { %>
                   <span class="info"><%= field.text %></span>
+                <% } else if (field.type == "list") { %>
+                  <ul>
+                    <% for (var i = 0; i < field.list.length; i++) { %>
+                      <li><%= field.list[i] %></li>
+                    <% } %>
+                  </ul>
                 <% } else if (field.type == "input") { %>
                   <span class="input"><%= field.text %></span>
-                  <input callbackParam="<%= field.callbackParam %>"
-                         type="text"
-                         <% if (typeof(field.width) != "undefined") print("style='width: " + field.width + "px;'"); %> >
-                <% } %>
+                  <input callbackParam="<%= field.callbackParam %>" type="text" />
+                <% } else if (field.type == "space") { %>
+                  <div class="space"></div>
+                <% }%>
               </div>
             <% } %>
-            <% if (typeof(params.submitButtons) == "undefined") { %>
-              <input type="button" class="submit-button" value="Ok" />
-            <% } else {
-              for (var i=0; i < params.submitButtons.length; i++) {
-                var button = params.submitButtons[i]; %>
-                <input type="button"
-                       class="submit-button"
-                       callbackParam="<%= button.callbackParam %>"
-                       value="<%= button.text %>" />
-              <% }
-            } %>
+            <div class="button-box">
+              <% if (typeof(params.submitButtons) == "undefined") { %>
+                <input type="button" class="submit-button" value="Ok" />
+              <% } else {
+                for (var i=0; i < params.submitButtons.length; i++) {
+                  var button = params.submitButtons[i]; %>
+                  <input type="button"
+                         class="submit-button"
+                         callbackParam="<%= button.callbackParam %>"
+                         value="<%= button.text %>" />
+                <% }
+              } %>
+            </div>
           </form>
         </div>
       </template>

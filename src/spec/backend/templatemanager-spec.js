@@ -53,7 +53,11 @@ describe("Template Manager", function() {
                2000);
     };
 
-    this.waitsForBackendInit();
+    // TemplateManager needs a full init, so do it if we didn't already
+    if (!__Jasmine__DO_FULL_INIT) {
+      this.waitsForBackendInit();
+    }
+
   });
 
   it("should get Backbone view constructors from getViewScript", function() {

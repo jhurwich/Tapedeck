@@ -12,7 +12,7 @@ describe("Cassettification", function() {
       var request = null;
 
       // trigger cassettification with the known-bad "steam.com", waiting for failure
-      this.waitsForPostMessage({ action: "showModal", timeoutStr: "steam.com" }, function() {
+      this.waitsForPostMessage({ action: "showModal", checkUntilTrue: true, timeoutStr: "steam.com" }, function() {
         // start Cassettify in test mode so we can fake the currentURL (use steam.com to ensure no tracks on that site)
         var options = { isTest: true, testURL: "www.steam.com" };
         self.cMgr.Cassettify.start(options);
@@ -22,23 +22,27 @@ describe("Cassettification", function() {
       });
 
       // trigger "anotherSite" Cassettification and wait for url input
-      this.waitsForPostMessage({ action: "showModal", timeoutStr: "anotherSite" }, function() {
-        var response = this.Tapedeck.Frontend.Utils.newResponse(request);
-        response.params = { submitButton: "anotherSite" };
-        this.Tapedeck.Frontend.Messenger.sendMessage(response);
-      }, function(aRequest) {
-        request = aRequest;
-        return $(request.view).find("input[callbackparam='url']").length > 0;
+      runs(function() {
+        this.waitsForPostMessage({ action: "showModal", checkUntilTrue: true, timeoutStr: "anotherSite" }, function() {
+          var response = this.Tapedeck.Frontend.Utils.newResponse(request);
+          response.params = { submitButton: "anotherSite" };
+          this.Tapedeck.Frontend.Messenger.sendMessage(response);
+        }, function(aRequest) {
+          request = aRequest;
+          return $(request.view).find("input[callbackparam='url']").length > 0;
+        });
       });
 
       // specify the desired url and wait for the naming request
-      this.waitsForPostMessage({ action: "showModal", delay: 60000, timeoutStr: "name cassette"  }, function() {
-        var response = this.Tapedeck.Frontend.Utils.newResponse(request);
-        response.params = { "url" : self.testURL };
-        this.Tapedeck.Frontend.Messenger.sendMessage(response);
-      }, function(aRequest) {
-        request = aRequest;
-        return $(request.view).find("input[callbackparam='cassetteName']").length > 0;
+      runs(function() {
+        this.waitsForPostMessage({ action: "showModal", checkUntilTrue: true, delay: 60000, timeoutStr: "name cassette"  }, function() {
+          var response = this.Tapedeck.Frontend.Utils.newResponse(request);
+          response.params = { "url" : self.testURL };
+          this.Tapedeck.Frontend.Messenger.sendMessage(response);
+        }, function(aRequest) {
+          request = aRequest;
+          return $(request.view).find("input[callbackparam='cassetteName']").length > 0;
+        });
       });
 
       // name the cassette
@@ -131,6 +135,8 @@ describe("Cassettification", function() {
              "Waiting for cassettes to be read-in",
              2000);
 
+    var addSpy = spyOn(this.Tapedeck.Backend.MessageHandler, "addTracks").andCallThrough();
+
     // find the test cassette and use it
     runs(function() {
       var foundCassette = null;
@@ -145,15 +151,25 @@ describe("Cassettification", function() {
       var testTab = this.findTestTab();
       var context = this.Tapedeck.Backend.Utils.getContext(testTab);
 
+
       foundCassette.getBrowseList(context, function(response) {
-        expect(response.tracks.length).toBeGreaterThan(0);
-        testComplete = true;
+        if (response.tracks.length > 0) {
+          testComplete = true;
+        }
       });
     });
 
-    waitsFor(function() { return testComplete; },
-             "Timed out waiting for Cassettification result to getBrowseList",
-             4000);
+    // if we got tracks from the browselist we're done, otherwise wait for an addTracks call with some
+    waitsFor(function() {
+      if (testComplete) {
+        return testComplete;
+      }
+      else if (addSpy.callCount > 0) {
+        var tracks = addSpy.mostRecentCall.args[1];
+        testComplete = (tracks.length > 0);
+        return testComplete;
+      }
+    }, "Timed out waiting for Cassettification result to getBrowseList", 10000);
     runs(function() {
       expect(testComplete).toBeTruthy();
     });
