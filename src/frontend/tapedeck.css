@@ -1,3 +1,22 @@
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 300;
+  src: url('../vendor/Lato-Light.woff') format('woff');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../vendor/Lato-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../vendor/Lato-Bold.woff') format('woff');
+}
+
 /* Frame and Onscreen Buttons */
 body {
   margin: 0;
@@ -7,7 +26,8 @@ body {
   width: 365px;
   height: 100%;
   display: block !important; /* necessary so that the frame appears when css ready */
-  font-family: Tahoma, "FreeSans", sans-serif;
+  font-family: Lato, Tahoma, "FreeSans", sans-serif;
+  font-weight: normal;
 }
 
 #frame-gutter {
@@ -83,7 +103,7 @@ body {
 .track-info {
   position: relative;
   margin: 0 6px 13px 10px;
-  width: 275px;
+  width: 270px;
   height: 55px;
   top: 6px;
   cursor: default;
@@ -91,7 +111,7 @@ body {
   -webkit-user-select: none;
 }
 .track-info > div {
-  max-width: 275px;
+  max-width: 270px;
   display: block;
   float: left;
   clear: both;
@@ -100,11 +120,13 @@ body {
   text-overflow: ellipsis;
 }
 .track-name {
-  font: 24px Tahoma, "FreeSans", sans-serif;
+  font-size: 24px;
+  font-weight: 300;
   line-height: 28px;
 }
 .artist-name {
-  font: 20px Tahoma, "FreeSans", sans-serif;
+  font-size: 20px;
+  font-weight: 300;
   line-height: 24px;
 }
 
@@ -129,7 +151,7 @@ body {
   margin: -2px 0;
 }
 .handle-val {
-  font: 11px Tahoma, "FreeSans", sans-serif;
+  font-size: 11px;
   line-height: 14px;
 
   position: absolute;
@@ -174,7 +196,7 @@ body {
   position: absolute;
   top: 46px;
   right: 0px;
-  font: 11px Tahoma, "FreeSans", sans-serif;
+  font-size: 11px;
 }
 
 /* TrackLists */
@@ -254,12 +276,10 @@ body {
 }
 .tracklist .row.listened {
   opacity : 0.65;
+  font-weight: 300 !important;
 }
 .tracklist .row.playing .cell{
-  font-weight: bold;
-}
-.tracklist .row:not(.playing) .cell{
-  font-weight: normal !important;
+  font-weight: bold !important;
 }
 .tracklist .row.error .cell{
   text-decoration: line-through;
@@ -440,7 +460,7 @@ body {
   display: none;
 }
 #current-cassette-row .row-buttons {
-  width: 72px;
+  width: 76px;
   position: relative;
   display: block;
   float: right;
@@ -457,9 +477,10 @@ body {
   background-repeat: no-repeat;
 }
 #current-cassette-row .row-buttons .current-page {
-  width: 20px;
-  max-width: 20px;
-  font: bold 13px arial, sans-serif;
+  width: 24px;
+  max-width: 24px;
+  font-weight: bold;
+  font-size: 13px;
   text-align: center;
   line-height: 20px;
 }
@@ -658,7 +679,7 @@ body {
 }
 #modal-container .submit-button {
   color:#FFFFFF;
-  font: 14px Tahoma, "FreeSans", sans-serif;
+  font-size: 14px;
   background-color:#333333;
   border: 1px solid black;
   box-shadow: 2px 2px 2px rgba(0,0,0,0.4);
