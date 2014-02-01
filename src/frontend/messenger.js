@@ -180,6 +180,14 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
+  deleteCurrent: function() {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "deleteCurrent"
+    });
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
   prev: function() {
     var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "prev"

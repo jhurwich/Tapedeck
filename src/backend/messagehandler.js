@@ -195,12 +195,10 @@ Tapedeck.Backend.MessageHandler = {
       break;
 
     case "playPause":
-      var state = Tapedeck.Backend.Sequencer.getCurrentState();
-      if (state == "play") {
-        Tapedeck.Backend.Sequencer.pause();
-      } else {
-        Tapedeck.Backend.Sequencer.playNow();
-      }
+      Tapedeck.Backend.Sequencer.togglePlay();
+      break;
+    case "deleteCurrent":
+      Tapedeck.Backend.Sequencer.remove(Tapedeck.Backend.Sequencer.Player.currentTrack);
       break;
     case "next":
       Tapedeck.Backend.Sequencer.next();

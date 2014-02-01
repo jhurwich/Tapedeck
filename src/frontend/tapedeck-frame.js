@@ -8,19 +8,24 @@ if (typeof(Tapedeck.Frontend.Frame) != "undefined") {
 
 Tapedeck.Frontend.Frame = {
   Onscreen : {
-    playPause: function() {
+    playPause: function(e) {
       Tapedeck.Frontend.Messenger.playPause();
     },
-    next: function() {
-      Tapedeck.Frontend.Messenger.next();
+    next: function(e) {
+      if (e.shiftKey) {
+        Tapedeck.Frontend.Messenger.deleteCurrent();
+      }
+      else {
+        Tapedeck.Frontend.Messenger.next();
+      }
     },
-    prev: function() {
+    prev: function(e) {
       Tapedeck.Frontend.Messenger.prev();
     },
-    setDrawerOpened: function() {
+    setDrawerOpened: function(e) {
       Tapedeck.Frontend.Frame.openDrawer();
     },
-    setDrawerClosed: function() {
+    setDrawerClosed: function(e) {
       Tapedeck.Frontend.Frame.closeDrawer();
     }
   },

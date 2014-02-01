@@ -4,6 +4,8 @@ Tapedeck.Backend.Sequencer = {
   queuePosition: -1, // nothing playing
   init: function() {
     var sqcr = Tapedeck.Backend.Sequencer;
+    chrome.commands.onCommand.addListener(sqcr.keyListener);
+
     if (!sqcr.Player.playerElement) {
       sqcr.Player.init();
     }
@@ -11,6 +13,31 @@ Tapedeck.Backend.Sequencer = {
     sqcr.prepareQueue(function() {
 
     });
+  },
+
+  keyListener: function(command) {
+    var sqcr = Tapedeck.Backend.Sequencer;
+
+    switch(command) {
+    case "next_track":
+      sqcr.next();
+      break;
+
+    case "delete_track":
+      sqcr.remove(sqcr.Player.currentTrack);
+      break;
+
+    case "prev_track":
+      sqcr.prev();
+      break;
+
+    case "play_pause":
+      sqcr.togglePlay();
+      break;
+
+    default:
+      throw new Error("Unknown key command: " + command);
+    }
   },
 
   // forcedQueue is an optional trackList that will be used instead of the bank's
@@ -478,6 +505,16 @@ Tapedeck.Backend.Sequencer = {
     this.Player.pause();
   },
 
+  togglePlay: function() {
+    var sqcr = Tapedeck.Backend.Sequencer;
+    var state = sqcr.getCurrentState();
+    if (state == "play") {
+      sqcr.pause();
+    } else {
+      sqcr.playNow();
+    }
+  },
+
   next: function() {
     if (this.queuePosition < this.queue.length - 1) {
       this.playIndex(this.queuePosition + 1);
@@ -642,20 +679,25 @@ Tapedeck.Backend.Sequencer = {
 
   removeAt: function(pos) {
     var toRemove = this.getAt(pos);
-    if (toRemove.get("playing")) {
-      this.next();
-    }
     this.remove(toRemove);
     return toRemove;
   },
 
   removeSome: function(trackModels) {
     var posChange = 0;
+    var wasPlaying = false;
     for (var i = 0; i < trackModels.length; i++) {
-       var index = this.queue.indexOf(trackModels[i]);
-       if (index < this.queuePosition) {
-         posChange++;
-       }
+      if (trackModels[i].get("playing")) {
+        wasPlaying = true;
+      }
+
+      var index = this.queue.indexOf(trackModels[i]);
+      if (index < this.queuePosition) {
+        posChange++;
+      }
+    }
+    if (wasPlaying) {
+      this.next();
     }
     this.queue.remove(trackModels);
 

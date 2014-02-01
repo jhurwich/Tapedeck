@@ -991,10 +991,20 @@ Tapedeck.Backend.CassetteManager = {
 
   // successCallback should receive an updated track object
   doErrorHandler: function(aTrack, aSuccessCallback, aErrCallback) {
-    var cassette = this.currentCassette;
-    if (cassette.get("name") != aTrack.get("cassette")) {
-      console.error("Cassette Name mismatch for track Errorhandler");
+    var cMgr = Tapedeck.Backend.CassetteManager;
+    console.log("Searching for errorHandler for track: " + JSON.stringify(aTrack.toJSON()));
+
+    var cassette = null;
+    for (var i = 0; i < cMgr.cassettes; i++) {
+      if (cMgr.cassettes[i].get("name") == aTrack.get("cassette")) {
+        cassette = cMgr.cassettes[i];
+      }
     }
+    if (cassette == null) {
+      console.error("Could not find cassette '" + aTrack.get("cassette") + "' with ErrorHandler for track.");
+      return;
+    }
+
     var successCallback = function(params) {
       aSuccessCallback(params.track);
     };

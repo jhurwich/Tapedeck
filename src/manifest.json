@@ -29,6 +29,33 @@
                   "storage",
                   "unlimitedStorage"],
 
+  "commands": {
+    "next_track": {
+      "suggested_key": {
+        "default": "Ctrl+Right"
+      },
+      "description": "Play next track"
+    },
+    "delete_track": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Right"
+      },
+      "description": "Delete current track"
+    },
+    "prev_track": {
+      "suggested_key": {
+        "default": "Ctrl+Left"
+      },
+      "description": "Play previous track"
+    },
+    "play_pause": {
+      "suggested_key": {
+        "default": "Ctrl+Period"
+      },
+      "description": "Play/Pause"
+    }
+  },
+
   "sandbox" : {
     "pages" : ["backend/sandbox.html"]
   },

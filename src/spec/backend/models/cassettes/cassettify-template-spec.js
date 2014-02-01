@@ -61,55 +61,6 @@ describe("Cassettification", function() {
     this.waitsForFrontendInit();
   });
 
-  it("should make a new cassette for the current page", function() {
-
-    var testComplete = false;
-    var postSpy = spyOn(this.Tapedeck.Backend.MessageHandler, "postMessage");
-    var request = null;
-
-    runs(function() {
-      // start Cassettify in test mode so we can fake the currentURL
-      var options = { isTest: true, testURL: this.testURL };
-      this.cMgr.Cassettify.start(options);
-
-      // Intercept the showModal commands and spoof the user's responses
-      waitsFor(function() {
-        if (postSpy.callCount > 0) {
-          request = postSpy.mostRecentCall.args[1];
-          if (request.action == "showModal") {
-            var view = request.view;
-            return $(view).find("input[callbackparam='cassetteName']").length > 0;
-          }
-        }
-        return false;
-      }, "Waiting for modal to change to cassette naming", 20000);
-
-      var origCassetteNum = this.cMgr.cassettes.length;
-
-      runs(function() {
-        // now generate a response with the cassetteName
-        var response = this.Tapedeck.Frontend.Utils.newResponse(request);
-        response.params = { cassetteName: this.cassetteName };
-        this.Tapedeck.Frontend.Messenger.sendMessage(response);
-      });
-
-      waitsFor(function() { return this.cMgr.cassettes.length == (origCassetteNum + 1); },
-               "Waiting for cassettes to be read-in",
-               2000);
-      runs(function() {
-        // The Cassette was saved make sure it's in the cassettelist
-        expect(this.cMgr.cassettes.length).toEqual(origCassetteNum + 1);
-        testComplete = true;
-      });
-    });
-
-    waitsFor(function() { return testComplete; }, 20000);
-    runs(function() {
-      expect(testComplete).toBeTruthy();
-    });
-
-  });
-
   it("should make a new cassette from a pattern input", function() {
 
     var origCassetteNum = this.cMgr.cassettes.length;
@@ -125,6 +76,7 @@ describe("Cassettification", function() {
   });
 
   it("should make cassettes that work (depends on testURL having tracks!)", function() {
+    var self = this;
     var testComplete = false;
 
     // make the test cassette
@@ -135,29 +87,17 @@ describe("Cassettification", function() {
              "Waiting for cassettes to be read-in",
              2000);
 
+    var getBrowseListSpy = spyOn(this.Tapedeck.Backend.TemplateManager, "getBrowseList").andCallThrough();
     var addSpy = spyOn(this.Tapedeck.Backend.MessageHandler, "addTracks").andCallThrough();
 
-    // find the test cassette and use it
+    // use the test cassette
     runs(function() {
-      var foundCassette = null;
-      for (var i = 0; i < this.cMgr.cassettes.length; i++) {
-        var cassette = this.cMgr.cassettes[i].cassette;
-        if (cassette.get("name") == this.cassetteName) {
-          foundCassette = cassette;
-        }
-      }
-      expect(foundCassette).not.toBeNull();
-
-      var testTab = this.findTestTab();
-      var context = this.Tapedeck.Backend.Utils.getContext(testTab);
-
-
-      foundCassette.getBrowseList(context, function(response) {
-        if (response.tracks.length > 0) {
-          testComplete = true;
-        }
-      });
+      self.cMgr.setCassette(self.cassetteName);
     });
+
+    waitsFor(function() {
+      return getBrowseListSpy.callCount > 0;
+    }, "Timed out waiting for browselist for new cassette", 2000);
 
     // if we got tracks from the browselist we're done, otherwise wait for an addTracks call with some
     waitsFor(function() {

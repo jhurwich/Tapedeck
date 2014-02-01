@@ -77,7 +77,7 @@ describe("Sequencer", function() {
 
     this.sqcr.insertSomeAt(this.testTracks, origLen);
 
-    this.sqcr.remove(origLen + 1);
+    this.sqcr.removeAt(origLen + 1);
 
     var firstTrack = this.sqcr.queue.at(origLen);
     expect(firstTrack).toReflectJSON(this.testTracks[0]);
