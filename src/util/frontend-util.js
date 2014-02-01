@@ -43,7 +43,47 @@ var attachTo = function(onObject) {
         return;
       }
 
+      // if tracklists are included in the new view, attempt to maintain scroll positions
+      var scrollMap = {}; // map the current scroll position to the tracklist it applies to
+      if ($(view).hasClass("tracklist")) {
+        console.error("Pushing just a tracklist.  Can't preserve scoll position.");
+      }
+      else if ($(view).find(".tracklist").length > 0) {
+
+        // the containers help us match each new .tracklist to one's in the existing view
+        var newContainers = [];
+        if ($(view).hasClass("tracklist-container")) {
+          newContainers.push(view); // if the new view is a tracklist-container, add it
+        } else {
+          newContainers = $(view).find(".tracklist-container").has(".tracklist");
+        }
+
+        $(newContainers).each(function (index, newContainer) {
+          var oldContainer = $("#" + $(newContainer).attr('id'));
+          var oldList = $(oldContainer).find(".tracklist").first();
+          var newList = $(newContainer).find(".tracklist").first();
+
+          // map each current scroll position to the new tracklist it applies to
+          if (typeof(scrollMap[$(oldList).scrollTop()]) == "undefined") {
+            scrollMap[$(oldList).scrollTop()] = [newList];
+          }
+          else {
+            scrollMap[$(oldList).scrollTop()].push(newList);
+          }
+
+        });
+      }
+
       $("#" + targetID).replaceWith(view);
+
+      // if the scrollMap is populated, apply those positions to the new view
+      if(!$.isEmptyObject(scrollMap)) {
+        for (var scrollPos in scrollMap) {
+          for (var i = 0; i < scrollMap[scrollPos].length; i++) {
+            $(scrollMap[scrollPos][i]).scrollTop(scrollPos);
+          }
+        }
+      }
 
       // handle proxyEvents
       if (typeof(proxyEvents) != 'undefined' && !jQuery.isEmptyObject(proxyEvents)) {
