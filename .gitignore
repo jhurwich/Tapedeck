@@ -3,5 +3,6 @@ bin/*
 scripts/push_to_prod.rb
 tapedeck.pem
 .rvmrc
+.bundle
 
 *.DS_Store

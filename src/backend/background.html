@@ -374,6 +374,7 @@
               %>
                 <div class="row-container">
                   <div class="row
+                              <% if (track.error) { print(" error ") } %>
                               <% if (track.listened) { print(" listened ") } %>
                               <% if (track.playing) { print(" playing ") } %>"
                        index='<%= i %>'

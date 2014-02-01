@@ -265,6 +265,12 @@ Tapedeck.Backend.Sequencer = {
           sqcr.next();
         });
       }
+      else {
+        console.error("Could not handle error for track: " + self.currentTrack.get("trackName") +
+                        "-" + self.currentTrack.get("url"));
+        self.currentTrack.set({ error: true });
+        sqcr.next();
+      }
     },
 
     prefetchHandleError: function(self) {
