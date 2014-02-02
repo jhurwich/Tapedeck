@@ -380,11 +380,12 @@ Tapedeck.Backend.Sequencer = {
                             { silent      : true       });
 
       var duration = self.playerElement.get(0).duration;
+      var percent = 0;
       if (duration && currentTime) {
 
         // start prefetching if we're 90% through the song, have more than 10sec before this track ends,
         // and aren't > 95% through it (wonkiness happens if you jump to the end of a track)
-        var percent = currentTime / duration;
+        percent = currentTime / duration;
         if (percent > 0.9 &&
             percent <= 0.95 &&
             percent * duration > 10 &&
@@ -398,7 +399,7 @@ Tapedeck.Backend.Sequencer = {
 
       // sometimes the "ended" event isn't triggered.  If the track hangs we force the ended event here
       clearTimeout(self.endedCheck);
-      if (self.currentState == "play") {
+      if (self.currentState == "play" && percent >= 0.95) {
         var hungTrackName = self.currentTrack.get("trackName");
         self.endedCheck = setTimeout(function() {
 
