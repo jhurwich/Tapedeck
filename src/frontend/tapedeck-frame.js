@@ -675,6 +675,21 @@ Tapedeck.Frontend.Frame = {
     eject: function(e) {
       Tapedeck.Frontend.Messenger.ejectCassette();
     },
+
+    selectAll: function(e) {
+      var rows = $("#browse-list").find(".tracklist").first().find(".row:not(.blank):not(.message)");
+
+      var isDeselect = true;
+      rows.each( function(i, row) {
+        if(!($(row).hasClass("selected"))) {
+          isDeselect = false;
+          $(row).addClass("selected");
+        }
+      });
+      if (isDeselect) {
+        $(rows).removeClass("selected");
+      }
+    },
   },
 
   CassetteList: {

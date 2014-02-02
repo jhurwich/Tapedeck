@@ -28,6 +28,9 @@ body {
   display: block !important; /* necessary so that the frame appears when css ready */
   font-family: Lato, Tahoma, "FreeSans", sans-serif;
   font-weight: normal;
+
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #frame-gutter {
@@ -107,8 +110,6 @@ body {
   height: 55px;
   top: 6px;
   cursor: default;
-
-  -webkit-user-select: none;
 }
 .track-info > div {
   max-width: 270px;
@@ -152,6 +153,7 @@ body {
 }
 .handle-val {
   font-size: 11px;
+  font-weight: 300;
   line-height: 14px;
 
   position: absolute;
@@ -163,8 +165,6 @@ body {
   position: absolute;
   top: 14px;
   right: 20px;
-
-  -webkit-user-select: none;
 }
 .status-box {
   width: 26px;
@@ -197,6 +197,7 @@ body {
   top: 46px;
   right: 0px;
   font-size: 11px;
+  font-weight: 300;
 }
 
 /* TrackLists */
@@ -231,7 +232,6 @@ body {
 }
 .tracklist .row-container {
   position: relative;
-  -khtml-user-select: none;
   width: 100%;
   max-width: 324px;
   overflow: hidden;
@@ -292,8 +292,6 @@ body {
 .tracklist-container .row.message {
   position: relative;
   display: table-cell;
-  -webkit-user-select: none;
-  user-select: none;
   min-height: 16px;
   line-height: 19px;
   font-size: 14px;
@@ -434,6 +432,10 @@ body {
   float: left;
   width: 146px;
   margin-top: -1px;
+}
+#current-cassette-row .cassetteName:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 #current-cassette-row #feed-switcher {
   position: relative;
