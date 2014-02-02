@@ -92,7 +92,7 @@ Tapedeck.Backend.TemplateManager = {
   // returns the viewData, el and proxyEvents, but also pushes it
   renderViewAndPush: function(scriptName, packageName, callback, pushHollowFirst, tab) {
     var tMgr = Tapedeck.Backend.TemplateManager;
-    if (typeof(packageName) != "string") {
+    if (typeof(packageName) != "string" || packageName == "all") { // "all" refers to pushing to all tabs
       tab = pushHollowFirst;
       pushHollowFirst = callback;
       callback = packageName;

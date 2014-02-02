@@ -122,12 +122,12 @@ Tapedeck.Frontend.Messenger = {
 
     case "updateSeekSlider":
       Tapedeck.Frontend.Frame.Player.SeekSlider.updateSlider
-                                               (request.currentTime,
-                                                request.duration);
+                                               (parseInt(request.currentTime, 10),
+                                                parseInt(request.duration, 10));
       break;
     case "updateVolumeSlider":
       Tapedeck.Frontend.Frame.Player.VolumeSlider.updateSlider
-                                                 (request.volume);
+                                                 (parseInt(request.volume, 10));
       break;
 
     case "forceCheckSync":

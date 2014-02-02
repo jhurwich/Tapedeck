@@ -30,7 +30,7 @@ Tapedeck.Backend.MessageHandler = {
 
     port.onDisconnect.addListener(function() {
       self.log("Port disconnecting: " + port.sender.tab.id);
-      self.ports[port.sender.tab.id] = null;
+      delete self.ports[port.sender.tab.id];
     });
   },
 
@@ -129,13 +129,19 @@ Tapedeck.Backend.MessageHandler = {
     } // end switch
   },
 
+  // send a message to the tab indicated by tabID, or to all tabs using "all" for the tabID param
+  // a tab object can be sent as tabID, as long as tab.id is specified
   postMessage: function(tabID, message) {
     var self = Tapedeck.Backend.MessageHandler;
-    var ports = self.ports;
-    var currentTime = new Date();
+    if (typeof(tabID) == "object") {
+      tabID = tabID.id;
+    }
     if (typeof(tabID) == "undefined") {
       console.error("Posting message to undefined tabID.");
     }
+
+    var ports = self.ports;
+    var currentTime = new Date();
 
     if (typeof(message.action) != "undefined") {
       self.log("(" + currentTime.getTime() + ") Posting action message '" + message.action + "' to tab: " + tabID,
@@ -145,7 +151,12 @@ Tapedeck.Backend.MessageHandler = {
                Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
     }
 
-    if (typeof(tabID) != "undefined" &&
+    if (tabID == "all") {
+      for (var aTabID in ports) {
+        ports[aTabID].postMessage(message);
+      }
+    }
+    else if (typeof(tabID) != "undefined" &&
         typeof(ports[tabID]) != "undefined" &&
         ports[tabID] != null) {
       ports[tabID].postMessage(message);
@@ -210,7 +221,7 @@ Tapedeck.Backend.MessageHandler = {
     case "checkDrawer":
       var open = Tapedeck.Backend.Bank.getDrawerOpened();
       response.opened = open;
-      self.postMessage(port.sender.tab.id, response);
+      self.postMessage(port.sender.tab, response);
       break;
     case "setDrawer":
       Tapedeck.Backend.Bank.setDrawerOpened(request.width > 0);
@@ -226,7 +237,7 @@ Tapedeck.Backend.MessageHandler = {
         // update onscreen buttons to reflect the drawer state
         Tapedeck.Backend.TemplateManager.renderViewAndPush("Onscreen");
 
-        self.postMessage(port.sender.tab.id, response);
+        self.postMessage(port.sender.tab, response);
       });
       break;
 
@@ -234,7 +245,7 @@ Tapedeck.Backend.MessageHandler = {
       var callback = function(fileData) {
         response.url = fileData.url;
         response.fileName = fileData.fileName;
-        self.postMessage(port.sender.tab.id, response);
+        self.postMessage(port.sender.tab, response);
       };
       bank.FileSystem.download(request.trackID, callback);
       break;
@@ -321,17 +332,17 @@ Tapedeck.Backend.MessageHandler = {
 
     case "getCSS":
       response.cssURL = Tapedeck.Backend.TemplateManager.getCSSURL();
-      self.postMessage(port.sender.tab.id, response);
+      self.postMessage(port.sender.tab, response);
       break;
 
     case "getRepeat":
       response.repeat = bank.getRepeat();
-      self.postMessage(port.sender.tab.id, response);
+      self.postMessage(port.sender.tab, response);
       break;
 
     case "getSync":
       response.sync = bank.getSync();
-      self.postMessage(port.sender.tab.id, response);
+      self.postMessage(port.sender.tab, response);
       break;
 
     case "makePlaylist":
@@ -407,25 +418,25 @@ Tapedeck.Backend.MessageHandler = {
 
     case "getVolume":
       response.volume = bank.getVolume();
-      self.postMessage(port.sender.tab.id, response);
+      self.postMessage(port.sender.tab, response);
       break;
 
     case "clear":
       Tapedeck.Backend.Bank.clear(function() {
-        self.postMessage(port.sender.tab.id, response);
+        self.postMessage(port.sender.tab, response);
       });
       break;
 
     case "getLogs":
       response.logs = Tapedeck.Backend.Utils.logLevels;
-      self.postMessage(port.sender.tab.id, response);
+      self.postMessage(port.sender.tab, response);
       break;
 
     case "saveOptions":
       Tapedeck.Backend.Bank.saveOptions(request.options, function() {
         var unflattened = Tapedeck.Backend.OptionsManager.unflatten(request.options);
         Tapedeck.Backend.OptionsManager.enactOptions(unflattened, function () {
-          self.postMessage(port.sender.tab.id, response);
+          self.postMessage(port.sender.tab, response);
         });
       });
       break;
@@ -618,12 +629,10 @@ Tapedeck.Backend.MessageHandler = {
     });
   },
 
+  // updateSeekSlider defaults to updating all tabs if not single tab is provided
   updateSeekSlider: function(tab) {
     if (typeof(tab) == "undefined") {
-      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Tapedeck.Backend.MessageHandler.updateSeekSlider(selectedTab);
-      });
-      return;
+      tab = "all";
     }
     var track = Tapedeck.Backend.Sequencer.getCurrentTrack();
 
@@ -634,11 +643,11 @@ Tapedeck.Backend.MessageHandler = {
 
     var request = Tapedeck.Backend.Utils.newRequest({
       action: "updateSeekSlider",
-      currentTime: track.get("currentTime"),
-      duration: track.get("duration")
+      currentTime: parseInt(track.get("currentTime"), 10),
+      duration: parseInt(track.get("duration"), 10)
     });
 
-    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+    Tapedeck.Backend.MessageHandler.postMessage(tab, request);
   },
 
   updateVolumeSlider: function(tab) {
@@ -655,7 +664,7 @@ Tapedeck.Backend.MessageHandler = {
       volume: volume
     });
 
-    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+    Tapedeck.Backend.MessageHandler.postMessage(tab, request);
   },
 
   forceCheckSync: function(tab) {
@@ -670,7 +679,7 @@ Tapedeck.Backend.MessageHandler = {
       action: "forceCheckSync"
     });
 
-    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+    Tapedeck.Backend.MessageHandler.postMessage(tab, request);
   },
 
   showModal: function(params, callback, cleanup, tab) {
@@ -718,7 +727,7 @@ Tapedeck.Backend.MessageHandler = {
         proxyImages: rendered.proxyImages
       }, finishUp);
 
-      Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+      Tapedeck.Backend.MessageHandler.postMessage(tab, request);
     };
 
     // render the modal
@@ -750,7 +759,7 @@ Tapedeck.Backend.MessageHandler = {
       proxyImages : proxyImages
     });
 
-    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+    Tapedeck.Backend.MessageHandler.postMessage(tab, request);
   },
 
   signalLoadComplete: function(tab) {
@@ -758,7 +767,7 @@ Tapedeck.Backend.MessageHandler = {
       action: "loadComplete"
     });
 
-    Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+    Tapedeck.Backend.MessageHandler.postMessage(tab, request);
   },
 
   // tab is optional

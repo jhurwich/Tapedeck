@@ -197,7 +197,7 @@ Tapedeck.Backend.InjectManager = {
           request.params = testParams;
         }
 
-        Tapedeck.Backend.MessageHandler.postMessage(tab.id, request);
+        Tapedeck.Backend.MessageHandler.postMessage(tab, request);
       }
     };
     setupAndInject();

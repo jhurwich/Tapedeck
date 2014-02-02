@@ -60,8 +60,8 @@ Tapedeck.Backend.Sequencer = {
           // we only care about the greater 'change' event.  The "change:__" events are ignored.
           if (eventName.indexOf("change:") == -1) {
             sqcr.log("Rendering and pushing queue and player", Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
-            Tapedeck.Backend.TemplateManager.renderViewAndPush("Queue");
-            Tapedeck.Backend.TemplateManager.renderViewAndPush("Player");
+            Tapedeck.Backend.TemplateManager.renderViewAndPush("Queue", "all"); //send queue changes to all tabs
+            Tapedeck.Backend.TemplateManager.renderViewAndPush("Player", "all"); //send player changes to all tabs
           }
         };
         sqcr.queue.destination = "Queue"; // set this so we handle the tracklist differently in templates
