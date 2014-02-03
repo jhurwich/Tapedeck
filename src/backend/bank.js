@@ -53,6 +53,7 @@ Tapedeck.Backend.Bank = {
   volumeKey: /* bankPrefix + */ "volume",
   blockKey: /* bankPrefix + */ "block",
   optionsPrefix: /* bankPrefix + */ "options",
+  devPanelOptionsPrefix: /* bankPrefix + */ "devPanelOptions",
   lastSyncWarningKey: /* bankPrefix + */ "lastSyncWarning",
   currentCassetteKey: /* bankPrefix + */ "currentCassette",
   cassetteStartPagePrefix: /* bankPrefix + */ "cassetteStartPage",
@@ -82,6 +83,7 @@ Tapedeck.Backend.Bank = {
       bank.syncKey = bank.bankPrefix + bank.syncKey;
       bank.blockKey = bank.bankPrefix + bank.blockKey;
       bank.optionsPrefix = bank.bankPrefix + bank.optionsPrefix;
+      bank.devPanelOptionsPrefix = bank.bankPrefix + bank.devPanelOptionsPrefix;
       bank.lastSyncWarningKey = bank.bankPrefix + bank.lastSyncWarningKey;
 
       bank.currentCassetteKey = bank.bankPrefix + bank.currentCassetteKey;
@@ -1203,20 +1205,37 @@ Tapedeck.Backend.Bank = {
 
   getSavedOptions: function(callback) {
     var bank = Tapedeck.Backend.Bank;
-    bank.findKeys("^" + bank.optionsPrefix, false, function(savedKeys) {
+    bank.retrieveOptions(bank.optionsPrefix, callback);
+  },
+  getSavedDevPanelOptions: function(callback) {
+    var bank = Tapedeck.Backend.Bank;
+    bank.retrieveOptions(bank.devPanelOptionsPrefix, callback);
+  },
+  retrieveOptions: function(prefix, callback) {
+    var bank = Tapedeck.Backend.Bank;
+    bank.findKeys("^" + prefix, false, function(savedKeys) {
       var toReturn = {};
       for (var i = 0; i < savedKeys.length; i++) {
         var key = savedKeys[i];
-        var hrKey = key.replace(bank.optionsPrefix, "");
+        var hrKey = key.replace(prefix, "");
         toReturn[hrKey] = bank.localStorage.getItem(key);
       }
       callback(toReturn);
     });
   },
+
   saveOptions: function(options, callback) {
     var bank = Tapedeck.Backend.Bank;
+    bank.storeOptions(bank.optionsPrefix, options, callback);
+  },
+  saveDevPanelOptions: function(options, callback) {
+    var bank = Tapedeck.Backend.Bank;
+    bank.storeOptions(bank.devPanelOptionsPrefix, options, callback);
+  },
+  storeOptions: function(prefix, options, callback) {
+    var bank = Tapedeck.Backend.Bank;
     for (var key in options) {
-      var saveKey = (bank.optionsPrefix + key).replace(/\s/g, "_");
+      var saveKey = (prefix + key).replace(/\s/g, "_");
       bank.localStorage.setItem(saveKey, options[key]);
     }
     if (typeof(callback) != "undefined") {

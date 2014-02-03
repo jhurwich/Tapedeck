@@ -495,6 +495,15 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
+  saveDevPanelOptions: function(options, callback) {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "saveDevPanelOptions",
+      options : options
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
   runTests: function() {
     var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "runTests"

@@ -984,6 +984,18 @@ Tapedeck.Frontend.Frame = {
     },
   },
 
+  DeveloperPanel: {
+    saveOptions: function(e) {
+      var options = {};
+      options.controlViews = $("input[name='view-control']").first().prop('checked');
+
+      console.log("SAVING DEVELOPER PANEL OPTIONS: " + JSON.stringify(options));
+      Tapedeck.Frontend.Messenger.saveDevPanelOptions(options, function() {
+        console.log("DEV PANEL OPTIONS SAVED");
+      });
+    },
+  },
+
   onFrameRender: function() {
     var frame = Tapedeck.Frontend.Frame;
 

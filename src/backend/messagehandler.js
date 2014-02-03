@@ -441,6 +441,15 @@ Tapedeck.Backend.MessageHandler = {
       });
       break;
 
+    case "saveDevPanelOptions":
+      Tapedeck.Backend.Bank.saveDevPanelOptions(request.options, function() {
+        var unflattened = Tapedeck.Backend.OptionsManager.unflatten(request.options);
+        Tapedeck.Backend.OptionsManager.enactDevPanelOptions(unflattened, function () {
+          self.postMessage(port.sender.tab, response);
+        });
+      });
+      break;
+
     case "runTests":
       var testURL = chrome.extension.getURL("/spec/SpecRunner.html");
       chrome.tabs.create({ url: testURL });

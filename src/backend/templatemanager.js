@@ -254,7 +254,8 @@ Tapedeck.Backend.TemplateManager = {
       "volume" : tMgr.getVolume,
       "drawerOpen" : tMgr.getDrawerOpen,
       "tabID" : tMgr.getTabID,
-      "options": tMgr.getOptions
+      "options": tMgr.getOptions,
+      "devPanelOptions" : tMgr.getDevPanelOptions
     };
     tMgr.log("Filling options: " + JSON.stringify(requestedOptions), Tapedeck.Backend.Utils.DEBUG_LEVELS.ALL);
 
@@ -523,6 +524,9 @@ Tapedeck.Backend.TemplateManager = {
   },
   getOptions: function(blocking, callback) {
     Tapedeck.Backend.OptionsManager.getOptions(callback);
+  },
+  getDevPanelOptions: function(blocking, callback) {
+    Tapedeck.Backend.OptionsManager.getDevPanelOptions(callback);
   },
 
   getViewScript: function(scriptName) {

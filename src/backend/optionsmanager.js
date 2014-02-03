@@ -1,8 +1,25 @@
 Tapedeck.Backend.OptionsManager = {
 
+  devPanelShowing: false,
   init: function(continueInit) {
     var self = this;
-    self.getConf(self.handleConf.curry(continueInit));
+    self.getConf(function(conf) {
+      self.handleConf(function() {
+
+        if (self.devPanelShowing) {
+          self.getDevPanelOptions(function(options) {
+            self.enactDevPanelOptions(options, function() {
+              continueInit();
+            });
+          });
+        }
+        else {
+          continueInit();
+        }
+        return;
+
+      }, conf);
+    });
   },
 
   // This expects a callback that itself takes the params (successCallback, conf),
@@ -64,13 +81,26 @@ Tapedeck.Backend.OptionsManager = {
     });
   },
 
+  getDevPanelOptions: function(callback) {
+    var optionMgr = Tapedeck.Backend.OptionsManager;
+
+    Tapedeck.Backend.Bank.getSavedDevPanelOptions(function(flatOptions) {
+      var options = optionMgr.unflatten(flatOptions);
+      callback(options);
+    });
+  },
+
   enactOptions: function(options, callback) {
     var optionMgr = Tapedeck.Backend.OptionsManager;
     var logsDone = false;
     var overridesDone = false;
     var premadesDone = false;
+    var devPanelDone = false;
     var tryFinish = function() {
-      if (logsDone && overridesDone && premadesDone) {
+      if (logsDone &&
+          overridesDone &&
+          premadesDone &&
+          (devPanelDone || !optionMgr.devPanelShowing)) {
         callback();
       }
     };
@@ -86,6 +116,14 @@ Tapedeck.Backend.OptionsManager = {
         premadesDone = true;
         tryFinish();
       };
+      var devPanelFinish = function(options) {
+        optionMgr.enactDevPanelOptions(options, function() {
+          // done enacting devPanel options
+          devPanelDone = true;
+          tryFinish();
+        });
+      };
+
       for (var aKey in options) {
         var compareKey = aKey.toLowerCase();
         if (compareKey.indexOf("development") != -1) {
@@ -95,6 +133,12 @@ Tapedeck.Backend.OptionsManager = {
         else if (compareKey.indexOf("premade") != -1) {
           // this the premade cassettified cassettes subobject
           optionMgr.premadeCassettes(options[aKey], premadesFinish);
+        }
+        else if (compareKey.indexOf("panel") != -1) {
+          optionMgr.devPanelShowing = (options[aKey] > 0);
+          if (optionMgr.devPanelShowing) {
+            optionMgr.getDevPanelOptions(devPanelFinish);
+          }
         }
       }
       tryFinish();
@@ -110,6 +154,11 @@ Tapedeck.Backend.OptionsManager = {
         break;
       }
     }
+  },
+
+  enactDevPanelOptions: function(options, callback) {
+    console.log("Enacting options from DevPanel: " + JSON.stringify(options));
+    callback();
   },
 
   setLogs: function(object, callback) {

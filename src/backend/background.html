@@ -58,6 +58,7 @@
         </events>
 
         <options>
+          "options" : "options"
         </options>
 
         <images>
@@ -70,7 +71,7 @@
 
       <template>
         <% if(params.debug > 0) {
-          /* nothing to check */
+          params.paramSanity("options", true, params.options);
         } %>
         <div id="frame-gutter">
           <div id="onscreen">
@@ -103,6 +104,12 @@
           <div id="browse-region">
             <template ref="BrowseRegion-default-template" />
           </div>
+
+          <% if (typeof(params.options) != "undefined" &&
+                 typeof(params.options.Add_Developer_Panel) != "undefined" &&
+                 params.options.Add_Developer_Panel > 0) { %>
+            <template ref="DeveloperPanel-default-template" />
+          <% } %>
         </div>
       </template>
     </script>
@@ -696,6 +703,38 @@
               } %>
             </div>
           </form>
+        </div>
+      </template>
+    </script>
+
+     <script id="DeveloperPanel-default-template" type="text/template">
+      <tapedeck>
+        <events>
+          "click input[name='view-control']" : "DeveloperPanel.saveOptions"
+        </events>
+
+        <options>
+          "devPanelOptions" : "devPanelOptions"
+        </options>
+
+        <images>
+        </images>
+      </tapedeck>
+
+      <template>
+        <% if(params.debug > 0) {
+          params.paramSanity("devOptions", true, params.devOptions);
+        } %>
+        <div id="developer-panel">
+          This is the developer panel
+          <div class="view-controls container">
+            Step through views: <input type="checkbox"
+                                       name="view-control"
+                                       value="view-control"
+                                       <% if (typeof(params.devPanelOptions.controlViews) != "undefined" && params.devPanelOptions.controlViews) {
+                                             print('checked=true');
+                                       } %> />
+          </div>
         </div>
       </template>
     </script>
