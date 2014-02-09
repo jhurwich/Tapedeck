@@ -450,6 +450,12 @@ Tapedeck.Backend.MessageHandler = {
       });
       break;
 
+    case "nextView":
+      Tapedeck.Backend.MessageHandler.nextView(function() {
+        self.postMessage(port.sender.tab, response);
+      });
+      break;
+
     case "runTests":
       var testURL = chrome.extension.getURL("/spec/SpecRunner.html");
       chrome.tabs.create({ url: testURL });
@@ -745,6 +751,8 @@ Tapedeck.Backend.MessageHandler = {
                                                            handleRendered);
   },
 
+  controlViews: false,
+  pushQueue: [],
   pushView: function(view, proxyEvents, proxyImages, tab) {
     var self = Tapedeck.Backend.MessageHandler;
     if (typeof(tab) == "undefined") {
@@ -754,12 +762,17 @@ Tapedeck.Backend.MessageHandler = {
       return;
     }
     var targetID = $(view).first().attr("id");
+
+    // often the view we want is encased in an empty div by Backbone
+    if (typeof(targetID) == "undefined") {
+      view = $(view).children("[id]").first();
+      targetID = $(view).first().attr("id");
+    }
     self.log("Pushing view to target: " + targetID);
 
     var viewString = $('<div>').append($(view))
                                .remove()
                                .html();
-
 
     var request = Tapedeck.Backend.Utils.newRequest({
       action: "pushView",
@@ -768,7 +781,56 @@ Tapedeck.Backend.MessageHandler = {
       proxyImages : proxyImages
     });
 
-    Tapedeck.Backend.MessageHandler.postMessage(tab, request);
+    // always allow developer-panel and options updates
+    if (targetID == "developer-panel" || targetID == "options") {
+      Tapedeck.Backend.MessageHandler.postMessage(tab, request);
+      return;
+    }
+
+    // if controlViews, store the view update and update the DevPanel instead
+    if (self.controlViews) {
+      self.pushQueue.push(request);
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("DeveloperPanel");
+      return;
+    }
+    else {
+      // make sure to empty the pushQueue, if it has elements
+      if (self.pushQueue.length > 0) {
+        self.dumpPushQueue(function() {
+          Tapedeck.Backend.MessageHandler.postMessage(tab, request);
+        });
+        return;
+      }
+
+      Tapedeck.Backend.MessageHandler.postMessage(tab, request);
+    }
+  },
+
+  nextView: function(callback) {
+    var self = Tapedeck.Backend.MessageHandler;
+    self.getSelectedTab(function(tab) {
+      var request = self.pushQueue.shift();
+
+      self.log("Stepping out: " + request.view);
+
+      self.postMessage(tab, request);
+      Tapedeck.Backend.TemplateManager.renderViewAndPush("DeveloperPanel");
+    });
+  },
+
+  dumpPushQueue: function(callback) {
+    var self = Tapedeck.Backend.MessageHandler;
+    self.getSelectedTab(function(tab) {
+
+      while(self.pushQueue.length > 0) {
+        var request = self.pushQueue.shift();
+        Tapedeck.Backend.MessageHandler.postMessage(tab, request);
+      }
+
+      if (typeof(callback) != "undefined") {
+        callback();
+      }
+    });
   },
 
   signalLoadComplete: function(tab) {

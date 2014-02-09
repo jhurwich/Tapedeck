@@ -1,7 +1,7 @@
 Tapedeck.Backend.Views.PlaylistList = Tapedeck.Backend.Views.TapedeckView.extend({
 
   tagName: "div",
-  id: "playlist-list",
+  templateID: "playlist-list",
   requiredTemplates: [
     "PlaylistList"
   ],

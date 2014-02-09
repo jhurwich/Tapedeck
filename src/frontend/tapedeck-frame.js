@@ -989,10 +989,16 @@ Tapedeck.Frontend.Frame = {
       var options = {};
       options.controlViews = $("input[name='view-control']").first().prop('checked');
 
-      console.log("SAVING DEVELOPER PANEL OPTIONS: " + JSON.stringify(options));
       Tapedeck.Frontend.Messenger.saveDevPanelOptions(options, function() {
-        console.log("DEV PANEL OPTIONS SAVED");
+        Tapedeck.Frontend.Messenger.requestUpdate("DeveloperPanel");
       });
+    },
+
+    nextView: function(e) {
+      if ($(e.target).hasClass("disabled")) {
+        return;
+      }
+      Tapedeck.Frontend.Messenger.nextView();
     },
   },
 

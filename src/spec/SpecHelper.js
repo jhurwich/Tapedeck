@@ -3,7 +3,7 @@
 
 __Jasmine__RUN_ALL_TESTS = true;
 __Jasmine__TESTS_TO_RUN = [
-  "Frontend Frame Logic"
+  "Cassettification"
 ];
 
 __Jasmine__TESTS_TO_SKIP = [
@@ -106,7 +106,7 @@ beforeEach(function() {
 
   this.waitsForElement = function(selector) {
     waitsFor(function() {
-      return ($("#tapedeck-frame").contents().find(selector).length > 0);
+      return ($("#tapedeck-frame").contents().find("body").first().find(selector).length > 0);
     }, "Timedout waiting for '" + selector + "' to populate", 2000);
   };
 

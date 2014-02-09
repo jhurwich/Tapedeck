@@ -100,9 +100,30 @@ Tapedeck.Backend.InjectManager = {
           injectMgr.isTest(tab.url)) {
         return;
       }
-      Tapedeck.Backend.TemplateManager.renderViewAndPush("Frame", function(rendered) {
-        // nothing to do, already pushed
-        console.log("Frame pushed on selection change");
+
+      var pushFrame = function() {
+        Tapedeck.Backend.TemplateManager.renderViewAndPush("Frame", function(rendered) {
+          // nothing to do, already pushed
+          console.log("Frame pushed on selection change");
+        });
+      };
+
+      Tapedeck.Backend.OptionsManager.getDevPanelOptions(function(devPanelOptions) {
+
+        // selection change should clear controlViews, or else the user will be orphaned without the frame
+        if (devPanelOptions.controlViews) {
+
+          Tapedeck.Backend.Bank.saveDevPanelOptions({ controlViews: false }, function() {
+            Tapedeck.Backend.OptionsManager.getDevPanelOptions(function(options) {
+              Tapedeck.Backend.OptionsManager.enactDevPanelOptions(options, function () {
+                pushFrame();
+              });
+            });
+          });
+        }
+        else {
+          pushFrame();
+        }
       });
     });
   },

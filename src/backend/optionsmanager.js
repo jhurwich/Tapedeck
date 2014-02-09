@@ -157,7 +157,31 @@ Tapedeck.Backend.OptionsManager = {
   },
 
   enactDevPanelOptions: function(options, callback) {
-    console.log("Enacting options from DevPanel: " + JSON.stringify(options));
+    var completeCount = 0;
+    var completedCallback = function() {
+      completeCount++;
+      if (completeCount > Object.keys(options).length) {
+        callback();
+      }
+    };
+
+    for (var option in options) {
+
+      switch(option) {
+      case "controlViews":
+        Tapedeck.Backend.MessageHandler.controlViews = (options[option] === true ? options[option] : options[option] === "true");
+
+        // if view control was deactivated, dump the pushQueue
+        if (!Tapedeck.Backend.MessageHandler.controlViews) {
+          Tapedeck.Backend.MessageHandler.dumpPushQueue(completedCallback);
+        }
+        break;
+
+      default:
+        console.error("Received unrecognized DevPanelOption: " + option);
+        break;
+      }
+    }
     callback();
   },
 
@@ -304,7 +328,14 @@ Tapedeck.Backend.OptionsManager = {
             onObject[split[i]] = asNum;
           }
           else if (typeof(object[key]) == "string") {
-            onObject[split[i]] = object[key].replace(/\s/g, "_");
+
+            // cast bools as booleans
+            if (object[key] === "true" || object[key] === "false") {
+              onObject[split[i]] = (object[key] === "true");
+            }
+            else {
+              onObject[split[i]] = object[key].replace(/\s/g, "_");
+            }
           }
           else {
             onObject[split[i]] = object[key];

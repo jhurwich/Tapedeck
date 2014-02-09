@@ -44,6 +44,7 @@
     <script type="text/javascript" src="views/onscreen-view.js"></script>
     <script type="text/javascript" src="views/player-view.js"></script>
     <script type="text/javascript" src="views/modal-view.js"></script>
+    <script type="text/javascript" src="views/developerpanel-view.js"></script>
     <script type="text/javascript" src="views/options-view.js"></script>
 
     <script id="Frame-default-template" type="text/template">
@@ -710,14 +711,17 @@
      <script id="DeveloperPanel-default-template" type="text/template">
       <tapedeck>
         <events>
-          "click input[name='view-control']" : "DeveloperPanel.saveOptions"
+          "click input[name='view-control']" : "DeveloperPanel.saveOptions",
+          "click .view-controls .next-view" : "DeveloperPanel.nextView"
         </events>
 
         <options>
-          "devPanelOptions" : "devPanelOptions"
+          "devPanelOptions" : "devPanelOptions",
+          "pushQueue" : "pushQueue"
         </options>
 
         <images>
+          ".button.next-view" : "next-page.png",
         </images>
       </tapedeck>
 
@@ -728,12 +732,20 @@
         <div id="developer-panel">
           This is the developer panel
           <div class="view-controls container">
-            Step through views: <input type="checkbox"
-                                       name="view-control"
-                                       value="view-control"
-                                       <% if (typeof(params.devPanelOptions.controlViews) != "undefined" && params.devPanelOptions.controlViews) {
-                                             print('checked=true');
-                                       } %> />
+            <div class="view-control-checkbox">
+              Step through views: <input type="checkbox"
+                                         name="view-control"
+                                         value="view-control"
+                                         <% if (typeof(params.devPanelOptions.controlViews) != "undefined" && params.devPanelOptions.controlViews) {
+                                               print('checked=true');
+                                         } %> />
+            </div>
+            <% if (typeof(params.devPanelOptions.controlViews) != "undefined" && params.devPanelOptions.controlViews) { %>
+              <div class="view-control-count">
+                <%= params.pushQueue.length %>
+              </div>
+              <div class="button next-view <% if (params.pushQueue.length == 0) { print('disabled'); } %>"></div>
+            <% } %>
           </div>
         </div>
       </template>

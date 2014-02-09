@@ -504,6 +504,14 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
+  nextView: function(callback) {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "nextView"
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
   runTests: function() {
     var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "runTests"

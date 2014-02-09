@@ -19,6 +19,12 @@ var attachTo = function(onObject) {
       var view = $(viewStr);
       var targetID = $(view).first().attr("id");
 
+      // often the view we want is encased in an empty div by Backbone
+      if (typeof(targetID) == "undefined") {
+        view = $(view).children("[id]").first();
+        targetID = $(view).first().attr("id");
+      }
+
       // remove all whitespace and attrs that are dependent on others like class to see if the views are actually the same
       var existingView = "";
       if ($("#" + targetID).length > 0) {

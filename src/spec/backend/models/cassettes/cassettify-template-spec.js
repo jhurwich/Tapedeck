@@ -4,7 +4,7 @@ describe("Cassettification", function() {
     var self = this;
     this.frame = this.Tapedeck.Frontend.Frame;
     this.cMgr = this.Tapedeck.Backend.CassetteManager;
-    this.testURL = "www.audiocred.com";
+    this.testURL = "www.theburningear.com";
     this.pattern = this.testURL + "/page/$#";
     this.cassetteName = "TestCassette";
 

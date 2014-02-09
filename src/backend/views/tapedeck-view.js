@@ -10,7 +10,18 @@ Tapedeck.Backend.Views.TapedeckView = Backbone.View.extend({
     if (typeof(self.init) != "undefined") {
       self.init();
     }
-    self.templateName = Tapedeck.Backend.Utils.idToTemplateName(self.id);
+
+    // Backbone has it's own handling if self.id is specified, wrapping the content in a div of that id
+    if (typeof(self.id) != "undefined") {
+      self.templateName = Tapedeck.Backend.Utils.idToTemplateName(self.id);
+    }
+    else if (typeof(self.templateID) != "undefined") {
+      // use self.templateID instead of self.id to avoid the encasing and render textTemplate as one element
+      self.templateName = Tapedeck.Backend.Utils.idToTemplateName(self.templateID);
+    }
+    else {
+      console.error("ERROR: no id could be found for a template");
+    }
     self.packageName = tMgr.currentPackage;
 
     tMgr.getTemplate(self.templateName, self.packageName, function(template) {

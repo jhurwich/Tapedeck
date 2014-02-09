@@ -32,25 +32,33 @@
   "commands": {
     "next_track": {
       "suggested_key": {
-        "default": "Ctrl+Right"
+        "default": "Ctrl+Period",
+        "linux" : "Ctrl+Period",
+        "windows" : "Ctrl+Period"
       },
       "description": "Play next track"
     },
     "delete_track": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Right"
+        "default": "Ctrl+Delete",
+        "linux" : "Ctrl+Delete",
+        "windows" : "Ctrl+Delete"
       },
       "description": "Delete current track"
     },
     "prev_track": {
       "suggested_key": {
-        "default": "Ctrl+Left"
+        "default": "Ctrl+Comma",
+        "linux" : "Ctrl+Comma",
+        "windows" : "Ctrl+Comma"
       },
       "description": "Play previous track"
     },
     "play_pause": {
       "suggested_key": {
-        "default": "Ctrl+Period"
+        "default": "Ctrl+0",
+        "linux" : "Ctrl+0",
+        "windows" : "Ctrl+0"
       },
       "description": "Play/Pause"
     }

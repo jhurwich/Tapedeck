@@ -50,14 +50,14 @@ describe("Message Handler", function() {
 
   it("should update the correct view with MessageHandler.pushView" , function() {
 
-    var testDiv = '<div id="browse-list"><div id="testdiv"></div></div>';
+    var testDiv = '<div id="player"><div id="testdiv"></div></div>';
     var testTab = this.findTestTab();
     expect(testTab).not.toBeNull();
 
-    this.waitsForElement("#browse-list");
+    this.waitsForElement("#player");
     runs(function() {
-      expect($("#tapedeck-frame").contents()).toContain("#browse-list");
-      expect($("#tapedeck-frame").contents()).not.toContain("#testdiv");
+      expect($("#tapedeck-frame").contents().find("body").first()).toContain("#player");
+      expect($("#tapedeck-frame").contents().find("body").first()).not.toContain("#testdiv");
 
       var spy = spyOn(this.Tapedeck.Frontend.Utils, "replaceView"); // NOTE: no callthrough
       this.Tapedeck.Backend.MessageHandler.pushView(testDiv, { }, { }, testTab);
