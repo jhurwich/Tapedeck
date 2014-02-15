@@ -996,7 +996,7 @@ Tapedeck.Backend.CassetteManager = {
 
     var cassette = null;
     for (var i = 0; i < cMgr.cassettes; i++) {
-      if (cMgr.cassettes[i].get("name") == aTrack.get("cassette")) {
+      if (cMgr.cassettes[i].cassette.get("name") == aTrack.get("cassette")) {
         cassette = cMgr.cassettes[i];
       }
     }
