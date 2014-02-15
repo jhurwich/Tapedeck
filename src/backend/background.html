@@ -338,90 +338,93 @@
           /* nothing to check */
         } %>
         <div class="tracklist">
-          <% if(typeof(params.trackList) == "undefined" ||
-                params.trackList == null ||
-                (params.trackList.destination != "Queue" && typeof(params.stillParsing) != "undefined" && params.stillParsing)) { %>
-            <div class="row-container blank">
-              <div class="row blank">
-                <div class="spinner loading"
-                     id="loading-spinner"></div>
-              </div>
-            </div>
-          <% } else {
-            if (typeof(params.errorString) != "undefined" && params.errorString.length > 0) { %>
-              <div class="row-container message">
-                <div class="row message">
-                  <%= params.errorString %>
-                </div>
-              </div>
-            <% } else if (params.trackList.length == 0) { %>
-              <div class="row-container message">
-                <div class="row message">
-                  <% if (params.trackList.destination == "Queue") { %>
-                    There are no tracks in your queue.
-                  <% }
-                  else { %>
-                    Cassette is blank.
-                  <% } %>
-                </div>
-              </div>
-            <% }
-            if (params.trackList.length > 0) { %>
+          <div class="drop-catchall"></div>
+          <div class="tracklist-rows">
+            <% if(typeof(params.trackList) == "undefined" ||
+                  params.trackList == null ||
+                  (params.trackList.destination != "Queue" && typeof(params.stillParsing) != "undefined" && params.stillParsing)) { %>
               <div class="row-container blank">
-                <div class="row blank
-                            <% if (params.trackList[0].listened) { print(" listened ") } %>"
-                     id="hidden-droprow" index="-1">
-                  <div class="cell trackName-col"></div>
-                  <div class="cell artistName-col"></div>
-                  <div class="cell cassette-col"></div>
+                <div class="row blank">
+                  <div class="spinner loading"
+                       id="loading-spinner"></div>
                 </div>
               </div>
+            <% } else {
+              if (typeof(params.errorString) != "undefined" && params.errorString.length > 0) { %>
+                <div class="row-container message">
+                  <div class="row message" index="-1">
+                    <%= params.errorString %>
+                  </div>
+                </div>
+              <% } else if (params.trackList.length == 0) { %>
+                <div class="row-container message">
+                  <div class="row message" index="-1">
+                    <% if (params.trackList.destination == "Queue") { %>
+                      There are no tracks in your queue.
+                    <% }
+                    else { %>
+                      Cassette is blank.
+                    <% } %>
+                  </div>
+                </div>
+              <% }
+              if (params.trackList.length > 0) { %>
+                <div class="row-container blank">
+                  <div class="row blank
+                              <% if (params.trackList[0].listened) { print(" listened ") } %>"
+                       id="hidden-droprow" index="-1">
+                    <div class="cell trackName-col"></div>
+                    <div class="cell artistName-col"></div>
+                    <div class="cell cassette-col"></div>
+                  </div>
+                </div>
 
-              <% for (var i=0; i < params.trackList.length; i++) {
-                var track = params.trackList[i];
-              %>
-                <div class="row-container">
-                  <div class="row
-                              <% if (track.error) { print(" error ") } %>
-                              <% if (track.listened) { print(" listened ") } %>
-                              <% if (track.playing) { print(" playing ") } %>"
-                       index='<%= i %>'
-                       track-id='<%= track.tdID %>'
-                       track-type='<% if(typeof(track.type) == "undefined") {
-                                        print("unknown")
-                                      } else {
-                                        print(track.type)
-                                      } %>'
-                       <% if (typeof(track.download) != "undefined") {
-                          print("download='" + track.download + "'");
-                       } %>
-                       draggable="true" >
-                    <div class="cell trackName-col" title='<%= track.trackName %>'>
-                      <span class="trackName-span" >
-                        <%= track.trackName %>
-                      </span>
-                    </div>
-                    <div class="cell artistName-col" title='<%= track.artistName %>'>
-                      <%= track.artistName %>
-                    </div>
-                    <div class="cell cassette-col" title='<%= track.cassette.replace(/_/g, " ") %>'>
-                      <span class="cassette-span"><%= track.cassette.replace(/_/g, " ") %></span>
-                      <div class="row-buttons">
-                        <div class="button playnow"></div>
-                        <div class="button remove"></div>
-                        <div class="button queue"></div>
-                        <div class="button download"></div>
+                <% for (var i=0; i < params.trackList.length; i++) {
+                  var track = params.trackList[i];
+                %>
+                  <div class="row-container">
+                    <div class="row
+                                <% if (track.error) { print(" error ") } %>
+                                <% if (track.listened) { print(" listened ") } %>
+                                <% if (track.playing) { print(" playing ") } %>"
+                         index='<%= i %>'
+                         track-id='<%= track.tdID %>'
+                         track-type='<% if(typeof(track.type) == "undefined") {
+                                          print("unknown")
+                                        } else {
+                                          print(track.type)
+                                        } %>'
+                         <% if (typeof(track.download) != "undefined") {
+                            print("download='" + track.download + "'");
+                         } %>
+                         draggable="true" >
+                      <div class="cell trackName-col" title='<%= track.trackName %>'>
+                        <span class="trackName-span" >
+                          <%= track.trackName %>
+                        </span>
                       </div>
-                      <div class="row-indicators">
-                        <div class="spinner download"
-                             id="download-spinner"></div>
+                      <div class="cell artistName-col" title='<%= track.artistName %>'>
+                        <%= track.artistName %>
+                      </div>
+                      <div class="cell cassette-col" title='<%= track.cassette.replace(/_/g, " ") %>'>
+                        <span class="cassette-span"><%= track.cassette.replace(/_/g, " ") %></span>
+                        <div class="row-buttons">
+                          <div class="button playnow"></div>
+                          <div class="button remove"></div>
+                          <div class="button queue"></div>
+                          <div class="button download"></div>
+                        </div>
+                        <div class="row-indicators">
+                          <div class="spinner download"
+                               id="download-spinner"></div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                <% } %>
               <% } %>
             <% } %>
-          <% } %>
+          </div>
         </div>
       </template>
     </script>
@@ -434,7 +437,11 @@
           "dragenter #queue .row" : "TrackLists.rowDragEnter",
           "dragleave #queue .row" : "TrackLists.rowDragLeave",
           "dragover #queue .row"  : "TrackLists.rowDragOver",
-          "drop #queue .row"      : "TrackLists.rowDrop"
+          "drop #queue .row"      : "TrackLists.rowDrop",
+
+          "dragenter #queue .drop-catchall" : "TrackLists.remainderDragEnter",
+          "dragleave #queue .drop-catchall" : "TrackLists.remainderDragLeave",
+          "dragover #queue .drop-catchall"  : "TrackLists.remainderOver"
         </events>
         <options>
           "queue" : "queue"

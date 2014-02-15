@@ -230,6 +230,19 @@ body {
 .tracklist #hidden-droprow.drag-target .cell {
   background-color: #fb811b !important;
 }
+.tracklist .drop-catchall {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  max-height: 250px;
+}
+.tracklist .drop-catchall.drag-target {
+  background-color: #fb811b;
+}
+.tracklist .tracklist-rows {
+  position: relative;
+  width: 100%;
+}
 .tracklist .row-container {
   position: relative;
   width: 100%;
@@ -304,11 +317,11 @@ body {
   padding-left: 2px;
   border-right: 2px solid #333;
 }
-.tracklist .row-container:not(.blank):not(.message).drag-target {
+.tracklist .row-container.drag-target {
   border-bottom: solid 2px #fb811b;
   height: 18px;
 }
-.tracklist .row:not(.blank):not(.message).drag-target {
+.tracklist .row.drag-target {
   border-bottom-width: 0;
 }
 .tracklist .cell.trackName-col {
@@ -387,6 +400,10 @@ body {
 .tracklist .row.message {
   padding: 3px 0 0 5px;
   cursor: default;
+  margin-bottom: 4px;
+}
+.tracklist .row-container.message.drag-target {
+  height: 22px;
 }
 
 #queue {

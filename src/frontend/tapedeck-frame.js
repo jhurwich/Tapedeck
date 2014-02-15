@@ -458,6 +458,8 @@ Tapedeck.Frontend.Frame = {
     rowDrag: {
       tracks : [],
       from: "",
+      overRow: false,
+      overRemainder: false
     },
     rowDragStart: function(e) {
       var tracklists = Tapedeck.Frontend.Frame.TrackLists;
@@ -490,16 +492,32 @@ Tapedeck.Frontend.Frame = {
       }
     },
     rowDragEnter: function(e) {
+      var rowDrag = Tapedeck.Frontend.Frame.TrackLists.rowDrag;
+      rowDrag.overRemainder = false;
+      rowDrag.overRow = true;
+
       var target = $(e.target).closest(".row");
       $(target).addClass("drag-target");
       $(target).closest(".row-container").addClass("drag-target");
     },
     rowDragLeave: function(e) {
+      var rowDrag = Tapedeck.Frontend.Frame.TrackLists.rowDrag;
+      rowDrag.overRow = false;
+
       var target = $(e.target).closest(".row");
       $(target).removeClass("drag-target");
       $(target).closest(".row-container").removeClass("drag-target");
     },
     rowDragEnd: function(e) {
+      var rowDrag = Tapedeck.Frontend.Frame.TrackLists.rowDrag;
+
+      // trigger the remainderDrop event, if appropriate
+      if (!rowDrag.overRow && rowDrag.overRemainder) {
+        Tapedeck.Frontend.Frame.TrackLists.remainderDrop(e);
+      }
+      rowDrag.overRow = false;
+      rowDrag.overRemainder = false;
+
       $(".drag-target").each(function(index, dragTarget) {
         $(dragTarget).removeClass("drag-target");
       });
@@ -538,6 +556,84 @@ Tapedeck.Frontend.Frame = {
       rowDrag.tracks = [];
 
       return false;
+    },
+    remainderOver: function(e) {
+      if (e.preventDefault) {
+        e.preventDefault(); // Necessary. Allows us to drop.
+      }
+    },
+    remainderDragEnter: function(e) {
+      var rowDrag = Tapedeck.Frontend.Frame.TrackLists.rowDrag;
+      rowDrag.overRemainder = true;
+
+      // find the dropIndex and highlight the target row
+      var dropIndex = -1;
+      var rows = $("#queue .row[index]");
+      if (rows.length !== 0) {
+        rows.each(function(){
+          var i = parseInt($(this).attr("index"), 10);
+          if (i > dropIndex) {
+            dropIndex = i;
+          }
+        });
+        var selector = "#queue .row[index='" + dropIndex +"']";
+        $(selector).parent().addClass("drag-target");
+      }
+      else {
+        $(e.target).addClass("drag-target");
+      }
+
+    },
+    remainderDragLeave: function(e) {
+      // we get some incorrect dragleave events, make sure we're actually leaving
+      var checkElem = document.elementFromPoint(e.originalEvent.offsetX, e.originalEvent.offsetY);
+      if (!checkElem || checkElem == null) {
+        return;
+      }
+
+      var rowDrag = Tapedeck.Frontend.Frame.TrackLists.rowDrag;
+      rowDrag.overRemainder = false;
+
+      // remove the highlight from the target row
+      var dropIndex = -1;
+      var rows = $("#queue .row[index]");
+      if (rows.length !== 0) {
+        rows.each(function(){
+          var i = parseInt($(this).attr("index"), 10);
+          if (i > dropIndex) {
+            dropIndex = i;
+          }
+        });
+        var selector = "#queue .row[index='" + dropIndex +"']";
+        $(selector).parent().removeClass("drag-target");
+      }
+      else {
+        $(e.target).removeClass("drag-target");
+      }
+    },
+    remainderDrop: function(e) {
+      var rowDrag = Tapedeck.Frontend.Frame.TrackLists.rowDrag;
+
+      // determine the appropriate dropIndex
+      var dropIndex = -1;
+      var rows = $("#queue .row[index]");
+      if (rows.length !== 0) {
+        rows.each(function(){
+          var i = parseInt($(this).attr("index"), 10);
+          if (i > dropIndex) {
+            dropIndex = i;
+          }
+        });
+      }
+
+      if (rowDrag.from.match(/queue/) != null) {
+        // If dropping from queue to queue, moveTracks
+        Tapedeck.Frontend.Messenger.moveTracks(rowDrag.tracks, dropIndex + 1);
+      }
+      else {
+        // If dropping from browse to queue, queueTracks
+        Tapedeck.Frontend.Messenger.queueTracks(rowDrag.tracks, dropIndex + 1);
+      }
     },
 
     rowButtonRemove: function(e) {
