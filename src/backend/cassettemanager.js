@@ -995,9 +995,9 @@ Tapedeck.Backend.CassetteManager = {
     console.log("Searching for errorHandler for track: " + JSON.stringify(aTrack.toJSON()));
 
     var cassette = null;
-    for (var i = 0; i < cMgr.cassettes; i++) {
+    for (var i = 0; i < cMgr.cassettes.length; i++) {
       if (cMgr.cassettes[i].cassette.get("name") == aTrack.get("cassette")) {
-        cassette = cMgr.cassettes[i];
+        cassette = cMgr.cassettes[i].cassette;
       }
     }
     if (cassette == null) {
