@@ -992,7 +992,7 @@ Tapedeck.Backend.CassetteManager = {
   // successCallback should receive an updated track object
   doErrorHandler: function(aTrack, aSuccessCallback, aErrCallback) {
     var cMgr = Tapedeck.Backend.CassetteManager;
-    console.log("Searching for errorHandler for track: " + JSON.stringify(aTrack.toJSON()));
+    console.error("Searching for errorHandler for track: " + JSON.stringify(aTrack.toJSON()));
 
     var cassette = null;
     for (var i = 0; i < cMgr.cassettes.length; i++) {

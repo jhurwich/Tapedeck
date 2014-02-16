@@ -399,11 +399,12 @@ Tapedeck.Backend.Sequencer = {
     },
 
     handleTimeUpdate: function(self) {
-      var currentTime = self.playerElement.get(0).currentTime;
+      var currentTime = parseInt(self.playerElement.get(0).currentTime, 10);
       self.currentTrack.set({ currentTime : currentTime},
                             { silent      : true       });
 
-      var duration = self.playerElement.get(0).duration;
+      var duration = parseInt(self.playerElement.get(0).duration, 10);
+
       var percent = 0;
       if (duration && currentTime) {
 

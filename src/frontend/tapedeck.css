@@ -402,6 +402,9 @@ body {
   cursor: default;
   margin-bottom: 4px;
 }
+.tracklist .row-container.blank.drag-target {
+  height: 6px;
+}
 .tracklist .row-container.message.drag-target {
   height: 22px;
 }

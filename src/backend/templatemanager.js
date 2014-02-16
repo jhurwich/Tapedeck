@@ -133,14 +133,12 @@ Tapedeck.Backend.TemplateManager = {
     tMgr.renderView(scriptName, packageName, function(fullViewData) {
       fullRenderComplete = true;
 
-      // push to the selectedTab, or specified tab if one was given
+      // push to all tabs unless a specified tab is provided
       if (typeof(tab) == "undefined" || !tab) {
-        Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-          Tapedeck.Backend.MessageHandler.pushView(fullViewData.el,
-                                                   fullViewData.proxyEvents,
-                                                   fullViewData.proxyImages,
-                                                   selectedTab);
-        });
+        Tapedeck.Backend.MessageHandler.pushView(fullViewData.el,
+                                                 fullViewData.proxyEvents,
+                                                 fullViewData.proxyImages,
+                                                 "all");
       }
       else {
         Tapedeck.Backend.MessageHandler.pushView(fullViewData.el,
