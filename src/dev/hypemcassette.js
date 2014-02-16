@@ -115,7 +115,7 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
   */
   parseHTMLResponse: function(self, callback, errCallback, finalCallback, responseText, textStatus, headers) {
 
-     var openTagRegex = function(tag) {
+    var openTagRegex = function(tag) {
       return new RegExp("<\s*" + tag + "[^<>]*>", "gi");
     };
 
@@ -179,12 +179,14 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
   // getting any AUTH cookie that may be missing.
   errorHandler: function(params, successCallback, errCallback) {
     var self = this;
+    console.error("HypeMachine errorHandler in progress for: " + params.track.url);
 
     var idRegex = new RegExp("serve/play/([^\/]*)/");
     var hypemID = params.track.url.match(idRegex)[1];
     var trackURL = "http://hypem.com/track/" + hypemID;
 
     var callback = function(parsed) {
+      console.error("Successfully parsed recovery tracks and found tracks: " + JSON.stringify(parsed));
       var updatedTrack = null;
       for (var i = 0; i < parsed.tracks.length; i++) {
         if (parsed.tracks[i].url.indexOf(hypemID) != -1) {

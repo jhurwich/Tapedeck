@@ -73,6 +73,7 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
     if (typeof(callbackMap[mapID]) != "undefined") {
       // request already made, allow that to complete and return based on it
       callbackMap[mapID].push(callbackObject);
+      console.error("[CassetteAdapter] Proxy method has not returned yet, terminating redundant call.");
       return;
     }
     else {
@@ -105,6 +106,11 @@ Tapedeck.Backend.Models.CassetteAdapter = Tapedeck.Backend.Models.Cassette.exten
         // success
         for (var i = 0; i < callbackMap[mapID].length; i++) {
           callbackMap[mapID][i].successCallback(response);
+        }
+
+        // some methods don't have a finalCallback, in which case we're done
+        if (typeof(finalCallback) == "undefined") {
+          delete callbackMap[mapID];
         }
       }
     });

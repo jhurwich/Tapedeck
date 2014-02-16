@@ -81,9 +81,10 @@ Tapedeck.Backend.Sequencer = {
 
   Player: {
     isPrefetching: true,
+    prefetchComplete: false,
 
     playAfterLoading: false,
-    prefetchComplete: false,
+    seekAfterLoading: 0,
 
     STATES: { PLAY:   "play",
               READY:  "ready",
@@ -276,13 +277,15 @@ Tapedeck.Backend.Sequencer = {
       self.dumpErrors();
 
       if (cMgr.hasErrorHandler(self.currentTrack.get("cassette"))) {
+        var currentTime = self.getCurrentTime();
         cMgr.doErrorHandler(self.currentTrack, function(updatedTrack) {
           // successCallback
           var oldPos = sqcr.queuePosition;
+          sqcr.log("Error handled successfully, replacing track at " + oldPos + " and starting again.");
 
           sqcr.remove(self.currentTrack);
           sqcr.insertAt(updatedTrack, oldPos, true);
-          sqcr.setQueuePosition(oldPos);
+          sqcr.playIndex(oldPos, currentTime);
 
         }, function(error) {
           // errorCallback - could not fix the track
@@ -299,12 +302,29 @@ Tapedeck.Backend.Sequencer = {
         sqcr.next();
       }
     },
-
     prefetchHandleError: function(self) {
       var sqcr = Tapedeck.Backend.Sequencer;
       this.prefetchComplete = false;
       this.isPrefetching = false;
       self.dumpErrors(sqcr.prefetchID);
+    },
+    // errorObj is optional
+    simulateError: function(delay, errorObj) {
+      var sqcr = Tapedeck.Backend.Sequencer;
+      if (typeof(errorObj) == "undefined") {
+        errorObj = { code: 2, networkState: "Empty" };
+      }
+      console.error("- - - - - - - - - - Simulating Error in " + delay + "ms - - - - - - - - - -");
+
+      var event = new CustomEvent("error", errorObj);
+      if (delay <= 0) {
+        sqcr.Player.playerElement.get(0).dispatchEvent(event);
+      }
+      else {
+        setTimeout(function() {
+          sqcr.Player.playerElement.get(0).dispatchEvent(event);
+        }, delay);
+      }
     },
 
     handlePlaying: function(self) {
@@ -342,6 +362,10 @@ Tapedeck.Backend.Sequencer = {
 
     handleCanPlayThrough: function(self) {
       Tapedeck.Backend.Sequencer.log("CanPlayThrough track.");
+      if (self.seekAfterLoading > 0) {
+        self.playerElement.get(0).currentTime = self.seekAfterLoading;
+        self.seekAfterLoading = 0;
+      }
       if (self.playAfterLoading) {
         self.play();
         self.playAfterLoading = false;
@@ -484,7 +508,11 @@ Tapedeck.Backend.Sequencer = {
     return this.Player.getVolume();
   },
 
-  playIndex: function(index) {
+  // seekTo is optional, specifying a time to seek to after loading the file at the index specified
+  playIndex: function(index, seekTo) {
+    if (typeof(seekTo) != "undefined") {
+      this.Player.seekAfterLoading = seekTo;
+    }
     this.Player.playAfterLoading = true;
     this.setQueuePosition(index);
   },
