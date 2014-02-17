@@ -202,12 +202,14 @@ body {
 
 /* TrackLists */
 .tracklist-container {
+  position: relative;
   width: 324px;
   height: 250px;
   margin: 4px auto;
   background-color: #FDF2D8;
   box-shadow: inset 3px 3px 3px rgba(0,0,0,1),
               3px 3px 3px rgba(256,256,256,0.5);
+  z-index: 5;
 }
 .tracklist {
   height: 100%;
@@ -547,6 +549,9 @@ body {
   background-repeat: no-repeat;
 }
 
+#add-cassettes-buttons {
+  height: 28px;
+}
 #add-cassettes-buttons .button {
   margin: 0 2px;
   width: 161px;
@@ -636,6 +641,22 @@ body {
   cursor: pointer;
   float: left;
   margin-left: 2px;
+}
+
+#logo-box {
+  height: 125px;
+  width: 200px;
+  position: absolute;
+  bottom: 20px;
+  left: 60px;
+  margin: auto;
+  z-index: 0;
+  cursor: pointer;
+  -webkit-filter: drop-shadow(0 1px 6px rgba(0,0,0,0.4));
+}
+#logo {
+  height: 100%;
+  width: 100%;
 }
 
 #modal {

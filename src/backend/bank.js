@@ -50,6 +50,7 @@ Tapedeck.Backend.Bank = {
   repeatKey: /* bankPrefix + */ "repeat",
   speechKey: /* bankPrefix + */ "speech",
   syncKey: /* bankPrefix + */ "sync",
+  logoKey: /* bankPrefix + */ "logo",
   volumeKey: /* bankPrefix + */ "volume",
   blockKey: /* bankPrefix + */ "block",
   optionsPrefix: /* bankPrefix + */ "options",
@@ -81,6 +82,7 @@ Tapedeck.Backend.Bank = {
       bank.repeatKey = bank.bankPrefix + bank.repeatKey;
       bank.speechKey = bank.bankPrefix + bank.speechKey;
       bank.syncKey = bank.bankPrefix + bank.syncKey;
+      bank.logoKey = bank.bankPrefix + bank.logoKey;
       bank.blockKey = bank.bankPrefix + bank.blockKey;
       bank.optionsPrefix = bank.bankPrefix + bank.optionsPrefix;
       bank.devPanelOptionsPrefix = bank.bankPrefix + bank.devPanelOptionsPrefix;
@@ -108,7 +110,10 @@ Tapedeck.Backend.Bank = {
     if (bank.localStorage.getItem(bank.speechKey) == null) {
       bank.localStorage.setItem(bank.speechKey, "off");
     }
-    // initialize the block list if necessary
+    // initialize the logo if necessary
+    if (bank.localStorage.getItem(bank.logoKey) == null) {
+      bank.localStorage.setItem(bank.logoKey, JSON.stringify({ color: "999999", date: 0 }));
+    }    // initialize the block list if necessary
     if (bank.localStorage.getItem(bank.blockKey) == null) {
       bank.saveBlockList(bank.defaultBlockPatterns);
     }
@@ -1282,6 +1287,31 @@ Tapedeck.Backend.Bank = {
 
   getRepeat: function() {
     return this.localStorage.getItem(this.repeatKey) == "true";
+  },
+
+  getLogoColor: function() {
+    var logoObj = this.getLogo();
+    return logoObj.color;
+  },
+  getLogo: function() {
+    return $.parseJSON(this.localStorage.getItem(this.logoKey));
+  },
+  setLogo: function(newVal, callback) {
+    if (newVal == null) {
+      // newVal == null indicates to toggle the logo on/off
+      var oldVal = $.parseJSON(this.localStorage.getItem(this.logoKey));
+
+      newVal = {
+        color: "clear",
+        date: 0
+      };
+      if (oldVal.color == newVal.color) {
+        newVal.color = "999999";
+      }
+    }
+
+    this.localStorage.setItem(this.logoKey, JSON.stringify(newVal));
+    callback(newVal);
   },
 
   saveVolume: function(volume) {

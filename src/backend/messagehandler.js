@@ -427,6 +427,89 @@ Tapedeck.Backend.MessageHandler = {
       });
       break;
 
+    case "getLogoColor":
+      response.color = Tapedeck.Backend.Bank.getLogoColor();
+      self.postMessage(port.sender.tab, response);
+      break;
+    case "toggleLogo":
+      Tapedeck.Backend.Bank.setLogo(null, function(newVal) {
+        response.color = newVal.color;
+        self.postMessage(port.sender.tab, response);
+      });
+      break;
+    case "cycleLogo":
+
+      var getNewLogo = function(callback) {
+        var currLogo = Tapedeck.Backend.Bank.getLogo();
+
+        // we use a sliding window for the date, such that if it's older than that window we restart
+        var today = new Date();
+        var window = 3; /* in days */
+        if ((today.getTime() - currLogo.date) > (window * 24 * 60 * 60 * 1000)) {
+          currLogo.date = 0;
+          delete self.lastPrettyColorPage;
+        }
+
+        var errorFn = function(request, status, error) {
+          callback({ color: "black", date: 0 });
+        };
+
+        var successFn = function(response) {
+          var items = $(response).find("item");
+          for (var i = 0; i < items.length; i++) {
+            var item  = items[i];
+            var itemDate = new Date($(item).find("pubDate").first().html());
+            // if the currLogo is not a prettycolor, grab the first pretty color
+            // otherwise grab a color older than the current prettycolor
+            if (currLogo.date === 0 || currLogo.date > itemDate.getTime()) {
+              var newLogo = {
+                color: $(item).find("title").first().html(),
+                date: itemDate.getTime(),
+              };
+              callback(newLogo);
+              return;
+            }
+          }
+          // we're out for this page, get the next page
+          self.lastPrettyColorPage = self.lastPrettyColorPage + 1;
+          Tapedeck.Backend.Utils.ajax({
+            type: "GET",
+            url: "http://prettycolors.tumblr.com/page/" + self.lastPrettyColorPage + "/rss",
+            dataType: "xml",
+            success: successFn,
+            error: errorFn
+          });
+        };
+
+        if(typeof(self.lastPrettyColorPage) == "undefined" || self.lastPrettyColorPage <= 1) {
+          self.lastPrettyColorPage = 1;
+          Tapedeck.Backend.Utils.ajax({
+            type: "GET",
+            url: "http://prettycolors.tumblr.com/rss",
+            dataType: "xml",
+            success: successFn,
+            error: errorFn
+          });
+        }
+        else {
+          Tapedeck.Backend.Utils.ajax({
+            type: "GET",
+            url: "http://prettycolors.tumblr.com/page/" + self.lastPrettyColorPage + "/rss",
+            dataType: "xml",
+            success: successFn,
+            error: errorFn
+          });
+        }
+      };
+
+      getNewLogo(function(newLogo) {
+        Tapedeck.Backend.Bank.setLogo(newLogo, function(aNewLogo) {
+          response.color = aNewLogo.color;
+          self.postMessage(port.sender.tab, response);
+        });
+      });
+      break;
+
     case "getLogs":
       response.logs = Tapedeck.Backend.Utils.logLevels;
       self.postMessage(port.sender.tab, response);

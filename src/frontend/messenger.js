@@ -486,6 +486,28 @@ Tapedeck.Frontend.Messenger = {
     Tapedeck.Frontend.Messenger.sendMessage(request);
   },
 
+  getLogoColor: function(callback) {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "getLogoColor"
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+  toggleLogo: function(callback) {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "toggleLogo"
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+  cycleLogo: function(callback) {
+    var request = Tapedeck.Frontend.Utils.newRequest({
+      action  : "cycleLogo"
+    }, callback);
+
+    Tapedeck.Frontend.Messenger.sendMessage(request);
+  },
+
   saveOptions: function(options, callback) {
     var request = Tapedeck.Frontend.Utils.newRequest({
       action  : "saveOptions",

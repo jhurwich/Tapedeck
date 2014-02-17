@@ -1004,6 +1004,38 @@ Tapedeck.Frontend.Frame = {
     });
   },
 
+  checkLogo: function() {
+    Tapedeck.Frontend.Messenger.getLogoColor(function(response) {
+      if (response.color != "clear") {
+        $("#logo").css("fill", response.color);
+        $("#logo").show();
+      }
+      else {
+        $("#logo").hide();
+      }
+    });
+  },
+
+  logoClick: function() {
+    Tapedeck.Frontend.Messenger.cycleLogo(function(response) {
+      $("#logo").css("fill", response.color);
+    });
+  },
+
+  logoRightClick: function() {
+    Tapedeck.Frontend.Messenger.toggleLogo(function (response) {
+      // newVal == "clear" indicates hiding, otherwise set to newVal
+      if (response.color == "clear") {
+        $("#logo").hide();
+      }
+      else {
+        $("#logo").css("fill", response.color);
+        $("#logo").show();
+      }
+    });
+    return false;
+  },
+
   Modal: {
     /* Modal params: {
      *  title         : "titlegoeshere",
@@ -1108,6 +1140,7 @@ Tapedeck.Frontend.Frame = {
       frame.checkRepeat();
       frame.checkSync();
       frame.checkDrawer();
+      frame.checkLogo();
     }, 40); // defer so that the CSS can kick-in
   },
 
