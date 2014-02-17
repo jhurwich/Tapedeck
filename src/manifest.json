@@ -1,6 +1,6 @@
 {
   "name": "Tapedeck",
-  "version": "0.6.4",
+  "version": "0.6.4.1",
   "manifest_version" : 2,
   "description": "The one player for the web.",
   "update_url": "http://www.tape-deck.com/update",
