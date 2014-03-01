@@ -19,6 +19,12 @@ Tapedeck.BA = {
     Tapedeck.BA.loadVoices();
     Tapedeck.BA.loadPackages();
     Tapedeck.BA.loadBlockList();
+    Tapedeck.BA.loadCommands();
+
+    var manageLink = document.getElementById("manage-link");
+    manageLink.onclick = function() {
+      chrome.tabs.create({ url: "chrome://extensions" });
+    };
   },
 
   loadVoices: function() {
@@ -226,6 +232,39 @@ Tapedeck.BA = {
     });
     chrome.extension.sendRequest(request, function(response) {
       callback(response);
+    });
+  },
+
+  loadCommands: function() {
+    var container = document.getElementById("key-commands");
+
+    chrome.commands.getAll( function(commands) {
+      for (var i=0; i < commands.length; i++) {
+        var command = commands[i];
+        var newCommand = document.createElement("div");
+        newCommand.className = "key-command";
+
+        var descriptionSpan = document.createElement("span");
+        descriptionSpan.className = "command description";
+        if (typeof(command.description) != "undefined" && command.description.length > 0) {
+          descriptionSpan.innerHTML = command.description;
+        }
+        else {
+          descriptionSpan.innerHTML = command.name;
+        }
+        newCommand.appendChild(descriptionSpan);
+
+        var shortcutSpan = document.createElement("span");
+        shortcutSpan.className = "command shortcut";
+        if (typeof(command.shortcut) != "undefined" && command.shortcut.length > 0) {
+          shortcutSpan.innerHTML = command.shortcut;
+        } else {
+          shortcutSpan.innerHTML = "undefined";
+        }
+        newCommand.appendChild(shortcutSpan);
+
+        container.appendChild(newCommand);
+      }
     });
   }
 };

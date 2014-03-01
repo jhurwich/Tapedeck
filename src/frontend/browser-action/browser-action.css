@@ -78,3 +78,17 @@ body {
   font: 10px arial, sans-serif;
   margin-top: 6px;
 }
+
+div.key-commands {
+  -webkit-user-select: none;
+  user-select: none;
+}
+div.key-command {
+  font: 12px arial, sans-serif;
+  margin-left: 10px;
+}
+
+span.command.description {
+  display: inline-block;
+  width: 150px;
+}
