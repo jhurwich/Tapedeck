@@ -431,7 +431,13 @@ Tapedeck.Backend.Sequencer = {
           // make sure the same track is still playing, if so trigger the ended
           if (self.currentState == "play" && self.currentTrack.get("trackName") == hungTrackName) {
             console.error("'Ended' was not sent by the audioplayer, triggering manually.");
-            self.playerElement.trigger("ended");
+            if (typeof(self.playerElement.get(0).ended) == "undefined" || self.playerElement.get(0).ended) {
+              // track has actually already ended
+              Tapedeck.Backend.Sequencer.next();
+            }
+            else {
+              self.playerElement.trigger("ended");
+            }
           }
         }, 2000);
       }

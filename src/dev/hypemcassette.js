@@ -177,6 +177,7 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
 
   // HypeM's errorHandler attempts to fix playback by requesting the track's "details" url,
   // getting any AUTH cookie that may be missing.
+  lastError: { url: "", count: 0 },
   errorHandler: function(params, successCallback, errCallback) {
     var self = this;
     console.error("HypeMachine errorHandler in progress for: " + params.track.url);
@@ -184,6 +185,20 @@ Tapedeck.Backend.Cassettes.HypeM = Tapedeck.Backend.Models.Cassette.extend({
     var idRegex = new RegExp("serve/play/([^\/]*)/");
     var hypemID = params.track.url.match(idRegex)[1];
     var trackURL = "http://hypem.com/track/" + hypemID;
+
+    if (self.lastError.url == trackURL) {
+      self.lastError.count = self.lastError.count + 1;
+    }
+    else {
+      self.lastError.url = trackURL;
+      self.lastError.count = 1;
+    }
+
+    // only allow three retries
+    if (self.lastError.count > 3) {
+      errCallback({ message: "CassetteError" });
+      return;
+    }
 
     var callback = function(parsed) {
       console.error("Successfully parsed recovery tracks and found tracks: " + JSON.stringify(parsed));
