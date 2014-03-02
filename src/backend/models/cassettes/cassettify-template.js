@@ -24,6 +24,8 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         self.finalCallback = finalCallback; \
       } \
       var pageURL = self.pattern.replace(/\\$#/g, pageNum); \
+      pageURL = pageURL.replace("http://", ""); \
+      pageURL = pageURL.replace("www.", ""); \
  \
       /* Check if we already have the tracks saved for this page */ \
       var foundTracks = self.getTracksForURL(pageURL); \
@@ -46,6 +48,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           errCallback(params.error); \
         } \
         else { \
+          /* memoize the tracks for the url, once done we no longer need the dump for the page */ \
           self.saveTracksForURL(pageURL, params.tracks); \
           var ourDump = $("#dump").find("#CassetteFromTemplate"); \
           var pageDump = $(ourDump).find("#page" + pageNum); \
@@ -54,14 +57,14 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         } \
       }; \
  \
-      if (!self.isDumpCached(pageNum)) { \
+      if (!self.isDumpCached(pageNum, pageURL)) { \
         /* First hit the domain itself, usually the first page */ \
         Tapedeck.ajax({ \
           type: "GET", \
           url: "http://www." + pageURL, \
           dataType: "html", \
    \
-          success: self.parseResponse.curry(saveClearAndCallback, pageURL, pageNum, self), \
+          success: self.parseTopLevelPage.curry(saveClearAndCallback, pageURL, pageNum, self), \
    \
           error: function (response) { \
             console.error("Ajax error retrieving " + self.domain + ", page " + pageNum); \
@@ -73,15 +76,50 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         /* the dump for this cassette is cached and non-stale */ \
         var ourDump = $("#dump").find("#CassetteFromTemplate"); \
         var pageDump = $(ourDump).find("#page" + pageNum); \
+        var urlDump = $(pageDump).find(".url[url=\'" + encodeURIComponent(url) + "\']"); \
+ \
         Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
-                                             context      : $(pageDump), \
+                                             context      : $(urlDump), \
                                              callback     : saveClearAndCallback, \
                                              moreCallback : self.addMoreCallback.curry(self, pageNum, pageURL), \
                                              finalCallback: self.finish.curry(self) }); \
       } \
     }, \
  \
-    parseResponse: function(callback, url, page, self, responseText) { \
+    topSubPageSelectors: null, \
+    /* convenience function to tidy up subPageSelectors for top-level */  \
+    parseTopLevelPage: function(callback, url, page, self, responseText) { \
+      /* TODO the topSubPageSelectors should be built here if null, not pre-coded.  Build them based on http://, www., domain, year, month, day... */ \
+      if (self.topSubPageSelectors == null) { \
+        var allSameDomainPrefixes = [self.domain + "/", "www." + self.domain + "/", "http://www." + self.domain + "/"]; \
+ \
+        var lastYear = 1988; \
+        var today = new Date(); \
+        var datedLinks = []; \
+        for (var i = today.getFullYear(); i >= lastYear; i--) { \
+          for (var j = 0; j < allSameDomainPrefixes.length; j++) { \
+            datedLinks.push("a[href^=\'" + allSameDomainPrefixes[j] + i + "\/\']"); \
+          } \
+        } \
+ \
+        var allSameDomainAs = []; \
+        for (var i = 0; i < allSameDomainPrefixes.length; i++) { \
+          allSameDomainAs.push("a[href^=\'" + allSameDomainPrefixes[i] + "\']"); \
+        } \
+        self.topSubPageSelectors = [datedLinks.join(","), allSameDomainAs.join(",")]; \
+      } \
+ \
+      self.parseResponse(callback, url, page, self.topSubPageSelectors, self, responseText); \
+    }, \
+ \
+    /* all params are mandatory.  subPageSelectors is an array of strings or arrays, if an array the first string is selected and subsequent are filters of that set */ \
+    parseResponse: function(callback, url, page, subPageSelectors, self, responseText) { \
+      /* dumps are of the form: \
+       * <div id="dump"> \
+       *   <div id="(cassette name)"> \
+       *     <div id="page(page num)"> \
+       *       <div class="url" url="(encodeURIComponent(url))"> */ \
+ \
       var ourDump = $("#dump").find("#CassetteFromTemplate"); \
       if (ourDump.length == 0) { \
         ourDump = $("<div id=\'CassetteFromTemplate\'>"); \
@@ -90,18 +128,51 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
  \
       var pageDump = $(ourDump).find("#page" + page); \
       if (pageDump.length == 0) { \
-        pageDump = $("<div id=\'page" + page + "\' url=\'" + url + "\'>"); \
+        pageDump = $("<div id=\'page" + page + "\'>"); \
         $(pageDump).appendTo($(ourDump)); \
+      } \
+ \
+      var urlDump = $(pageDump).find(".url[url=\'" + encodeURIComponent(url) + "\']"); \
+      if (urlDump.length == 0) { \
+        urlDump = $("<div class=\'url\' url=\'" + encodeURIComponent(url) + "\'>"); \
+        $(urlDump).appendTo($(pageDump)); \
       } \
  \
       responseText = Tapedeck.Backend.TrackParser.Util.inflateWPFlashObjects(responseText); \
       cleanedText = Tapedeck.Backend.TrackParser.Util.removeUnwantedTags(responseText); \
-      $(pageDump).html(""); \
-      $(pageDump).append(cleanedText); \
-      $(pageDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
+      $(urlDump).html(""); \
+      $(urlDump).append(cleanedText); \
+      $(urlDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
+ \
+      /* TODO branch into all sub-URLS (recursively? - probably not the best idea) */ \
+      if (subPageSelectors.length > 0) { \
+        /* TODO this block is wrong and needs to be updated to reflected subPageSelectors */ \
+        for (var i = 0; i < subPageSelectors.length; i++) { \
+          console.log("SPS[" + i + "]: " + subPageSelectors[i]); \
+          var selector = subPageSelectors[i]; \
+          var removing = []; \
+          if (typeof(selector) != "string") { \
+            selector = subPageSelectors[i].shift(); \
+            removing = subPageSelectors[i]; \
+          } \
+          var selected = $(urlDump).find(selector); \
+ \
+          console.log("1 selected.length: " + selected.length); \
+          for (var j = 0; j < removing.length; j++) { \
+            selected = $(selected).filter(removing[j]); \
+            console.log((2 + j) + " selected.length: " + selected.length); \
+          } \
+          console.log("Z selected.length: " + selected.length); \
+ \
+          selected.each(function(index, elem) { \
+            console.log(index + ") " + $(elem).attr("href")); \
+ \
+          }); \
+        } \
+      } \
  \
       Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
-                                           context      : $(pageDump), \
+                                           context      : $(urlDump), \
                                            callback     : callback, \
                                            moreCallback : self.addMoreCallback.curry(self, page, url), \
                                            finalCallback: self.finish.curry(self) }); \
@@ -116,15 +187,20 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       self.finalCallback(params); \
     }, \
  \
-    isDumpCached: function(page) { \
+    isDumpCached: function(page, url) { \
       var ourDump = $("#dump").find("#CassetteFromTemplate"); \
       if (ourDump.length == 0) { \
         return false; \
       } \
  \
       var pageDump = $(ourDump).find("#page" + page); \
-      if (pageDump.length > 0 && $(pageDump).attr("expiry") != null) { \
-        var expiry = parseInt($(pageDump).attr("expiry")); \
+      if (pageDump.length == 0) { \
+        return false; \
+      } \
+ \
+      var urlDump = $(pageDump).find(".url[url=\'" + encodeURIComponent(url) + "\']"); \
+      if (urlDump.length > 0 && $(urlDump).attr("expiry") != null) { \
+        var expiry = parseInt($(urlDump).attr("expiry")); \
         return ((expiry - (new Date()).getTime()) < 0); \
       } \
       else { \
