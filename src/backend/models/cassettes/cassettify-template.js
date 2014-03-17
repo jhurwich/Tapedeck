@@ -86,34 +86,49 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       } \
     }, \
  \
-    topSubPageSelectors: null, \
-    /* convenience function to tidy up subPageSelectors for top-level */  \
-    parseTopLevelPage: function(callback, url, page, self, responseText) { \
-      /* TODO the topSubPageSelectors should be built here if null, not pre-coded.  Build them based on http://, www., domain, year, month, day... */ \
-      if (self.topSubPageSelectors == null) { \
-        var allSameDomainPrefixes = [self.domain + "/", "www." + self.domain + "/", "http://www." + self.domain + "/"]; \
+    /* Convenience function to tidy up for top-level \
+     * The topSubPageTest looks for sub-urls that should be parsed on a top-level domain.  The test uses \
+     * a heuristic of whitelisted url components including various commonly used strings and a regex pattern \
+     * for any component of all numbers. -- Yeah, those slashes are right... */  \
+    topSubPageTest: function(url) { \
+      var whitelistedComponents = [/\\\/content\\\//gi, \
+                                   /\\\/archive\\\//gi, \
+                                   /\\\/archives\\\//gi, \
+                                   /\\\/media\\\//gi, \
+                                   /\\\/news\\\//gi, \
+                                   /\\\/article\\\//gi, \
+                                   /\\\/\\d+\\\//gi, \
+                                   /\\\/\\d+$/gi]; \
  \
-        var lastYear = 1988; \
-        var today = new Date(); \
-        var datedLinks = []; \
-        for (var i = today.getFullYear(); i >= lastYear; i--) { \
-          for (var j = 0; j < allSameDomainPrefixes.length; j++) { \
-            datedLinks.push("a[href^=\'" + allSameDomainPrefixes[j] + i + "\/\']"); \
-          } \
+      for (var i = 0; i < whitelistedComponents.length; i++) { \
+        var tester = whitelistedComponents[i]; \
+        if (tester.test(url)) { \
+          return true; \
         } \
- \
-        var allSameDomainAs = []; \
-        for (var i = 0; i < allSameDomainPrefixes.length; i++) { \
-          allSameDomainAs.push("a[href^=\'" + allSameDomainPrefixes[i] + "\']"); \
-        } \
-        self.topSubPageSelectors = [datedLinks.join(","), allSameDomainAs.join(",")]; \
       } \
- \
-      self.parseResponse(callback, url, page, self.topSubPageSelectors, self, responseText); \
+      return false; \
+    }, \
+    parseTopLevelPage: function(callback, url, page, self, responseText) { \
+      self.parseResponse(callback, url, page, self.topSubPageTest, self, responseText); \
     }, \
  \
-    /* all params are mandatory.  subPageSelectors is an array of strings or arrays, if an array the first string is selected and subsequent are filters of that set */ \
-    parseResponse: function(callback, url, page, subPageSelectors, self, responseText) { \
+    blacklistSubPageTest: function(url) { \
+      var blacklistedComponents = [/\\\/tag\\\//gi, \
+                                   /\\\/category\\\//gi, \
+                                   /\\\/page\\\//gi, \
+                                   /comments$/gi]; \
+ \
+      for (var i = 0; i < blacklistedComponents.length; i++) { \
+        var tester = blacklistedComponents[i]; \
+        if (tester.test(url)) { \
+          return true; \
+        } \
+      } \
+      return false; \
+    }, \
+ \
+    /* all params are mandatory. subPageTest is a function that takes a url and returns true if it should be parsed as well */ \
+    parseResponse: function(callback, url, page, subPageTest, self, responseText) { \
       /* dumps are of the form: \
        * <div id="dump"> \
        *   <div id="(cassette name)"> \
@@ -144,32 +159,29 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       $(urlDump).append(cleanedText); \
       $(urlDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
  \
-      /* TODO branch into all sub-URLS (recursively? - probably not the best idea) */ \
-      if (subPageSelectors.length > 0) { \
-        /* TODO this block is wrong and needs to be updated to reflected subPageSelectors */ \
-        for (var i = 0; i < subPageSelectors.length; i++) { \
-          console.log("SPS[" + i + "]: " + subPageSelectors[i]); \
-          var selector = subPageSelectors[i]; \
-          var removing = []; \
-          if (typeof(selector) != "string") { \
-            selector = subPageSelectors[i].shift(); \
-            removing = subPageSelectors[i]; \
-          } \
-          var selected = $(urlDump).find(selector); \
- \
-          console.log("1 selected.length: " + selected.length); \
-          for (var j = 0; j < removing.length; j++) { \
-            selected = $(selected).filter(removing[j]); \
-            console.log((2 + j) + " selected.length: " + selected.length); \
-          } \
-          console.log("Z selected.length: " + selected.length); \
- \
-          selected.each(function(index, elem) { \
-            console.log(index + ") " + $(elem).attr("href")); \
- \
-          }); \
-        } \
+      /* Determine if we should dive into subpages and which.  First get all links to the same domain, /__ is a shorthand for same domain */ \
+      var allSameDomainPrefixes = ["/", self.domain + "/", "www." + self.domain + "/", "http://www." + self.domain + "/"]; \
+      var allSameDomainAs = []; \
+      for (var i = 0; i < allSameDomainPrefixes.length; i++) { \
+        allSameDomainAs.push("a[href^=\'" + allSameDomainPrefixes[i] + "\']"); \
       } \
+      var selected = $(urlDump).find(allSameDomainAs.join(",")); \
+ \
+      /* use the providede subPageTest to determine which to branch into */ \
+      selected = selected.filter(function(index) {  \
+        var elem = this; \
+        return subPageTest($(elem).attr("href").trim()); \
+      }); \
+ \
+      /* now use the blacklist test to reject those we do not branch into */ \
+      selected = selected.filter(function(index) {  \
+        var elem = this; \
+        return !self.blacklistSubPageTest($(elem).attr("href").trim()); \
+      }); \
+ \
+      selected.each(function(index, elem) { \
+        console.log(index + ") \'" + $(elem).attr("href") + "\'"); \
+      }); \
  \
       Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                            context      : $(urlDump), \
