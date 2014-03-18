@@ -64,7 +64,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           url: "http://www." + pageURL, \
           dataType: "html", \
    \
-          success: self.parseTopLevelPage.curry(saveClearAndCallback, pageURL, pageNum, self), \
+          success: self.parseResponse.curry(saveClearAndCallback, pageURL, pageNum, self), \
    \
           error: function (response) { \
             console.error("Ajax error retrieving " + self.domain + ", page " + pageNum); \
@@ -90,7 +90,7 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
      * The topSubPageTest looks for sub-urls that should be parsed on a top-level domain.  The test uses \
      * a heuristic of whitelisted url components including various commonly used strings and a regex pattern \
      * for any component of all numbers. -- Yeah, those slashes are right... */  \
-    topSubPageTest: function(url) { \
+    heuristicSubPageTest: function(url) { \
       var whitelistedComponents = [/\\\/content\\\//gi, \
                                    /\\\/archive\\\//gi, \
                                    /\\\/archives\\\//gi, \
@@ -108,9 +108,6 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       } \
       return false; \
     }, \
-    parseTopLevelPage: function(callback, url, page, self, responseText) { \
-      self.parseResponse(callback, url, page, self.topSubPageTest, self, responseText); \
-    }, \
  \
     blacklistSubPageTest: function(url) { \
       var blacklistedComponents = [/\\\/tag\\\//gi, \
@@ -127,8 +124,8 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       return false; \
     }, \
  \
-    /* all params are mandatory. subPageTest is a function that takes a url and returns true if it should be parsed as well */ \
-    parseResponse: function(callback, url, page, subPageTest, self, responseText) { \
+    /* all params are mandatory */ \
+    parseResponse: function(callback, url, page, self, responseText) { \
       /* dumps are of the form: \
        * <div id="dump"> \
        *   <div id="(cassette name)"> \
@@ -147,17 +144,21 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         $(pageDump).appendTo($(ourDump)); \
       } \
  \
-      var urlDump = $(pageDump).find(".url[url=\'" + encodeURIComponent(url) + "\']"); \
-      if (urlDump.length == 0) { \
-        urlDump = $("<div class=\'url\' url=\'" + encodeURIComponent(url) + "\'>"); \
-        $(urlDump).appendTo($(pageDump)); \
-      } \
+      var dumpForResponse = function(aURL, aText) { \
+        var dump = $(pageDump).find(".url[url=\'" + encodeURIComponent(aURL) + "\']"); \
+        if (dump.length == 0) { \
+          dump = $("<div class=\'url\' url=\'" + encodeURIComponent(aURL) + "\'>"); \
+          $(dump).appendTo($(pageDump)); \
+        } \
+        var cleanedText = Tapedeck.Backend.TrackParser.Util.inflateWPFlashObjects(aText); \
+        cleanedText = Tapedeck.Backend.TrackParser.Util.removeUnwantedTags(cleanedText); \
+        $(dump).html(""); \
+        $(dump).append(cleanedText); \
+        $(dump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
+        return dump; \
+      }; \
  \
-      responseText = Tapedeck.Backend.TrackParser.Util.inflateWPFlashObjects(responseText); \
-      cleanedText = Tapedeck.Backend.TrackParser.Util.removeUnwantedTags(responseText); \
-      $(urlDump).html(""); \
-      $(urlDump).append(cleanedText); \
-      $(urlDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
+      var topURLDump = dumpForResponse(url, responseText); \
  \
       /* Determine if we should dive into subpages and which.  First get all links to the same domain, /__ is a shorthand for same domain */ \
       var allSameDomainPrefixes = ["/", self.domain + "/", "www." + self.domain + "/", "http://www." + self.domain + "/"]; \
@@ -165,13 +166,18 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       for (var i = 0; i < allSameDomainPrefixes.length; i++) { \
         allSameDomainAs.push("a[href^=\'" + allSameDomainPrefixes[i] + "\']"); \
       } \
-      var selected = $(urlDump).find(allSameDomainAs.join(",")); \
+      var selected = $(topURLDump).find(allSameDomainAs.join(",")); \
  \
-      /* use the providede subPageTest to determine which to branch into */ \
+      /* use the providede heuristicSubPageTest to see if we can get a reduced set of applicable links */ \
       selected = selected.filter(function(index) {  \
         var elem = this; \
-        return subPageTest($(elem).attr("href").trim()); \
+        return self.heuristicSubPageTest($(elem).attr("href").trim()); \
       }); \
+ \
+      /* heuristic match failed, bring in all same domain links */ \
+      if (selected.length == 0) { \
+        selected = $(topURLDump).find(allSameDomainAs.join(",")); \
+      } \
  \
       /* now use the blacklist test to reject those we do not branch into */ \
       selected = selected.filter(function(index) {  \
@@ -179,9 +185,19 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         return !self.blacklistSubPageTest($(elem).attr("href").trim()); \
       }); \
  \
+      /* dedupe the subURLs and then branch into them */ \
+      var dedupeURLs = {}; \
       selected.each(function(index, elem) { \
-        console.log(index + ") \'" + $(elem).attr("href") + "\'"); \
+        dedupeURLs[$(elem).attr("href")] = 1; \
       }); \
+      var subURLs = Object.keys(dedupeURLs); \
+ \
+      /* TODO: Figure out subURL branching \
+       *   1. should parse the topURL first, and subpages in parallel \
+       *   2. the addTracks method supports this parallelism \
+       *   3. given you have the contents for topURL, parse it first and in the callback kickoff the ajax for suburls \
+       *   4. use TrackParser with addTracks to parse and add the new tracks from subURLs \
+       *   5. make sure you save the urls and tracks so they are memoized (and perhaps fix a bug in there) */ \
  \
       Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                            context      : $(urlDump), \
