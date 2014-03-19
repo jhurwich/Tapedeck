@@ -121,7 +121,7 @@ if (onObject != null &&
 
       }
       catch (e) {
-        console.error("ParserError");
+        console.error("ParserError : " + e.message);
         if (!parser.onBackgroundPage) {
           var response = onObject.newResponse({
             type: "response",
