@@ -13,7 +13,7 @@ if (onObject != null &&
 
   onObject.TrackParser = {
 
-    ASYNC_TIMELIMIT: 30, /* seconds */
+    ASYNC_TIMELIMIT: 60, /* seconds */
     moreCallback: null,
     finalCallback: null,
     context: null,
@@ -94,7 +94,7 @@ if (onObject != null &&
             parser.log ("      Starting Timer ");
             parser.timeout = setTimeout(function(p) {
 
-              parser.log("      Timeout Elapsed, FAIL.");
+              console.error("      Timeout Elapsed - forcing finalCallback after max async processing: " + decodeURIComponent($(p.context).attr("url")));
               // destroy the callbacks so that nothing can come in after this
               p.finalCallback({ success: false });
               p.finalCallback = null;
