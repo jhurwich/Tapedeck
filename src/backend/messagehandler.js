@@ -560,24 +560,9 @@ Tapedeck.Backend.MessageHandler = {
   // Basic mutex.  Push tracks to queue if lock is held.
   addTrackAvailable: true,
   addTracksQueued: [ ],
-  addTracks: function(pageNum, newTracks, tab, callback) {
+  addTracks: function(pageNum, newTracks, callback) {
     var msgHandler = Tapedeck.Backend.MessageHandler;
     var cMgr = Tapedeck.Backend.CassetteManager;
-
-    // tab and callback are optional
-    if (arguments.length == 3 && typeof(tab) == "function") {
-      callback = tab;
-      tab = undefined;
-    }
-    if (typeof(tab) == "undefined") {
-      msgHandler.getSelectedTab(function(selectedTab) {
-        msgHandler.addTracks(pageNum,
-                             newTracks,
-                             selectedTab,
-                             callback);
-      });
-      return;
-    }
 
     // Can only add tracks if their cassette is being browsed
     if (typeof(cMgr.currentCassette) == "undefined" || cMgr.currentCassette == null) {
@@ -604,7 +589,7 @@ Tapedeck.Backend.MessageHandler = {
     if (!msgHandler.addTrackAvailable) {
       // We shift the new tracks to the queue, and push empty array
       msgHandler.addTracksQueued = msgHandler.addTracksQueued.concat(newTracks);
-      setTimeout(msgHandler.addTracks.curry([], tab, callback),
+      setTimeout(msgHandler.addTracks.curry([], callback),
                  200);
       return;
     }
@@ -639,11 +624,12 @@ Tapedeck.Backend.MessageHandler = {
           browseList.add(track, { silent: true });
         }
       }
+      browseList.trigger("add");
 
       if (browseList.length > origLen) {
         Tapedeck.Backend.Bank.cacheCurrentBrowseList(browseList);
       }
-      Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList, tab);
+      Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseList);
       if (typeof(callback) !="undefined") {
         callback();
       }
@@ -656,13 +642,10 @@ Tapedeck.Backend.MessageHandler = {
       tab = errorString;
       errorString = undefined;
     }
+
+    // if no tab is defined, default to "all"
     if (typeof(tab) == "undefined") {
-      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Tapedeck.Backend.MessageHandler.pushBrowseTrackList(browseTrackList,
-                                                            errorString,
-                                                            selectedTab);
-      });
-      return;
+      tab = "all";
     }
 
     var cMgr = Tapedeck.Backend.CassetteManager;
@@ -709,9 +692,7 @@ Tapedeck.Backend.MessageHandler = {
   // tab is optional
   pushBrowseListError: function(errorString, tab) {
     if (typeof(tab) == "undefined") {
-      Tapedeck.Backend.MessageHandler.getSelectedTab(function(selectedTab) {
-        Tapedeck.Backend.MessageHandler.pushBrowseListError(errorString, selectedTab);
-      });
+      tab = "all";
       return;
     }
     var cMgr = Tapedeck.Backend.CassetteManager;
@@ -958,7 +939,7 @@ Tapedeck.Backend.MessageHandler = {
       var request = event.data;
       switch (request.action) {
       case "addTracks":
-        Tapedeck.Backend.MessageHandler.addTracks(request.pageNum, request.tracks, request.tab);
+        Tapedeck.Backend.MessageHandler.addTracks(request.pageNum, request.tracks);
         break;
 
       case "getLogLevels":

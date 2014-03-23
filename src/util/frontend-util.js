@@ -235,7 +235,7 @@ var attachTo = function(onObject) {
                       null);
 
       // Scripts are exceptions that could be backend or frontend, see if this is a script
-    if ((typeof(this.logLevels) != "undefined" && typeof(this.logLevels.Scripts) != "undefined") &&
+      if ((typeof(this.logLevels) != "undefined" && typeof(this.logLevels.Scripts) != "undefined") &&
         logLevel == null) {
         logLevel = (typeof(this.logLevels.Scripts[component]) != "undefined") ? this.logLevels.Scripts[component] : null;
       }

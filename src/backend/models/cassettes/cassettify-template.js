@@ -18,19 +18,17 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       self.getPage(1, context, callback, errCallback, finalCallback); \
     }, /* end getBrowseList */ \
  \
-    outstandingCalls: 0, \
+    outstandingURLs: {}, \
     errorCount: 0, \
-    tracks: [], \
     getPage: function(pageNum, context, callback, errCallback, finalCallback) { \
       var self = this; \
-      if (self.outstandingCalls > 0) { \
-        console.error("getPage called before previous call could complete - terminating last call, sending " + self.tracks.length + " tracks"); \
+      if (Object.keys(self.outstandingURLs).length > 0) { \
+        console.error("getPage called before previous call could complete - terminating last call, sending " + self.pageTracks.length + " tracks -- remaining URLs: " + JSON.stringify(outstandingURLs)); \
         self.errCallback({ message: "CassetteError" }); \
-        self.finalCallback({ tracks: self.tracks }); \
+        self.finalCallback({ tracks: self.getTracksForPage(pageNum) }); \
       } \
-      self.outstandingCalls = 0; \
+      self.outstandingURLs = {}; \
       self.errorCount = 0; \
-      self.tracks = []; \
       self.errCallback = errCallback; \
       if (typeof(finalCallback) != "undefined") { \
         self.finalCallback = finalCallback; \
@@ -60,21 +58,20 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         /* the dump for this cassette is cached and non-stale */ \
         var ourDump = $("#dump").find("#CassetteFromTemplate"); \
         var pageDump = $(ourDump).find("#page" + pageNum); \
-        var urlDump = $(pageDump).find(".url[url=\'" + encodeURIComponent(url) + "\']"); \
+        var urlDump = $(pageDump).find(".url[url=\'" + encodeURIComponent(pageURL) + "\']"); \
  \
         /* TODO make sure this respects that a page can have multiple URL dumps */ \
  \
         Tapedeck.Backend.TrackParser.start({ cassetteName : self.get("name"), \
                                              context      : $(urlDump), \
-                                             callback     : self.postScrapeCallback.curry(pageNum, url, [], callback), \
+                                             callback     : self.postScrapeCallback.curry(pageNum, pageURL, [], callback), \
                                              moreCallback : self.addMoreCallback.curry(self, pageNum, pageURL), \
-                                             finalCallback: self.final.curry(self) }); \
+                                             finalCallback: self.final.curry(self, pageNum, pageURL) }); \
       } \
     }, \
  \
     /* all params are mandatory - doParseSubPages indicates if subPages should be queried and parsed */ \
     parsePage: function(self, page, url, doParseSubPages, callback) { \
-      console.log("ParsePage page: " + page + " - url: " + url + " - doSubs?: " + doParseSubPages); \
       var handleResponse = function(responseText) { \
         /* dumps are of the form: \
          * <div id="dump"> \
@@ -99,8 +96,8 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           urlDump = $("<div class=\'url\' url=\'" + encodeURIComponent(url) + "\'>"); \
           $(urlDump).appendTo($(pageDump)); \
         } \
-        var cleanedText = Tapedeck.Backend.TrackParser.Util.inflateWPFlashObjects(responseText); \
-        cleanedText = Tapedeck.Backend.TrackParser.Util.removeUnwantedTags(cleanedText); \
+        var cleanedText = Tapedeck.Backend.TrackParser.Utils.inflateWPFlashObjects(responseText); \
+        cleanedText = Tapedeck.Backend.TrackParser.Utils.removeUnwantedTags(cleanedText); \
         $(urlDump).html(""); \
         $(urlDump).append(cleanedText); \
         $(urlDump).attr("expiry", (new Date()).getTime() + (1000 * 60 * 5)); /* 5 min */ \
@@ -153,10 +150,14 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
                                              context      : $(urlDump), \
                                              callback     : self.postScrapeCallback.curry(self, page, url, subURLs, callback), \
                                              moreCallback : self.addMoreCallback.curry(self, page, url), \
-                                             finalCallback: self.final.curry(self) }); \
+                                             finalCallback: self.final.curry(self, page, url) }); \
       }; /* end handleResponse */ \
  \
-      self.outstandingCalls = self.outstandingCalls + 1; \
+      if (typeof(self.outstandingURLs[url]) == "undefined") { \
+        self.outstandingURLs[url] = 1; \
+      } else { \
+        self.outstandingURLs[url] = self.outstandingURLs[url] + 1; \
+      } \
       Tapedeck.ajax({ \
         type: "GET", \
         url: "http://www." + url, \
@@ -167,17 +168,16 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         error: function (response) { \
           console.error("Ajax error retrieving " + self.domain + ", page " + page); \
           self.errorCount = self.errorCount + 1; \
-          self.final(self, { error: { message: "CassetteError" }}); \
+          self.final(self, page, url, { error: { message: "CassetteError" }}); \
         }, \
       }); \
     }, \
  \
     postScrapeCallback: function(self, page, topURL, subURLs, callback, params) { \
-      console.log("PostScrape page: " + page + " - url: " + topURL + " - subURLs: " + JSON.stringify(subURLs)); \
       if (typeof(params.error) != "undefined") { \
         console.error("Error parsing tracks for " + self.domain + ", page " + page); \
         self.errorCount = self.errorCount + 1; \
-        self.final(self, { error: { message: "CassetteError" }}); \
+        self.final(self, page, topURL, { error: { message: "CassetteError" }}); \
         return; \
       } \
  \
@@ -185,12 +185,9 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
  \
       /* memoize the tracks for the url, once done we no longer need the dump for that url */ \
       var tryFinish = function(aURL, aParams) { \
-        if (typeof(aParams.tracks) != "undefined" && aParams.tracks.length > 0) { \
-          self.tracks = self.tracks.concat(aParams.tracks); \
-          self.saveTracksForURL(aURL, aParams.tracks); /* TODO ensure that saving tracks for subURLs is alright and working properly */ \
+        if (typeof(aParams.tracks) != "undefined" && aParams.tracks !== null && aParams.tracks.length > 0) { \
+          self.saveTracks(page, aURL, aParams.tracks); /* TODO ensure that saving tracks for subURLs is alright and working properly */ \
         } \
-        console.log("Trying to finish for page: " + page + " - url: " + aURL); \
-        console.log("params: " + JSON.stringify(aParams)); \
         if (expectedCallbacks <= 0) { \
           var ourDump = $("#dump").find("#CassetteFromTemplate"); \
           var pageDump = $(ourDump).find("#page" + page); \
@@ -212,11 +209,8 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
             expectedCallbacks = expectedCallbacks - 1; \
             console.log("Completed subpage : " + aSubURL + " - (" + expectedCallbacks + "/" + length + ")"); \
  \
-            if (typeof(params.error) != "undefined") { \
+            if (typeof(aParams.error) != "undefined") { \
               console.error("Error parsing tracks for " + self.domain + ", page " + page + ", subURL " + aSubURL); \
-            } \
-            else { \
-              params.tracks = params.tracks.concat(aParams.tracks); \
             } \
  \
             tryFinish(aSubURL, aParams); \
@@ -227,17 +221,37 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       tryFinish(topURL, params); \
     }, \
  \
-    addMoreCallback: function(self, pageNum, url, tracks) { \
-      self.saveTracksForURL(url, tracks); \
-      Tapedeck.Backend.MessageHandler.addTracks(pageNum, tracks); \
+    addMoreCallback: function(self, page, url, tracks) { \
+      console.log("   :::  Adding more for " + url); \
+      self.saveTracks(page, url, tracks); \
+      Tapedeck.Backend.MessageHandler.addTracks(page, tracks); \
     }, \
  \
-    final: function(self, params) { \
-      /* finalCallback should be called once, when the page and subPages have been parsed to completion. \
-       * params.tracks should be the complete list of all tracks, sorted */ \
-      self.outstandingCalls = self.outstandingCalls - 1; \
-      console.log("   FINAL ====== " + self.outstandingCalls); \
-      if (self.outstandingCalls <= 0) { \
+    /* finalCallback should be called once, when the page and subPages have been parsed to completion. \
+     * params.tracks should be the complete list of all tracks, sorted */ \
+    final: function(self, page, url, params) { \
+      console.log("GOT FINaL : " + JSON.stringify(params)); \
+      if (!params.success) { \
+        /* there was some error */ \
+        console.log("ERROR ON " + url + " will retry: " + (self.outstandingURLs[url] <= 1)); \
+ \
+        if (self.outstandingURLs[url] <= 1) { \
+          /* first failure, retry */ \
+          self.parsePage(self, page, url, false, function(aParams) { \
+            /* completed retry */ \
+            if (typeof(aParams.error) != "undefined") { \
+              console.error("Error retrying request for " + self.domain + ", page " + page + ", url " + url); \
+            } \
+            self.final(self, page, url, aParams); /* TODO: fix this, this is not how finalCallback works - this is the synchronous callback. */ \
+          }); \
+          return; \
+        } else { \
+          /* we have already retried once, give up for this url */ \
+          console.log("ERROR FOR " + url + " is unrecoverable."); \
+        } \
+      } \
+      delete self.outstandingURLs[url]; \
+      if (Object.keys(self.outstandingURLs).length <= 0) { \
         if (self.errorCount > 0) { \
           params.errorCount = self.errorCount; \
         } \
@@ -302,20 +316,54 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
       } \
     }, \
  \
+    pageMap: { }, \
     urlMap: { }, \
     collectorID: null, \
-    saveTracksForURL: function(url, tracks) { \
+    saveTracks: function(page, url, tracks) { \
       url = url.replace("http://", ""); \
       url = url.replace("www.", ""); \
  \
-      if (typeof(this.urlMap[url]) != "undefined" && typeof(this.urlMap[url].tracks) != "undefined") { \
-        tracks = tracks.concat(this.urlMap[url].tracks); \
+      var tracksMap = { }; \
+      for (var i = 0; i < tracks.length; i++) { \
+        tracksMap[tracks[i].url] = tracks[i]; \
       } \
  \
+      if (typeof(this.urlMap[url]) != "undefined" && typeof(this.urlMap[url].tracks) != "undefined") { \
+        for (var aURL in this.urlMap[url].tracks) { \
+          tracksMap[aURL] = this.urlMap[url].tracks[aURL]; \
+        } \
+      } \
+ \
+      var urls = { }; \
+      urls[url] = 1; \
+      if (typeof(this.pageMap[page]) != "undefined") { \
+        for (var aURL in this.pageMap[page]) { \
+          urls[aURL] = 1; \
+        } \
+      } \
+      this.pageMap[page] = urls; \
+ \
       var expiry =(new Date()).getTime() + (1000 * 60 * 15); /* in 15 min */ \
-      this.urlMap[url] = { tracks: tracks, expiry: expiry }; \
+      this.urlMap[url] = { tracks: tracksMap, expiry: expiry }; \
       if (this.collectorID === null) { \
         this.collectorID = window.setInterval(this.memoryCollector, 1000 * 60 * 5); /* 5 min */ \
+      } \
+    }, \
+ \
+    getTracksForPage: function(page) { \
+      if (typeof(this.pageMap[page]) != "undefined") { \
+        var toReturn = []; \
+        for (var url in this.pageMap[page]) { \
+          var tracks = this.getTracksForURL(url); \
+          if (tracks !== null && tracks.length > 0) { \
+            toReturn = toReturn.concat(tracks); \
+          } else { \
+            console.error("null for a subURL when getting memoized tracks for a page... should this be possible?"); \
+          } \
+        } \
+        return toReturn; \
+      } else { \
+        return []; \
       } \
     }, \
  \
@@ -325,9 +373,12 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
           delete this.urlMap[url]; \
           return null; \
         } \
-        return this.urlMap[url].tracks; \
-      } \
-      else { \
+        var toReturn = []; \
+        for (var trackURL in this.urlMap[url].tracks) { \
+          toReturn.push(this.urlMap[url].tracks[trackURL]); \
+        } \
+        return toReturn; \
+      } else { \
         return null; \
       } \
     }, \
@@ -341,6 +392,17 @@ Tapedeck.Backend.CassetteManager.CassettifyTemplate = {
         } \
       } \
     }, \
+ \
+    dumpTracks: function(tracks) { \
+      if (!tracks || tracks.length == 0) { \
+        console.log("  >> tracks is null or empty"); \
+        return; \
+      } \
+      for (var i = 0; i < tracks.length; i++) { \
+        var track = tracks[i]; \
+        console.log("  >> " + track.trackName + " - " + track.artistName); \
+      } \
+    },\
  \
   }); \
     '

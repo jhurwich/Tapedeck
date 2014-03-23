@@ -130,7 +130,6 @@ Tapedeck.Backend.Bank = {
             browseList.bind("change tracks", function() {
               Tapedeck.Backend.MessageHandler.pushBrowseTrackList(this);
             });
-
             continueInit();
           });
         });
@@ -1133,6 +1132,7 @@ Tapedeck.Backend.Bank = {
         Tapedeck.Backend.MessageHandler.pushBrowseTrackList(trackList);
       }
     };
+    trackList.unbind("all");
     trackList.bind("all", browseListChanged);
 
     // if we were specified cacheData, use that
@@ -1453,7 +1453,6 @@ Tapedeck.Backend.Bank = {
             sync.syncedLists[key] = allKeys[key];
           }
         }
-
         continueInit();
       }); // end sync.get();
     },
